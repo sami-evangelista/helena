@@ -1,0 +1,390 @@
+#! /bin/bash
+#
+#  File: helena
+#
+
+helenaDir=$HOME/.helena
+tmpDir=$HOME/.helena/tmp-$RANDOM
+gcc='/usr/bin/gcc -Wunused-result -Wformat -Wformat-security'
+
+#  executable names
+lnaGenerator=helena-generate
+dveGenerator=helena-generate-dve
+checkerGenerator=helena-generate-checker
+configGenerator=helena-generate-config
+propertyGenerator=helena-generate-property
+vectorsGenerator=helena-generate-vectors
+reporter=helena-report
+preProc=helena-pp
+
+xmlReportFile=report.xml
+xmlRgReportFile=rg-report.xml
+graphFile=graph.dat
+version=2.3
+versionFile=VERSION
+
+#  options to pass for basic compilation
+CCnoOpt="-pthread -lm"
+
+commonFiles="vectors"
+checkerSrcFiles="bfs bfs_queue buchi common config dfs dfs_stack event graph
+heap hash_array hash_storage observer pd4 prop pss random_walk report sbfs
+state simulator storage vectors"
+
+exitWithError () {
+    rm -rf $tmpDir &> /dev/null
+    exit 1
+}
+
+error () {
+    echo "error: "$* > /dev/stderr
+    exitWithError
+}
+
+msg () {
+    if [ $verbose -eq 1 ]
+    then
+	echo $*
+    fi
+}
+
+getModelDir () {
+    if [ z$modelDir != z ]
+    then
+	echo $modelDir/
+    elif [ z$language = z ]
+    then
+	error "\$language not set"
+    elif [ z$model = z ]
+    then
+	error "\$model not set"
+    else
+	echo $helenaDir/models/$language/$model/
+    fi
+}
+
+checkExecutable () {
+    ex=$1
+    which $ex &> /dev/null
+    if [ $? -ne 0 ]
+    then
+	msg="executable '"$ex"' could not be located"
+	msg=$msg" in your PATH environment variable."
+        error $msg
+	exitWithError
+    fi
+}
+
+createDirectory () {
+    dir=$1
+    if [ ! -d $dir ]
+    then
+	if [ ! $(mkdir $dir &> /dev/null) ]
+	then
+	    msg "create directory '"$dir"'"
+	else
+	    error "directory '"$dir"' could not be created"
+	fi
+    fi
+}
+
+createEnvironment () {
+    if [ -d $helenaDir -a -e $helenaDir/$versionFile ]
+    then
+	v=$(cat $helenaDir/$versionFile)
+	if [ "$v" != "$version" ]
+	then
+	    echo "new version of Helena ($v -> $version)"
+	    echo "-> reinitialisation of directory $helenaDir"
+	    rm -rf $helenaDir &> /dev/null
+	fi
+    fi
+    createDirectory $helenaDir
+    createDirectory $helenaDir/common
+    createDirectory $helenaDir/models
+    createDirectory $helenaDir/models/lna
+    createDirectory $helenaDir/models/dve
+    echo $version > $helenaDir/$versionFile
+}
+
+compileCFiles () {
+    local dir=$(getModelDir)/src
+    pushd $dir &> /dev/null
+    cp $helenaDir/common/* $(getModelDir)/src/ &> /dev/null
+    links=$initLinks
+    for f in $modelSrcFiles $checkerSrcFiles
+    do
+	if [ -e $f.c ]
+	then
+	    links=$links" "$f".o"
+	    if [ ! -e $f.o ]
+	    then
+		compileCmd="$CC -c $f.c"
+		msg "   > compile file "$f.c" ("$compileCmd")"
+		eval $compileCmd		
+		if [ ! $? -eq 0 ]
+		then
+		    error "compilation of file "$dir"/"$f".c failed"
+		fi
+	    fi
+	fi
+    done
+    compileCmd="$CC $links -o helena-checker main.c"
+    msg "   > compile file main.c ("$compileCmd")"
+    eval $compileCmd
+    if [ ! $? -eq 0 ]
+    then
+	error "compilation of file "$dir"/main.c failed"
+    fi
+    #  copy common files in the common directory
+    for f in $commonFiles
+    do
+	if [ -e $f.c -a -e $f.h -a -e $f.o ]
+	then
+	    cp $f.c $f.h $f.o $helenaDir/common/
+	fi
+    done
+    popd &> /dev/null
+}
+
+createMakefile () {
+    local dir=$(getModelDir)/src
+    pushd $dir &> /dev/null
+    links=$initLinks
+    makefile=makefile
+    makefileGP=makefile.gp
+    makefileVG=makefile.vg
+    echo "all:" > $makefile
+    echo "gnuprof:" > $makefileGP
+    echo "valgrind:" > $makefileVG
+    for f in $modelSrcFiles $checkerSrcFiles
+    do
+	if [ -e $f.c ]
+	then
+	    echo -e "\t$CC -c $f.c" >> $makefile
+	    echo -e "\t$CC_GP -c $f.c" >> $makefileGP
+	    echo -e "\t$CC_VG -c $f.c" >> $makefileVG
+	    links=$links" "$f".o"
+	fi
+    done
+    echo -e "\t$CC $links -o helena-checker main.c\n" >> $makefile
+    echo -e "\t$CC_GP $links -o helena-checker main.c\n" >> $makefileGP
+    echo -e "\t$CC_VG $links -o helena-checker main.c\n" >> $makefileVG
+    (cat $makefile $makefileGP $makefileVG > $makefile.tmp ;
+	mv $makefile.tmp $makefile ;
+	rm $makefileGP $makefileVG) &> /dev/null
+    (echo "report:" ;
+	echo -e "\tmake gnuprof" ;
+	echo -e "\t./helena-checker &> /dev/null" ;
+	echo -e "\techo \"======================\" >> report.txt" ;
+	echo -e "\techo \"==  GNUPROF REPORT  ==\" >> report.txt" ;
+	echo -e "\techo \"======================\" >> report.txt" ;
+	echo -e "\tgprof ./helena-checker >> report.txt" ;
+	echo -e "\techo \"\" >> report.txt" ;
+	echo -e "\techo \"\" >> report.txt" ;
+	echo -e "\techo \"\" >> report.txt" ;
+	echo -e "\techo \"=======================\" >> report.txt" ;
+	echo -e "\techo \"==  VALGRIND REPORT  ==\" >> report.txt" ;
+	echo -e "\techo \"=======================\" >> report.txt" ;
+	echo -e "\tmake valgrind" ;
+	echo -e "\tvalgrind ./helena-checker &>> report.txt" ;
+	echo -e "" ;
+	echo -e "clean:" ;
+	echo -e "\trm helena-checker *.o *~") >> $makefile
+    popd &> /dev/null
+}
+
+generateConfig () {
+    checkExecutable $configGenerator
+    $configGenerator $* $tmpDir || exitWithError
+}
+
+generateVectorsLib () {
+    checkExecutable $vectorsGenerator
+    $vectorsGenerator $tmpDir || exitWithError
+}
+
+generateLNA () {
+    checkExecutable $lnaGenerator
+    $lnaGenerator $* $tmpDir || exitWithError
+}
+
+generateDVE () {
+    checkExecutable $dveGenerator
+    $dveGenerator $* $tmpDir || exitWithError
+}
+
+generateChecker () {
+    checkExecutable $checkerGenerator
+    $checkerGenerator $tmpDir || exitWithError
+}
+
+launchChecker () {
+    local dir=$(getModelDir)/src
+    pushd $dir &> /dev/null
+    ./helena-checker comp-time $ccTime
+    if [ -e $xmlReportFile ]
+    then
+	mv $xmlReportFile ..
+    fi
+    if [ -e $xmlRgReportFile ]
+    then
+	mv $xmlRgReportFile ..
+    fi
+    if [ -e $graphFile ]
+    then
+	mv $graphFile ..
+    fi
+    popd &> /dev/null
+}
+
+###############################################################################
+
+#####
+#  options
+verbose=0
+reportFile=""
+
+for arg in $*
+do
+    case $arg in
+	-v|--verbose) verbose=1 ;;
+	-h|--help) $configGenerator -h dummy dummy ; exit 0 ;;
+	-V|--version) $configGenerator -V dummy dummy ; exit 0 ;;
+	-md=*|--model-directory=*)
+	idx=$(expr index $arg =)
+	modelDir=${arg:$idx}
+	;;
+	-o=*|--report-file=*)
+	idx=$(expr index $arg =)
+	reportFile=${arg:$idx}
+	;;
+    esac
+done
+
+#####
+#  check that model file exists and is readable
+modelFile=$arg
+if [ "$modelFile" = "" ]
+then
+    error "model file expected"
+fi
+if [ ! -f $modelFile -o ! -r $modelFile ]
+then
+    error "file $modelFile does not exist or is not readable"
+fi
+
+createEnvironment
+
+#####
+#  generate model source files
+mkdir $tmpDir
+msg "Generating model source files ..."
+generateConfig $*
+generateVectorsLib
+generateChecker
+if [ -f model-options ]
+then
+    modelOptions=$(cat model-options)
+    rm -rf model-options &> /dev/null
+else
+    modelOptions=""
+fi
+extension=$(echo $modelFile | awk -F "." '{print $NF}')
+case $extension in
+    lna)
+	language=lna
+	generateLNA $modelOptions $modelFile
+	;;
+    dve)
+	language=dve
+	CCnoOpt=$CCnoOpt" -fpack-struct"
+	generateDVE $modelFile
+	;;
+    *)
+	error "cannot determine type of input model"
+	;;
+esac
+
+#####
+#  get the model name, the C files generated for the model and the
+#  object files generated for the model
+if [ -f $tmpDir/MODEL -a -s $tmpDir/MODEL ]
+then
+    model=$(cat $tmpDir/MODEL)
+else
+    file=$(basename $modelFile)
+    model=${file%.*}
+fi
+if [ -f $tmpDir/SRC_FILES -a -s $tmpDir/SRC_FILES ]
+then
+    modelSrcFiles=$(cat $tmpDir/SRC_FILES)
+else
+    modelSrcFiles=""
+fi
+if [ -f $tmpDir/OBJ_FILES -a -s $tmpDir/OBJ_FILES ]
+then
+    modelObjFiles=$(cat $tmpDir/OBJ_FILES)
+else
+    modelObjFiles=""
+fi
+
+#####
+#  create the model directory and put in it files generated for the
+#  model
+if [ -e $(getModelDir) ]
+then
+    rm -rf $(getModelDir)
+fi
+createDirectory $(getModelDir)
+createDirectory $(getModelDir)/src
+mv $tmpDir/* $(getModelDir)/src
+rm -rf $tmpDir
+
+#####
+#  copy files to link (passed to helena with option --link) in the
+#  source directory of the model
+initLinks=$modelObjFiles
+num=0
+for arg in $*
+do
+    case $arg in
+	-L=*|--link=*)
+        idx=$(expr index $arg =)
+	inFile=${arg:$idx}
+	f=user_file_$num.o
+	num=$((num + 1))
+	cp $inFile $(getModelDir)/src/$f
+	initLinks=$initLinks" "$f
+	;;
+    esac
+done
+
+#####
+#  compilation of all files
+msg "Compiling source files ..."
+startSec=$(date +"%s")
+startNan=$(date +"%N")
+CC=$gcc" "$CCnoOpt" -O3"
+CC_GP=$gcc" "$CCnoOpt" -pg"
+CC_VG=$gcc" "$CCnoOpt" -O0 -g"
+cp $helenaDir/common/* $(getModelDir)/src/ &> /dev/null
+compileCFiles
+endSec=$(date +"%s")
+endNan=$(date +"%N")
+ccTime=$(echo "scale=2;$endSec-$startSec+($endNan-$startNan)/1000000000" | bc)
+createMakefile
+    
+#####
+#  execution and reporting
+launchChecker
+if [ -e $(getModelDir)/$xmlReportFile ]
+then
+    if [ ! -z "$reportFile" ]
+    then
+	cp $(getModelDir)/$xmlReportFile $reportFile
+    fi
+    checkExecutable $reporter
+    $reporter $(getModelDir)/$xmlReportFile
+fi
+exit 0

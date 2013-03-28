@@ -1,0 +1,1048 @@
+\newcommand\nonterm[1]{$\langle$\textit{#1}$\rangle$}
+\newcommand\term[1]{\textsc{'}{\bf \texttt{\lstinline{#1}}}\textsc{'}}
+\newcommand\isdef{::=}
+\newcommand\zeroormore[1]{({#1})\textsuperscript{*}}
+\newcommand\oneormore[1]{({#1})\textsuperscript{+}}
+\newcommand\optional[1]{[{#1}]}
+\newcommand\OR{$|$}
+\newcommand\emptytoken{$\epsilon$}
+
+%%%
+% net specification
+%%%
+\newcommand\netdef{
+  \begin{tabular}{lcl}
+    \nonterm{net} & \isdef &
+    \nonterm{net name}\\
+    && \optional{\term{(} \nonterm{net parameter list} \term{)}}\\
+    && \term{\{} \zeroormore{\nonterm{definition}} \term{\}}\\
+    
+    \nonterm{net name} & \isdef & \nonterm{name}\\
+    
+    \nonterm{definition} & \isdef & \nonterm{type}\\
+    & \OR & \nonterm{constant}\\
+    & \OR & \nonterm{function}\\
+    & \OR & \nonterm{place}\\
+    & \OR & \nonterm{transition}\\
+    & \OR & \nonterm{state proposition}
+  \end{tabular}
+}
+
+%%%
+% net parameters
+%%%
+\newcommand\netparametersdef{
+  \begin{tabular}{lcl}
+    \nonterm{net parameter list} & \isdef & \nonterm{net parameter}\\
+    & \OR & \nonterm{net parameter} \term{,} \nonterm{net parameter list}\\
+
+    \nonterm{net parameter} & \isdef & \nonterm{net parameter name}
+    \term{:=} \nonterm{number}\\
+    
+    \nonterm{net parameter name} & \isdef & \nonterm{name}
+  \end{tabular}
+}
+
+%%%
+% type definition
+%%%
+\newcommand\typedef{
+  \begin{tabular}{lcl}
+    \nonterm{type} & \isdef & \nonterm{type name} \term{:}
+    \nonterm{type definition} \term{;}\\
+    & \OR & \nonterm{subtype}\\
+    
+    \nonterm{type name} & \isdef & \nonterm{name}\\
+    
+    \nonterm{type definition} & \isdef & \nonterm{range type}\\
+    & \OR & \nonterm{modulo type}\\
+    & \OR & \nonterm{enumeration type}\\
+    & \OR & \nonterm{vector type}\\
+    & \OR & \nonterm{struct type}\\
+    & \OR & \nonterm{list type}\\
+    & \OR & \nonterm{set type}
+  \end{tabular}
+}
+
+%%%
+% range type
+%%%
+\newcommand\rangetypedef{
+  \begin{tabular}{lcl}
+    \nonterm{range type} & \isdef & \nonterm{range}\\
+    
+    \nonterm{range} & \isdef &
+    \term{range} \nonterm{expression}
+    \term{..} \nonterm{expression}
+  \end{tabular}
+}
+
+%%%
+% modulo type
+%%%
+\newcommand\modulotypedef{
+  \begin{tabular}{lcl}
+    \nonterm{modular type} & \isdef & \term{mod} \nonterm{expression}
+  \end{tabular}
+}
+
+%%%
+% enumeration type
+%%%
+\newcommand\enumerationtypedef{
+  \begin{tabular}{lcl}
+    \nonterm{enumeration type} & \isdef & \term{enum} \
+    \term{(} \nonterm{enumeration constant}
+    \zeroormore{\term{,} \nonterm{enumeration constant}} \term{)}\\
+    
+    \nonterm{enumeration constant} & \isdef & \nonterm{name}
+  \end{tabular}
+}
+
+%%%
+% vector type
+%%%
+\newcommand\vectortypedef{
+  \begin{tabular}{lcl}
+    \nonterm{vector type} & \isdef &
+    \term{vector} \term{[} \nonterm{index type list} \term{]}
+    \term{of} \nonterm{type name}\\
+    
+    \nonterm{index type list} & \isdef &
+    \nonterm{type name} \zeroormore{\term{,} \nonterm{type name}}
+  \end{tabular}
+}
+
+%%%
+% structured type
+%%%
+\newcommand\structuredtypedef{
+  \begin{tabular}{lcl}
+    \nonterm{struct type} & \isdef &
+    \term{struct} \term{\{} \oneormore{\nonterm{component}} \term{\}}\\
+    
+    \nonterm{component} & \isdef &
+    \nonterm{type name} \nonterm{component name} \term{;}\\
+    
+    \nonterm{component name} & \isdef &
+    \nonterm{name}
+  \end{tabular}
+}
+
+%%%
+% list type
+%%%
+\newcommand\listtypedef{
+  \begin{tabular}{lcl}
+    \nonterm{list type} & \isdef &
+    \term{list} \term{[} \nonterm{type name} \term{]}
+    \term{of} \nonterm{type name} \term{with} \term{capacity}
+    \nonterm{expression}
+  \end{tabular}
+}
+
+%%%
+% set type
+%%%
+\newcommand\settypedef{
+  \begin{tabular}{lcl}
+    \nonterm{set type} & \isdef &
+    \term{set} \term{of} \nonterm{type name} \term{with} \term{capacity}
+    \nonterm{expression}
+  \end{tabular}
+}
+
+%%%
+% subtype
+%%%
+\newcommand\subtypedef{
+  \begin{tabular}{lcl}
+    \nonterm{subtype} & \isdef &
+    \nonterm{subtype name} \term{:} \nonterm{parent name}
+    \optional{\nonterm{constraint}}\\
+    
+    \nonterm{subtype name} & \isdef & \nonterm{type name}\\
+    
+    \nonterm{parent name} & \isdef & \nonterm{type name}\\
+    
+    \nonterm{constraint} & \isdef & \nonterm{range}
+  \end{tabular}
+}
+
+%%%
+% constant
+%%%
+\newcommand\constantdef{
+  \begin{tabular}{lcl}
+    \nonterm{constant} & \isdef &
+    \term{constant} \nonterm{type name}
+    \nonterm{constant name} \term{:=}
+    \nonterm{expression} \term{;}\\
+
+    \nonterm{constant name} & \isdef &
+    \nonterm{name}
+  \end{tabular}
+}
+
+%%%
+% place
+%%%
+\newcommand\placedef{
+  \begin{tabular}{lcl}
+    \nonterm{place} & \isdef &
+    \term{place} \nonterm{place name}
+    \term{\{} \nonterm{place domain}
+    \zeroormore{\nonterm{place attribute}} \term{\}}\\
+
+    \nonterm{place attribute} & \isdef &
+    \nonterm{initial marking}\\
+    & \OR & \nonterm{capacity}\\
+    & \OR & \nonterm{place type}
+\end{tabular}
+}
+
+%%%
+% place domain
+%%%
+\newcommand\placedomaindef{
+  \begin{tabular}{lcl}
+    \nonterm{domain} & \isdef &
+    \term{dom} \term{:} \nonterm{domain definition} \term{;}\\
+    
+    \nonterm{domain definition} & \isdef & \term{epsilon}\\
+    & \OR & \nonterm{types product}\\
+    
+    \nonterm{types product} & \isdef & \nonterm{type name}
+    \zeroormore{\term{*} \nonterm{type name}}
+\end{tabular}
+}
+
+%%%
+% place initial marking
+%%%
+\newcommand\initialmarkingdef{
+  \begin{tabular}{lcl}
+    \nonterm{initial marking} & \isdef &
+    \term{init} \term{:} \nonterm{marking} \term{;}\\
+
+    \nonterm{marking} & \isdef &
+    \nonterm{arc label}
+  \end{tabular}
+}
+
+%%%
+% place capacity
+%%%
+\newcommand\capacitydef{
+  \begin{tabular}{lcl}
+    \nonterm{capacity} & \isdef &
+    \term{capacity} \term{:} \nonterm{expression} \term{;}
+  \end{tabular}
+}
+
+%%%
+% place type
+%%%
+\newcommand\placetypedef{
+  \begin{tabular}{lcl}
+    \nonterm{place type} & \isdef &
+    \term{type} \term{:} \nonterm{place type name} \term{;}\\
+    
+    \nonterm{place type name} & \isdef &
+    \term{process}\\
+    & \OR & \term{local}\\
+    & \OR & \term{shared}\\
+    & \OR & \term{protected}\\
+    & \OR & \term{buffer}\\
+    & \OR & \term{ack}
+\end{tabular}
+}
+
+%%%
+% transition
+%%%
+\newcommand\transitiondef{
+  \begin{tabular}{lcl}
+    \nonterm{transition} & \isdef &
+    \term{transition} \nonterm{transition name}\\
+    & &
+    \term{\{}
+    \nonterm{transition inputs}\\
+    & &
+    \nonterm{transition outputs}\\
+    & &
+    \optional{\nonterm{transition inhibitors}}\\
+    & &
+    \optional{\nonterm{transition free variables}}\\
+    & &
+    \optional{\nonterm{transition bound variables}}\\
+    & &
+    \zeroormore{\nonterm{transition attribute}} \term{\}}\\
+    
+    \nonterm{transition name} & \isdef &
+    \nonterm{name}\\
+    
+    \nonterm{transition inputs} & \isdef &
+    \term{in} \term{\{} \zeroormore{\nonterm{arc} } \term{\}}\\
+    
+    \nonterm{transition outputs} & \isdef &
+    \term{out} \term{\{} \zeroormore{\nonterm{arc} } \term{\}}\\
+    
+    \nonterm{transition inhibitors} & \isdef &
+    \term{inhibit} \term{\{} \zeroormore{\nonterm{arc} } \term{\}}\\
+    
+    \nonterm{transition attribute} & \isdef &
+    \nonterm{transition guard}\\
+    & \OR & \nonterm{transition priority}\\
+    & \OR & \nonterm{transition description}\\
+    & \OR & \nonterm{safe}
+  \end{tabular}
+}
+
+
+%%%
+% arc
+%%%
+\newcommand\arcdef{
+  \begin{tabular}{lcl}
+    \nonterm{arc} & \isdef &
+    \nonterm{place name} \term{:} \nonterm{arc label} \term{;}\\
+  \end{tabular}
+}
+
+
+%%%
+% free variables
+%%%
+\newcommand\freevariablesdef{
+  \begin{tabular}{lcl}
+    \nonterm{transition free variables} & \isdef &
+    \term{pick} \term{\{} \zeroormore{\nonterm{free variable}} \term{\}}\\
+    
+    \nonterm{free variable} & \isdef &
+    \nonterm{free variable name} \term{in}
+    \nonterm{free variable domain}\\
+    
+    \nonterm{free variable domain} & \isdef &
+    \nonterm{type name} \optional{\nonterm{range}}\\
+    & \OR & \nonterm{expression}\\
+  \end{tabular}
+}
+
+
+%%%
+% bound variables
+%%%
+\newcommand\boundvariablesdef{
+  \begin{tabular}{lcl}
+    \nonterm{transition bound variables} & \isdef &
+    \term{let} \term{\{} \zeroormore{\nonterm{transition bound variable}} \term{\}}\\
+    
+    \nonterm{transition bound variable} & \isdef &
+    \nonterm{type name} \nonterm{variable name}
+    \term{:=} \nonterm{expression} \term{;}\\
+  \end{tabular}
+}
+
+
+%%%
+% transition guard
+%%%
+\newcommand\guarddef{
+  \begin{tabular}{lcl}
+    \nonterm{transition guard} & \isdef &
+    \term{guard} \term{:} \nonterm{guard definition} \term{;}\\
+    
+    \nonterm{guard definition} & \isdef &
+    \nonterm{expression}
+  \end{tabular}
+}
+
+
+%%%
+% transition priority
+%%%
+\newcommand\prioritydef{
+  \begin{tabular}{lcl}
+    \nonterm{transition priority} & \isdef &
+    \term{priority} \term{:} \nonterm{expression} \term{;}\\
+  \end{tabular}
+}
+
+
+%%%
+% transition description
+%%%
+\newcommand\descriptiondef{
+  \begin{tabular}{lcl}
+    \nonterm{transition description} & \isdef &
+    \term{description} \term{:} \nonterm{string} \optional{ \term{;} \nonterm{non empty expression list}} \term{;}\\
+  \end{tabular}
+}
+
+
+%%%
+% safe
+%%%
+\newcommand\safedef{
+  \begin{tabular}{lcl}
+    \nonterm{safe} & \isdef &
+    \term{safe} \term{;}
+  \end{tabular}
+}
+
+
+
+%%%
+% function
+%%%
+\newcommand\functiondef{
+  \begin{tabular}{lcl}
+    \nonterm{function} & \isdef &
+    \nonterm{function declaration}\\
+    & \OR & \nonterm{function body}\\
+
+    \nonterm{function prototype} & \isdef &
+    \term{function} \nonterm{function name}\\
+    & & \term{(} \nonterm{parameters specification} \term{)}
+    \term{->} \nonterm{type name}\\
+
+    \nonterm{function declaration} & \isdef &
+    \nonterm{function prototype} \term{;}\\
+
+    \nonterm{function body} & \isdef &
+    \term{import} \nonterm{function prototype} \term{;}\\
+    & \OR & \nonterm{function prototype} \nonterm{statement}\\
+
+    \nonterm{parameters specification} & \isdef &
+    \optional{\nonterm{parameter specification}
+      \zeroormore{\term{,} \nonterm{parameter specification}}}\\
+    
+    \nonterm{parameter specification} & \isdef &
+    \nonterm{type name} \nonterm{parameter name}\\
+    
+    \nonterm{function name} & \isdef &
+    \nonterm{name}\\
+
+    \nonterm{parameter name} & \isdef &
+    \nonterm{name}
+  \end{tabular}
+}
+
+%%%
+% statement
+%%%
+\newcommand\statementdef{
+  \begin{tabular}{lcl}
+    \nonterm{statement} & \isdef &
+    \nonterm{assignment}\\
+    & \OR & \nonterm{if statement}\\
+    & \OR & \nonterm{case statement}\\
+    & \OR & \nonterm{while statement}\\
+    & \OR & \nonterm{for statement}\\
+    & \OR & \nonterm{return statement}\\
+    & \OR & \nonterm{assert statement}\\
+    & \OR & \nonterm{block}
+  \end{tabular}
+}
+
+%%%
+% assignment
+%%%
+\newcommand\assignmentdef{
+  \begin{tabular}{lcl}
+    \nonterm{assignment} & \isdef &
+    \nonterm{variable} \term{:=} \nonterm{expression} \term{;}
+  \end{tabular}
+}
+
+%%%
+% if statement
+%%%
+\newcommand\ifdef{
+  \begin{tabular}{lcl}
+    \nonterm{if statement} & \isdef &
+    \term{if} \term{(} \nonterm{expression} \term{)}
+    \nonterm{true statement}
+    \optional{\term{else} \nonterm{false statement}}\\
+    
+    \nonterm{true statement} & \isdef &
+    \nonterm{statement}\\
+
+    \nonterm{false statement} & \isdef &
+    \nonterm{statement}
+  \end{tabular}
+}
+
+%%%
+% case statement
+%%%
+\newcommand\casedef{
+  \begin{tabular}{lcl}
+    \nonterm{case statement} & \isdef &
+    \term{case} \term{(} \nonterm{expression} \term{)}
+    \term{\{}
+    \zeroormore{\nonterm{case alternative}}
+    \optional{\nonterm{default alternative}}
+    \term{\}}\\
+    
+    \nonterm{case alternative} & \isdef &
+    \nonterm{expression} \term{:} \nonterm{statement}\\
+    
+    \nonterm{default alternative} & \isdef &
+    \term{default} \term{:} \nonterm{statement}
+  \end{tabular}
+}
+
+%%%
+% while statement
+%%%
+\newcommand\whiledef{
+  \begin{tabular}{lcl}
+    \nonterm{while statement} & \isdef &
+    \term{while} \term{(} \nonterm{expression} \term{)}
+    \nonterm{statement}
+  \end{tabular}
+}
+
+%%%
+% for statement
+%%%
+\newcommand\fordef{
+  \begin{tabular}{lcl}
+    \nonterm{for statement} & \isdef &
+    \term{for} \term{(} \nonterm{iteration scheme} \term{)}
+    \nonterm{statement}\\
+    
+    \nonterm{iteration scheme} & \isdef &
+    \nonterm{iteration variable}
+    \optional{\term{,} \nonterm{iteration variable}}\\
+    
+    \nonterm{iteration variable} & \isdef &
+    \nonterm{variable name} \term{in} \nonterm{type name}
+    \optional{\nonterm{range}}\\
+    & \OR & \nonterm{variable name} \term{in} \nonterm{place name}\\
+    & \OR & \nonterm{variable name} \term{in} \nonterm{expression}
+  \end{tabular}
+}
+
+%%%
+% return statement
+%%%
+\newcommand\returndef{
+  \begin{tabular}{lcl}
+    \nonterm{return statement} & \isdef &
+    \term{return} \nonterm{expression} \term{;}
+  \end{tabular}
+}
+
+%%%
+% assert statement
+%%%
+\newcommand\assertstatdef{
+  \begin{tabular}{lcl}
+    \nonterm{assert statement} & \isdef & \nonterm{assert}
+  \end{tabular}
+}
+
+%%%
+% block
+%%%
+\newcommand\blockdef{
+  \begin{tabular}{lcl}
+    \nonterm{block} & \isdef &
+    \term{\{}
+    \zeroormore{\nonterm{declaration}}
+    \oneormore{\nonterm{statement}}
+    \term{\}}\\
+    
+    \nonterm{declaration} & \isdef &
+    \nonterm{constant declaration}\\
+    & \OR & \nonterm{variable declaration}\\
+    
+    \nonterm{variable declaration} & \isdef &
+    \nonterm{type name} \nonterm{variable name}
+    \optional{\term{:=} \nonterm{expression}} \term{;}\\
+    
+    \nonterm{variable name} & \isdef &
+    \nonterm{name}
+  \end{tabular}
+}
+
+
+
+%%%
+% expression
+%%%
+\newcommand\expressiondef{
+  \begin{tabular}{lclll}
+    \nonterm{expression} & \isdef &
+    \term{(} \nonterm{expression} \term{)}
+    & \OR & \nonterm{numerical constant}\\
+    & \OR & \nonterm{enumeration constant}
+    & \OR & \nonterm{variable}\\
+    & \OR & \nonterm{predecessor-successor operation}
+    & \OR & \nonterm{integer operation}\\
+    & \OR & \nonterm{comparison operation}
+    & \OR & \nonterm{boolean operation}\\
+    & \OR & \nonterm{function call}
+    & \OR & \nonterm{cast}\\
+    & \OR & \nonterm{if-then-else}
+    & \OR & \nonterm{structure}\\
+    & \OR & \nonterm{structure component}
+    & \OR & \nonterm{structure assignment}\\
+    & \OR & \nonterm{vector}
+    & \OR & \nonterm{vector component}\\
+    & \OR & \nonterm{vector assignment}
+    & \OR & \nonterm{empty list}\\
+    & \OR & \nonterm{list}
+    & \OR & \nonterm{list component}\\
+    & \OR & \nonterm{list assignment}
+    & \OR & \nonterm{list slice}\\
+    & \OR & \nonterm{list concatenation}
+    & \OR & \nonterm{list membership}\\
+    & \OR & \nonterm{empty set}
+    & \OR & \nonterm{set}\\
+    & \OR & \nonterm{set membership}
+    & \OR & \nonterm{set operation}\\
+    & \OR & \nonterm{token component}
+    & \OR & \nonterm{attribute}\\
+    & \OR & \nonterm{iterator}\\
+
+    \nonterm{expression list} & \isdef &
+    \emptytoken\\
+    & \OR & \nonterm{non empty expression list}\\
+    
+    \nonterm{non empty expression list} & \isdef &
+    \nonterm{expression}
+    \zeroormore{\term{,} \nonterm{expression}}
+  \end{tabular}
+}
+
+%%%
+% constant
+%%%
+\newcommand\constantexpressiondef{
+  \begin{tabular}{lcl}
+    \nonterm{numerical constant} & \isdef &
+    \nonterm{number}\\
+    
+    \nonterm{enumeration constant} & \isdef &
+    \nonterm{name}
+  \end{tabular}
+}
+
+%%%
+% predecessor-successor operation
+%%%
+\newcommand\predsuccoperationdef{
+  \begin{tabular}{lcll}
+    \nonterm{predecessor-successor operation} & \isdef &
+    \term{pred} & \nonterm{expression}\\
+    & \OR & \term{succ} & \nonterm{expression}
+  \end{tabular}
+}
+
+%%%
+% integer operation
+%%%
+\newcommand\integeroperationdef{
+  \begin{tabular}{lclcl}
+    \nonterm{integer operation}
+    & \isdef & \nonterm{expression} & \term{+}  & \nonterm{expression}\\
+    & \OR    & \nonterm{expression} & \term{-}  & \nonterm{expression}\\
+    & \OR    & \nonterm{expression} & \term{*}  & \nonterm{expression}\\
+    & \OR    & \nonterm{expression} & \term{/}  & \nonterm{expression}\\
+    & \OR    & \nonterm{expression} & \term{\%} & \nonterm{expression}\\
+    & \OR    &                      & \term{+}  & \nonterm{expression}\\
+    & \OR    &                      & \term{-}  & \nonterm{expression}
+  \end{tabular}
+}
+
+%%%
+% comparison operation
+%%%
+\newcommand\comparisonoperationdef{
+  \begin{tabular}{lclcl}
+    \nonterm{comparison operation} & \isdef &
+    \nonterm{expression} & \term{=} & \nonterm{expression}\\
+    & \OR & \nonterm{expression} & \term{!=} & \nonterm{expression}\\
+    & \OR & \nonterm{expression} & \term{>}  & \nonterm{expression}\\
+    & \OR & \nonterm{expression} & \term{>=} & \nonterm{expression}\\
+    & \OR & \nonterm{expression} & \term{<}  & \nonterm{expression}\\
+    & \OR & \nonterm{expression} & \term{<=} & \nonterm{expression}\\
+  \end{tabular}
+}
+
+%%%
+% boolean operation
+%%%
+\newcommand\booleanoperationdef{
+  \begin{tabular}{lclcl}
+    \nonterm{boolean operation}
+    & \isdef & \nonterm{expression} & \term{or}  & \nonterm{expression}\\
+    & \OR    & \nonterm{expression} & \term{and} & \nonterm{expression}\\
+    & \OR    &                      & \term{not} & \nonterm{expression}
+  \end{tabular}
+}
+
+%%%
+% variable
+%%%
+\newcommand\variabledef{
+  \begin{tabular}{lcl}
+    \nonterm{variable} & \isdef &
+    \nonterm{variable name}\\
+    & \OR & \nonterm{structure component}\\
+    & \OR & \nonterm{vector component}\\
+    & \OR & \nonterm{list component}
+  \end{tabular}
+}
+
+%%%
+% structure
+%%%
+\newcommand\structuredef{
+  \begin{tabular}{lcl}
+    \nonterm{structure} & \isdef &
+    \term{\{} \nonterm{non empty expression list} \term{\}}\\
+    
+    \nonterm{structure component} & \isdef &
+    \nonterm{variable} \term{.} \nonterm{component name}\\
+    
+    \nonterm{structure assignment} & \isdef &
+    \nonterm{expression} \term{::}
+    \term{(}
+    \nonterm{component name} \term{:=} \nonterm{expression}
+    \term{)}
+  \end{tabular}
+}
+
+%%%
+% vector
+%%%
+\newcommand\vectordef{  
+  \begin{tabular}{lcl}
+    \nonterm{vector} & \isdef &
+    \term{[} \nonterm{non empty expression list} \term{]}\\
+
+    \nonterm{vector component} & \isdef &
+    \nonterm{variable}
+    \term{[} \nonterm{non empty expression list} \term{]}\\
+    
+    \nonterm{vector assignment} & \isdef &    
+    \nonterm{expression} \term{::}
+    \term{(}
+    \term{[} \nonterm{non empty expression list} \term{]}
+    \term{:=} \nonterm{expression}
+    \term{)}
+  \end{tabular}
+}
+
+%%%
+% list
+%%%
+\newcommand\listdef{  
+  \begin{tabular}{lcl}
+    \nonterm{empty list} & \isdef & \term{empty}\\
+
+    \nonterm{list} & \isdef &
+    \term{|} \nonterm{non empty expression list} \term{|}\\
+
+    \nonterm{list component} & \isdef &
+    \nonterm{variable}
+    \term{[} \nonterm{expression} \term{]}\\
+    
+    \nonterm{list assignment} & \isdef &    
+    \nonterm{expression} \term{::}
+    \term{(}
+    \term{[} \nonterm{expression} \term{]} \term{:=} \nonterm{expression}
+    \term{)}\\
+    
+    \nonterm{list slice} & \isdef &
+    \nonterm{expression}
+    \term{[} \nonterm{expression}  \term{..} \nonterm{expression} \term{]}\\
+    
+    \nonterm{list concatenation} & \isdef &
+    \nonterm{expression} \term{&} \nonterm{expression}\\
+    
+    \nonterm{list membership} & \isdef &
+    \nonterm{expression} \term{in} \nonterm{expression}
+  \end{tabular}
+}
+
+%%%
+% set
+%%%
+\newcommand\setdef{  
+  \begin{tabular}{lclcl}
+    \nonterm{empty set} & \isdef &
+    \multicolumn{3}{l}{
+      \term{empty}
+    }\\
+
+    \nonterm{set} & \isdef &
+    \multicolumn{3}{l}{
+      \term{|} \nonterm{non empty expression list} \term{|}
+    }\\
+
+    \nonterm{set membership}
+    & \isdef & \nonterm{expression} & \term{in} & \nonterm{expression}\\
+
+    \nonterm{set operation}
+    & \isdef & \nonterm{expression} & \term{or}  & \nonterm{expression}\\
+    & \OR    & \nonterm{expression} & \term{and} & \nonterm{expression}\\
+    & \OR    & \nonterm{expression} & \term{-}   & \nonterm{expression}\\
+  \end{tabular}
+}
+
+%%%
+% function call
+%%%
+\newcommand\functioncalldef{
+  \begin{tabular}{lcl}
+    \nonterm{function call} & \isdef &
+    \nonterm{function name}
+    \term{(} \nonterm{expression list} \term{)}
+  \end{tabular}
+}
+
+%%%
+% cast
+%%%
+\newcommand\castdef{
+  \begin{tabular}{lcl}
+    \nonterm{cast} & \isdef &
+    \nonterm{type name}
+    \term{(} \nonterm{expression} \term{)}
+  \end{tabular}
+}
+
+%%%
+% cast
+%%%
+\newcommand\ifthenelsedef{
+  \begin{tabular}{lcl}
+    \nonterm{if-then-else} & \isdef &
+    \nonterm{condition} \term{?} \nonterm{true expression} \term{:}
+    \nonterm{false expression}\\
+    
+    \nonterm{condition} & \isdef &
+    \nonterm{expression}\\
+    
+    \nonterm{true expression} & \isdef &
+    \nonterm{expression}\\
+    
+    \nonterm{false expression} & \isdef &
+    \nonterm{expression}
+  \end{tabular}
+}
+
+%%%
+% token component
+%%%
+\newcommand\tokencomponentdef{
+  \begin{tabular}{lcl}
+    \nonterm{token component} & \isdef &
+    \nonterm{token} \term{->} \nonterm{component number}\\
+    
+    \nonterm{token} & \isdef &
+    \nonterm{variable name}\\
+    
+    \nonterm{component number} & \isdef &
+    \nonterm{number}
+  \end{tabular}
+}
+
+%%%
+% attribute
+%%%
+\newcommand\attributedef{
+  \begin{tabular}{lcllllll}
+    \nonterm{attribute} & \isdef &
+    \multicolumn{5}{l}{
+      \nonterm{type name} \term{'} \nonterm{type attribute}
+    }\\
+    & \OR &
+    \multicolumn{5}{l}{
+      \nonterm{place name} \term{'} \nonterm{place attribute}
+    }\\
+    & \OR & 
+    \multicolumn{5}{l}{
+      \nonterm{expression} \term{'} \nonterm{container attribute}
+    }\\
+    & \OR &
+    \multicolumn{5}{l}{
+      \nonterm{expression} \term{'} \nonterm{list attribute}
+    }\\
+
+    \nonterm{type attribute}
+    & \isdef & \term{first}
+    & \OR    & \term{last}
+    & \OR    & \term{card}\\
+    
+    \nonterm{place attribute}
+    & \isdef & \term{card}
+    & \OR    & \term{mult}\\
+    
+    \nonterm{container attribute}
+    & \isdef & \term{full}
+    & \OR    & \term{empty}
+    & \OR    & \term{capacity}\\
+    & \OR    & \term{size}
+    & \OR    & \term{space}\\
+    
+    \nonterm{list attribute}
+    & \isdef & \term{first}
+    & \OR    & \term{first_index}
+    & \OR    & \term{prefix}\\
+    & \OR    & \term{last}
+    & \OR    & \term{last_index}
+    & \OR    & \term{suffix}
+  \end{tabular}
+}
+
+%%%
+% iterator
+%%%
+\newcommand\iteratordef{
+\begin{tabular}{lcl}
+    \nonterm{iterator} & \isdef &
+    \nonterm{iterator type}
+    \term{(}
+    \nonterm{iteration scheme}
+    \optional{\nonterm{iterator condition}}
+    \optional{\nonterm{iterator expression}}
+    \term{)}\\
+
+    \nonterm{iterator type} & \isdef &
+    \term{forall}
+    \ \OR \ \term{exists}
+    \ \OR \ \term{card}
+    \ \OR \ \term{mult}
+    \ \OR \ \term{min}
+    \ \OR \ \term{max} 
+    \ \OR \ \term{sum} 
+    \ \OR \ \term{product}\\
+    
+    \nonterm{iterator condition} & \isdef &
+    \term{|} \nonterm{expression}\\
+
+    \nonterm{iterator expression} & \isdef &
+   \term{:} \nonterm{expression}
+\end{tabular}
+}
+
+%%%
+% arc label
+%%%
+\newcommand\arclabeldef{
+  \begin{tabular}{lcl}
+    \nonterm{arc label} & \isdef &
+    \nonterm{complex tuple} \zeroormore{\term{+} \nonterm{complex tuple}}
+  \end{tabular}
+}
+
+%%%
+% complex tuple
+%%%
+\newcommand\tupledef{
+  \begin{tabular}{lcl}
+    \nonterm{complex tuple} & \isdef &
+    \optional{\nonterm{tuple for}}
+    \optional{\nonterm{tuple guard}}
+    \optional{\nonterm{tuple factor}}
+    \nonterm{tuple}\\
+    
+    \nonterm{tuple for} & \isdef &
+    \term{for} \term{(} \nonterm{iteration scheme} \term{)}\\
+
+    \nonterm{tuple guard} & \isdef &
+    \term{if} \term{(} \nonterm{expression} \term{)}\\
+    
+    \nonterm{tuple factor} & \isdef &
+    \nonterm{expression} \term{*}\\
+    
+    \nonterm{tuple} & \isdef &
+    \term{<(} \nonterm{non empty expression list} \term{)>}\\
+    & \OR & \term{epsilon}
+  \end{tabular}
+}
+
+%%%
+% state proposition
+%%%
+\newcommand\statepropositiondef{
+  \begin{tabular}{lcl}
+    \nonterm{state proposition} & \isdef &
+    \term{proposition} \nonterm{state proposition name} \term{:}
+    \nonterm{expression} \term{;}\\
+
+    \nonterm{state proposition name} & \isdef &
+    \nonterm{name}
+  \end{tabular}
+}
+
+%%%
+% property specification
+%%%
+\newcommand\propertyspecificationdef{
+  \begin{tabular}{lcl}
+    \nonterm{property specification} & \isdef &
+    \zeroormore{\nonterm{property}}\\
+
+    \nonterm{property}
+    & \isdef & \nonterm{state property}\\
+    & \OR    & \nonterm{temporal property}
+  \end{tabular}
+}
+
+%%%
+% state property
+%%%
+\newcommand\statepropertydef{
+  \begin{tabular}{lcl}
+    \nonterm{state property} & \isdef &
+    \term{state} \term{property} \nonterm{property name}
+    \term{:} \nonterm{state property definition}\\
+
+    \nonterm{property name} & \isdef &
+    \nonterm{name}\\
+
+    \nonterm{state property definition} & \isdef &
+    \nonterm{reject clause} \zeroormore{\nonterm{accept clause}}\\
+
+    \nonterm{reject clause} & \isdef &
+    \term{reject} \nonterm{predicate} \term{;}\\
+
+    \nonterm{accept clause} & \isdef &
+    \term{accept} \nonterm{predicate} \term{;}\\
+
+    \nonterm{predicate} & \isdef &
+    \term{deadlock}\\
+    & \OR & \nonterm{state proposition name}
+  \end{tabular}
+}
+
+%%%
+% temporal property
+%%%
+\newcommand\temporalpropertydef{
+  \begin{tabular}{lcl}
+    \nonterm{temporal property}
+    & \isdef & \term{ltl} \term{property} \nonterm{property name}
+    \term{:} \nonterm{temporal expression} \term{;}\\
+
+    \nonterm{temporal expression}
+    & \isdef & \term{(} \nonterm{temporal expression} \term{)}\\
+    & \OR    & \term{true}\\
+    & \OR    & \term{false}\\
+    & \OR    & \nonterm{state proposition name}\\
+    & \OR    & \term{not} \nonterm{temporal expression}\\
+    & \OR    & \nonterm{temporal expression} \term{or} \nonterm{temporal expression}\\
+    & \OR    & \nonterm{temporal expression} \term{and} \nonterm{temporal expression}\\
+    & \OR    & \term{[]} \nonterm{temporal expression}\\
+    & \OR    & \term{<>} \nonterm{temporal expression}\\
+    & \OR    & \nonterm{temporal expression} \term{until} \nonterm{temporal expression}
+  \end{tabular}
+}

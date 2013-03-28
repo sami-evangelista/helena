@@ -1,0 +1,275 @@
+/******************************************************************************
+*
+*  Example file of the Helena distribution
+*
+*  File  : lookup_processors.lna
+*  Author: Sami Evangelista
+*  Date  : 01 feb. 2007
+*  Source:
+*     Hardware Router's Lookup Machine and its Formal Verification.
+*     David Antos, Vojtech Rehak and Jan Korenek. In ICN'2004
+*     Conference. ISBN 0-86341-325-0, pp. 1002-1007.
+*
+*  Our model consists of N+1 synchronous modules - N lookup processors
+*  and a "timer".  The "timer" counts time slots (each is 10 ns long in
+*  reality) modulo N in variable "time".  Lookup processors simulate N
+*  lookup processors sharing CAM and SRAM.  Each lookup processor can be
+*  in one of six states; a processor can change state only when the
+*  variable "time" is equal to its rank.  Meaning and behavior of each
+*  state is as follows: The "sleep" state simulates behavior of a
+*  processor with empty input buffer.  Subsequent state depends on
+*  whether any packet comes and whether CAM is not in use by another
+*  machine.  If no packet comes then the lookup processor remains in
+*  "sleep" else lookup processor changes to "wait" or "loadData" state.
+*  The choice of "wait" or "loadData" depends on whether CAM is in use
+*  by another machine or not.  The processor is in "wait" state if it
+*  wants to start processing of a packet but CAM is busy.  Remaining in
+*  "wait" depends on availability of CAM.  If CAM is free, the next state
+*  is "loadData".  The "loadData" state represents the critical section
+*  of CAM sharing - loading data into CAM.  The next state is "latency1".
+*  States "latency1" and  "latency2" represent only waiting for result.
+*  In addition, "latency2" includes the finishing SRAM time slot.
+*  "Latency2" is followed by a sequence of "comp" states.  The "comp"
+*  states simulate computation using SRAM.  A "comp" state corresponds to
+*  performing one instruction; in the end of the processing SRAM is
+*  accessed.  The number of instructions is not limited.  It is obvious
+*  that the next states are "comp", "sleep", "wait", and "loadData".  We
+*  abstract away from the emptiness of the input buffer and the number of
+*  instructions in computation using SRAM.  It means that each decision
+*  based on that features is replaced by a non-deterministic choice.
+*  There are no restrictions on the choice.  The described (and verified)
+*  model is therefore a bit more general than reality.  It allows the
+*  input buffer to be empty forever or even to stay in "comp" states
+*  infinitely.
+*
+*  Define symbol TIMER if you wish to enable a global clock which
+*  specifies which processor must execute.
+*  
+******************************************************************************/
+
+
+lookup_processors (N := 5) {  /*  N = number of processors  */
+
+   type id : mod N;
+
+#ifdef TIMER
+   ///////////
+   //
+   //  the timer specifies the id of the next processor to execute
+   //
+   ///////////
+   place timer  { dom : id; init: <( id'first )>;}
+#endif
+
+
+
+   ///////////
+   //
+   //  process places of the processors
+   //
+   ///////////
+
+   place sleep    { dom : id; init: for(i in id) <( i )>; }
+   place wait     { dom : id; }
+   place loadData { dom : id; }
+   place latency1 { dom : id; }
+   place latency2 { dom : id; }
+   place comp     { dom : id; }
+
+
+
+   ///////////
+   //
+   //  the mutex specifies if there is some processor in state loadData
+   //
+   ///////////
+
+   place mutex { dom: epsilon; init: epsilon; }
+
+
+
+   ///////////
+   //
+   //  transitions
+   //
+   ///////////
+
+   transition sleepToSleep {
+     in  {
+        sleep: <( i )>;
+#ifdef TIMER
+        timer: <( i )>;
+#endif
+     }
+     out {
+        sleep: <( i )>;
+#ifdef TIMER
+        timer: <( succ i )>;
+#endif
+     }
+   }
+   transition sleepToLoadData {
+     in  {
+        sleep: <( i )>;
+        mutex: epsilon;
+#ifdef TIMER
+        timer: <( i )>;
+#endif
+     }
+     out {
+        loadData: <( i )>;
+#ifdef TIMER
+        timer: <( succ i )>;
+#endif
+     }
+   }
+   transition sleepToWait {
+     in  {
+        sleep   : <( i )>;
+        loadData: <( j )>;
+#ifdef TIMER
+        timer   : <( i )>;
+#endif
+     }
+     out {
+        wait    : <( i )>;
+        loadData: <( j )>;
+#ifdef TIMER
+        timer: <( succ i )>;
+#endif
+     }
+   }
+   transition waitToWait {
+     in  {
+        wait    : <( i )>;
+        loadData: <( j )>;
+#ifdef TIMER
+        timer   : <( i )>;
+#endif
+     }
+     out {
+        wait    : <( i )>;
+        loadData: <( j )>;
+#ifdef TIMER
+        timer: <( succ i )>;
+#endif
+     }
+   }
+   transition waitToLoadData {
+     in  {
+        wait : <( i )>;
+#ifdef TIMER
+        timer: <( i )>;
+#endif
+        mutex: epsilon;
+     }
+     out {
+        loadData: <( i )>;
+#ifdef TIMER
+        timer: <( succ i )>;
+#endif
+     }
+   }
+   transition loadDataToLatency1 {
+     in  {
+        loadData : <( i )>;
+#ifdef TIMER
+        timer    : <( i )>;
+#endif
+     }
+     out {
+        latency1: <( i )>;
+#ifdef TIMER
+        timer: <( succ i )>;
+#endif
+        mutex   : epsilon;
+     }
+   }
+   transition latency1ToLatency2 {
+     in  {
+        latency1: <( i )>;
+#ifdef TIMER
+        timer   : <( i )>;
+#endif
+     }
+     out {
+        latency2: <( i )>;
+#ifdef TIMER
+        timer: <( succ i )>;
+#endif
+     }
+   }
+   transition latency2ToComp {
+     in  {
+        latency2: <( i )>;
+#ifdef TIMER
+        timer   : <( i )>;
+#endif
+     }
+     out {
+        comp : <( i )>;
+#ifdef TIMER
+        timer: <( succ i )>;
+#endif
+     }
+   }
+   transition compToComp {
+     in  {
+        comp : <( i )>;
+#ifdef TIMER
+        timer: <( i )>;
+#endif
+     }
+     out {
+        comp : <( i )>;
+#ifdef TIMER
+        timer: <( succ i )>;
+#endif
+     }
+   }
+   transition compToSleep {
+     in  {
+        comp : <( i )>;
+#ifdef TIMER
+        timer: <( i )>;
+#endif
+     }
+     out {
+        sleep: <( i )>;
+#ifdef TIMER
+        timer: <( succ i )>;
+#endif
+     }
+   }
+   transition compToLoadData {
+     in  {
+        comp : <( i )>;
+#ifdef TIMER
+        timer: <( i )>;
+#endif
+        mutex: epsilon;
+     }
+     out {
+        loadData: <( i )>;
+#ifdef TIMER
+        timer: <( succ i )>;
+#endif
+     }
+   }
+   transition compToWait {
+     in  {
+        comp    : <( i )>;
+        loadData: <( j )>;
+#ifdef TIMER
+        timer   : <( i )>;
+#endif
+     }
+     out {
+        wait    : <( i )>;
+        loadData: <( j )>;
+#ifdef TIMER
+        timer: <( succ i )>;
+#endif
+     }
+   }
+}

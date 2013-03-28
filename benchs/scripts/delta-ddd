@@ -1,0 +1,40 @@
+#!/bin/bash
+
+minStates=100000000
+maxStates=1000000000
+CSprop=1000
+outDir=out/delta-ddd/data-$HOSTNAME
+mkdir $outDir &> /dev/null
+scripts/select-models $minStates $maxStates \
+    | while read m lang st opt
+do
+    cs=$(echo "$st / "$CSprop | bc)
+    echo $m - $st states - $cs candidates
+    hashSize=21
+    size=1048576
+    while [ $size -lt $st -a $hashSize != 30 ]
+    do
+	hashSize=$((hashSize + 1))
+	size=$((size * 2))
+    done
+    f=$(scripts/get-file $m $lang)
+    for w in $(seq -w 12 -1 1)
+    do
+	if [ "$opt" = "" ]
+	then
+	    out=$outDir/$m-$CSprop-$w.xml
+	else
+	    out=$outDir/$m-$(echo $opt | sed "s/ /-/g")-$CSprop-$w.xml
+	fi
+	if [ ! -e $out ]
+	then
+	    echo model $m - $w workers - hash-size=$hashSize
+	    cmd="helena --algo=delta-ddd --workers=$w \
+		$(scripts/format-parameters $opt) \
+		--candidate-set-size=$cs -o=$out \
+		--hash-size=$hashSize $f # &> /dev/null"
+	    echo $cmd
+	    eval $cmd
+	fi
+    done
+done

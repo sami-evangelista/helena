@@ -1,0 +1,102 @@
+/******************************************************************************
+*
+*  Example file of the Helena distribution
+*
+*  File  : leader_filters.lna
+*  Author: Sami Evangelista
+*  Date  : 16 aug. 2007
+*  Source:
+*     Shared-memory mutual exclusion: major research trends since 1986.
+*     Distrib. Comput. 2003.
+*
+******************************************************************************/
+
+
+leader_filters (N := 5) {  /*  N = number of processes  */
+
+constant int F := 7;
+
+subtype pid: nat range 1 .. N;
+subtype fid: nat range 0 .. F;
+type turns : vector[fid] of pid;
+type bools : vector[fid] of bool;
+
+place turn    { dom: turns;     init: <( [ pid'first ] )>; }
+place b       { dom: bools;     init: <( [ false     ] )>; }
+place c       { dom: bools;     init: <( [ false     ] )>; }
+place p1      { dom: pid * fid; init: for(i in pid) <( i, 0 )>; }
+place p2      { dom: pid * fid; }
+place p3      { dom: pid * fid; }
+place p4      { dom: pid * fid; }
+place p5      { dom: pid * fid; }
+place p6      { dom: pid * fid; }
+place p7      { dom: pid * fid; }
+place p8      { dom: pid * fid; }
+place p9      { dom: pid * fid; }
+place elected { dom: pid * fid; }
+
+transition p1ToP2 {
+   in  { p1  : <( i, curr )>;
+         turn: <( turn )>; }
+   out { p2  : <( i, curr )>;
+         turn: <( turn :: ([curr] := i) )>; }
+}
+transition p2ToP3 {
+   in  { p2: <( i, curr )>;
+         b : <( b )>; }
+   out { p3: <( i, curr )>;
+         b : <( b )>; }
+   guard: not b[curr];
+}
+transition p3ToP4 {
+   in  { p3: <( i, curr )>;
+         b : <( b )>; }
+   out { p4: <( i, curr )>;
+         b : <( b :: ([curr] := true) )>; }
+}
+transition p4ToP5 {
+   in  { p4  : <( i, curr )>;
+         turn: <( turn )>; }
+   out { p5  : <( i, curr )>;
+         turn: <( turn )>; }
+   guard: turn[curr] != i;
+}
+transition p5ToP6 {
+   in  { p5: <( i, curr )>;
+         c : <( c )>; }
+   out { p6: <( i, curr )>;
+         c : <( c :: ([curr] := true) )>; }
+}
+transition p6ToP7 {
+   in  { p6: <( i, curr )>;
+         b : <( b )>; }
+   out { p7: <( i, curr )>;
+         b : <( b :: ([curr] := false) )>; }
+}
+transition p4ToP8 {
+   in  { p4  : <( i, curr )>;
+         turn: <( turn )>; }
+   out { p8  : <( i, curr )>;
+         turn: <( turn )>; }
+   guard: turn[curr] = i;
+}
+transition p8ToP9 {
+   in  { p8: <( i, curr )>;
+         c : <( c )>; }
+   out { p9: <( i, curr )>;
+         c : <( c )>; }
+   guard: curr > 0 and not c[curr - 1];
+}
+transition p9ToElected {
+   in  { p9     : <( i, curr )>; }
+   out { elected: <( i, curr )>; }
+}
+transition p8ToP1 {
+   in  { p8: <( i, curr )>;
+         c : <( c )>; }
+   out { p1: <( i, curr + 1 )>;
+         c : <( c )>; }
+   guard: curr = 0 or c[curr - 1];
+}
+
+}

@@ -1,0 +1,549 @@
+#!/usr/bin/python
+#
+#  File: helena-generate-config
+#
+#  Parse arguments from the command line and generate the appropriate
+#  C configuration file.
+#
+
+import datetime
+from datetime import date
+from datetime import datetime
+from datetime import time
+import os
+import re
+import socket
+import sys
+import xml.dom.minidom
+
+VERSION = "2.3"
+DATE    = "April 1, 2013"
+
+DFS         = "DFS"
+BFS         = "BFS"
+FRONTIER    = "FRONTIER"
+DELTA_DDD   = "DELTA-DDD"
+PSS         = "PSS"
+RWALK       = "RWALK"
+FULL        = "FULL"
+EVENTS      = "EVENTS"
+STATE       = "STATE"
+EXPLORE     = "EXPLORE"
+SIMULATE    = "SIMULATE"
+BUILD_GRAPH = "BUILD-GRAPH"
+CHECK       = "CHECK"
+LTL         = "LTL"
+STATE       = "STATE"
+DEADLOCK    = "DEADLOCK"
+
+def removeDashes(s):
+    if s[1] == '-':
+        return s[2:]
+    else:
+        return s[1:]
+
+def parseArgument(arg):
+    S = re.search
+    if S("^-(-)?[a-zA-Z\-]+(=.+)?$", arg):
+        arg = removeDashes(arg)
+        l = arg.split("=", 1)
+        if len(l) == 2:
+            return (l[0], l[1])
+        else:
+            return (l[0], None)
+    else:
+        return (None, None)
+
+def parseIntArgument(val, shortForm, longForm):
+    S = re.search
+    if S("^-" + shortForm + "=", val) or S("^--" + longForm + "=", val):
+        l = val.split("=")
+        if len(l) <> 2:
+            return None
+        else:
+            try:
+                result = int(l[1])
+                return result
+            except ValueError:
+                return None
+
+def parseCheckArgument(val):
+    S = re.search
+    if not(S("^CHECK-", val.upper())):
+        return (False, None)
+    else:
+        l = val.split("-")
+        if len(l) <> 2:
+            return (False, None)
+        else:
+            return (True, l[1])
+
+def printVersion():
+    print "helena " + VERSION + " --- " + DATE
+
+def printHelp():
+    print "usage: helena [option] ... [option] my-net.lna"
+    print ""
+    print "General options"
+    print "  -h   --help"
+    print "  -V   --version"
+    print "  -v   --verbose"
+    print "  -N   --action={EXPLORE|SIMULATE|BUILD-GRAPH|CHECK-prop}"
+    print "  -p   --property-file=FILE-NAME"
+    print "  -md  --model-directory=DIRECTORY"
+    print ""
+    print "Search and storage options"
+    print "  -A   --algo={DFS|BFS|FRONTIER|DELTA-DDD|RWALK}"
+    print "  -t   --hash-size=H"
+    print "  -W   --workers=WORKERS"
+    print "  -cs  --candidate-set-size=N"
+    print ""
+    print "Reduction techniques"
+    print "  -H   --hash-compaction"
+    print "  -P   --partial-order[={0|1}]"
+    print "  -D   --delta[={0|1}]"
+    print "  -K   --k-delta=K"
+    print "  -S   --state-caching[={0|1}]"
+    print "  -s   --cache-size=N"
+    print ""
+    print "Search limits"
+    print "  -ml  --memory-limit=N"
+    print "  -tl  --time-limit=N"
+    print "  -sl  --state-limit=N"
+    print ""
+    print "Model options"
+    print "  -d   --define=SYMBOL-NAME"
+    print "  -a   --capacity=N"
+    print "  -r   --run-time-checks[={0|1}]"
+    print "  -L   --link=OBJECT-FILE"
+    print "  -m   --parameter=p=i"
+    print ""
+    print "Output"
+    print "  -o   --report-file=FILE-NAME"
+    print "  -tr  --trace-type={FULL|EVENTS|STATE}"
+
+class Config:        
+
+    def __init__(self):
+        self.verbose = False
+        self.version = False
+        self.partialOrder = False
+        self.delta = False
+        self.stateCaching = False
+        self.hashCompaction = False
+        self.workers = 1
+        self.capacity = 1
+        self.cacheSize = 100000
+        self.candidateSetSize = 100000
+        self.memoryLimit = 0
+        self.timeLimit = 0
+        self.stateLimit = 0
+        self.hashSize = 22
+        self.kDelta = 20
+        self.algo = DFS
+        self.traceType = FULL
+        self.directory = None
+        self.symbols = []
+        self.action = EXPLORE
+        self.runTimeChecks = True
+        self.inFile = None
+        self.inFileExt = None
+        self.property = None
+        self.propertyFile = None
+        self.propertyType = None
+        self.propositions = []
+        self.parameters = []
+
+    def correct(self):
+        if self.action == BUILD_GRAPH:
+            self.algo = DELTA_DDD
+            self.property = None
+            self.stateCaching = False
+            self.hashCompaction = False
+            self.partialOrder = False
+            self.workers = 1
+        elif self.action == CHECK and self.propertyType == LTL:
+            self.algo = DFS
+            self.stateCaching = False
+            if self.traceType == STATE:
+                self.traceType = FULL
+        elif self.action == SIMULATE:
+            self.runTimeChecks = True
+
+        if self.algo == RWALK:
+            self.stateCaching = False
+            self.hashCompaction = False
+            self.partialOrder = False
+            self.delta = False
+        elif self.algo == FRONTIER:
+            self.stateCaching = False
+            self.hashCompaction = False
+            self.delta = False
+            self.workers = 1
+        elif self.algo == DELTA_DDD:
+            self.hashCompaction = False
+            self.partialOrder = False
+            self.delta = False
+        elif self.algo == BFS:
+            self.hashCompaction = False
+            self.workers = 1            
+        elif self.algo == DFS:
+            self.workers = 1
+
+        if self.hashCompaction:
+            self.delta = False
+
+    def openFile(self, name, mode):
+        if self.directory is None:
+            return open(name, mode)
+        else:
+            return open(self.directory + os.sep + name, mode)
+
+    def compile(self):
+        f = self.openFile("config.h", "w")
+        W = f.write
+        now = datetime.now()
+        host = socket.gethostname()
+        W("#ifndef LIB_CONFIG\n")
+        W("#define LIB_CONFIG\n")
+        W("\n")
+        W("#define MODEL_CONFIG\n")
+        W("#define REPORT_FILE \"report.xml\"\n")
+        W("#define RG_REPORT_FILE \"rg-report.xml\"\n")
+        W("#define GRAPH_FILE \"graph.dat\"\n")
+        W("#define WITH_OBSERVER\n")
+        W("#define DATE \"" + \
+               now.strftime("%B, %d, %Y at %H:%M:%S") + "\"\n")
+        W("#define HOST \"" + host + "\"\n")
+        W("#define FILE_PATH \"" + os.path.realpath(self.inFile) + "\"\n")
+        if self.inFileExt == ".lna":
+            W("#define LANGUAGE \"helena\"\n")
+            W("#define LANGUAGE_LNA\n")
+            W("#define MODEL_NAME \"blbla\"\n")
+            W("#define EVENT_UNDOABLE\n")
+            W("#define MODEL_HAS_GRAPH_ROUTINES\n")
+        elif self.inFileExt == ".dve":
+            W("#define LANGUAGE \"dve\"\n")
+            W("#define LANGUAGE_DVE\n")
+        if self.inFileExt in [ ".lna", ".dve" ]:
+            W("#define USE_HELENA_HEAPS\n")
+        if self.verbose:
+            W("#define VERBOSE\n")
+
+        #  search algorithm
+        if self.algo == FRONTIER:
+            W("#define ALGO_FRONTIER\n")
+            W("#define HASH_STORAGE\n")
+        elif self.algo == BFS:
+            W("#define ALGO_BFS\n")
+            W("#define HASH_STORAGE\n")
+        elif self.algo == DFS:
+            W("#define ALGO_DFS\n")
+            W("#define HASH_STORAGE\n")
+        elif self.algo == DELTA_DDD:
+            W("#define ALGO_PD4\n")
+            W("#define PD4_STORAGE\n")
+        elif self.algo == RWALK:
+            W("#define ALGO_RWALK\n")
+        elif self.algo == PSS:
+            W("#define ALGO_PSS\n")
+        W("#define PD4_CAND_SET_SIZE " + str(self.candidateSetSize) + "\n")
+
+        #  partial order reduction
+        if self.partialOrder:
+            W("#define POR\n")
+
+        #  state caching
+        if self.stateCaching:
+            W("#define STATE_CACHING\n")
+            W("#define STATE_CACHING_PROP 10\n")
+            W("#define STATE_CACHING_CACHE_SIZE " + \
+                   str(self.cacheSize) + "\n")
+
+        #  search limits
+        if self.memoryLimit != 0:
+            W("#define MEMORY_LIMITED\n")
+            W("#define MAX_MEMORY " + str(self.memoryLimit) + "\n")
+        if self.timeLimit != 0:
+            W("#define TIME_LIMITED\n")
+            W("#define MAX_TIME " + str(self.timeLimit) + "\n")
+        if self.stateLimit != 0:
+            W("#define STATE_LIMITED\n")
+            W("#define MAX_STATE " + str(self.stateLimit) + "\n")
+
+        #  hash table
+        W("#define HASH_SIZE " + str(pow(2, self.hashSize)) + "\n")
+        W("#define HASH_SIZE_M " + str(pow(2, self.hashSize) - 1) + "\n")
+        W("#define HASH_SIZE_BITS " + str(self.hashSize) + "\n")
+        if self.delta:
+            W("#define STORAGE_DELTA\n")
+            W("#define STORAGE_DELTA_K " + str(self.kDelta) + "\n")
+        elif self.hashCompaction:
+            W("#define STORAGE_HASH_COMPACTION\n")
+        else:
+            W("#define STORAGE_HASH\n")
+
+        #  action to perform
+        if self.action == EXPLORE:
+            W("#define EXPLORE\n")
+        elif self.action == BUILD_GRAPH:
+            W("#define BUILD_RG\n")
+        elif self.action == SIMULATE:
+            W("#define SIMULATE\n")
+        elif self.action == CHECK:
+            W("#define PROPERTY \"" + self.property + "\"\n")
+            if self.propertyType == LTL:
+                W("#define CHECK_LTL\n")
+                if self.partialOrder:
+                    W("#define PROVISO\n")
+            elif self.propertyType == STATE:
+                W("#define CHECK_SAFETY\n")
+                if self.partialOrder:
+                    W("#define PROVISO\n")
+            elif self.propertyType == DEADLOCK:
+                W("#define CHECK_SAFETY\n")
+
+        #  other parameters
+        W("#define TRACE_" + self.traceType + "\n")
+        if self.traceType != STATE:
+            W("#define WITH_TRACE\n")            
+        W("#define BFS_QUEUE_NODE_SIZE 10000\n")
+        W("#define NO_WORKERS " + str(self.workers) + "\n")
+        if self.workers > 1:
+            W("#define PARALLEL\n")
+
+        #  state attributes
+        bitw = 0
+        W("#define ATTRIBUTE_ID\n")
+        W("#define ATTRIBUTE_ID_POS 0\n")
+        W("#define ATTRIBUTE_ID_WIDTH 16\n")
+        bitw = bitw + 16
+        if True:
+            W("#define ATTRIBUTE_IN_UNPROC\n")
+            W("#define ATTRIBUTE_IN_UNPROC_POS " + str(bitw) + "\n")
+            W("#define ATTRIBUTE_IN_UNPROC_WIDTH 1\n")
+            bitw = bitw + 1
+        if self.action == BUILD_GRAPH:
+            W("#define ATTRIBUTE_NUM\n")
+            W("#define ATTRIBUTE_NUM_POS " + str(bitw) + "\n")
+            W("#define ATTRIBUTE_NUM_WIDTH 32\n")
+            bitw = bitw + 32
+        predPtr = self.stateCaching and(self.delta or self.algo != DFS)
+        if predPtr:
+            W("#define ATTRIBUTE_REFS\n")
+            W("#define ATTRIBUTE_REFS_POS " + str(bitw) + "\n")
+            W("#define ATTRIBUTE_REFS_WIDTH 8\n")
+            bitw = bitw + 8
+        if predPtr or self.delta:
+            W("#define ATTRIBUTE_PRED\n")
+            W("#define ATTRIBUTE_PRED_POS " + str(bitw) + "\n")
+            W("#define ATTRIBUTE_PRED_WIDTH 40\n")
+            bitw = bitw + 40
+        if self.delta:
+            W("#define ATTRIBUTE_TYPE\n")
+            W("#define ATTRIBUTE_TYPE_POS " + str(bitw) + "\n")
+            W("#define ATTRIBUTE_TYPE_WIDTH 1\n")
+            bitw = bitw + 1
+        if self.action == CHECK and self.propertyType == LTL:
+            W("#define ATTRIBUTE_IS_RED\n")
+            W("#define ATTRIBUTE_IS_RED_POS " + str(bitw) + "\n")
+            W("#define ATTRIBUTE_IS_RED_WIDTH 1\n")
+            bitw = bitw + 1            
+        charw = bitw / 8
+        if bitw % 8 != 0:
+            charw = charw + 1
+        W("#define ATTRIBUTES_CHAR_WIDTH " + str(charw) + "\n")
+
+        W("\n#endif  /*  LIB_CONFIG  */\n")
+        f.close()
+
+    def handleNumericalOption(self, attr, val):
+        try:
+            if val is None:
+                return False
+            i = int(val)
+            setattr(self, attr, i)
+            return True
+        except ValueError:
+            return False
+
+    def handleStringOption(self, attr, val):
+        if val is None:
+            return False
+        else:
+            if attr is not None:
+                setattr(self, attr, val)
+            return True
+
+    def handleEnumOption(self, attr, val, okVal):
+        if val is None:
+            return False
+        if val.upper() in okVal:
+            setattr(self, attr, val.upper())
+            return True
+        else:
+            return False
+        
+    def parseFromCommandLine(self):
+        S = re.search
+        for arg in sys.argv[1 : len(sys.argv) - 2]:
+            recognized = True
+            (opt, val) = parseArgument(arg)
+
+            #  options with no value
+            if (opt, val) in [("v", None),("verbose", None) ]:
+                self.verbose = True
+            elif(opt, val) in [("V", None),("version", None) ]:
+                printVersion()
+                exit(0)
+            elif(opt, val) in [("h", None),("help", None) ]:
+                printHelp()
+                exit(0)
+                
+            #  boolean options
+            elif opt in [ "P", "partial-order" ]:
+                self.partialOrder =(val is None) or val == "1"
+            elif opt in [ "D", "delta" ]:
+                self.delta =(val is None) or val == "1"
+            elif opt in [ "r", "run-time-checks" ]:
+                self.runTimeChecks =(val is None) or val == "1"
+            elif opt in [ "S", "state-caching" ]:
+                self.stateCaching =(val is None) or val == "1"
+            elif opt in [ "H", "hash-compaction" ]:
+                self.hashCompaction =(val is None) or val == "1"
+
+            #  numerical options
+            elif opt in [ "W", "workers" ]:
+                recognized = self.handleNumericalOption("workers", val)
+            elif opt in [ "a", "capacity" ]:
+                recognized = self.handleNumericalOption("capacity", val)
+            elif opt in [ "s", "cache-size" ]:
+                recognized = self.handleNumericalOption("cacheSize", val)
+            elif opt in [ "cs", "candidate-set-size" ]:
+                recognized = self.handleNumericalOption("candidateSetSize",
+                                                         val)
+            elif opt in [ "K", "k-delta" ]:
+                recognized = self.handleNumericalOption("kDelta", val)
+            elif opt in [ "t", "hash-size" ]:
+                recognized = self.handleNumericalOption("hashSize", val)
+                if self.hashSize > 32:
+                    self.hashSize = 32
+            elif opt in [ "ml", "memory-limit" ]:
+                recognized = self.handleNumericalOption("memoryLimit", val)
+            elif opt in [ "tl", "time-limit" ]:
+                recognized = self.handleNumericalOption("timeLimit", val)
+            elif opt in [ "sl", "state-limit" ]:
+                recognized = self.handleNumericalOption("stateLimit", val)
+
+            #  string options
+            elif opt in [ "d", "define" ]:
+                recognized = self.handleStringOption(None, val)
+                if recognized:
+                    self.symbols.append(val)
+            elif opt in [ "L", "link" ]:
+                recognized = self.handleStringOption("link", val)
+            elif opt in [ "p", "property-file" ]:
+                recognized = self.handleStringOption("propertyFile", val)
+            elif opt in [ "o", "report-file" ]:
+                recognized = self.handleStringOption("reportFile", val)
+            elif opt in [ "md", "model-directory" ]:
+                recognized = True
+            elif opt in [ "m", "parameter" ]:
+                recognized = self.handleStringOption(None, val)
+                if recognized:
+                    l = val.split("=")
+                    recognized = len(l) == 2
+                    if recognized:
+                        self.parameters.append(val)
+
+            #  enum options
+            elif opt in [ "A", "algo" ]:
+                recognized = self.handleEnumOption \
+                    ("algo", val, [DFS, BFS, FRONTIER, \
+                                       DELTA_DDD, RWALK, PSS])
+            elif opt in [ "tr", "trace-type" ]:
+                recognized = self.handleEnumOption \
+                    ("traceType", val, [FULL, EVENTS, STATE])
+            elif opt in [ "N", "action" ]:
+                self.property = None
+                recognized = self.handleEnumOption \
+                    ("action", val, [SIMULATE, EXPLORE, BUILD_GRAPH])
+                if not recognized:
+                    (recognized, p) = parseCheckArgument(val)
+                    if recognized:
+                        self.action = CHECK
+                        self.property = p
+            else:
+                recognized = False
+            if not recognized:
+                print "warning: \"" + arg + "\" is not a valid option"
+        if len(sys.argv) >= 2:
+            self.inFile = sys.argv[len(sys.argv) - 2]
+            (f, self.inFileExt) = os.path.splitext(self.inFile)
+            if self.propertyFile is None:
+                self.propertyFile = f + ".prop" + self.inFileExt
+        if len(sys.argv) >= 3:
+            self.directory = sys.argv[len(sys.argv) - 1]
+
+    def generatePropertyCode(self):
+        if self.action != CHECK \
+                or self.property is None \
+                or self.propertyFile is None:
+            f = self.openFile("prop.h", "w")
+            f.close()
+            f = self.openFile("prop.c", "w")
+            f.close()
+        else:
+            cmd = "helena-generate-property "
+            cmd = cmd + " " + self.property + " " + self.propertyFile
+            if self.directory is None:
+                cmd = cmd + " ."
+            else:
+                cmd = cmd + " " + self.directory
+            if os.system(cmd):
+                exit(1)
+            else:
+                f = self.openFile("PROPERTY", "r")
+                lines = f.readlines()
+                f.close()
+                i = 0
+                for prop in lines:
+                    p = prop.replace("\n", "")
+                    if i == 0:
+                        self.propertyType = p
+                    else:
+                        self.propositions.append(prop)
+                    i = i + 1
+                if self.directory is None:
+                    os.remove("PROPERTY")
+                else:
+                    os.remove(self.directory + os.sep + "PROPERTY")
+
+    def outputModelOptions(self):
+        opts = []
+        opts.append("--capacity=" + str(self.capacity))
+        if self.runTimeChecks:
+            opts.append("--run-time-checks=1")
+        else:
+            opts.append("--run-time-checks=0")
+        for prop in self.propositions:
+            opts.append("--proposition=" + prop)
+        for sym in self.symbols:
+            opts.append("--define=" + sym)
+        for param in self.parameters:
+            opts.append("--parameter=" + param)
+        f = open("model-options", "w")
+        for o in opts:
+            f.write(" " + o)
+        f.close()
+
+def main():
+    C = Config()
+    C.parseFromCommandLine()
+    C.generatePropertyCode()
+    C.correct()
+    C.compile()
+    C.outputModelOptions()
+
+main()
+exit(0)

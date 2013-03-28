@@ -1,0 +1,28 @@
+interface {
+
+type small : range 0 .. 255;
+type big   : range 0 .. 65535;
+type color : enum (red, green, blue, yellow, cyan);
+type colors: vector[small, bool] of color;
+type rgbColor: struct {
+   small r;
+   small g;
+   small b;
+};
+type colorList: list[small] of color
+                with capacity 10;
+type smallSet: set of small
+               with capacity 10;
+subtype rgColor: color
+   range red .. green;
+subtype tiny: small
+   range 0 .. 15;
+
+constant rgbColor
+   BLUE := {0, 0, 255};
+
+function isBlack (rgbColor c) -> bool {
+   return c.r + c.g + c.b = 0;
+}
+
+}

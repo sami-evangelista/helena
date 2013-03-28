@@ -1,0 +1,73 @@
+/******************************************************************************
+*
+*  Example file of Helena distribution
+*
+*  File  : hanoi.lna
+*  Author: Sami Evangelista
+*  Date  : 15 feb. 2007
+*
+*  This file contains the description of the towers of Hanoi game.
+*
+******************************************************************************/
+
+hanoi (N := 3,     /*  N = the number of disks  */
+       M := 3)  {  /*  M = number of towers  */
+
+   //  identifier of a disk
+   type disk: range 1..N;
+
+   //  identifier of a tower
+   type tower: range 1 .. M;
+
+   //  a list of disks
+   type disk_list: list[nat] of disk with capacity N;
+
+   //  construct the list of disks initially present on the first tower
+   function construct_tower1() -> disk_list {
+      disk_list result := empty;
+      for(i in disk)
+         result := i & result;
+      return result;
+   }
+
+   //  this unique place models the state of the towers.
+   //  in the initial marking the first tower contains the list |N, ..., 1|
+   //  and all others are empty
+   place towers {
+      dom : tower * disk_list;
+      init: <( tower'first, construct_tower1() )>
+          + for(t in tower range tower'first + 1 .. tower'last)
+               <( t, empty )>;
+   }
+
+   //  transition move_disk models the move of the disk on top
+   //  of tower src to the tower dest.  the src stack must not be
+   //  (not src_disks'empty).  if the dest tower is not empty, the
+   //  disk on top of src (src_disks'last) must be smaller than the disk
+   //  on top of the dest tower (dest_disks'last).
+   //  the move consists of deleting the last element from the src stack
+   //  (src_disks'prefix is the the list src_disks from which we remove
+   //  the last element) and pushing it onto the dest stack.
+   transition move_disk {
+      in  {
+         towers: <( src,  src_disks  )>
+               + <( dest, dest_disks )>;
+      }
+      out {
+         towers: //  remove the last disk of tower t
+                 <( src,  src_disks'prefix )> 
+
+                 //  add the removed disk on top of tower u
+               + <( dest, dest_disks & src_disks'last )>;
+      }
+      guard: not src_disks'empty
+             and (dest_disks'empty or src_disks'last < dest_disks'last);
+      description: "move disk %d from tower %d to tower %d",
+                   src_disks'last, src, dest;
+   }
+
+   //  in the end state the last tower is full, i.e., it contains the list
+   //  |N, ..., 1|
+   proposition all_moved:
+      exists(t in towers | t->1 = tower'last and t->2'full);
+}

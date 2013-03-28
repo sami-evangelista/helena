@@ -1,0 +1,4 @@
+//  we reach a state in which all disks have been moved
+//  to the last tower
+state property end_state:
+   reject all_moved;

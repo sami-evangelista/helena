@@ -1,0 +1,9 @@
+#!/bin/bash
+
+if [ "$2" = lna ]
+then
+    echo ../examples/$1.lna
+elif [ "$2" = dve ]
+then
+    echo ../examples/beem/$1.dve
+fi

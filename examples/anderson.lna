@@ -1,0 +1,71 @@
+/******************************************************************************
+*
+*  Example file of the Helena distribution
+*
+*  File  : anderson.lna
+*  Author: Sami Evangelista
+*  Date  : 27 jun. 2007
+*  Source:
+*    Shared-memory mutual exclusion: major research trends since 1986.
+*    Distrib. Comput., 2003.
+*    James H. Anderson and Yong-Jik Kim and Ted Herman
+*
+*  This file contains the description of Anderson's queue lock mutual
+*  exclusion algorithm.
+*
+******************************************************************************/
+
+
+anderson (N := 3) {  /*  N = number of processors  */
+
+subtype pid: nat range 0 .. N - 1;
+type slots : vector[pid] of bool;
+
+place next { dom: short;   init: <( 0 )>; }
+place slot { dom: slots; init: <( [true, false] )>; }
+
+place NCS { dom: pid * short; init: for(id in pid) <( id, 0 )>; }
+place CS  { dom: pid * short; }
+place p1  { dom: pid * short; }
+place p2  { dom: pid * short; }
+place p3  { dom: pid * short; }
+
+transition NCSToP1 {
+   in  { NCS : <( i, my_place )>;
+         next: <( next )>; }
+   out { p1  : <( i, next )>;
+         next: <( next + 1 )>; }
+}
+transition P1ToP2 {
+   in  { p1  : <( i, my_place )>;
+         next: <( next )>; }
+   out { p2  : <( i, my_place )>;
+         next: <( next - N )>; }
+   guard: my_place = N - 1;
+}
+transition P1ToP2_2 {
+   in  { p1: <( i, my_place )>; }
+   out { p2: <( i, my_place % N)>; }
+   guard: my_place != N - 1;
+}
+transition P2ToP3 {
+   in  { p2  : <( i, my_place )>;
+         slot: <( slot )>; }
+   out { p3  : <( i, my_place )>;
+         slot: <( slot )>; }
+   guard: slot[my_place];
+}
+transition P3ToCS {
+   in  { p3  : <( i, my_place )>;
+         slot: <( slot )>; }
+   out { CS  : <( i, my_place )>;
+         slot: <( slot :: ([my_place] := false) )>; }
+}
+transition CSToNCS {
+   in  { CS  : <( i, my_place )>;
+         slot: <( slot )>; }
+   out { NCS : <( i, my_place )>;
+         slot: <( slot :: ([(my_place + 1) % N] := true) )>; }
+}
+
+}

@@ -1,0 +1,184 @@
+/******************************************************************************
+*
+*  Example file of the Helena distribution
+*
+*  File  : eratosthene.lna
+*  Author: Sami Evangelista
+*  Date  : 03 mar. 2005
+*
+*  The net described in this file models the distributed method of the
+*  sieves of Eratosthene to generate prime numbers.
+*
+*  A main process generates numbers and send them to a first tester
+*  process.
+*
+*  A set of tester process test whether the numbers are prime or
+*  not. Each one is assigned a prime number. The first tester process
+*  owns the number 2. When a tester process receives a number he
+*  checks whether or not its number is a divider of the number he
+*  received. If it is a divider, he throws this number. If it is not a
+*  divider there are two cases : 
+*    - the process has a successor. he sends the number to its
+*      sucessor.
+*    - the process does not have a successor. he creates another
+*      tester process which will be its successor and gives him the
+*      number he received. the created process has no successor.
+*
+*  Initially there is only one tester process which owns number 2.
+*  At each state of the algorithm, the tester process form a thread of
+*  process which own prime numbers.
+*
+******************************************************************************/
+
+
+eratosthene (N := 30) {  /*  N = value of the largest integer to test  */
+
+   type prime_nb: range 2 .. N+1;
+   type msg_id  : range 1 .. N+1;
+
+   constant prime_nb FIRST           := 2;
+   constant prime_nb LAST            := prime_nb'last-1;
+   constant prime_nb NO_SUCC         := prime_nb'last;
+   constant prime_nb TERMINATION_MSG := prime_nb'last;
+   constant msg_id   FIRST_MSG       := msg_id'first;
+   
+
+   // check if i is a prime number
+   function is_prime
+     (prime_nb i) -> bool {
+      for(j in prime_nb range prime_nb(FIRST) .. i) {
+         if(i != j and i % j = 0)
+            return false;
+      }
+      return true;
+   }
+
+
+   //  generator process
+   place generator_idle {
+      dom: prime_nb * msg_id;
+      init: <( FIRST, FIRST_MSG )>;
+   }
+   place msgs {
+      dom: prime_nb * prime_nb * msg_id;
+   }
+   place generator_wait {
+      dom: epsilon;
+   }
+   place generator_end {
+      dom: epsilon;
+   }
+   place termination_ack {
+      dom: epsilon;
+   }
+
+   transition generator_generate {
+      in {
+         generator_idle: <( to_test, msg )>;
+      }
+      out {
+         generator_idle: <( succ to_test, succ msg )>;
+         msgs: <( FIRST, to_test, msg )>;
+      }
+      guard: to_test <= LAST;
+   }
+   transition generator_send_termination {
+      in {
+         generator_idle: <( to_test, msg )>;
+      }
+      out {
+         generator_wait: epsilon;
+         msgs: <( FIRST, TERMINATION_MSG, msg )>;
+      }
+      guard: to_test > LAST;
+   }
+   transition generator_terminate {
+      in {
+         generator_wait : epsilon;
+         termination_ack: epsilon;
+      }
+      out {
+         generator_end: epsilon;
+      }
+   }
+
+
+   //  tester process
+   place tester_idle {
+      dom : prime_nb * prime_nb * msg_id * msg_id;
+      init: <( FIRST, NO_SUCC, FIRST_MSG, FIRST_MSG )>;
+   }
+   place tester_testing {
+      dom: prime_nb * prime_nb * msg_id * msg_id * prime_nb;
+   }
+   place tester_end {
+      dom: prime_nb;
+   }
+
+   transition tester_receive {
+      in {
+         tester_idle: <( my_id, my_succ, from_pred, to_succ )>;
+         msgs: <( my_id, to_test, from_pred )>;
+      }
+      out {
+         tester_testing :
+            <( my_id, my_succ, succ from_pred, to_succ, to_test )>;
+      }
+   }
+   transition tester_divide {
+      in {
+         tester_testing: <( my_id, my_succ, from_pred, to_succ, to_test )>;
+      }
+      out {
+         tester_idle: <( my_id, my_succ, from_pred, to_succ )>;
+      }
+      guard: to_test != TERMINATION_MSG and
+             to_test % my_id = 0;
+   }
+   transition tester_not_divide_with_succ {
+      in {
+         tester_testing: <( my_id, my_succ, from_pred, to_succ, to_test )>;
+      }
+      out {
+         tester_idle: <( my_id, my_succ, from_pred, succ to_succ )>;
+         msgs: <( my_succ, to_test, to_succ )>;
+      }
+      guard: to_test != TERMINATION_MSG and
+              to_test % my_id != 0       and
+              my_succ != NO_SUCC;
+   }
+   transition tester_not_divide_no_succ {
+      in {
+         tester_testing: <( my_id, my_succ, from_pred, to_succ, to_test )>;
+      }
+      out {
+         tester_idle: <( my_id,   to_test, from_pred, to_succ   )> +
+                      <( to_test, NO_SUCC, FIRST_MSG, FIRST_MSG )>;
+      }
+      guard: to_test != TERMINATION_MSG and 
+             to_test % my_id != 0       and
+             my_succ = NO_SUCC;
+   }
+   transition tester_terminate {
+      in {
+         tester_testing: <( my_id, my_succ, from_pred, to_succ, to_test )>;
+      }
+      out {
+         msgs: if(my_succ != NO_SUCC) <( my_succ, TERMINATION_MSG, to_succ )>;
+         tester_end: <( my_id )>;
+         termination_ack: if(my_succ = NO_SUCC) epsilon;
+      }
+      guard: to_test = TERMINATION_MSG;
+   }
+
+
+
+   //  generator and tester processes finished their job
+   proposition termination_state:
+      (generator_end'card = 1)
+      and (tester_idle'card + tester_testing'card = 0);
+
+   //  all tokens in place tester_end are primes numbers
+   proposition bad_prime:
+      exists(t in tester_end | not is_prime(t->1));
+}

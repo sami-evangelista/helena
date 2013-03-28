@@ -1,0 +1,91 @@
+/******************************************************************************
+*
+*  Example file of the Helena distribution
+*
+*  File  : client_server.lna
+*  Author: Sami Evangelista
+*  Date  : 09 mar. 2007
+*
+*  This file contains the description of a simple client server
+*  protocol.  A set of clients perform a computation then send a
+*  message to say to the server that the computation is done.  The
+*  server wait for all the messages then acknowledge all the clients
+*  which can restart a computation and so on.
+*
+******************************************************************************/
+
+
+client_server (C := 10) {  /*  C = number of clients  */
+
+   type client: range 1 .. C;
+
+   type client_set: set of client with capacity C;
+
+   function all_clients() -> client_set {
+      client_set result := empty;
+      for(i in client)
+         result := result or i;
+      return result;
+   }
+
+
+
+   //  communication buffers
+   place msg { dom: client;}
+   place ack { dom: client;}
+
+
+
+   //  process places of clients
+   place client_idle {
+      dom : client;
+      init: for(c in client) <( c )>;
+   }
+   place client_computing { dom : client; }
+   place client_waiting   { dom : client; }
+
+   //  transitions of clients
+   transition start_computation {
+      in  { client_idle     : <( c )>; }
+      out { client_computing: <( c )>; }
+   }
+   transition send_msg {
+      in  { client_computing: <( c )>; }
+      out { client_waiting  : <( c )>;
+            msg             : <( c )>; }
+   }
+   transition receive_ack {
+      in  { client_waiting  : <( c )>;
+            ack             : <( c )>; }
+      out { client_idle     : <( c )>; }
+   }
+
+
+   
+   //  process places of the server
+   place server_idle {
+      dom : client_set;
+      init: <( all_clients() )>;
+   }   
+   place server_msg_received { dom : client_set; }
+
+   //  transitions of the server
+   transition receive_msg {
+      in  { server_idle        : <( s )>;
+            msg                : <( c )>; }
+      out { server_msg_received: <( s - c )>; }
+   }
+   transition wait_another_msg {
+      in  { server_msg_received: <( s )>; }
+      out { server_idle        : <( s )>; }
+      guard: not s'empty;
+   }
+   transition all_msgs_received {
+      in  { server_msg_received: <( s )>; }
+      out { server_idle        : <( all_clients() )>;
+            ack                : for(c in client) <( c )>; }
+      guard: s'empty;
+   }
+
+   
+}

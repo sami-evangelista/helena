@@ -1,0 +1,11 @@
+/*
+ *  all tokens in place tester_end are primes numbers
+ */
+state property prime_ok:
+   reject bad_prime;
+
+/*
+ * termination state is inevitable
+ */
+ltl property proper_termination:
+   [] <> termination_state;

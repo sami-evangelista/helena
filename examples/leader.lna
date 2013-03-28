@@ -1,0 +1,66 @@
+/******************************************************************************
+*
+*  Example file of the Helena distribution
+*
+*  File  : leader.lna
+*  Author: Sami Evangelista
+*  Date  : 19 dec. 2004
+*
+*  The net described in this file models the Chang and Roberts election
+*  protocol on an unidirectionnal ring.
+*
+******************************************************************************/
+
+
+leader (N := 12) {  /*  N = size of the ring  */
+
+   type id  : mod N;
+   type msg : range 1 .. 2;
+
+   place idle    { dom: id * bool; init: for(i in id) <(i, false)>; }
+   place wait    { dom: id * bool; }
+   place loosing { dom: id * bool; }
+   place msg     { dom: id * id * msg; }
+
+   transition candidate {
+      in  { idle: <(X, b)>; }
+      out { wait: <(X, b)>; msg: <(succ X, X, 1)>; }
+   }
+   transition go1 {
+      in  { idle: <(X, b)>;     msg: <(X, Y, 1)>; }
+      out { wait: <(X, false)>; msg: <(succ X, X, 1)>; }
+      guard: Y < X;
+   }
+   transition go2 {
+      in  { idle   : <(X, b)>; msg: <(X, Y, 1)>; }
+      out { loosing: <(X, b)>; msg: <(succ X, Y, 1)>; }
+      guard: Y > X;
+   }
+   transition wait_to_loose {
+      in  { wait   : <(X, b)>; msg: <(X, Y, 1)>; }
+      out { loosing: <(X, b)>; msg: <( succ X, Y, 1)>; }
+      guard: ( Y > X );
+   }
+   transition absorb1 {
+      in  { wait: <(X, b)>; msg: <(X, Y, 1)>; }
+      out { wait: <(X, b)>; }
+      guard: ( Y < X );
+   }
+   transition absorb2 {
+      in  { loosing: <(X, b)>; msg: <(X, Y, 1)>; }
+      out { loosing: <(X, b)>; }
+      guard: ( Y < X );
+   }
+   transition to_win {
+      in  { wait: <(X, b)>;    msg: <(X, X, 1)>; }
+      out { wait: <(X, true)>; msg: <(succ X, X, 2)>; }
+   }
+
+   /*
+    *   there is one and one token <_, TRUE> in places wait or loosing
+    */
+   proposition one_leader:
+      exists (p in wait | p->2 and
+         forall (q in wait : q->1 = p->1 or not q->2) and
+         forall (q in loosing : q->1 = p->1 or not q->2));
+}

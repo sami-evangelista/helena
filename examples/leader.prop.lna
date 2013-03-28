@@ -1,0 +1,11 @@
+/*
+ *  a leader is eventually elected
+ */
+ltl property leader_elected:
+   <> one_leader;
+
+/*
+ *  once a leader is elected it remains so
+ */
+ltl property leader_remains:
+   [] (one_leader => [] one_leader);

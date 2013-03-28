@@ -1,0 +1,41 @@
+/******************************************************************************
+*
+*  Example file of the Helena distribution
+*
+*  File  : power.lna
+*  Author: Sami Evangelista
+*  Date  : 20 mar. 2013
+*
+*  A simple example to illustrate the mixed use of several transition
+*  features: let variables, inhibitor arcs ...
+*
+******************************************************************************/
+
+power (N   := 10,
+       M   := 9,
+       MAX := 1000000000) {
+
+function power (int i, int j) -> int {
+   if (0 = j) {
+      return 1;
+   } else {
+      return i * power (i, j - 1);
+   }
+}
+
+place input { dom : int * int;
+              init: for (n in int range 2..N,
+                         m in int range 2..M) <(n,m)>; }
+place output { dom: int; }
+
+transition calc {
+  in      { input : <(n,m)>;}
+  out     { output: <(pow)>;}
+  inhibit { output: <(pow)>; }
+  let     { int pow := power (n, m); }
+  guard      : pow <= MAX;
+  priority   : pow;
+  description: "power(%d,%d) = %d", n, m, pow;
+}
+
+}

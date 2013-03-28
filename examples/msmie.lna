@@ -1,0 +1,273 @@
+/******************************************************************************
+*
+*  Example file of the Helena distribution
+*
+*  File  : msmie.lna
+*  Author: Sami Evangelista
+*  Date  : 25 jul. 2007
+*  Source:
+*     Gaining Assurance with Formal Methods.
+*     Applications of Formal Methods, 1995
+*     Bruns, Anderson
+*
+******************************************************************************/
+
+
+msmie {
+
+constant int M := 10;
+constant int S := 10;
+constant int N := 5;
+
+subtype masterId : nat range 0 .. M - 1;
+subtype slaveId  : nat range 0 .. S - 1;
+subtype bufferId : nat range 0 .. N - 1;
+type procState   : enum (IDLE, NEWEST, SLAVE, MASTER);
+type buffersState: vector [bufferId] of procState;
+subtype readers  : nat range 0 .. M;
+
+
+
+/////
+//
+//  some useful functions
+//
+/////
+
+function noState(buffersState b, procState s) -> bool {
+   for(i in bufferId)
+      if(b[i] = s)
+         return false;
+   return true;
+}
+function initB() -> buffersState {
+   buffersState result;
+   for(i in bufferId)
+      result[i] := IDLE;
+   result[bufferId'last] := SLAVE;
+   return result;
+}
+
+
+
+/////
+//
+//  global variables
+//
+/////
+
+place sem       { dom : bool;
+                  init: <( true )>; }
+place readers   { dom : readers;
+                  init: <( 0 )>; }
+place change_to { dom : procState;
+                  init: <( IDLE )>; }
+place b         { dom : buffersState;
+                  init: <( initB() )>; }
+
+
+
+/////
+//
+//  slaves
+//
+/////
+
+place slaveIdle  { dom: slaveId; init: for(s in slaveId) <( s )>; }
+place slaveQ0    { dom: slaveId; }
+place slaveQ1    { dom: slaveId; }
+place slaveQ2    { dom: slaveId; }
+place slaveQ3    { dom: slaveId; }
+place slaveError { dom: slaveId; }
+
+transition slaveIdleToQ0 {
+   in  { slaveIdle: <( s )>;
+         sem      : <( true  )>; }
+   out { slaveQ0  : <( s )>;
+         sem      : <( false )>; }
+}
+transition slaveQ0ToQ1 {
+   in  { slaveQ0: <( s )>;
+         b      : <( b )>; }
+   out { slaveQ1: <( s )>;
+         b      : <( b :: ([i] := IDLE) )>; }
+   pick {
+      i in bufferId;
+   }
+   guard: b[i] = NEWEST;
+}
+transition slaveQ0ToQ1_2 {
+   in  { slaveQ0: <( s )>;
+         b      : <( b )>; }
+   out { slaveQ1: <( s )>;
+         b      : <( b )>; }
+   guard: noState(b, NEWEST);
+}
+transition slaveQ1ToQ2 {
+   in  { slaveQ1: <( s )>;
+         b      : <( b )>; }
+   out { slaveQ2: <( s )>;
+         b      : <( b :: ([i] := NEWEST) )>; }
+   pick {
+      i in bufferId;
+   }
+   guard: b[i] = SLAVE;
+}
+transition slaveQ1ToError {
+   in  { slaveQ1   : <( s )>;
+         b         : <( b )>; }
+   out { slaveError: <( s )>;
+         b         : <( b )>; }
+   guard: noState(b, SLAVE);
+}
+transition slaveQ2ToQ3 {
+   in  { slaveQ2: <( s )>;
+         b      : <( b )>; }
+   out { slaveQ3: <( s )>;
+         b      : <( b :: ([i] := SLAVE) )>; }
+   pick {
+      i in bufferId;
+   }
+   guard: b[i] = IDLE;
+}
+transition slaveQ2ToError {
+   in  { slaveQ2   : <( s )>;
+         b         : <( b )>; }
+   out { slaveError: <( s )>;
+         b         : <( b )>; }
+   guard: noState(b, IDLE);
+}
+transition slaveQ3ToIdle {
+   in  { slaveQ3  : <( s )>;
+         sem      : <( sem  )>; }
+   out { slaveIdle: <( s )>;
+         sem      : <( true )>; }
+}
+
+
+
+/////
+//
+//  masters
+//
+/////
+
+place masterIdle      { dom: masterId; init: for(m in masterId) <( m )>; }
+place masterQ0        { dom: masterId; }
+place masterNoMaster  { dom: masterId; }
+place masterMaster    { dom: masterId; }
+place masterReading   { dom: masterId; }
+place masterR0        { dom: masterId; }
+place masterNoReaders { dom: masterId; }
+place masterChange    { dom: masterId; }
+place masterR1        { dom: masterId; }
+
+transition masterIdleToQ0 {
+   in  { masterIdle: <( m )>;
+         sem       : <( true )>; }
+   out { masterQ0  : <( m )>;
+         sem       : <( false )>; }
+}
+transition masterQ0ToMaster {
+   in  { masterQ0    : <( m )>;
+         b           : <( b )>; }
+   out { masterMaster: <( m )>;
+         b           : <( b )>; }
+   pick {
+      i in bufferId;
+   }
+   guard: b[i] = MASTER;
+}
+transition masterQ0ToNoMaster {
+   in  { masterQ0      : <( m )>;
+         b             : <( b )>; }
+   out { masterNoMaster: <( m )>;
+         b             : <( b )>; }
+   guard: noState(b, MASTER);
+}
+transition masterNoMasterToMaster {
+   in  { masterNoMaster: <( m )>;
+         b             : <( b )>; }
+   out { masterMaster  : <( m )>;
+         b             : <( b :: ([i] := MASTER) )>; }
+   pick {
+      i in bufferId;
+   }
+   guard: b[i] = NEWEST;
+}
+transition masterNoMasterToIdle {
+   in  { masterNoMaster: <( m )>;
+         sem           : <( sem   )>;
+         b             : <( b )>; }
+   out { masterIdle    : <( m )>;
+         sem           : <( true  )>;
+         b             : <( b )>; }
+   guard: noState(b, NEWEST);
+}
+transition masterMasterToReading {
+   in  { masterMaster : <( m )>;
+         readers      : <( r )>;
+         sem          : <( sem  )>; }
+   out { masterReading: <( m )>;
+         readers      : <( r + 1 )>;
+         sem          : <( true )>; }
+}
+transition masterReadingToR0 {
+   in  { masterReading: <( m )>;
+         readers      : <( r )>;
+         sem          : <( true )>; }
+   out { masterR0     : <( m )>;
+         readers      : <( r - 1 )>;
+         sem          : <( false )>; }
+}
+transition masterR0ToNoReaders {
+   in  { masterR0       : <( m )>;
+         readers        : <( 0 )>; }
+   out { masterNoReaders: <( m )>;
+         readers        : <( 0 )>; }
+}
+transition masterR0ToR1 {
+   in  { masterR0: <( m )>;
+         readers : <( r )>; }
+   out { masterR1: <( m )>;
+         readers : <( r )>; }
+   guard: r > 0;
+}
+transition masterNoReadersToChange {
+   in  { masterNoReaders: <( m )>;
+         b              : <( b )>;
+         change_to      : <( change_to )>; }
+   out { masterChange   : <( m )>;
+         b              : <( b )>;
+         change_to      : <( IDLE )>; }
+   guard: not (noState(b, NEWEST));
+}
+transition masterNoReadersToChange_2 {
+   in  { masterNoReaders: <( m )>;
+         b              : <( b )>;
+         change_to      : <( change_to )>; }
+   out { masterChange   : <( m )>;
+         b              : <( b )>;
+         change_to      : <( NEWEST )>; }
+   guard: noState(b, NEWEST);
+}
+transition masterChangeToR1 {
+   in  { masterChange: <( m )>;
+         b           : <( b )>;
+         change_to   : <( change_to )>; }
+   out { masterR1    : <( m )>;
+         change_to   : <( change_to )>;
+         b           : <( b :: ([i] := change_to ))>; }
+   pick {
+      i in bufferId;
+   }
+   guard: b[i] = MASTER;
+}
+transition masterR1ToIdle {
+   in  { masterR1  : <( m )>;
+         sem       : <( sem )>; }
+   out { masterIdle: <( m )>;
+         sem       : <( true )>; }
+}
+
+}

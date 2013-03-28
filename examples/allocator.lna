@@ -1,0 +1,131 @@
+/******************************************************************************
+*
+*  Example file of the Helena distribution
+*
+*  File  : allocator.lna
+*  Author: Sami Evangelista
+*  Date  : 05 jun. 2006
+*
+*  A ressource allocation system.
+*
+******************************************************************************/
+
+
+allocator
+{
+   constant int N := 4;
+   constant int M := 13;
+   constant int K := 4;
+   type client : range 1 .. N;
+
+
+   //  the server
+   place server
+   {
+      dom : epsilon;
+      init : epsilon;
+   }
+   place ressources
+   {
+      dom : epsilon;
+      init : M * epsilon;
+      capacity : M;
+   }
+   place tokens
+   {
+      dom : client;
+      init : for(c in client) K * <( c )>;
+      capacity : K;
+   }
+   place messGet     { dom : client; }
+   place endGet      { dom : client; }
+   place ackGet      { dom : client; }
+   place messRelease { dom : client; }
+   place endRelease  { dom : client; }
+   place ackRelease  { dom : client; }
+
+
+   //  the clients
+   place ready
+   {
+      dom : client;
+      init : for(c in client) <( c )>;
+   }
+   place limit
+   {
+      dom : client;
+      init : for(c in client) K * <( c )>;
+      capacity : K;
+   }
+   place got     { dom : client; capacity : K; }
+   place working { dom : client; }
+   place att1    { dom : client; }
+   place end1    { dom : client; }
+   place att2    { dom : client; }
+   place end2    { dom : client; }
+
+
+   transition serviceG
+   {
+      in  { server : epsilon; messGet : <( x )>; ressources : epsilon;
+            tokens : <( x )>; }
+      out { endGet : <( x )>; }
+   }
+   transition endServiceG
+   {
+      in  { endGet : <( x )>; }
+      out { ackGet : <( x )>; server : epsilon; }
+   }
+   transition serviceR
+   {
+      in  { server : epsilon; messRelease : <( x )>; }
+      out { endRelease : <( x )>; ressources : epsilon; tokens : <( x )>; }
+   }
+   transition endServiceR
+   {
+      in  { endRelease : <( x )>; }
+      out { ackRelease : <( x )>; server : epsilon; }
+   }
+
+
+   transition w1
+   {
+      in  { ready : <( x )>; }
+      out { working : <( x )>; }
+   }
+   transition w2
+   {
+      in  { working : <( x )>; }
+      out { ready : <( x )>; }
+   }
+   transition sendG
+   {
+      in  { ready : <( x )>; limit : <( x )>; }
+      out { att1 : <( x )>; messGet : <( x )>; }
+   }
+   transition recG
+   {
+      in  { att1 : <( x )>; ackGet : <( x )>; }
+      out { end1 : <( x )>; got : <( x )>; }
+   }
+   transition endG
+   {
+      in  { end1 : <( x )>; }
+      out { ready : <( x )>; }
+   }
+   transition sendR
+   {
+      in  { ready : <( x )>; got : <( x )>; }
+      out { att2 : <( x )>; messRelease : <( x )>;}
+   }
+   transition recR
+   {
+      in  { att2 : <( x )>; ackRelease : <( x )>; }
+      out { end2 : <( x )>; }
+   }
+   transition endR
+   {
+      in  { end2 : <( x )>; }
+      out { ready : <( x )>; limit : <( x )>; }
+   }
+}

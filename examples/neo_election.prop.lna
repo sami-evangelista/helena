@@ -1,0 +1,3 @@
+state property no_deadlock:
+   reject deadlock;
+   accept termination_state;

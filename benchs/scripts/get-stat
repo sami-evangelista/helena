@@ -1,0 +1,28 @@
+#!/usr/bin/python
+
+from xml.dom.minidom import parse, parseString
+import os
+import shutil
+import subprocess
+import sys
+
+if len (sys.argv) != 3:
+    print "usage:", sys.argv[0], "xml-report-file stat-name"
+    exit (1)
+
+file = sys.argv[1]
+stat = sys.argv[2]
+
+try:
+    doc = parse (file)
+    l = doc.getElementsByTagName (stat)
+    if len (l) == 0:
+        print "stat not found:", stat
+        exit (1)
+    else:
+        print l[0].childNodes[0].nodeValue
+except IOError, err:
+    print err
+    exit (1)
+
+exit (0)

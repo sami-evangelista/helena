@@ -1,0 +1,88 @@
+#!/bin/bash
+
+models="load_balancer slotted peterson szymanski eratosthene telephony leader neo_election
+lookup_processors eisenberg_mcguire lamport szymanski slotted"
+modelsDir=../examples
+workers=8
+
+echoParameters () {
+    if [ $1 = telephony ]
+    then
+	for N in 2 3 4
+	do
+	    echo "-m=N=$N"
+	done
+    elif [ "$1" = eisenberg_mcguire -o "$1" = szymanski -o "$1" = peterson -o "$1" = lamport ]
+    then
+	for N in 2 3 4
+	do
+	    echo "-m=N=$N"
+	done
+    elif [ "$1" = leader ]
+    then
+        for N in $(seq 2 12)
+        do
+            echo "-m=N=$N"
+        done
+    elif [ "$1" = lookup_processors ]
+    then
+	for N in $(seq 2 12)
+        do
+            echo "-m=N=$N"
+        done
+    elif [ "$1" = load_balancer ]
+    then
+	for C in $(seq 2 7)
+	do
+	    for S in $(seq 1 3)
+	    do
+		if [ $C -ge $S ]
+		then
+		    echo "-m=C=$C:-m=S=$S"
+		fi
+	    done
+	done
+    elif [ "$1" = eratosthene ]
+    then
+	for N in $(seq 10 5 60)
+	do
+	    echo "-m=N=$N"
+	done
+    elif [ "$1" = slotted ]
+    then
+	for N in $(seq 2 7)
+	do
+	    echo "-m=N=$N"
+	done
+    elif [ "$1" = neo_election ]
+    then
+	for N in $(seq 2 4)
+	do
+	    echo "-m=M=$N"
+	done
+    fi
+}
+
+for m in $models
+do
+    for p in $(echoParameters $m)
+    do
+	rep=report-$RANDOM.xml
+	cmd="helena --algo=delta-ddd -W=$workers -cs=1000000 "$(echo $p | tr ":" " ")
+	cmd=$cmd" -o="$rep" -t=29"
+	cmd=$cmd" $modelsDir/$m.lna"
+	echo $m $p
+	echo $cmd
+	eval $cmd
+	if [ -e $rep -a "$(grep searchTerminated $rep)" != "" ]
+	then
+	    st=$(scripts/get-stat $rep statesStored)
+	    arcs=$(scripts/get-stat $rep arcs)
+	    lvls=$(scripts/get-stat $rep bfsLevels)
+	    printf "%20s%10s%10s%6s%15s\n" \
+		$m $st $arcs $lvls "$(echo $p | tr ":" " " | sed "s/-m=//g")" \
+		>> stats-lna.txt
+	fi
+	rm $rep &> /dev/null
+    done
+done

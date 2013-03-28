@@ -1,0 +1,73 @@
+/******************************************************************************
+*
+*  Example file of the Helena distribution
+*
+*  File  : p2p.lna
+*  Author: Sami Evangelista
+*  Date  : 05 jun. 2006
+*
+*  This net models peer-to-peer communications between N sites. A
+*  server is used to managage rendez-vous.
+*
+*  To obtain a rendez-vous with another site a site sends its id to
+*  the server then waits for the answer of the server. This answer
+*  contains the id of the other site that will communicate with
+*  it. The site can then send a message to its pair and
+*  conversly. Once this synchronization done both go back in the idle
+*  state.
+*
+*  In the idle state, the server waits for a first site then for a
+*  second one and acknowledge both by sending them the id of the other
+*  site. He then goes back to the idle state.
+*
+******************************************************************************/
+
+
+p2p (N := 6) {  /*  N = the number of sites  */
+
+   type siteId : range 1 .. N;
+
+   //  process places of sites
+   place siteIdle        { dom : siteId; init: for(s in siteId) <( s )>; }
+   place siteWaitingPeer { dom : siteId; }
+   place siteSending     { dom : siteId * siteId; }
+   place siteWaitingMsg  { dom : siteId; }
+
+   //  communication buffers
+   place askPeer { dom : siteId; }
+   place ackPeer { dom : siteId * siteId; type : ack;}
+   place msg     { dom : siteId; }
+
+   //  process places of the server
+   place serverIdle    { dom : epsilon; init: epsilon; }
+   place serverWaiting { dom : siteId; }
+
+   //  transitions of the server
+   transition serverReceiveFirstPeer  {
+      in  { serverIdle: epsilon; askPeer: <( first )>; }
+      out { serverWaiting: <( first )>; }
+   }
+   transition serverReceiveSecondPeer {
+      in  { serverWaiting: <( first )>; askPeer: <( second )>; }
+      out { serverIdle: epsilon;
+            ackPeer : <( first, second )> + <( second, first )>; }
+   }
+
+   //  transitions of the sites
+   transition siteAskForPeer  {
+      in  { siteIdle: <( s )>; }
+      out { siteWaitingPeer: <( s )>; askPeer: <( s )>; }
+   }
+   transition siteReceivePeer  {
+      in  { siteWaitingPeer: <( s )>; ackPeer: <( s, peer )>; }
+      out { siteSending: <( s, peer )>; }
+   }
+   transition siteSendData  {
+      in  { siteSending: <( s, peer )>; }
+      out { siteWaitingMsg: <( s )>; msg: <( peer )>; }
+   }
+   transition siteReceiveData  {
+      in  { siteWaitingMsg: <( s )>; msg: <( s )>; }
+      out { siteIdle: <( s )>; }
+   }   
+}

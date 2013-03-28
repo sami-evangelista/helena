@@ -1,0 +1,125 @@
+/******************************************************************************
+*
+*  Example file of the Helena distribution
+*
+*  File  : dbm.lna
+*  Author: Sami Evangelista
+*  Date  : 27 oct. 2004
+*  Source:
+*     Coloured Petri Nets: A high level language for system design and analysis
+*     In Application and Theory of Petri Nets, p.342--416, Springer, 1989
+*     Kurt Jensen
+*
+*  If symbol UNUSED is defined, the model includes the place unused.
+*
+******************************************************************************/
+
+dbm (N := 10) {  /*  N = number of sites  */
+
+   type site_id : mod N;
+
+   /*
+    *  process places modelling the control flow of processes
+    */
+   place inactive {
+      dom : site_id;
+      init : for(s in site_id) <( s )>;
+      capacity : 1;
+      type: process;
+   }
+   place waiting {
+      dom : site_id;
+      capacity : 1;
+      type: process;
+   }
+   place performing {
+      dom : site_id;
+      capacity : 1;
+      type: process;
+   }
+
+   /*
+    *  places modelling communication channels
+    */
+   place sent {
+      dom : site_id * site_id;
+      capacity : 1;
+      type: buffer;
+   }
+   place received {
+      dom : site_id * site_id;
+      capacity : 1;
+      type: buffer;
+   }
+   place acks {
+      dom : site_id * site_id;
+      capacity : 1;
+      type: ack;
+   }
+#ifdef UNUSED
+   place unused {
+      dom : site_id * site_id;
+      init : for(s in site_id, r in site_id) if(s != r) <( s, r )>;
+      capacity : 1;
+      type: buffer;
+   }
+#endif
+   place mutex {
+      dom : epsilon;
+      init : epsilon;
+      capacity : 1;
+      type: shared;
+   }
+
+   transition update_and_send {
+      in {
+         inactive : <( s )>;
+         mutex    : epsilon;
+#ifdef UNUSED
+         unused   : for(r in site_id) if(s != r) <( s, r )>;
+#endif
+      }
+      out {
+         waiting : <( s )>;
+         sent    : for(r in site_id) if(s != r) <( s, r )>;
+      }
+   }
+   transition receive_acks {
+      in {
+         waiting : <( s )>;
+         acks    : for(r in site_id) if(s != r) <( s, r )>;
+      }
+      out {
+         inactive : <( s )>;
+         mutex    : epsilon;
+#ifdef UNUSED
+         unused   : for(r in site_id) if(s != r) <( s, r )>;
+#endif
+      }
+   }
+   transition receive_message {
+      in {
+         inactive : <( r )>;
+         sent     : <( s, r )>;
+      }
+      out {
+         performing : <( r )>;
+         received   : <( s, r )>;
+      }
+   }
+   transition send_ack {
+      in {
+         performing : <( r )>;
+         received   : <( s, r )>;
+      }
+      out {
+         inactive : <( r )>;
+         acks     : <( s, r )>;
+      }
+   }
+
+   /*
+    *  state propositions
+    */
+   proposition site_waiting: waiting'card > 0;
+}

@@ -1,0 +1,132 @@
+/******************************************************************************
+*
+*  Example file of the Helena distribution
+*
+*  File  : ressources.lna
+*  Author: Sami Evangelista
+*  Date  : 27 oct. 2004
+*  Source:
+*     Coloured Petri Nets. Basic Concepts, Analysis Methods and Practical Use.
+*     Volume 1, Basic Concepts.
+*     Monographs in Theoretical Computer Science, Springer-Verlag, 2nd
+*     corrected printing 1997. ISBN: 3-540-60943-1.
+*     Kurt Jensen
+*
+*  This is a small toy example taken from the 1st vol. of the CPN book of
+*  Jensen. It describes a ressource allocation system. Two different types of
+*  processes (p and q) share a set of three types of ressources (r, s, t)
+*  modelized by the three places R, S, and T. Processes have a cyclic
+*  behavior.
+*
+*  In this version, the model exhibits no deadlock. However, a
+*  deadlock can be introduced if we add an extra ressource of type S.  This
+*  behavior can be highlighted by defining symbol DEADLOCK.
+*
+******************************************************************************/
+
+
+ressources
+{
+   //  type of process
+   type proc : enum (p, q);
+
+   //  number of Q processes
+   constant int Q := 3;
+
+   //  number of P processes
+   constant int P := 2;
+
+   //  number of R ressources
+   constant int R := 1;
+
+   //  number of S ressources
+#ifdef DEADLOCK
+   constant int S := 4;
+#else
+   constant int S := 3;
+#endif
+
+   //  number of T ressources
+   constant int T := 2;
+
+
+   //  process places
+   place A
+   {
+     dom  : proc;
+     init : Q*<( q )>;
+     capacity : Q > P ? Q : P;
+   }
+   place B
+   {
+     dom : proc;
+     init : P*<( p )>;
+     capacity : Q > P ? Q : P;
+   }
+   place C
+   {
+     dom : proc;
+     capacity : Q > P ? Q : P;
+   }
+   place D
+   {
+     dom : proc;
+     capacity : Q > P ? Q : P;
+   }
+   place E
+   {
+     dom : proc;
+     capacity : Q > P ? Q : P;
+   }
+
+   //  ressources places
+   place R
+   {
+     dom : epsilon;
+     init : R*epsilon;
+     capacity : R;
+   }
+   place S
+   {
+     dom : epsilon;
+     init : S*epsilon;
+     capacity : S;
+   }
+   place T
+   {
+     dom : epsilon;
+     init : T*epsilon;
+     capacity : T;
+   }
+
+
+   transition T1
+   {
+      in  { A : <( x )>; R : epsilon; S : epsilon; }
+      out { B : <( x )>; }
+      guard: x = q;
+   }
+   transition T2
+   {
+      in  { B : <( x )>; S : if(x = p) 2*epsilon + if(x = q) epsilon; }
+      out { C : <( x )>; }
+   }
+   transition T3
+   {
+      in  { C : <( x )>; T : if(x = p) epsilon; }
+      out { D : <( x )>; R : if(x = q) epsilon; }
+   }
+   transition T4
+   {
+      in  { D : <( x )>; T : epsilon; }
+      out { E : <( x )>; }
+   }
+   transition T5
+   {
+      in  { E : <( x )>; }
+      out { S : 2*epsilon;
+            T : if(x = p) 2*epsilon + if(x = q) epsilon;
+            A : if(x = q) <( q )>;
+            B : if(x = p) <( p )>; }
+   }
+}

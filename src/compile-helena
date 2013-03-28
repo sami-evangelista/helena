@@ -1,0 +1,69 @@
+#!/bin/bash
+
+#####
+#
+#  File: compile-helena
+#
+#####
+
+compileLtl2BA=0
+compileDve=0
+clean=0
+
+for i in $(seq 1 $#)
+do
+    case ${!i} in
+        --with-ltl)  compileLtl2BA=1 ;;
+        --with-dve)  compileDve=1 ;;
+        --with-all)  compileLtl2BA=1 ; compileDve=1 ;;
+	--clean)     clean=1 ;;
+	--clean-all) clean=2 ;;
+    esac
+done
+
+if [ $clean -ge 1 ]
+then
+    rm -rf obj/*.* */*~ */*/*~ */*.ali */*.o
+    if [ $clean -ge 2 ]
+    then
+	(rm \
+            ../bin/helena-generate \
+            ../bin/helena-generate-checker \
+            ../bin/helena-generate-dve \
+            ../bin/helena-generate-interface \
+            ../bin/helena-generate-property \
+            ../bin/helena-generate-xml \
+            ../bin/helena-generate-vectors \
+            ../bin/helena-ltl2ba
+	    cd ../doc
+	    make clean-all
+	    cd -) &> /dev/null
+    fi
+    exit 0
+fi
+
+
+(cd checker ; \
+    ./gen-checker ; \
+    cd ../../xml ; \
+    ./gen-xml ; \
+    cd -) &> /dev/null
+
+gprbuild -P helena.gpr -XBUILD=debug -XINSTALL_PATH=../bin
+
+OLDPATH=$PATH
+if [ $compileDve -eq 1 ]
+then
+    PATH=/usr/bin:$PATH
+    cd dve
+    mlton helena-generate-dve.mlb
+    cd ..
+    mv dve/helena-generate-dve ../bin
+    PATH=$OLDPATH
+fi
+
+if [ $compileLtl2BA -eq 1 ]
+then
+    cd ltl2ba ; make ltl2ba ; cd ..
+    mv ltl2ba/ltl2ba ../bin/helena-ltl2ba
+fi

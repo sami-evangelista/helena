@@ -1,0 +1,200 @@
+/******************************************************************************
+*
+*  Example file of the Helena distribution
+*
+*  File  : lamport.lna
+*  Author: Sami Evangelista
+*  Date  : 30 apr. 2005
+*  Source:
+*     Computer Aided Verification of Lamport's Fast Mutual Exclusion
+*     Algorithm Using Coloured Petri Nets and Occurenge Graphs with
+*     Symmetries.
+*     J.B. Jorgensen and L.M. Kristensen
+*     http://www.daimi.au.dk/PB/512/PB-512.pdf
+*
+*  The net of this file models Lamport's fast mutual exclusion
+*  algorithm for N processes.  The pseudo code algorithm is given below:
+*
+*  ---  code for a process i (i in [1..N])  ---
+*  01 start :
+*  02    b[i] = true;
+*  03    x = i;
+*  04    if y != 0 then
+*  05       b[i] = false;
+*  06       await y = 0;
+*  07       goto start;
+*  08    end if;
+*  09    y = i;
+*  10    if x != i then
+*  11       b[i] = false;
+*  12       for j in 1..N loop
+*  13          await !b[j];
+*  14       end loop;
+*  15       if y != i then
+*  16          await y = 0;
+*  17          goto start;
+*  18       end if;
+*  19    end if;
+*  20
+*  21    <critical section>
+*  22
+*  23    y = 0;
+*  24    b[i] = false;
+*  25    goto start;
+*
+******************************************************************************/
+
+
+lamport (N := 3) {  /*  N = number of processes  */
+
+   //  the process identifier type
+   type pid : range 0 .. N;
+   constant pid no_pid := 0;
+
+
+   /*
+   * places definition
+   * - shared variables x, y, and b are modelled by three places
+   *   having the same name
+   * - each place which models the state of a process has name stat_N
+   *   where stat is a short description of the statement currently
+   *   executed by the process and N is the line number of the
+   *   statement
+   */
+   place start_1
+   {
+      dom : pid;
+      init : for(i in pid range 1..pid'last) <( i )>;
+   }
+   place x
+   {
+      dom : pid;
+      init : <( no_pid )>;
+   }
+   place y
+   {
+      dom : pid;
+      init : <( no_pid )>;
+   }
+   place b
+   {
+      dom : pid * bool;
+      init : for(p in pid range 1..pid'last) <( p, false )>;
+   }
+   place setx_3   {dom : pid;}
+   place setbi_5  {dom : pid;}
+   place ify0_4   {dom : pid;}
+   place sety_9   {dom : pid;}
+   place ifxi_10  {dom : pid;}
+   place setbi_11 {dom : pid;}
+   place fordo_12 {dom : pid;}
+   place wait     {dom : pid * pid;}
+   place await_13 {dom : pid;}
+   place done     {dom : pid * pid;}
+   place ifyi_15  {dom : pid;}
+   place awaity   {dom : pid;}
+   place CS_21    {dom : pid;}
+   place setbi_24 {dom : pid;}
+
+   proposition cs_not_ok:
+      CS_21'card > 1;
+
+   /*
+   * transitions definition
+   * each transition has name stat_N where stat is a short description
+   * of the statement which corresponds to the transition and N is the
+   * line number of the statement
+   */
+   transition setbi_2
+   {
+      in  { start_1 : <( i )>; b : <( i, bi )>; }
+      out { setx_3  : <( i )>; b : <( i, true )>; }
+   }
+   transition setx_3
+   {
+      in  { setx_3 : <( i )>; x : <( x )>; }
+      out { ify0_4 : <( i )>; x : <( i )>; }
+   }
+   transition yne0_4
+   {
+      in  { ify0_4  : <( i )>; y : <( y )>; }
+      out { setbi_5 : <( i )>; y : <( y )>; }
+      guard : y != 0;
+   }
+   transition setbi_5
+   {
+      in  { setbi_5 : <( i )>; b : <( i, bi )>; }
+      out { awaity  : <( i )>; b : <( i, false )>; }
+   }
+   transition awaity
+   {
+      in  { awaity  : <( i )>; y : <( no_pid )>; }
+      out { start_1 : <( i )>; y : <( no_pid )>; }
+   }
+   transition yeq0_4
+   {
+      in  { ify0_4 : <( i )>; y : <( no_pid )>; }
+      out { sety_9 : <( i )>; y : <( no_pid )>; }
+   }
+   transition sety_9
+   {
+      in  { sety_9  : <( i )>; y : <( y )>; }
+      out { ifxi_10 : <( i )>; y : <( i )>; }
+   }
+   transition xnei_10
+   {
+      in  { ifxi_10  : <( i )>; x : <( x )>; }
+      out { setbi_11 : <( i )>; x : <( x )>; }
+      guard : x != i;
+   }
+   transition setbi_11
+   {
+      in  { setbi_11 : <( i )>; b : <( i, bi )>; }
+      out { fordo_12 : <( i )>; b : <( i, false )>; }
+   }
+   transition fordo_12
+   {
+      in  { fordo_12 : <( i )>; }
+      out { await_13 : <( i )>;
+            wait     : for (j in pid range 1..pid'last) <( i, j )>; }
+   }
+   transition await_13
+   {
+      in  { await_13 : <( i )>; b : <( j, false )>; wait : <( i, j )>; }
+      out { await_13 : <( i )>; b : <( j, false )>; done : <( i, j )>; }
+   }
+   transition forod_13
+   {
+      in  { await_13 : <( i )>;
+            done     : for (j in pid range 1..pid'last) <( i, j )>; }
+      out { ifyi_15  : <( i )>; }
+   }
+   transition ynei_15
+   {
+      in  { ifyi_15 : <( i )>; y : <( y )>; }
+      out { awaity  : <( i )>; y : <( y )>; }
+      guard : i != y;
+   }
+   transition yeqi_15
+   {
+      in  { ifyi_15 : <( i )>; y : <( y )>; }
+      out { CS_21   : <( i )>; y : <( y )>; }
+      guard : i = y;
+   }
+   transition xeqi_10
+   {
+      in  { ifxi_10 : <( i )>; x : <( x )>; }
+      out { CS_21   : <( i )>; x : <( x )>; }
+      guard : i = x;
+   }
+   transition sety0_23
+   {
+      in  { CS_21    : <( i )>; y : <( y )>; }
+      out { setbi_24 : <( i )>; y : <( no_pid )>; }
+   }
+   transition setbi_24
+   {
+      in  { setbi_24 : <( i )>; b : <( i, bi )>; }
+      out { start_1  : <( i )>; b : <( i, false )>; }
+   }
+}

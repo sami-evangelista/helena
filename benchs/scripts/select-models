@@ -1,0 +1,24 @@
+#!/bin/bash
+
+if [ -z $1 ]
+then
+    exit 1
+elif [ -z $2 ]
+then
+    exit 1
+fi
+
+(cat stats-lna.txt | while read m s params
+    do
+	if [ $s -ge $1 -a $s -le $2 ]
+	then
+	    echo $m" lna "$s" "$params
+	fi
+    done
+    cat stats-dve.txt | while read m s X
+    do
+        if [ $s -ge $1 -a $s -le $2 ]
+        then
+            echo $m" dve "$s
+        fi
+    done) | sort -n --key=3

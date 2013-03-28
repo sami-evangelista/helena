@@ -1,0 +1,46 @@
+library
+	structure DveCompiler
+	structure DveParser
+	structure DveDefinitionsCompiler
+	structure DveEnablingTestCompiler
+	structure DveEventExecutionCompiler
+	structure DveHashFunctionCompiler
+	structure DveSerializerCompiler
+	structure DveOrderCompiler
+	structure DveIndependenceRelationCompiler
+	structure DveComponentsCompiler
+	structure DveProgressCompiler
+	structure DveModelCompiler
+	structure DveConfigCompiler
+	structure DveInitialStateCompiler
+is
+
+#if (defined(SMLNJ_VERSION))
+        $/basis.cm
+        $/smlnj-lib.cm
+        $/ml-lpt-lib.cm
+        $/ml-yacc-lib.cm
+	dve.grm.sig
+	dve.grm.sml
+	dve.lex.sml
+	dve-parser.sml
+	dve-compiler.sml
+#endif
+	utils.sml
+	dve-system.sml
+	errors.sml
+	dve-compiler-utils.sml
+	dve-model-compiler.sml
+	dve-components-compiler.sml
+	dve-order-compiler.sml
+	dve-sem-analyzer.sml
+	dve-independence-relation-compiler.sml
+	dve-serializer-compiler.sml
+	dve-definitions-compiler.sml
+	dve-enabling-test-compiler.sml
+	dve-event-execution-compiler.sml
+	dve-hash-function-compiler.sml
+	dve-simplifier.sml
+	dve-progress-compiler.sml
+	dve-config-compiler.sml
+	dve-initial-state-compiler.sml

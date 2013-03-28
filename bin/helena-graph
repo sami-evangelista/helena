@@ -1,0 +1,409 @@
+#!/usr/bin/python
+
+from xml.dom.minidom import parse, parseString
+import os
+import shutil
+import subprocess
+import sys
+import Gnuplot
+import tempfile
+
+class NotFound(Exception):
+    pass
+
+helenaDir = os.path.join(os.getenv("HOME"), ".helena")
+modelsDir = os.path.join(helenaDir, "models")
+
+def findReportFile(m):
+    for lang in os.listdir(modelsDir):
+        langDir = os.path.join(modelsDir, lang)
+        for mod in os.listdir(langDir):
+            if mod == m:
+                f = os.path.join(langDir, mod, "rg-report.xml") 
+                if os.path.exists(f):
+                    return f
+                else:
+                    raise IOError("error: report file \"" + f + "\" not found")
+    raise IOError("error: model \"" + m + "\" not found")
+
+def getAttr(e, name):
+    for i in range(0, e.attributes.length):
+        if e.attributes.item(i).nodeName == name:
+            return e.attributes.item(i).value
+    raise NotFound
+
+def getNodeValue(name, root = None):
+    if root == None:
+        e = doc.getElementsByTagName(name)[0]
+    else:
+        e = root.getElementsByTagName(name)[0]
+    return e.childNodes[0].nodeValue
+
+def divide(num, den):
+    if den == 0: return "--"
+    else: return str(num / den)
+
+if len(sys.argv) != 3:
+    print "usage: helena-graph model-name  out-file"
+    print "       helena-graph report-file out-file"
+    exit(1)
+
+xml = sys.argv[1]
+if not os.path.exists(xml):
+    try:
+        xml = findReportFile(xml)
+    except IOError, err:
+        print err
+        exit(1)
+
+out = sys.argv[2]
+(_, outType) = os.path.splitext(out)
+if outType == ".xml":
+    shutil.copyfile(xml, out)
+    exit(0)
+elif outType == ".pdf":
+    pass
+else:
+    print "error: unrecognized extension: " + outType
+    exit(1)
+    
+try:
+    doc = parse(xml)
+except:
+    print "error: could not parse file " + xml
+    exit(1)
+
+#  get xml file attributes
+withBLELengths   = False
+states           = int(getNodeValue("states"))
+edges            = int(getNodeValue("edges"))
+model            = getNodeValue("model")
+date             = getNodeValue("date")
+filePath         = getNodeValue("filePath")
+language         = getNodeValue("language")
+count            = int(getNodeValue("count"))
+terminal         = int(getNodeValue("terminal"))
+trivial          = int(getNodeValue("trivial"))
+largest          = int(getNodeValue("largest"))
+avg              = float(getNodeValue("avg"))
+maxIn            = int(getNodeValue("max-in"))
+maxOut           = int(getNodeValue("max-out"))
+maxStack         = int(getNodeValue("max-stack"))
+frontEdges       = int(getNodeValue("front-edges"))
+backEdges        = int(getNodeValue("back-edges"))
+crossEdges       = int(getNodeValue("cross-edges"))
+shortestCycle    = int(getNodeValue("shortest-cycle"))
+levels           = int(getNodeValue("levels"))
+backLevelEdges   = int(getNodeValue("back-level-edges"))
+maxLevel         = int(getNodeValue("max-level"))
+maxBackLevelEdge = int(getNodeValue("max-back-level-edge"))
+avgBackLevelEdge = float(getNodeValue("avg-back-level-edge"))
+
+parameters       = ""
+for e in doc.getElementsByTagName("modelParameter"):
+    name  = getNodeValue("modelParameterName", root = e)
+    value = getNodeValue("modelParameterValue", root = e)
+    if parameters == "":
+        parameters = "Model parameters &"
+    else:
+        parameters = parameters + "&"
+    parameters = parameters + name + " = " + value + "\\\\\n"
+
+tmp = tempfile.mkdtemp()
+
+def plot(values, typ, title, f):
+    g = Gnuplot.Gnuplot()
+    g("set terminal pdf")
+    g("set output \"" + tmp + "/" + f + "\"")
+    c = Gnuplot.Data(values, with_ = typ)
+    g.title(title)
+    g.plot(c)
+
+def BLELengthsFigure():
+    if withBLELengths:
+        return "\\scalebox{0.9}{\\includegraphics{ble-lengths}}\n"
+    else:
+        return ""
+
+def DFSStackFigure():
+    if withDFSStack:
+        return "\\begin{center}\n\
+\\scalebox{0.9}{\\includegraphics{dfs-stack}}\n\
+\\end{center}\n"
+    else:
+        return ""
+
+
+#####
+#
+#  generate all figures using gnuplot
+(l, t) = ([], "Back level edges length (% of back level edges)")
+for e in doc.getElementsByTagName("length"):
+    l.append((getAttr(e, "id"), e.childNodes[0].nodeValue))
+withBLELengths = len(l) > 0
+if withBLELengths: plot(l, "boxes", t, "ble-lengths.pdf")
+#####
+(l, t) = ([], "BFS level graph (% of states)")
+for e in doc.getElementsByTagName("level"):
+    s = e.getElementsByTagName("states")[0]
+    l.append((getAttr(e, "id"),
+              100 * int(s.childNodes[0].nodeValue) / states))
+plot(l, "lines", t, "bfs-levels.pdf")
+#####
+(l, t) = ([], "Evolution of the stack (% of states) during DFS")
+for e in doc.getElementsByTagName("stack-size"):
+    l.append((getAttr(e, "id"), e.childNodes[0].nodeValue))
+withDFSStack = len(l) > 0
+if withDFSStack: plot(l, "boxes", t, "dfs-stack.pdf")
+#####
+(l, t) = ([], "In-degree distribution (% of states)")
+for e in doc.getElementsByTagName("degree"):
+    s = e.getElementsByTagName("in")[0]
+    l.append((getAttr(e, "id"),
+              100 * int(s.childNodes[0].nodeValue) / states))
+plot(l, "boxes", t, "in-degree.pdf")
+#####
+(l, t) = ([], "Out-degree distribution (% of states)")
+for e in doc.getElementsByTagName("degree"):
+    s = e.getElementsByTagName("out")[0]
+    l.append((getAttr(e, "id"),
+               100 * int(s.childNodes[0].nodeValue) / states))
+plot(l, "boxes", t, "out-degree.pdf")
+#####
+
+def outputModelStatistics(f):
+    def exprListToString(e, d):
+        result = ""
+        for ex in e.childNodes:
+            name = ex.nodeName
+            if name in d:
+                if result != "": result += ", "
+                result += d[name](ex, d)
+        return result
+    def enumToString(e, d):
+        return e.childNodes[0].nodeValue.replace("_", "\\_")
+    def numToString(e, d):
+        return e.childNodes[0].nodeValue
+    def vectorToString(e, d):
+        l = e.getElementsByTagName("exprList")[0]
+        return "[" + exprListToString(l, d) + "]"
+    def structToString(e, d):
+        l = e.getElementsByTagName("exprList")[0]
+        return "{" + exprListToString(l, d) + "}"
+    def containerToString(e, d):
+        l = e.getElementsByTagName("exprList")[0]
+        if len(l.childNodes) == 0: return "empty"
+        else: return "$|$" + exprListToString(l, d) + "$|$"
+    def tokenToString(e, d):
+        m = e.getElementsByTagName("mult")[0].childNodes[0].nodeValue
+        l = e.getElementsByTagName("exprList")[0]
+        if len(l.childNodes) == 0: return "epsilon"
+        else: return "$<$( " + exprListToString(l, d) + " )$>$"
+    def bindingToString(e, d):
+        result = ""
+        bs = e.getElementsByTagName("varBinding")
+        for b in bs:
+            var = b.getElementsByTagName("var")[0]
+            if result != "": result += ", " 
+            result += var.childNodes[0].nodeValue.replace("_", "\\_") + " = "
+            e = b.childNodes[1]
+            result += d[e.nodeName](e, d)
+        return "[ " + result + " ]"
+    def markingToString(e, d):
+        result = ""
+        for s in e.getElementsByTagName("placeState"):
+            p = s.getElementsByTagName("place")[0].childNodes[0].nodeValue
+            p = "\\textsf{" + p.replace("_", "\\_") + "}"
+            l = ""
+            for t in s.getElementsByTagName("token"):
+                if l != "": l += " + "
+                l += tokenToString(t, d)
+            result += "\\item[] " + p + " = " + l + "\n"
+        if result != "":
+            result = "\\begin{itemize}\n" + result + "\\end{itemize}\n"
+        else:
+            result = "\\\\"
+        return "\\\\\{ " + result + " \}"
+    def printPlaceBounds(pbs):
+        f.write("\\paragraph{Place bounds}\n")
+        f.write("\\begin{center}\n")
+        f.write("\\begin{tabular}{|l|c|c|c|c|}\n")
+        f.write("\\hline\n")
+        f.write("& Min. & Max.")
+        f.write("& Min. & Max.\\\\\n")
+        f.write("& cardinality  & cardinality")
+        f.write("& multiplicity & multiplicity\\\\\n")
+        f.write("\\hline\n")
+        for pb in pbs.getElementsByTagName("placeBound"):
+            p = pb.getElementsByTagName("place")[0]
+            pName = p.childNodes[0].nodeValue
+            minCard = getNodeValue("minCard", pb)
+            maxCard = getNodeValue("maxCard", pb)
+            minMult = getNodeValue("minMult", pb)
+            maxMult = getNodeValue("maxMult", pb)
+            f.write("\\textsf{" + pName.replace("_", "\\_") + "} &")
+            f.write(minCard + " & " + maxCard + " & " +
+                     minMult + " & " + maxMult)
+            f.write("\\\\\n\\hline\n")
+        f.write("\\end{tabular}\n")
+        f.write("\\end{center}\n")
+    def printPossibleTokens(pts):
+        pts = pts.getElementsByTagName("possibleTokensPlace")
+        if len(pts) == 0: return
+        f.write("\\paragraph{Possible tokens}\n")
+        f.write("\\begin{itemize}\n")
+        for pt in pts:
+            p = pt.getElementsByTagName("place")[0]
+            pName = p.childNodes[0].nodeValue
+            t = pt.getElementsByTagName("token")
+            f.write("\\item " + str(len(t)) +
+                    " possible token(s) in place " +
+                    "\\textsf{" + pName.replace("_", "\\_") + "}\n")
+            if len(t) == 0: continue
+            f.write("\\begin{itemize}\n")
+            for tok in t:
+                f.write("\\item[] " + tokenToString(tok, toStringer) + "\n")
+            f.write("\\end{itemize}\n")
+        f.write("\\end{itemize}\n")
+    def printDeadMarkings(e):
+        f.write("\\paragraph{Dead markings}\n")
+        n = e.getElementsByTagName("noDeadMarkings")[0]
+        n = n.childNodes[0].nodeValue
+        f.write("\\begin{itemize}\n")
+        f.write("\\item[] Number of dead reachable marking(s): " + n + "\n")
+        ms = e.getElementsByTagName("state");
+        if len(ms) > 0:
+            if len(ms) != int(n):
+                f.write("\\item[] (only the first " + str(len(ms)) +
+                        " dead marking(s) reached are shown)\n")
+            i = 1
+            for m in ms:
+                f.write("\item[] dead marking " + str(i) + " = " +
+                        markingToString(m, toStringer))
+                i = i + 1
+        f.write("\\end{itemize}\n")
+    def printLivenessInfo(e):
+        its = e.getElementsByTagName("livenessInfoTrans")
+        if len(its) == 0: return
+        f.write("\\paragraph{Liveness information}\n")
+        f.write("\\begin{itemize}\n")
+        for i in its:
+            t = i.getElementsByTagName("transition")[0]
+            tName = t.childNodes[0].nodeValue
+            f.write("\\item Transition \\textsf{" +
+                    tName.replace("_", "\\_") + "}")
+            f.write("\\begin{itemize}")
+            for (pref, tag) in [("", "liveBindings"),
+                                ("quasi-", "quasiLiveBindings") ]:
+                b = i.getElementsByTagName(tag)
+                bindings = b[0].getElementsByTagName("binding")
+                f.write("\\item[] " + str(len(bindings)) + " " +
+                        pref + "live bindings\n")
+                if len(bindings) == 0: continue
+                f.write("\\begin{itemize}\n")
+                for binding in bindings:
+                    f.write("\\item[] " +
+                            bindingToString(binding, toStringer) + "\n")
+                f.write("\\end{itemize}\n")
+            f.write("\\end{itemize}\n")
+        f.write("\\end{itemize}\n")
+    toStringer = { "enum"      : enumToString,
+                   "num"       : numToString,
+                   "vector"    : vectorToString,
+                   "struct"    : structToString,
+                   "container" : containerToString }
+    i = doc.getElementsByTagName("model-info")
+    if len(i) == 0: return
+    i = i[0]
+    e = i.getElementsByTagName("placeBounds")
+    if len(e) > 0: printPlaceBounds(e[0])
+    e = i.getElementsByTagName("deadMarkings")
+    if len(e) > 0: printDeadMarkings(e[0])
+    e = i.getElementsByTagName("possibleTokens")
+    if len(e) > 0: printPossibleTokens(e[0])
+    e = i.getElementsByTagName("livenessInfo")
+    if len(e) > 0: printLivenessInfo(e[0])
+            
+
+#  create the main latex file
+f = open(tmp + "/main.tex", "w")
+f.write("\
+\\documentclass{article}\n\
+\\usepackage{graphicx}\n\
+\\usepackage{pslatex}\n\
+\\usepackage[top=2cm,bottom=2cm,left=2cm,right=2cm]{geometry}\n\
+\\title{Reachability Graph Statistics}\n\
+\\setlength{\\itemsep}{0pt}\n\
+\\setlength{\\parskip}{0pt}\n\
+\\author{}\n\
+\\date{}\n\
+\\begin{document}\n\
+\\maketitle\n\
+This report has been generated by helena.\n\
+\
+\\paragraph{General information\\\\}\n\
+\\begin{tabular}{ll}\n\
+Model analyzed &\n\
+\\textsf{" + model.replace("_", "\\_") + "}\\\\\n\
+Model language & " + language + "\\\\\n\
+" + parameters + "\
+Analysis date & " + date + "\\\\\n\
+File path & \\texttt{" + filePath.replace("_", "\\_") + "}\n\
+\\end{tabular}\n\
+\\paragraph{Size information\\\\}\n\
+\\begin{tabular}{lr}\n\
+States & " + str(states) + "\\\\\n\
+Edges & " + str(edges) + "\n\
+\\end{tabular}\n\
+\\paragraph{Strongly connected components (SCC) information\\\\}\n\
+\\begin{tabular}{lr}\n\
+Number of components & " + str(count) + "\\\\\n\
+Number of trivial components & " + str(trivial) + "\\\\\n\
+Number of terminal components & " + str(terminal) + "\\\\\n\
+Size of the largest component & " + str(largest) + "\\\\\n\
+\\end{tabular}\n\
+\\paragraph{Degrees information\\\\}\n\
+\\begin{tabular}{lr}\n\
+Average degree & " + str(avg) + "\\\\\n\
+Maximal in-degree & " + str(maxIn) + "\\\\\n\
+Maximal out-degree & " + str(maxOut) + "\\\\\n\
+\\end{tabular}\n\
+\\begin{center}\n\
+\\scalebox{0.9}{\\includegraphics{in-degree}}\n\
+\\scalebox{0.9}{\\includegraphics{out-degree}}\n\
+\\end{center}\n\
+\\paragraph{BFS information\\\\}\n\
+\\noindent\\begin{tabular}{lrl}\n\
+Levels & " + str(levels) + "\\\\\n\
+Back level edges & " + str(backLevelEdges) + " & (" +
+         str(divide(100 * backLevelEdges, edges)) + "\\%)\\\\\n\
+Width & " + str(maxLevel) + " & (" +
+         str(divide(100 * maxLevel, states)) + "\\%) \\\\\n\
+Max back level edge length & " + str(maxBackLevelEdge) + " \\\\\n\
+Average back level edge length & " + str(avgBackLevelEdge) + " \\\\\n\
+\\end{tabular}\n\
+\\begin{center}\n\
+\\scalebox{0.9}{\\includegraphics{bfs-levels}}\n\
+" + BLELengthsFigure() + "\
+\\end{center}\n\
+\\paragraph{DFS information\\\\}\n\
+\\begin{tabular}{lr}\n\
+Max stack size & " + str(maxStack) + "\\\\\n\
+Front edges & " + str(frontEdges) + "\\\\\n\
+Back edges & " + str(backEdges) + "\\\\\n\
+Cross edges & " + str(crossEdges) + "\\\\\n\
+Shortest cycle & " + str(shortestCycle) + "\\\\\n\
+\\end{tabular}\n\
+" + DFSStackFigure())
+outputModelStatistics(f)
+f.write("\\end{document}\n");
+f.close()
+
+#  move to the temporary directory and compile the main latex file
+here = os.getcwd()
+os.chdir(tmp)
+subprocess.call([ "pdflatex", "main.tex" ])
+os.chdir(here)
+shutil.move(tmp + "/main.pdf", out)
+shutil.rmtree(tmp)
+exit(0)

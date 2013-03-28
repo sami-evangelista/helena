@@ -1,0 +1,127 @@
+/******************************************************************************
+*
+*  Example file of the Helena distribution
+*
+*  File  : slotted.lna
+*  Author: Sami Evangelista
+*  Date  : 27 oct. 2004
+*  Source:
+*     Pre and Post-Agglomerations for LTL Model Checking.
+*     In International Conference on Application and Theory of Petri Nets,
+*     pp.387-408, Springer-Verlag, 2000.
+*     Denis Poitrenaud and Jean-Francois Pradat-Peyre
+*
+*  The net described in this file models the slotted ring protocol.
+*
+******************************************************************************/
+
+
+slotted (N := 3) {  /*  N = number of workstations  */
+
+   type pid: mod N;
+
+   place p1
+   {
+      dom : pid;
+      capacity : 1;
+   }
+   place p2
+   {
+      dom : pid;
+      init : for(p in pid) <( p )>;
+      capacity : 1;
+   }
+   place p3
+   {
+      dom : pid;
+      capacity : 1;
+   }
+   place p4
+   {
+      dom : pid;
+      capacity : 1;
+   }
+   place p5
+   {
+      dom : pid;
+      capacity : 1;
+   }
+   place p6
+   {
+      dom : pid;
+      init : for(p in pid) <( p )>;
+      capacity : 1;
+   }
+   place p7
+   {
+      dom : pid;
+      capacity : 1;
+   }
+   place p8
+   {
+      dom : pid;
+      capacity : 1;
+   }
+   place p9
+   {
+      dom : pid;
+      capacity : 1;
+   }
+   place p10
+   {
+      dom : pid;
+      capacity : 1;
+   }
+
+
+   transition t1
+   {
+      in  { p1 : <( p )>; p4 : <( p )>; }
+      out { p2 : <( p )>; p3 : <( p )>; }
+   }
+   transition t2
+   {
+      in  { p2 : <( p )>; p6 : <( p )>; }
+      out { p5 : <( p )>; p10 : <( succ p )>; }
+   }
+   transition t3
+   {
+      in  { p3 : <( p )>; }
+      out { p6 : <( pred p )>; }
+   }
+   transition t4
+   {
+      in  { p5 : <( p )>; }
+      out { p4 : <( p )>; }
+   }
+   transition t5
+   {
+      in  { p4 : <( p )>; p9 : <( p )>; }
+      out { p3 : <( p )>; p7 : <( p )>; }
+   }
+   transition t6
+   {
+      in  { p6 : <( p )>; p7 : <( p )>; }
+      out { p5 : <( p )>; p8 : <( succ p )>; }
+   }
+   transition t7
+   {
+      in  { p8 : <( p )>; }
+      out { p9 : <( p )>; }
+   }
+   transition t8
+   {
+      in  { p8  : <( p )>; }
+      out { p10 : <( p )>; }
+   }
+   transition t9
+   {
+      in  { p10 : <( p )>; }
+      out { p1  : <( p )>; }
+   }
+   transition t10
+   {
+      in  { p10 : <( p )>; }
+      out { p9  : <( p )>; }
+   }
+}

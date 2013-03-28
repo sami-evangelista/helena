@@ -1,0 +1,124 @@
+/******************************************************************************
+*
+*  Example file of the Helena distribution
+*
+*  File  : mcs.lna
+*  Author: Sami Evangelista
+*  Date  : 25 jul. 2007
+*  Source:
+*    Shared-memory mutual exclusion: major research trends since 1986.
+*    Distrib. Comput., 2003.
+*    James H. Anderson and Yong-Jik Kim and Ted Herman
+*
+*  This file contains the description of MCS queue lock mutual
+*  exclusion algorithm.
+*
+******************************************************************************/
+
+
+mcs (N := 3) {  /*  N = number of processors  */
+
+subtype extendedPid: nat         range 0 .. N;
+subtype pid        : extendedPid range 0 .. N - 1;
+
+type bools: vector[pid] of bool;
+type pids : vector[pid] of extendedPid;
+
+place next   { dom: pids;        init: <( [N] )>; }
+place locked { dom: bools;       init: <( [false] )>; }
+place tail   { dom: extendedPid; init: <( N )>; }
+
+place NCS { dom : pid * extendedPid; init: for(i in pid) <( i, 0 )>; }
+place CS  { dom : pid * extendedPid; }
+place p2  { dom : pid * extendedPid; }
+place p4  { dom : pid * extendedPid; }
+place p5  { dom : pid * extendedPid; }
+place p6  { dom : pid * extendedPid; }
+place p9  { dom : pid * extendedPid; }
+place p13 { dom : pid * extendedPid; }
+place p10 { dom : pid * extendedPid; }
+
+transition NCSToP2 {
+   in  { NCS : <( i, pr )>;
+         next: <( next )>; }
+   out { p2  : <( i, pr )>;
+         next: <( next :: ([i] := N) )>; }
+}
+transition p2ToCS {
+   in  { p2  : <( i, pr )>;
+         tail: <( tail )>; }
+   out { CS  : <( i, tail )>;
+         tail: <( i )>; }
+   guard: tail = N;
+}
+transition p2ToP4 {
+   in  { p2  : <( i, pr )>;
+         tail: <( tail )>; }
+   out { p4  : <( i, tail )>;
+         tail: <( i )>; }
+   guard: tail != N;
+}
+transition p4ToP5 {
+   in  { p4    : <( i, pr )>;
+         locked: <( locked )>; }
+   out { p5    : <( i, pr )>;
+         locked: <( locked :: ([i] := true) )>; }
+}
+transition p5ToP6 {
+   in  { p5  : <( i, pr )>;
+         next: <( next )>; }
+   out { p6  : <( i, pr )>;
+         next: <( next :: ([pr] := i) )>; }
+}
+transition p6ToCS {
+   in  { p6    : <( i, pr )>;
+         locked: <( locked )>; }
+   out { CS    : <( i, pr )>;
+         locked: <( locked )>; }
+   guard: not locked[i];
+}
+transition CSToP9 {
+   in  { CS  : <( i, pr )>;
+         next: <( next )>; }
+   out { p9  : <( i, pr )>;
+         next: <( next )>; }
+   guard: next[i] = N;
+}
+transition CSToP13 {
+   in  { CS  : <( i, pr )>;
+         next: <( next )>; }
+   out { p13 : <( i, pr )>;
+         next: <( next )>; }
+   guard: next[i] != N;
+}
+transition p9ToNCS {
+   in  { p9  : <( i, pr )>;
+         tail: <( tail )>; }
+   out { NCS : <( i, pr )>;
+         tail: <( N )>; }
+   guard: tail = i;
+}
+transition p9ToP10 {
+   in  { p9  : <( i, pr )>;
+         tail: <( tail )>; }
+   out { p10 : <( i, pr )>;
+         tail: <( tail )>; }
+   guard: tail != i;
+}
+transition p10ToP13 {
+   in  { p10 : <( i, pr )>;
+         next: <( next )>; }
+   out { p13 : <( i, pr )>;
+         next: <( next )>; }
+   guard: next[i] != N;
+}
+transition p13ToNCS {
+   in  { p13   : <( i, pr )>;
+         locked: <( locked )>;
+         next  : <( next )>; }
+   out { NCS   : <( i, pr )>;
+         locked: <( locked :: ([next[i]] := false) )>;
+         next  : <( next )>; }
+}
+
+}

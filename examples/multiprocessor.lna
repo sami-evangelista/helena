@@ -1,0 +1,71 @@
+/******************************************************************************
+*
+*  Example file of the Helena distribution
+*
+*  File  : multiprocessor.lna
+*  Author: Sami Evangelista
+*  Date  : 31 may 2004
+*  Source:
+*     A Symbolic Simulation Mechanism for Well-formed Coloured Petri Nets
+*     In 25th Symposium on Simulation, pp.192-201, IEEE Computer Society,
+*     1992.
+*     Giovanni Chiola, Giuliana Franceschinis and Rossano Gaeta
+*
+*  This file contains the description of a multiprocessor architecture. It
+*  consists of a set of processors. Each processor can access its local
+*  memory using a local bus, or the memory associated to some other processor
+*  using a unique external bus shared by all processors.
+*
+******************************************************************************/
+
+
+multiprocessor (N := 8) {  /*  N = number of processors  */
+   type pid: range 1 .. N;
+
+   place active {
+      dom : pid;
+      init: for(p in pid) <( p )>;
+   }
+   place own_mem_access {
+      dom: pid;
+   }
+   place queue {
+      dom: pid;
+   }
+   place ext_bus {
+      dom : epsilon;
+      init: epsilon;
+   }
+   place memory {
+      dom : pid;
+      init: for(p in pid) <( p )>;
+   }
+   place ext_mem_access {
+      dom: pid * pid;
+   }
+
+   transition begin_own_acc {
+      in  { active         : <( p )>; }
+      out { own_mem_access : <( p )>; }
+   }
+   transition end_own_acc {
+      in  { own_mem_access : <( p )>; memory : <( p )>; }
+      out { active         : <( p )>; memory : <( p )>; }
+   }
+   transition req_ext_acc {
+      in  { active : <( p )>; }
+      out { queue  : <( p )>; }
+   }
+   transition begin_ext_acc {
+      in  { queue          : <( p )>;
+            memory         : <( q )>;
+            ext_bus        : epsilon; }
+      out { ext_mem_access : <( p, q )>; }
+   }
+   transition end_ext_acc {
+      in  { ext_mem_access : <( p, q )>; }
+      out { active         : <( p )>;
+            memory         : <( q )>;
+            ext_bus        : epsilon; }
+   }
+}

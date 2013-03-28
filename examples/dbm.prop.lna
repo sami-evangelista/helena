@@ -1,0 +1,5 @@
+/*
+ *  a site waiting for answer will eventually leave this state
+ */
+ltl property bounded_wait:
+   ([] (site_waiting => <> (not site_waiting)));

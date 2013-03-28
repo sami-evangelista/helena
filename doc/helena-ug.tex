@@ -1,0 +1,36 @@
+\documentclass{book}
+
+\include{commands}
+\include{syntaxdef}
+\include{helena-info}
+
+\title{\infooutil\\ User's guide}
+\author{\infoauteur}
+\setcounter{tocdepth}{2}
+\pagenumbering{arabic}
+\newcommand\Chapter[3]
+{
+  \chapter{#1}
+  \label{#2}
+  \input{#3}
+  \newpage
+}
+\makeindex
+\setcounter{secnumdepth}{3}
+\lstset{language=helena}
+\begin{document}
+\maketitle
+\chapter*{Abstract}
+\input{introduction}
+\tableofcontents
+\newpage
+\Chapter{Helena specification language}{chapter_language}{language}
+\Chapter{Using Helena}{chapter_using}{using}
+\Chapter{Examples}{chapter_examples}{examples}
+\Chapter{Interfacing Helena with C code}{chapter_interfacing}{interfacing}
+\Chapter{Help}{chapter_help}{help}
+\appendix
+\Chapter{Syntax summary}{chapter_syntax}{syntax}
+\Chapter{Gnu general public license}{chapter_license}{license.tex}
+\printindex
+\end{document}

@@ -1,0 +1,646 @@
+(*****************************************************************************)
+(*                                                                           *)
+(*  File:                                                                    *)
+(*     dve.grm                                                               *)
+(*                                                                           *)
+(*  Created:                                                                 *)
+(*     Nov. 13, 2007                                                         *)
+(*                                                                           *)
+(*  Description: Parser for dve specification language.  A description can   *)
+(*  be found at http://anna.fi.muni.cz/divine/current_doc/doc/divine/=       *)
+(*                     tutorials/dve_language/dve_language.pdf               *)
+(*                                                                           *)
+(*****************************************************************************)
+
+
+(*  construct a (Var.var list) from list l.  t is the type of these variables
+ *  and c is a bool indicating if these are constants  *)
+fun buildVarList (l, t, c) = let
+    fun apply (pos, varName, dim, initVal) =
+	{ pos   = pos,
+	  const = c,
+	  typ   = case dim of NONE   => Typ.BASIC_TYPE t |
+			      SOME d => Typ.ARRAY_TYPE (t, d),
+	  name  = varName,
+	  init  = initVal }
+in
+    List.map apply l
+end
+
+
+datatype system_comp =
+	 A_PROCESS of Process.process |
+	 A_CHANNEL_LIST of Channel.channel list |
+	 A_VAR_LIST of Var.var list |
+	 A_PROGRESS of Progress.progress |
+	 A_PROGRESS_USE of Pos.pos * string |
+	 A_SYSTEM_TYPE of System.system_type
+			  
+			  
+fun extractComponents [] = (NONE, [], [], [], [], NONE) |
+    extractComponents (comp :: comps) = let
+	val (t, vars, channels, procs, progs, prog) = extractComponents comps
+    in
+	case comp
+	 of A_PROCESS p      => (t, vars, channels, p :: procs, progs, prog) |
+	    A_VAR_LIST v     => (t, v @ vars,  channels, procs, progs, prog) |
+	    A_CHANNEL_LIST c => (t, vars,  c @ channels, procs, progs, prog) |
+	    A_SYSTEM_TYPE t  => (SOME t, vars, channels, procs, progs, prog) |
+	    A_PROGRESS p     => (t, vars, channels, procs, p :: progs, prog) |
+	    A_PROGRESS_USE p => (t, vars, channels, procs, progs, SOME p)
+    end
+
+val tid = ref 0
+
+%%
+
+%eop EOF
+
+%noshift EOF
+
+%name Dve
+
+%start spec
+
+%pos int
+
+%term
+  IDENT of string  (*  identifiers and numbers  *)
+| NUM of LargeInt.int
+| ACCEPT  (*  keywords  *)
+| AND
+| ASSERT
+| ASYNC
+| BYTE
+| CHANNEL
+| COMMIT
+| CONST
+| EFFECT
+| FALSE
+| GUARD
+| IMPLY
+| INIT
+| INT
+| OR
+| NOT
+| PROCESS
+| PROGRESS
+| STATE
+| SYNC
+| SYSTEM
+| TRANS
+| TRUE
+| USE
+| MINUS  (*  arithmetic operators *)
+| PLUS
+| DIV
+| TIMES
+| MOD
+| EQ  (*  comparison operators  *)
+| NEQ
+| INF
+| SUP
+| INF_EQ
+| SUP_EQ
+| NEG  (*  bit manipulation operators  *)
+| LSHIFT
+| RSHIFT
+| AND_BIT
+| OR_BIT
+| XOR
+| ASSIGN  (*  others  *)
+| LPAREN
+| RPAREN
+| LBRACE
+| RBRACE
+| LARRAY
+| RARRAY
+| ARROW
+| DOT
+| COLON 
+| SEMICOLON
+| COMMA
+| EXCLAMATION
+| QUESTION
+| EOF
+
+%nonterm
+  spec of System.system
+| process_def of Process.process
+| process_body of
+     Var.var list
+     * State.state list
+     * State.state
+     * State.state list
+     * Trans.trans list
+| state_list of State.state list
+| state_ident_list of State.state list
+| state_ident of State.state
+| init_state of State.state
+| system_comp_list of system_comp list
+| system_comp of system_comp
+| channel_list of Channel.channel list
+| channel_defs of Channel.channel list
+| channel_def of Channel.channel
+| expr of Expr.expr
+| expr_list of Expr.expr list
+| var_ref of Expr.var_ref
+| var_def of Pos.pos * string * int option * Expr.expr option
+| var_defs of (Pos.pos * string * int option * Expr.expr option) list
+| var_list of Var.var list
+| ident_list of string list
+| accept_states of State.state list
+| commit_states
+| assert_clause
+| assert_list
+| assert_cond
+| progress of Progress.progress
+| progress_use of Pos.pos * string
+| process_var_list of Var.var list
+| transitions of Trans.trans list
+| trans_list of Trans.trans list
+| trans_def of Trans.trans
+| trans_detail of Expr.expr option * Sync.sync option * Stat.stat list
+| trans_guard of Expr.expr option
+| trans_sync of Sync.sync option
+| sync_type of Sync.sync_type
+| sync_mode of Sync.sync_mode
+| sync_data of Expr.expr option
+| data_exchanged of Expr.expr option
+| trans_effect of Stat.stat list
+| stat_list of Stat.stat list
+| stat of Stat.stat
+| assign_stat of Stat.stat
+| system_type of System.system_type
+| type_ref of Typ.basic_typ
+
+%left IMPLY
+%left OR
+%left AND
+%left OR_BIT
+%left XOR
+%left AND_BIT
+%left EQ NEQ
+%left NOT
+%left INF INF_EQ SUP SUP_EQ
+%left LSHIFT RSHIFT
+%left MINUS PLUS
+%left DIV TIMES MOD
+%left NEG
+
+
+%%
+
+
+		(*  Global DVE specification  *)
+
+spec :
+system_comp_list
+(let val _ = tid := 0
+     val comps = system_comp_list
+     val (sys_type, vars, channels, processes, progs, prog) =
+	 extractComponents comps
+ in
+     case sys_type
+      of NONE => raise Errors.ParseError
+			   (1, "system type expected (sync / async)")
+       | SOME t => { t     = t,
+		     glob  = vars,
+		     chans = channels,
+		     procs = processes,
+		     progs = progs,
+		     prog  = prog }
+ end)
+
+
+system_comp_list :
+([])
+|
+system_comp system_comp_list
+(system_comp :: system_comp_list)
+
+
+system_comp :
+process_def
+(A_PROCESS process_def)
+|
+channel_list
+(A_CHANNEL_LIST channel_list)
+|
+var_list
+(A_VAR_LIST var_list)
+|
+system_type
+(A_SYSTEM_TYPE system_type)
+|
+progress
+(A_PROGRESS progress)
+|
+progress_use
+(A_PROGRESS_USE progress_use)
+
+
+
+		(*  Variables and constants  *)
+
+var_list :
+type_ref var_defs SEMICOLON
+(buildVarList (var_defs, type_ref, false))
+|
+CONST type_ref var_defs SEMICOLON
+(buildVarList (var_defs, type_ref, true))
+
+
+var_defs :
+var_def
+([var_def])
+|
+var_def COMMA var_defs
+(var_def :: var_defs)
+
+
+var_def :
+IDENT LARRAY NUM RARRAY
+((IDENTleft, IDENT, SOME (LargeInt.toInt NUM), NONE))
+|
+IDENT LARRAY NUM RARRAY ASSIGN LBRACE expr_list RBRACE
+((IDENTleft, IDENT, SOME (LargeInt.toInt NUM),
+  SOME (Expr.ARRAY_INIT (RARRAYleft, expr_list))))
+|
+IDENT
+((IDENTleft, IDENT, NONE, NONE))
+|
+IDENT ASSIGN expr
+((IDENTleft, IDENT, NONE, SOME expr))
+
+
+
+		(*  Channels  *)
+
+channel_list :
+CHANNEL channel_defs SEMICOLON
+(channel_defs)
+
+
+channel_defs :
+channel_def
+([channel_def])
+|
+channel_def COMMA channel_defs
+(channel_def :: channel_defs)
+
+
+channel_def :
+IDENT
+({ pos = IDENTleft, name = IDENT, size = 0 })
+|
+IDENT LARRAY NUM RARRAY
+(if NUM = 0
+ then { pos = IDENTleft, name = IDENT, size = 0 }
+ else raise Errors.ParseError (IDENTleft,
+			       "unimplemented feature: buffered channels"))
+
+
+
+		(*  Processes  *)
+
+process_def :
+PROCESS IDENT LBRACE process_body RBRACE
+(let val (vars, states, init, accept, trans) = process_body in
+     {
+      pos    = PROCESSleft,
+      name   = IDENT,
+      vars   = vars,
+      states = states,
+      init   = init,
+      trans  = trans,
+      accept = accept
+     }
+ end)
+
+
+process_body :
+process_var_list state_list init_state accept_states commit_states
+assert_clause transitions
+((process_var_list, state_list, init_state, accept_states, transitions))
+
+
+process_var_list :
+([])
+|
+var_list process_var_list
+(var_list @ process_var_list)
+
+
+state_list :
+STATE state_ident_list SEMICOLON
+(state_ident_list)
+
+
+state_ident_list :
+state_ident
+([state_ident])
+|
+state_ident COMMA state_ident_list
+(state_ident :: state_ident_list)
+
+
+state_ident :
+IDENT
+({ pos = IDENTleft, name = IDENT })
+
+
+init_state :
+INIT IDENT SEMICOLON
+({ pos = IDENTleft, name = IDENT })
+
+
+accept_states :
+([])
+|
+ACCEPT state_ident_list SEMICOLON
+(state_ident_list)
+
+
+commit_states :
+()
+|
+COMMIT ident_list SEMICOLON
+(raise Errors.ParseError (COMMITleft,
+			  "unimplemented feature: commited states"))
+
+
+assert_clause :
+()
+|
+ASSERT assert_list SEMICOLON
+(raise Errors.ParseError (ASSERTleft,
+			  "unimplemented feature: assertions"))
+
+
+assert_list :
+assert_cond
+()
+|
+assert_cond COMMA assert_list
+()
+
+
+assert_cond :
+IDENT COLON expr
+()
+
+
+
+		(*  Transitions  *)
+
+transitions :
+TRANS trans_list SEMICOLON
+(trans_list)
+
+
+trans_list :
+trans_def
+([trans_def])
+|
+trans_def COMMA trans_list
+(trans_def :: trans_list)
+
+
+trans_def :
+IDENT ARROW IDENT LBRACE trans_detail RBRACE
+(let val (guard, sync, effect) = trans_detail
+ in
+     {
+      pos    = ARROWleft,
+      id     = !tid,
+      src    = IDENT1,
+      dest   = IDENT2,
+      guard  = guard,
+      sync   = sync,
+      effect = effect
+     }
+     before
+     tid := !tid + 1
+ end)
+
+
+trans_detail :
+trans_guard trans_sync trans_effect
+((trans_guard, trans_sync, trans_effect))
+
+
+trans_guard :
+(NONE)
+|
+GUARD expr SEMICOLON
+(SOME expr)
+
+
+trans_effect :
+([])
+|
+EFFECT stat_list SEMICOLON
+(stat_list)
+
+
+stat_list :
+stat
+([stat])
+|
+stat COMMA stat_list
+(stat :: stat_list)
+
+
+stat :
+assign_stat
+(assign_stat)
+
+
+assign_stat :
+var_ref ASSIGN expr
+(Stat.ASSIGN (ASSIGNleft, var_ref, expr))
+
+
+trans_sync :
+(NONE)
+|
+sync_mode IDENT sync_type sync_data SEMICOLON
+(SOME { pos  = sync_modeleft,
+	mode = sync_mode,
+	chan = IDENT,
+	typ  = sync_type,
+	data = sync_data })
+
+
+sync_mode :
+SYNC
+(Sync.SYNC)
+|
+ASYNC
+(raise Errors.ParseError
+	   (ASYNCleft, "unimplemented feature: asynchronous communications"))
+
+
+sync_type :
+QUESTION
+(Sync.RECV)
+|
+EXCLAMATION
+(Sync.SEND)
+
+
+sync_data :
+(NONE)
+|
+expr
+(SOME expr)
+
+
+		(*  Expressions  *)
+expr :
+LPAREN expr RPAREN
+(expr)
+|
+NUM
+(Expr.INT (NUMleft, NUM))
+|
+TRUE
+(Expr.BOOL_CONST (TRUEleft, true))
+|
+FALSE
+(Expr.BOOL_CONST (FALSEleft, false))
+|
+var_ref
+(Expr.VAR_REF (var_refleft, var_ref))
+|
+IDENT DOT IDENT
+(Expr.PROCESS_STATE (DOTleft, IDENT1, IDENT2))
+|
+IDENT ARROW var_ref
+(Expr.PROCESS_VAR_REF (ARROWleft, IDENT, var_ref))
+|
+NOT expr
+(Expr.UN_OP (NOTleft, Expr.NOT, expr1))
+|
+MINUS expr
+(Expr.UN_OP (MINUSleft, Expr.UMINUS, expr1))
+|
+NEG expr
+(Expr.UN_OP (NEGleft, Expr.NEG, expr1))
+|
+expr PLUS expr
+(Expr.BIN_OP (PLUSleft, expr1, Expr.PLUS, expr2))
+|
+expr MINUS expr
+(Expr.BIN_OP (MINUSleft, expr1, Expr.MINUS, expr2))
+|
+expr DIV expr
+(Expr.BIN_OP (DIVleft, expr1, Expr.DIV, expr2))
+|
+expr TIMES expr
+(Expr.BIN_OP (TIMESleft, expr1, Expr.TIMES, expr2))
+|
+expr MOD expr
+(Expr.BIN_OP (MODleft, expr1, Expr.MOD, expr2))
+|
+expr IMPLY expr
+(Expr.BIN_OP (IMPLYleft, expr1, Expr.IMPLY, expr2))
+|
+expr AND expr
+(Expr.BIN_OP (ANDleft, expr1, Expr.AND, expr2))
+|
+expr OR expr
+(Expr.BIN_OP (ORleft, expr1, Expr.OR, expr2))
+|
+expr EQ expr
+(Expr.BIN_OP (EQleft, expr1, Expr.EQ, expr2))
+|
+expr NEQ expr
+(Expr.BIN_OP (NEQleft, expr1, Expr.NEQ, expr2))
+|
+expr INF expr
+(Expr.BIN_OP (INFleft, expr1, Expr.INF, expr2))
+|
+expr SUP expr
+(Expr.BIN_OP (SUPleft, expr1, Expr.SUP, expr2))
+|
+expr INF_EQ expr
+(Expr.BIN_OP (INF_EQleft, expr1, Expr.INF_EQ, expr2))
+|
+expr SUP_EQ expr
+(Expr.BIN_OP (SUP_EQleft, expr1, Expr.SUP_EQ, expr2))
+|
+expr LSHIFT expr
+(Expr.BIN_OP (LSHIFTleft, expr1, Expr.LSHIFT, expr2))
+|
+expr RSHIFT expr
+(Expr.BIN_OP (RSHIFTleft, expr1, Expr.RSHIFT, expr2))
+|
+expr AND_BIT expr
+(Expr.BIN_OP (AND_BITleft, expr1, Expr.AND_BIT, expr2))
+|
+expr OR_BIT expr
+(Expr.BIN_OP (OR_BITleft, expr1, Expr.OR_BIT, expr2))
+|
+expr XOR expr
+(Expr.BIN_OP (XORleft, expr1, Expr.XOR, expr2))
+
+
+var_ref :
+IDENT
+(Expr.SIMPLE_VAR IDENT)
+|
+IDENT LARRAY expr RARRAY
+(Expr.ARRAY_ITEM (IDENT, expr))
+
+
+
+		(*  Progress measures  *)
+progress :
+PROGRESS IDENT COLON expr SEMICOLON
+({ pos  = IDENTleft,
+   name = IDENT,
+   map  = expr })
+
+progress_use :
+USE PROGRESS IDENT SEMICOLON
+(IDENTleft, IDENT)
+
+
+
+		(*  Miscellaneous  *)
+
+type_ref :
+BYTE
+(Typ.BYTE)
+|
+INT
+(Typ.INT)
+
+
+ident_list :
+IDENT
+([IDENT])
+|
+IDENT COMMA ident_list
+(IDENT :: ident_list)
+
+
+expr_list :
+expr
+([expr])
+|
+expr COMMA expr_list
+(expr :: expr_list)
+
+
+
+		(*  System type  *)
+system_type :
+SYSTEM SYNC SEMICOLON
+(raise Errors.ParseError (SYSTEMleft,
+			  "unimplemented feature: synchronous systems"))
+|
+SYSTEM ASYNC SEMICOLON
+(System.ASYNCHRONOUS)

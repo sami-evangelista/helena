@@ -1,0 +1,1674 @@
+\newcommand\SSsection[3]{\subsubsection{#1}\label{#2}\index{#3}}
+\newcommand\LS[1]{\lstinline{#1}}
+\newcommand\LSC[1]{\lstinline[language=C]{#1}}
+
+We introduce in this chapter the two specification languages of Helena
+used to describe high level nets and properties.
+
+\section{Lexical and syntaxic conventions}
+
+We give now some lexical conventions.  First of all, it must be
+noticed that Helena specification language is case sensitive.
+
+\subsection{Lexical tokens}
+
+\subsubsection{Reserved words}
+The following words are reserved and can not be used as identifiers:
+
+\begin{lstlisting}
+  accept and assert capacity card case constant deadlock default
+  description dom else empty enum epsilon exists false for forall
+  function guard if import in init inhibit let list ltl max min mod
+  mult not of or out pick place pred priority product property
+  proposition range reject return safe set state struct subtype succ
+  sum transition true type until vector while with
+\end{lstlisting}
+
+Reserved words will systematically appear in a bold font in this
+document.
+
+\subsubsection{Identifiers}
+Places, data types and transitions are examples of Helena
+constructions that are identified by textual names, or identifiers.
+Identifiers must start with an alphabetic character and must only
+contain alpha-numeric characters or the \LS{'_'} character.  They also
+must, of course, not belong to the list of reserved words.
+
+\subsubsection{Numerical constants}
+A valid numeric constant has the form \LS{[0-9][0-9]*}.  Octal or
+hexadecimal notations are not allowed.  The maximal constant allowed
+is system dependant but is $2^{31}$ on most systems.
+
+\subsubsection{Comments}
+Comments are indicated as in the C++ language.  Two slashes \LS{//}
+start a comment that will end with the current line.  \LS{/*} start a
+comment which is explicitely ended by \LS{*/}.  Comments can not be
+nested
+
+\subsection{Preprocessor directives}
+Helena features some preprocessor directives taken from the C
+language.  However, it must be noticed that preprocessor symbols are
+not macros.  Thus, no expansion takes place.  A directive starts with
+a \texttt{\#} at the first column, followed by a list of blanks
+(possibly empty), and followed by the directive name.
+
+\subsubsection{Defining and undefining symbols}
+Symbols can be defined and undefined by directives \texttt{define} and
+\texttt{undefine}.  The directive must be followed by the symbol name.
+A symbol name must be a valid identifier (possibly a reserved word).
+
+\subsubsection{Conditional compilation}
+Directives \texttt{ifdef}, \texttt{ifndef}, \texttt{else}, and
+\texttt{endif} can be used for conditional compilation.  Directive
+\texttt{ifdef} checks if the symbol placed just after it is defined.
+If it is defined and the \texttt{ifdef} has a corresponding
+\texttt{else}, all the lexical tokens between the corresponding
+\texttt{else} and \texttt{endif} are ignored.  Otherwise, all the
+lexical tokens are skipped until the corresponding \texttt{else} or
+\texttt{endif} is found.  Directive \texttt{ifndef} has a symmetric
+behavior.
+
+\subsection{Conventions}
+We first start with some conventions that are used in the remainder of
+this section.
+\begin{itemize}
+\item Terminal symbols of the grammar, i.e., tokens, are placed
+between quotes, e.g., \term{if}, \term{transition}.
+\item Non terminal symbols appear in italic between the two characters
+$\langle$ and $\rangle$, e.g., \nonterm{expression},
+\nonterm{statement}.
+\item $\epsilon$ denotes the empty list of lexical tokens.
+\item The non terminal \nonterm{name} stands for any identifier.
+\item The non terminal \nonterm{string} stands for any string
+  delimited by two characters \"{}.
+\item The non terminal \nonterm{number} stands for any numeric constant.
+\item Symbols placed between brackets are optional, e.g.,
+\optional{\nonterm{item}}.
+\item \zeroormore{\nonterm{item}} is a sequence (possibly empty) of
+non terminals \nonterm{item}.
+\item \oneormore{\nonterm{item}} is a non empty sequence of non
+terminals \nonterm{item}.
+\end{itemize}
+
+
+
+\section{Net specification language}
+
+
+\subsection{Nets}\index{net}
+A net is described by a list of definitions that are the components of
+the net.  Elements that may be defined in a net are data types,
+constants, functions, places, transitions and state propositions.\\
+
+\netdef
+
+
+\subsection{Net parameters}\index{net parameters}
+A net may have parameters such as, e.g., a number of processes.  They
+are interpreted as constants (see Sect.~\ref{sec:constants}) of the
+predefined \LS{int} type.  The advantage of using parameters is that
+their values can be changed via the command line when helena is
+invoked, i.e., without changing the model file.
+Chapter~\ref{chapter_using} details how this can be done.
+
+Below is an example of net parameterized by constants \LS{Clients} et
+\LS{Servers} having default values of 5 and 2 respectively.
+\begin{lstlisting}
+myNet (Clients := 5, Servers := 2) { ... }
+\end{lstlisting}
+
+\netparametersdef
+
+
+\subsection{Types and subtypes}\index{type}
+Helena allows the definition of different kinds of data types: integer
+types (range or modulo types), enumeration types, structured types,
+vector types, and container types (list or set types).  Enumeration
+and integer types form the family of discrete types whereas other
+types are said to be composite.  This type hierarchy is summarized
+below.
+\begin{itemize}
+\item Discrete types
+  \begin{itemize}
+  \item Integer types
+    \begin{itemize}
+    \item Range types
+    \item Modulo types
+    \end{itemize}
+  \item Enumeration types
+  \end{itemize}
+\item Composite types
+  \begin{itemize}
+  \item Structured types
+  \item Vector types
+  \item Container types
+    \begin{itemize}
+    \item Set types
+    \item List types
+    \end{itemize}
+  \end{itemize}
+\end{itemize}
+Some data types are predefined.  They will be described in the
+corresponding type description.\\
+
+\typedef
+
+
+\subsubsection{Range type}\index{type!range type}
+A range type is an integer type which values belong to a specified
+range.  A range type is defined by specifying the lower bound and the
+upper bound of the range.  Bounds must be numerical expressions,
+statically evaluable (see Section~\ref{subsection_expressions} for
+more precisions on statically evaluable expressions).  Additionally,
+the upper bound of the type must be greater or equal to the lower
+bound.  The integer type \LS{int} is a predefined range type.  Its
+definition is system dependant, but on most systems it is defined as
+follows:\\ \LS{type int: range -2147483648 .. 2147483647;}\\
+
+\rangetypedef
+
+
+\subsubsection{Modulo type}\index{type!modulo type}
+A modulo type is an integer type which values can range from $0$ to
+$m-1$ where $m$ is a specified value called the modulo value.  This
+one must be a numerical expression, statically evaluable, and strictly
+positive.\\
+
+\modulotypedef
+
+
+\subsubsection{Enumeration type}\index{type!enumeration type}
+An enumeration type consists in a non empty collection of distinct
+enumeration constants.  The boolean type \LS{bool} is a predefined
+type which is defined as:\\
+\LS{type bool: enum (false, true);}\\
+It will be referred in the remainder as the boolean type.\\
+
+\enumerationtypedef
+
+
+\subsubsection{Vector type}\index{type!vector type}
+Elements of a vector type (or array type) consist in a set of
+contiguous elements of the same type, called the element type, that
+may be accessed by specifying an index, or more precisely a list of
+indexes.  These indexes must be of discrete types.  The number of
+elements in the type is equal to the product of the cardinals of the
+types which form the index.\\
+
+\vectortypedef
+
+
+\subsubsection{Structured type}\index{type!structured type}
+Elements of a structured type consist in contiguous elements called
+components which may be of different types.  Each component is
+identified by a name.  The number of elements in the type is equal to
+the number of components in the declaration.\\
+
+\structuredtypedef
+
+
+\subsubsection{List type}\index{type!list type}
+An element of a list type is a list which is defined as a finite
+sequence of elements of the same type.  The same item may appear
+several times in a list.  The following line declares a list type
+called \LS{bool_list}.
+\begin{lstlisting}
+type bool_list: list[nat] of bool with capacity 10;
+\end{lstlisting}
+An element of a list of type \LS{bool_list} has the boolean type.  The
+index type of \LS{bool_list} is the type between brackets, i.e.,
+\LS{nat}.  Let us note that this type must be discrete.  Indeed, we
+will see later that the elements in a list can be directly accessed
+via indexes.  For example, let us consider a list \LS{l} of type
+\LS{bool_list}.  The expression \LS{l[0]} will denote the first
+element of the list, \LS{l[1]} the second one and so on.
+
+The capacity of a list type is the maximal length of any list of this
+type.  The expression provided must be statically evaluable and
+strictly positive.  Here the capacity is 10.  This means that a list
+of type \LS{bool_list} cannot contain more than 10 booleans.\\
+
+\listtypedef
+
+
+\subsubsection{Set type}\index{type!set type}
+Sets are similar to lists except that the same item may not appear
+several times in a set.  Sets are not indexed.  Therefore no index
+type may be provided.  As for list types a capacity must be
+specified.\\
+
+\settypedef
+
+
+\subsubsection{Subtype}\index{subtype}
+Discrete types can be subtyped.  Each subtype has a parent (which can
+also be a subtype) and is defined by a constraint which limit the set
+of values which belong to the subtype.
+
+A constraint simply consists of a range which must be statically
+evaluable and which bounds must belong to the parent of the subtype.
+
+Here are some examples of subtypes definitions:
+\begin{lstlisting}
+type small : range 0..255;
+
+subtype very_small : small range 0..15;
+//  subtype very_small is equivalent to small without the values from 16 to 255
+
+type color : enum (chestnut, dark_blue, green, blue, pink, yellow);
+
+subtype light_color : color range green .. yellow;
+//  subtype light_color contains values green, blue, pink and yellow
+
+subtype very_light_color : light_color range pink .. yellow;
+//  subtype very_light_color contains values pink and yellow
+\end{lstlisting}
+The subtypes \LS{nat} (natural numbers), \LS{short} (short numbers),
+and \LS{ushort} (unsigned short numbers) are predefined subtypes
+defined as follows:
+\begin{lstlisting}
+subtype nat    : int range 0 .. int'last;
+subtype short  : int range - 32768 .. 32767;
+subtype ushort : int range 0 .. 65535;
+\end{lstlisting}
+where \LS{int'last} is the last value of type \LS{int} (see
+Section~\ref{subsubsection_attributes}).\\
+
+\subtypedef
+
+
+
+\subsection{Constants}\index{constant}
+\label{sec:constants}
+As in programming languages, constants may be defined at the net
+level.  A constant is defined by using the keyword \LS{constant}.  It
+must necessarily be assigned a value which must have the type of the
+constant.\\
+
+\constantdef
+
+
+
+
+\subsection{Places}\index{place}
+The state of a system modeled by a Petri net is given by the
+distribution (or marking) of items called tokens upon the places of
+the net.  In high level nets, these tokens are typed.  This type is
+given by the domain of the place.  In the class of high level nets of
+Helena, domains of places are products of basic data types.  Tokens
+are denoted by lists of expressions placed between the two symbols
+\LS{<(} and \LS{)>}.  The same token may appear several times in a
+place.  We call multiplicity of a token the number of repetitions of
+this token in the place.  The marking of a place will be noted as the
+linear combination of the tokens in the place.  For instance the
+marking
+\begin{lstlisting}
+2*<(1,false)> + 4*<(2,true)>
+\end{lstlisting}
+of the place \LS{p} defined as
+\begin{lstlisting}
+place p { dom: int * bool; }
+\end{lstlisting}
+is the marking which contains 2 occurrences of token \LS{<(1,false)>}
+and 4 occurrences of token \LS{<(2,true)>}.  In others words, the
+multiplicity of token \LS{<(1,false)>} is 2, the multiplicity of token
+\LS{<(2,true)>} is 4, and the multiplicity of all the others tokens is
+0.
+
+The domain is the only attribute that must be specified by the user.
+Several optional attributes of the place can also be defined.\\
+
+\placedef
+
+
+\subsubsection{Domain}\index{place!domain}
+Domains of places are products of basic data types.  The keyword
+\LS{epsilon} is used to denote the empty product.  In this case, the
+place is equivalent to an ordinary Petri net place.  Each time a place
+is declared a type is implicitly declared which correspond to the
+domain of the place.  This type belongs to a special family of types
+called token types.  A token type is some kind of structured type
+which elements are given by the domain of the place.  A token type is
+hidden from the user, and can thus not be used.  Token types are only
+used in iterators (see Section~\ref{subsubsection_iterator}).\\
+
+\placedomaindef
+
+
+\subsubsection{Initial marking}\index{place!initial marking}
+The initial marking, i.e., before the firing of any transition, of a
+place can be defined in the place description.  Any valid arc label
+can be used to initialise the marking of a place.\\
+
+\initialmarkingdef
+
+
+\subsubsection{Capacity}\index{place!capacity}
+We call the capacity of a place, the maximal multiplicity of any item
+in this place.  In the formal definition of Petri nets, this capacity
+is infinite.  However, the amount of available memory being finite, an
+implementation must fix this one.  The capacity specified must be a
+numerical expression, statically evaluable and strictly positive.
+Errors can be raised at the run time if the supplied capacity is not
+sufficient.\\
+
+\capacitydef
+
+\subsubsection{Type}\index{place!type}
+A type can be associated to each place of the net.  This type
+specifies the kind of information which is modeled by the place.
+Several types are allowed:
+\begin{description}
+\item[Process] places model the control flow of processes.
+\item[Local] places model resources local to a process, e.g., a
+local variable.
+\item[Shared] places model resources shared by several processes of the
+  system, e.g., a global variable.
+\item[Protected] places model shared resources which can not
+  concurrently be accessed by the processes, e.g., a global variable
+  which is protected by a lock.
+\item[Buffer] places model communication buffers between processes.
+\item[Ack] places are special buffer places.
+  An ack place models an acknowledgment of a synchronous exchange between two
+  processes.
+\end{description}
+Chapter~\ref{chapter_help}, Section~\ref{sec:helping-helena} gives
+more details on the use of this feature.\\
+
+{\it Remark.} Since it is usual to name places or transitions
+\LS{process}, \LS{local}, \dots, \LS{buffer} we decided not to include
+these in the list of reserved words.\\
+
+\placetypedef
+
+
+
+
+\subsection{Transitions}\index{transition}
+Transitions of a Petri net are active nodes that may change the state
+of the system, that is, the distribution of tokens in the places.
+Transitions need some tokens in their input places to be firable and
+produce tokens in their output places.  To further restrain the
+firability of a transition, inhbitor arcs may be used to specify that
+some tokens must not be present in a specific place.  In high level
+Petri nets, arcs between places and transitions are labeled by
+expressions in which variables appear.  Thus, a transition is firable
+for a given instantiation (or binding) of these variables.  In Helena,
+these variables are not explicitely given in the definition of the
+transition.  A variable is implicitly declared if it appears in an arc
+between the transition and one of its input places, at the top level
+(i.e., not in a sub expression) and in a non guarded tuple (see
+Section~\ref{subsubsection_tuples} for more details on tuples).  The
+user may also let Helena bind a variable by picking its value in a
+specific domain.  We call these variables the {\em free variables} of
+the transition and they appear in the \LS{pick} section of the
+transition.  Rather than repeating the same expression it is also
+possible to assign this expression to a {\em bound variable} declared
+in the \LS{let} section and then replace the expression by the bound
+variable wherever it occurs.
+
+The reader may find in Section~\ref{sec:transition-evaluation} a brief
+description of the algorithm used by Helena to evaluate transitions
+and the conditions under which a transition is evaluable.
+
+Transitions in Helena are identified by a name.  The description of a
+transition must specify the input and output places of the transition
+followed by inhibitor arcs (if any), free variables (if any), bound
+variables (if any) and finally its attributes: a guard, a priority, a
+description and a safe attribute.\\
+
+\transitiondef
+
+
+\subsubsection{Arcs}\index{transition!arc}
+An arc is characterized by the place from which we remove, add or
+check tokens and by an expression specifying for a given instantiation
+of the variable of the transition considered tokens.
+
+The description of arc labels appear later in this section.\\
+
+\arcdef
+
+
+\subsubsection{Free variables}\index{transition!free variable}
+Free variables must appear in the \LS{pick} section of the
+transition.  The value of a free variable can be picked within
+\begin{itemize}
+\item a discrete type.  A range can be specified to avoid considering
+  all possible values of the type.
+\item or, a container, i.e., a set, a list.
+\end{itemize}
+Note that variables of the transitions may appear in the definition of
+free variables.
+
+When computing enabled bindings at some marking, Helena considers all
+possible values that can be picked for free variables.  For example,
+the following pick section:
+\begin{lstlisting}
+pick {
+   i in int range 1..5;
+   b in bool;
+}
+\end{lstlisting}
+will potentially multiply by 10 the number of enabled bindings of the
+corresponding transition since we will generate all the possible
+values of $(\text{\LS{i}},\text{\LS{b}}) \in
+\{ 1, 2, 3, 4, 5 \} \times \{ \text{\LS{false}}, \text{\LS{true}} \}$.\\
+
+\freevariablesdef
+
+
+\subsubsection{Bound variables}\index{transition!bound variables}
+The \LS{let} section of a transition declaration is provided to
+declare bound variables that are used to avoid repeating the same
+expression in the transition.  Note that bound variables are evaluated
+right after input arcs and free variables.  Hence, they may not appear
+in these arcs or in the definition of free variables but can appear at
+all other places within the transition declaration: in the output or
+inhibitor arcs, in the guard and in the priority.
+
+For instance, the following declaration:
+\begin{lstlisting}
+transition t {
+   in  { q: <( x )>; } out { r: <( f(x) )>; }
+   guard: f(x) > 0;
+}
+\end{lstlisting}
+if equivalent to:
+\begin{lstlisting}
+transition t {
+   in  { q: <( x )>; } out { r: <( y )>; }
+   let { int y := f(x); }
+   guard: y > 0;
+}
+\end{lstlisting}
+
+\boundvariablesdef
+
+
+\subsubsection{Guard}\index{transition!guard}
+Transitions can be guarded by a boolean expression.  This guard is an
+additional condition that the variables of the transition must fulfill
+for a binding to be firable.\\
+
+\guarddef
+
+
+\subsubsection{Safe attribute}\index{transition!safe attribute}
+Transitions can be declared as safe.  A transition binding is safe if
+it can not be disabled by the firing of any other binding.  If a
+transition is safe all its bindings are considered by Helena as safe.
+Please report to Chapter~\ref{chapter_help},
+Section~\ref{sec:helping-helena} for further details on this
+feature.\\
+
+\safedef
+
+
+\subsubsection{Priority}\index{transition!priority}
+Transitions can be prioritized.  A valid priority is any expression of
+type \LS{int}.  A transition may not fire for a given binding if
+another binding (of the same or any other transition) with a greater
+priority is also enabled.  By default, the priority of any binding is
+0.  It is allowed to refer in a priority expression to all variables
+of the transition.  Moreover the priority system of Helena is dynamic
+in the sense that the content of a place may also be used to define a
+priority using e.g., iterators (see
+Section~\ref{subsubsection_iterator}).  Hence, the priority of a
+transition depends on the current system state.
+
+Let us consider the following definitions.
+\begin{lstlisting}
+transition t {
+   in  { q: <( x )>; }
+   out { r: <( x )>; }
+   priority: (x = 0 and p'card > 0) ? 1 : 0;
+}
+\end{lstlisting}
+Then it follows, that transition \LS{t} has priority 1 for binding
+\LS{x=0} and if place \LS{p} is not empty.  Otherwise it has priority
+0.
+\\
+
+\prioritydef
+
+
+\subsubsection{Description}\index{transition!description}
+The default string printed by Helena to describe a transition may be
+replaced by providing a description.  This description consists of a
+formatting string (following the C conventions) followed by the
+expressions that may appear in this string.  All these expressions
+must be of discrete types.
+
+Here is an example of transition description:
+\begin{lstlisting}
+transition t {
+   in  { q: <( x )>; }
+   out { r: <( x, b )>; }
+   pick { b in bool; }
+   description: "move %d from q to r", x;
+}
+\end{lstlisting}
+
+\descriptiondef
+
+
+\subsection{Functions}\index{function}
+The user is allowed to define functions which may then appear in arc
+expressions or in the property to verify.  Functions can not have any
+side effect.  They are functions in the mathematical sense: they take
+some parameters, compute a value and return it.  Two alternatives are
+possible to write the body, i.e., the effect, of a function.  First,
+it can be written in the language provided by Helena that is described
+bellow.  Second, it is possible to import it from a C function, that
+is, to write it directly in C and then to invoke Helena with option
+\verb+-L+ in order to link the appropriate object files.  This second
+alternative is described in Chapter~\ref{chapter_interfacing}.  To
+allow the definition of mutually recursive functions, the prototype,
+i.e., name, parameters and return type of the function, must be
+specified before its own body.  The prototype and the body must
+naturally match.  A function becomes visible as soon as its
+prototype or body is declared.\\
+
+\functiondef
+
+
+
+\subsection{Statements}\index{statement}
+Helena allows rich possibilities to write functions: conditional
+statements (if, case), loop statements (for, while), sequence of
+statements (block), assertions and naturally the return and
+assignments statement.  Except for the for statement, each has the
+same semantic as C's corresponding statement.\\
+
+\statementdef
+
+
+\subsubsection{Assignment}\index{statement!assignment}
+The assignment statement evaluates an expression and assigns its value
+to a variable.  The variable assigned can be a simple variable a
+structure component a vector component or a list component.  Assigned
+expression must naturally have the same type as the variable.\\
+
+\assignmentdef
+
+
+\subsubsection{If-then-else}\index{statement!if-then-else}
+An if statement evaluates a boolean expression, and according to its
+value executes either the \nonterm{true statement} either the
+\nonterm{false statement} if it exists.\\
+
+\ifdef
+
+
+\subsubsection{Case}\index{statement!case}
+A case statement evaluates an expression and according to the value of
+this expression chooses an appropriate alternative.  A default
+alternative can be defined.  Expressions which appear in the
+alternatives must have the same type as the evaluated expression and
+must be statically evaluable.  In addition, two different alternatives
+can not have the same expression.\\
+All possibilities may not be covered.  If an alternative is not
+covered, and the evaluated expression falls into this alternative, the
+case statement has no effect.\\
+
+\casedef
+
+
+\subsubsection{Return}\index{statement!return}
+A function returns a value by a return statement.  An expression is
+evaluated which correspond to the value returned by the function.  The
+type of this expression must be the return type of the function in
+which the return statement appear.  All statements appearing after the
+return statement are ignored.\\
+
+\returndef
+
+
+\subsubsection{Block}\index{statement!block}
+A block is a list of variables or constants declarations followed by a
+sequence of statements.  A block start with the token \{ and
+terminates with the token \}.  Each variable declared in the block is
+naturally visible as soon it is declared.  Its visibility terminates
+with the end of the block.  A variable declared in the block hides
+previously declared variables with the same name.\\
+
+\blockdef
+
+
+\subsubsection{While}\index{statement!while}
+Helena's while statement has exactly the same semantic as C's while
+statement: as long as the boolean expression is evaluated to
+\LS{true}, the enclosed statement is executed.\\
+
+\whiledef
+
+
+\SSsection{For loop}{subsubsection_for}{statement!for loop}
+A for statement iterates on all the possible values of some variables
+called the iteration variables.  Iteration variables are implicitly
+declared with the for statement.  Thus, if another variable with the
+same name has been previously declared, it is hidden in the for
+statement.  In addition, iteration variables are not visible outside
+the for statement and they are considered as constant in the enclosed
+statement.  The domain of an iteration variable is evaluated once,
+before entering the loop.  Thus, even if the bounds depend on some
+variable which value is changed in the for, it will have no
+consequence on the iteration.
+
+\index{iteration scheme} We will call iteration scheme a list of
+iteration variables.  These schemes appear in for loops, in iterators
+(see Section~\ref{subsubsection_iterator}) or in front of tuples that
+label the arcs (see Section~\ref{subsubsection_tuples}) of the net.
+The domain of an iteration variable \LS{v} can be:
+\begin{itemize}
+\item
+  a {\bf discrete type} \LS{t}.  The iteration variable successively
+  takes all the values of \LS{t} from the first one to the last one.
+  The iteration may be limited to a specific range.  The type of the
+  iteration variable is \LS{t}.
+\item
+  a {\bf place} \LS{p}.  In this case, all the tokens present in the
+  place at the current state will be considered.  The type of the
+  iteration variable is the token type of \LS{p}, the different
+  components of the token may then be accessed using the syntax
+  \LS{v->1}.
+\item
+  a {\bf container} \LS{c}, that is, any expression which has a set or
+  a list type.  In this case, all the items in the container will be
+  considered.  If the container is a list, it will be traversed from
+  the first element to the last.  If it is a set, no assumption can be
+  made on the order of traversal.  The type of the iteration variable
+  is the element type of the type of \LS{c}.
+\end{itemize}
+In the case of for loops, place iteration variables are not allowed.
+
+In the following example we define a function \LS{compute_sum}
+which computes the sum of some integers contained in a set.
+\begin{lstlisting}
+type int_set: set of int with capacity 10;
+function compute_sum (int_set s) -> int {
+   int result := 0;
+   for(item in s) result := result + item;
+   return result;
+}
+\end{lstlisting}
+
+\fordef
+
+
+\subsubsection{Assertion}\index{statement!assertion}
+Assertions can also be placed in functions.  As for transitions, the
+boolean expression associated to an assertion is checked, and if this
+expression is evaluated to \LS{false} the search is immediately
+stopped.\\
+
+\assertstatdef
+
+
+
+
+\subsection{Expressions}\label{subsection_expressions}\index{expression}
+Helena has been primarily designed to manage the verification of
+realistic software systems.  Thus, we naturally decided to include in
+Helena a wide range of possibilities concerning expressions.
+
+Some remarks:
+\begin{itemize}
+\item Each expression has a single type that Helena tries to guess at
+  the parsing stage.  When Helena has to choose between several types
+  for a given expression, the widest possible type is chosen.  For
+  instance, \LS{0 > 2} will be considered as a comparison between two
+  constants of type \LS{int}.  If Helena can not choose between
+  different types, an ambiguity error will be raised.
+\item Iterators and token components are special kinds of expressions
+  that can only appear in a property specification.  These form the
+  family of complex expressions.  Attributes related to a place also
+  belong to this family.
+\item An expression is said to be statically evaluable if no variable
+  and no function call appear in all its sub expressions.
+\item Expressions may raise errors at the run time such as division by
+  0, cast error, \dots.  Out of range errors form a special type of
+  error since they are not detected at the evaluation of sub
+  expressions but at the whole expression evaluation.  Let us consider
+  for instance the following type declaration:
+\begin{lstlisting}
+type my_type: range 1 .. 10;
+my_type i;
+\end{lstlisting}
+The expression \LS{i - 1 > 1} will never raise an error even if \LS{i}
+has value 1 since the whole expression is correct.  However, the
+statement \LS{i := i - 1} will raise an error if \LS{i = 1}, since the
+final expression is out of the range of type \LS{my_type}.
+\end{itemize}
+
+\expressiondef
+
+
+\subsubsection{Numerical and enumeration constants}\index{expression!constant}
+Constants are the most basic expressions.  The resulting expression
+has the value of the constant.  For a numerical constant, the
+resulting expression is of any integer type (range or modular) which
+greatest bound (in absolute value) is greater than the constant.  For
+an enumeration constant, the resulting expression is of any
+enumeration type which includes the constant.\\
+
+\constantexpressiondef
+
+
+\subsubsection{Variable}\index{expression!variable}
+We call variable any expression which can be assigned a value.  It is
+either a simple variable, either a component of a structure, a vector,
+or a list.  The type of the expression depends on the declaration of
+the variable.  Structure, vector, and list components will be
+described later in the section.\\
+
+\variabledef
+
+
+\subsubsection{Predecessor and successor operators}
+\index{expression!predecessor/successor operation} The \LS{succ} and
+\LS{pred} operators allows to pick the successor and predecessor of a
+discrete value.  Let \LS{t} be a discrete type and \LS{e} be an
+expression of this type.
+\begin{itemize}
+\item
+  If \LS{t} is a numerical type \LS{pred e} is equivalent to \LS{e -
+    1} and \LS{succ e} is equivalent to \LS{e + 1}.  An error may be
+  raised if \LS{t} is a range type and the \LS{pred} (resp. \LS{succ})
+  operator is applied on the first (last) value of the type.
+\item
+  If \LS{t} is an enumeration type, the evaluation directly depends on
+  the declaration of the \LS{t}.  For instance, if we consider the
+  following declaration
+  \begin{lstlisting}
+    type color: enum(red, green, blue);
+  \end{lstlisting}
+  then we have \LS{succ red = green = pred blue}, and \LS{succ blue =
+    red}.
+\end{itemize}
+
+\predsuccoperationdef
+
+
+\subsubsection{Integer arithmetic}\index{expression!integer operation}
+All the classical operators are allowed to perform integer arithmetic:
+the binary \LS{+}, \LS{-}, \LS{/}, \LS{*} and \LS{\%} (modulo)
+operators, and the unary \LS{+} and \LS{-} operators.  In the case of
+a binary operator both operands must be of the same type.
+
+Let \LS{t} be the type of the operand(s).  The type of the
+resulting expression will also be \LS{t}.  Its value depends on
+\LS{t}.
+\begin{itemize}
+\item
+  If \LS{t} is a range type the expression has the conventional
+  meaning.  A division by 0 will raise an error.
+\item
+  If \LS{t} is a modulo type, the operation is done as for a
+  range type.  The resulting value is then normalized as follows.  Let
+  $m$ be the modulo value of the type and $r$ be the result of the
+  operation.  If $r$ is positive or zero, the value of the resulting
+  expression is $r \mod m$.  If it is negative, the result is $r + m
+  \cdot (1 + ((-r) / m)) \mod m$.  A division by $0$ also raises a run
+  time error.
+\end{itemize}
+
+\integeroperationdef
+
+
+\subsubsection{Comparison operators}\index{expression!comparison operation}
+The comparison operators \LS{=} and \LS{!=} are defined for any type.
+\begin{itemize}
+\item
+  For discrete types, the equality test is straightforward.
+\item
+  Two structured expressions are equal if all their corresponding
+  components are equal.
+\item
+  Two vectors are equal if they contain the same elements at the same
+  indexes.
+\item
+  Two lists are equal if (1) they have the same length and (2) they
+  contain the same elements at the same indexes.
+\item
+  Two sets are equal if they contain the same elements.
+\end{itemize}
+\noindent
+The operators \LS{>}, \LS{>=}, \LS{<} and \LS{<=} are only defined for
+discrete and set types.
+\begin{itemize}
+\item 
+  For integer types, the comparison is straightforward.
+\item
+  Enumeration types are ordered according to the way the type has been
+  declared.  For instance, let us consider the following declaration:
+  \LS{type color: enum(red, green, blue);} It follows from the
+  declaration that \LS{red < green < blue}.
+\item
+  For set types, it holds that \LS{s1 > s2} if and only if the set
+  \LS{s2} is a (strict) subset of the set \LS{s1}.
+\end{itemize}
+
+A comparison operation has the boolean type.\\
+
+\comparisonoperationdef
+
+
+\subsubsection{Boolean logic}\index{expression!boolean operation}
+Boolean connectors are essential to express complex boolean
+expressions used, for example, in transition guards.  The language
+includes the classical \LS{or}, \LS{and} and \LS{not} operators.  The
+operand(s) of these operators must have the boolean type, which is
+also the type of the resulting expression.  We thus forbid expression
+such as \LS{1 or 0} which are allowed by the C language.\\
+
+\booleanoperationdef
+
+
+\subsubsection{Function call}\index{expression!function call}
+Functions previously declared can be called.  The syntax of a function
+call is the same as in the C language.  If the function does not take
+any parameter, \LS{()} must follow the function name.  The type of the
+expression is the return type of the function.  The parameters passed
+to the function must fit with the function declaration: the number of
+parameters must be the same in the declaration and in the call, and
+the type of each parameter must be the same type as in the
+declaration.  The value of the expression is the value returned by the
+function for the parameters specified.\\
+
+\functioncalldef
+
+
+\subsubsection{Cast}\index{expression!cast}
+Type casting allows to convert a value of any discrete type to another
+type.  The ``source'' and ``target'' types must have at least one
+value in common.  Errors will be raised at the run time if the cast
+fails, i.e., the value of the casted expression does not belong to the
+type in which the expression is converted.\\
+
+\castdef
+
+
+\subsubsection{If-then-else}\index{expression!if-then-else}
+The if-then-else expression taken from the C language is allowed in
+Helena.  An if-then-else consists in a boolean condition, and two
+expressions which must have the same type.  The condition is
+evaluated.  If it is evaluated to \LS{true}, the resulting expression
+is the first expression.  Else, it is the second one.  The resulting
+expression has the type of the true and false expressions.\\
+
+\ifthenelsedef
+
+
+\subsubsection{Structures}\index{expression!structure operation}
+Structures can be handled in Helena in three different manners.\\
+
+\index{expression!structure operation!structure constructor} Firstly,
+a structure can be constructed by placing all its elements between
+characters \{ and \}.  In this case, the expression is of any
+structured type which have the same number of components as the
+structure.  In addition, each expression of the structure has to be of
+the same type as the component declared at the same position in the
+structured type.  For instance if we consider the following type
+declaration
+\begin{lstlisting}
+type t:
+   struct {
+      int i;
+      bool b;
+   };
+\end{lstlisting}
+the expression \LS{\{-35, false\}} has (at least) type \LS{t}.  Its
+first component \LS{i} has value \LS{-35}, and its second component
+\LS{b} has value \LS{false}.\\
+
+\index{expression!structure operation!structure component} A second
+possibility to manipulate structures is to access a component of the
+structure.  If we let \LS{s} be an expression of type \LS{t}, \LS{s.i}
+denotes the value of the component \LS{i} of \LS{s}.  This expression
+is only valid if \LS{t} is a structured type which has a component
+named \LS{i}.  If these conditions are met, the type of \LS{s.i} is
+the type of component \LS{i} in the declaration of \LS{t}, and its
+value is the value of the component \LS{i} of \LS{s}.  Please note
+that we do not allow constructions such as \LS{\{10,false\}.i}.  The
+structure accessed must be a variable.\\
+
+\index{expression!structure operation!structure assignment} At last,
+structures can be manipulated by using the \LS{::} operator.  This
+construction is a shortcut to ``assign'' an expression to a component
+of a structure.  Let us consider for instance the expression \LS{s ::
+  (b := not s.b)} where the type of \LS{s} is the type \LS{t}
+previously defined.  This expression has the same type of \LS{s},
+i.e., \LS{t}, and has the same value of \LS{s} except that its
+component \LS{b} is replaced by the expression at the right of symbol
+\LS{:=}.  To be correct such an expression must respect three rules:
+\begin{enumerate}
+\item Expression \LS{s} must have a structured type \LS{t}.
+\item The replaced component, i.e., before symbol \LS{:=} must be a
+  component of type \LS{t}.
+\item The expression after symbol \LS{:=} must have the same type as
+  the the replaced component in the structured type declaration.
+\end{enumerate}
+
+\structuredef
+
+
+
+\subsubsection{Vectors}\index{expression!vector operation}
+The handling of vectors is very similar to the handling of structures.
+Three basic constructions allow to do this.\\
+
+\index{expression!vector operation!vector constructor} Firstly,
+vectors can be constructed by placing the list of elements in the
+vector between characters \LS{[} and \LS{]}.  All the elements in the
+vector must have the same type.  The vector can be of any type which
+fulfills the two following conditions:
+\begin{enumerate}
+\item
+  The element type of the vector type must be the same as the type of
+  the expressions in the vector expression.
+\item
+  The number of elements of the vector type must be greater or equal
+  to the length of the list.
+\end{enumerate}
+The order of values in a vector is determined from left to right.  If
+the size of the vector, i.e., the length of the expression list in the
+vector, is less than the number of elements of the vector type, the
+last expression in the vector is used for the non specified elements.
+
+Let us consider for instance the following vector type declaration:
+\begin{lstlisting}
+type bool_matrix: vector [bool, bool] of bool;
+\end{lstlisting}
+and the following variable declaration
+\begin{lstlisting}
+constant bool_matrix m1 := [false, false, true];
+constant bool_matrix m2 := [false];
+\end{lstlisting}
+The vector \LS{m1} and \LS{m2} will be defined by:
+\begin{lstlisting}
+m1[false,false] = m1[false,true] = false
+m1[true,false]  = m1[true,true]  = true
+
+m2[false,false] = m2[false,true] = m2[true,false] = m2[true,true] = false
+\end{lstlisting}
+Let us recall that the predefined type \LS{bool} is defined as:
+\LS{type bool : enum (false, true);}\\
+
+\index{expression!vector operation!vector component} Secondly, a
+specific element of a vector can be accessed.  Let us consider the
+type \LS{bool_matrix} previously defined and \LS{m} a variable of this
+type.  The expression \LS{m[false,false]} is a boolean expression,
+i.e., the type of the elements of vector type \LS{bool_matrix}, and
+its value is the value of the element of \LS{m} which index is
+\LS{[false,false]}.\\
+
+\index{expression!vector operation!vector assignment} At last, an
+element of a vector can be assigned an expression.  The syntax is
+close to the syntax of a structure assignment.  Instead of specifying
+the name of a component, an index of the vector is supplied.  For
+instance, the expression \LS{m :: ([true,false] := m[false,true])} has
+the same type as \LS{m}.  Its value is the vector \LS{m} in which the
+element at index \LS{[true,false]} has been replaced by the element at
+index \LS{[false,true]}.\\
+
+\vectordef
+
+
+
+\subsubsection{Lists}\index{expression!list operation}
+Lists can be handled in the same way as vectors and structures.  We
+will illustrate the different possibilities with the help of the type
+\LS{int_list} defined below.
+\begin{lstlisting}
+type int_list: list [nat] of int with capacity 10;
+\end{lstlisting}
+
+\index{expression!list operation!empty list} First, we can construct
+the empty list, i.e., that does not contain any element, with the help
+of the keyword \LS{empty} as in the example below.
+\begin{lstlisting}
+constant int_list empty_list := empty;
+\end{lstlisting}
+
+\index{expression!list operation!list constructor} A list can also be
+constructed by placing all its elements between two '\LS{|}'
+characters.  For example:
+\begin{lstlisting}
+constant int_list l := |1, 2, 3, 4, 5|;
+\end{lstlisting}
+The list \LS{l} is a list of five integers.  Its element at the first
+index is the constant 1.  At the second index there is the constant 2,
+and so on.\\
+
+\index{expression!list operation!list component} The elements of a
+list can be accessed via their indexes, as for vectors.  For example,
+if we consider the list \LS{l} previously defined, \LS{l[0]} will be
+the first element of the list, i.e., 1, \LS{l[1]} the second element
+of the list, and so on.  An error will be raised if we attempt to
+access an element at an index that does not exist, e.g., \LS{l[5]}.
+
+Let us note that the classification starts at 0 since the index type
+of \LS{int_list} is \LS{nat}.  If this index type was, for example,
+the type \LS{short} the first element would naturally have index
+-32768.\\
+
+\index{expression!list operation!list assignment} It is possible to
+``assign'' a value to an element of a list at a specified index.  The
+syntax is the same as for vectors except that only one index can be
+specified.  If we consider the list \LS{l} previously defined then the
+expression \LS{l :: ([2] := 10)} has type \LS{int_list}.  Its value is
+the list \LS{l} in which the element at index 2 has been replaced by
+the constant 10.  In other words, \LS{l :: ([2] := 10) = |1, 2, 10, 4,
+  5|}.
+
+An error is raised if an attempt is made to assign a value to an
+element at an index which does not exist, e.g, \LS{l :: ([5] := 10)}
+is an error.\\
+
+\index{expression!list operation!list slice} Another possibility is to
+extract a slice, i.e., a sub-list, from a list.  To do so it is
+necessary to provide the indexes of the first and the last elements
+desired.  The resulting slice consists of the sub-list which contains
+all the elements of the original one from the first index to the last
+index.  As an example let us considered the list \LS{l} previously
+defined.  Then \LS{l[1 .. 3]} is equivalent to the list \LS{|l[1],
+  l[2], l[3]|}.  It is important to notice that in the resulting list
+the index of the first element will still be 0, i.e., the first value
+of the index type \LS{nat} and not 1.
+
+To be correct a slice must be such that both the first and the last
+index must be less than (or equal to) the index of the last element of
+the list.  If the index of the last element is less than the index of
+the first one the resulting list is the empty list.\\
+
+\index{expression!list operation!list concatenation} Two lists may be
+concatenated using the binary \LS{&} operator.  One of its operands
+must have a list type \LS{l} which is also the type of the resulting
+expression.  The other operand must have the type \LS{l} or the
+element type of \LS{l}.  Here are some examples of concatenations with
+the value of the resulting expression.
+\begin{lstlisting}
+|1, 2, 3, 4| & 5 = |1, 2, 3, 4, 5|
+1 & |1, 2, 3| & 5 = |1, 1, 2, 3, 5|
+|1, 2, 3| & |4, 5, 6| = |1, 2, 3, 4, 5, 6|
+\end{lstlisting}
+The concatenation of two lists may raise an error if the number of elements of
+the resulting list exceeds the capacity of the corresponding list type.\\
+
+\index{expression!attribute!list membership}
+It is possible to check if an item belongs to a list by using the
+\LS{in} operator.  For instance:
+\begin{lstlisting}
+5 in |1, 2, 5| = true
+2 in |1, 5, 2, 5| = true
+3 in |1, 5| = false
+\end{lstlisting}
+The resulting expression has the \LS{bool} type.  The
+expression \LS{e in l} is evaluated to \LS{true}, if
+there is an index \LS{i} such that \LS{l[i] = e} or
+\LS{false} otherwise.
+
+\index{expression!attribute!list attribute} Lastly, list have some
+attribute that may be useful.  We can for example extract the prefix
+or the suffix of a list or select the first element of a list.  List
+attributes are described later in
+Section~\ref{subsubsection_attributes}.\\
+
+\listdef
+
+
+\subsubsection{Sets}
+\index{expression!set operation}
+\index{expression!set operation!empty set}
+\index{expression!set operation!set constructor}
+Some constructions are common for sets and lists.  For example it is
+possible to construct an empty set with the help of the \LS{empty}
+keyword.  A set can also be defined by placing all its elements
+between two '\LS{|}' characters.
+
+\index{expression!set operation!set membership} Set membership is
+realized through the \LS{in} operator as for lists.
+
+\index{expression!set operation!set union, intersection, difference}
+The \LS{or}, \LS{and} and \LS{-} operators may be used to compute the
+union, intersection, and differences of two sets.  One of the operands
+of these operators must be a set while the other can be a a set of the
+same type or an expression of the element type of the set.  A run time
+error will naturally be raised if the cardinal of the resulting set
+exceeds the capacity of its type.\\
+
+At last lists and sets have many attributes in common.  You will find
+a complete list of these attributes at
+Section~\ref{subsubsection_attributes}.\\
+
+Let us examine some examples that illustrate the use of sets.
+\begin{lstlisting}
+type int_set: set of int with capacity 10;
+constant int_set s1 := |1, 2, 3|;
+constant int_set s2 := |1, 2, 3| or  |2, 3, 4|;  //  s2 = |1, 2, 3, 4|
+constant int_set s3 := |1, 2, 3| and |2, 3, 4|;  //  s3 = |2, 3|
+constant int_set s4 := 0 or |1, 2| or 5;         //  s4 = |0, 1, 2, 5|
+constant int_set s5 := |1, 2, 3| - |1, 2|;       //  s5 = |3|
+constant int_set s6 := |1, 2, 3| - 1;            //  s6 = |2, 3|
+constant bool b := 3 in s1;                      //  b = true
+constant bool c := 4 in s1;                      //  c = false
+\end{lstlisting}
+
+\setdef
+
+
+\subsubsection{Token component}\index{expression!token component}
+Iterator expressions can be used to iterate on the tokens present in a
+place at the current marking.  To check complex conditions on these
+tokens, components of tokens can be accessed by specifying the name of
+the token variable followed by symbol \LS{->} and the number of the
+accessed component of the token type.\\
+For instance, let us consider the following place
+definition:\\
+\LS{place p \{ dom: int * bool * int; \}}\\
+If the type of variable \LS{t} is the token type of place \LS{p}, then
+\LS{t->1}, \LS{t->2} and \LS{t->3} are three valid expressions.
+\LS{t->1}, and \LS{t->3} have both type \LS{int}, while \LS{t->2} has
+type \LS{bool}.  \LS{t->4} is not a valid expression since the domain
+of place \LS{p} is a product of three items.\\
+
+\tokencomponentdef
+
+
+\SSsection{Attributes}{subsubsection_attributes}{expression!attribute}
+Some elements have attributes that can be used in expressions.  The
+syntax of an attribute is inherited from the Ada syntax: it consists
+of the element (e.g., a type name, a place name) followed by the
+character \LS{'} and the name of the attribute.
+Table~\ref{table_attributes} summarizes the possible attributes and
+their meaning.
+
+There are several categories of attributes.
+
+\paragraph{Type attributes}\index{expression!attribute!type attribute}
+Let \LS{t} be a discrete type of the net.
+\begin{description}
+\item
+  \LS{t'first} and \LS{t'last} correspond to the first and the last value of
+  \LS{t}.
+  Their value depends on the definition of \LS{t}:
+  \begin{itemize}
+  \item
+    If \LS{t} is a range type, defined as
+    \LS{range low..up}, then \LS{t'first=low} and
+    \LS{t'last=up}.
+  \item
+    If \LS{t} is a mod type, defined as \LS{mod N}, then
+    \LS{t'first=0}, and \LS{t'last=N-1}
+  \item
+    If \LS{t} is an enumeration type, \LS{t'first} it is the first
+    element in the list which defines \LS{t}, and \LS{t'last} it
+    is the last element of the list.
+  \end{itemize}
+\item
+  \LS{t'card} is the cardinal of type \LS{t}.
+  This expression can have any numerical type.
+  Its value depends on the definition of \LS{t}.
+  \begin{itemize}
+  \item
+    If \LS{t} is a range type defined as \LS{range low..up},
+    then \LS{t'card=1+up-low}.
+  \item
+    If \LS{t} is a mod type defined as \LS{mod N}, it is
+    \LS{N}.
+  \item
+    If \LS{t} is an enumeration type, it is the length of the list which
+    defines \LS{t}.
+  \end{itemize}
+\end{description}
+Some examples:
+\begin{itemize}
+\item
+  \LS{bool'first=false}
+\item
+  \LS{bool'last=true}
+\item
+  \LS{bool'card=2}
+\end{itemize}
+
+\paragraph{Place attributes}\index{expression!attribute!place attribute}
+Let \LS{p} be a place of the net.
+\begin{description}
+\item
+  \LS{p'card} is the number of tokens in place \LS{p} at the
+  current state.
+  This expression can have any numerical type.
+\item
+  \LS{p'mult} is the cumulated multiplicities of the tokens in place
+  \LS{p} at the current state.
+  This expression can have any numerical type.
+\end{description}
+For instance, if place \LS{p} contains the following tokens at
+the current state:
+\begin{lstlisting}
+2*<(2,true)> + <(3,false)> + 4*<(5,false)>
+\end{lstlisting}
+Then we have \LS{p'card = 3} and
+\LS{p'mult = 7}.
+Indeed, there are three different tokens in place \LS{p} at the current
+state and the sum of the multiplicities of these three tokens is 7
+(2 + 1 + 4).
+
+\paragraph{Container attributes}\index{expression!attribute!container attribute}
+Let \LS{c} be a container, i.e., an expression of which the type is a
+list type or a set type.
+\begin{description}
+\item
+  \LS{c'size} is the size of \LS{c}, i.e., the number of
+  elements in this container.
+  This expression can have any numerical type.
+\item
+  \LS{c'capacity} is the value of the capacity of the type of
+  \LS{c}.
+  This expression can have any numerical type.
+\item
+  \LS{c'space} is the remaining space in container \LS{c},
+  i.e., the capacity of the type of \LS{c} minus the number of elements
+  in \LS{c}.
+  This expression can have any numerical type.
+\item
+  \LS{c'full} is a boolean expression which value is \LS{true}
+  if the container is full (i.e., the number of elements in it is equal to the
+  capacity of the type of c), or false otherwise.
+\item
+  \LS{c'empty} is a boolean expression which value is \LS{true}
+  if the container is empty (i.e., it does not contain any element), or false
+  otherwise.
+\end{description}
+The following declarations illustrate the use of these attributes.
+\begin{lstlisting}
+type int_set: set of int with capacity 10;
+constant int_set s1 := empty;
+constant int_set s2 := |1, 5, 12, -5|;
+constant int_set s3 := |1, 2, 4, 8, 16, 32, 64, 128, 256, 512|;
+
+constant int i1 := s2'size;      //  i1 = 4
+constant int i2 := s1'capacity;  //  i2 = 10
+constant int i3 := s2'space;     //  i3 = 10 - 4 = 6
+constant bool b1 := s3'full;     //  b1 = true
+constant bool b2 := s1'empty;    //  b2 = true
+\end{lstlisting}
+
+\paragraph{List attributes}\index{expression!attribute!list attribute}
+Let \LS{l} be a list, i.e., an expression of which the type is a
+list type \LS{t} defined as
+\begin{lstlisting}
+type t: list[index_type] of element_type with capacity N;
+\end{lstlisting}
+\begin{description}
+\item
+  \LS{l'first} is the first element of \LS{l}.
+  The type of this expression is \LS{element_type}.
+  A run-time error is raised if \LS{l} is empty.
+\item
+  \LS{l'last} is the last element of \LS{l}.
+  The type of this expression is \LS{element_type}.
+  A run-time error is raised if \LS{l} is empty.
+\item
+  \LS{l'prefix} is the list which consists of the first elements of
+  \LS{l}, i.e., the list \LS{l} from which we remove the last
+  element.
+  The type of this expression is \LS{t}.
+  A run-time error is raised if \LS{l} is empty.
+\item
+  \LS{l'suffix} is the list which consists of the last elements of
+  \LS{l}, i.e., the list \LS{l} from which we remove the first
+  element.
+  The type of this expression is \LS{t}.
+  A run-time error is raised if \LS{l} is empty.
+\item
+  \LS{l'first_index} is the index of the first element of the list.
+  It always hold that \LS{l'first_index = index_type'first}.
+  The type of this expression is \LS{index_type}.
+\item
+  \LS{l'last_index} is the index of the last element of the list.
+  The type of this expression is \LS{index_type}.
+  A run-time error is raised if \LS{l} is empty.
+\end{description}
+Let us have a look at some examples.
+\begin{lstlisting}
+type int_list: list[nat] of int with capacity 10;
+constant int_list l := |3, 5, 12, -5, 10|;
+
+constant int i1 := l'first;        //  i1 = 3
+constant int i2 := l'last;         //  i2 = 10
+constant int_list l1 := l'prefix;  //  l1 = |3, 5, 12, -5|
+constant int_list l2 := l'suffix;  //  l2 = |5, 12, -5, 10|
+constant nat n1 := l'first_index;  //  n1 = 0
+constant nat n2 := l'last_index;   //  n2 = 4
+\end{lstlisting}
+
+\begin{table}
+  \caption{Summary of the possible attributes}
+  \label{table_attributes}
+  \begin{center}
+    \begin{tabular}{|l|l|l|}
+      \hline
+      \multicolumn{1}{|c|}{Expression} &
+      \multicolumn{1}{|c|}{Valid if} &
+      \multicolumn{1}{|c|}{Interpretation}\\
+      \hline
+      \LS{e'capacity} &
+      \LS{e} is a container &
+      the capacity of \LS{e}\\
+      \hline
+      \LS{e'card} &
+      \LS{e} is a discrete type &
+      the cardinal of \LS{e}\\
+      &
+      \LS{e} is a place &
+      the number of distinct tokens in \LS{e}\\
+      \hline
+      \LS{e'empty} &
+      \LS{e} is a container &
+      \LS{e} is empty\\
+      \hline
+      \LS{e'first} &
+      \LS{e} is a discrete type &
+      the first value of \LS{e}\\
+      &
+      \LS{e} is a list &
+      the first element of \LS{e}\\
+      \hline
+      \LS{e'first_index} &
+      \LS{e} is a list &
+      the index of the first element of \LS{e}\\
+      \hline
+      \LS{e'prefix} &
+      \LS{e} is a list &
+      the first elements of \LS{e}\\
+      \hline
+      \LS{e'full} &
+      \LS{e} is a container &
+      the capacity of \LS{e} is reached\\
+      \hline
+      \LS{e'last} &
+      \LS{e} is a discrete type &
+      the last value of \LS{e}\\
+      &
+      \LS{e} is a list &
+      the last element \LS{e}\\
+      \hline
+      \LS{e'last_index} &
+      \LS{e} is a list &
+      the index of the last element of \LS{e}\\
+      \hline
+      \LS{e'suffix} &
+      \LS{e} is a list &
+      the last elements of \LS{e}\\
+      \hline
+      \LS{e'length} &
+      \LS{e} is a list &
+      the length of \LS{e}\\
+      \hline
+      \LS{e'mult} &
+      \LS{e} is a place &
+      the cumulated multiplicities of the tokens in \LS{e}\\
+      \hline
+      \LS{e'space} &
+      \LS{e} is a container &
+      the remaining space in \LS{e}\\
+      \hline
+    \end{tabular}
+  \end{center}
+\end{table}
+
+\attributedef
+
+
+\SSsection{Iterator}{subsubsection_iterator}{expression!iterator}
+\index{iteration scheme}
+Iterators are provided to express properties that must be verified by
+the net.
+The general syntax of an iterator is the following:
+\begin{lstlisting}
+iterator(iteration-scheme | condition : expression)
+\end{lstlisting}
+For more precisions on the notion of iteration scheme, please refer to
+Section~\ref{subsubsection_for}.
+
+An iterator considers all the tokens present in a place at the current
+state (if the iteration domain is a place) or all the values of a
+discrete type (if the iteration domain is a type) or all the items
+present in a container (if the iteration domain is a container) and
+computes a value.  A condition, i.e., a boolean expression, can be
+specified to limit the iteration to the values which satisfy the
+condition.  The evaluation of an iterator depends on its type.
+Different types iterators are provided.
+\begin{itemize}
+\item Iterator \LS{forall} checks that the expression is evaluated to
+  \LS{true} for all the possible iterations.  The expression provided
+  must have type \LS{bool} and so is the type of the resulting
+  expression.
+\item Iterator \LS{exists} checks that the expression is evaluated to
+  \LS{true} for at least one iteration.  No expression must be
+  provided in the iterator.  The resulting expression has type
+  \LS{bool}.
+\item Iterators \LS{min} and \LS{max} compute respectively a minimal
+  and a maximal value.  The expression inside the iterator can have
+  any discrete type.  This type is also the type of the resulting
+  expression.  If the set over which the variable iterates is empty,
+  the resulting expression has an undefined value.
+\item Iterators \LS{sum} and \LS{product} compute respectively a sum
+  and a product.  The expression inside the iterator can have any
+  numerical type which is also the type of the resulting expression.
+\item Iterator \LS{card} computes the number of iterations that
+  fulfill a condition.  No expression must be provided in the
+  iterator.  The resulting expression can have any numerical type.
+\item Iterator \LS{mult} is only valid if a single iteration variable
+  is provided and if its domain is a place.  It computes the sum of
+  the multiplicities of the tokens in this place which fulfill a
+  condition.  No expression must be provided in the iterator.  The
+  resulting expression can have any numerical type.
+\end{itemize}
+
+We illustrate the use of these iterators on several examples.  Let
+\LS{t} be the type and \LS{p} be the place defined by:
+\begin{lstlisting}
+type t: range 1..10;
+place p { dom: t * bool; }
+\end{lstlisting}
+The marking of place \LS{p} at the current state is given by
+the following tokens distribution:
+\begin{lstlisting}
+<(1,true)> + 2*<(2,false)> + <(2,true)> + 3*<(4,true)> + 4*<(8,false)>
+\end{lstlisting}
+Let us detail the evaluation of some iterators.
+\begin{itemize}
+\item
+\LS{exists(t in p) = true}.
+Indeed, there are five tokens in place \LS{p}.
+\item
+\LS{forall(t in p | t->2 : t->1 < 5) = true}.
+All the tokens in place \LS{p} which have their second
+component equal to \LS{true} have their first component
+strictly less than 5.
+\item
+\LS{card(t in p | not t->2) = 2}.
+There are 2 tokens in place \LS{p} which have their second
+component equal to \LS{false}.
+\item
+\LS{mult(t in p | t->2) = 5}.
+The cumulated multiplicities of the tokens in \LS{p} which have
+their second component equal to \LS{true} is 5.
+These tokens are \LS{<(1,true)>}, \LS{<(2,true)>} and
+\LS{<(4,true)>}.
+\item
+\LS{min(t in p : t->1) = 1}, \LS{max(t in p : t->1) = 8}.
+The minimal and maximal values for the first component of all the
+tokens in place \LS{p} are 1 (for token \LS{<(1,true)>})
+and 8 (for token \LS{<(8,false)>}).
+\item
+\LS{sum(t in p | t->2 : t->1) = 7}.
+The sum of the first components of the tokens which have their second
+component equal to \LS{true} is 7 (1 + 2 + 4).
+\item
+\LS{product(t in p | not t->2 : t->1) = 16}.
+The product of the first components of the tokens which have their second
+component equal to \LS{false} is 16 (8 $\cdot$ 2).
+\item
+\LS{exists(i in t | forall(b in bool : card(t in p | t->1=i and t->2=b) = 1))}.
+This expression can be read as follows: there is an element
+\LS{i} of type \LS{t} which is such that the tokens
+\LS{<(i,false)>} and \LS{<(i,true)>} are present in
+place \LS{p}.
+This holds for \LS{i=2}.
+\end{itemize}
+
+\iteratordef
+
+
+
+\subsection{Arc labels}\index{arc label}
+\label{subsection_labels}
+In high level Petri nets, arcs between places and transitions are
+labeled by expressions indicating, for a given instantiation of the
+variables of the transition, the tokens consumed or produced by the
+firing.  In the high level nets supported by Helena, these expressions
+are linear combinations of simpler ones called tuples of expressions
+or, more simply, tuples.  Tuples are lists of expressions placed
+between two tokens \LS{<(} and \LS{)>}.  For instance given two
+variables \LS{x},\LS{y}, the expression
+\begin{lstlisting}
+2*<(x,y)> + <(y,0)>
+\end{lstlisting}
+produces two tokens of type \LS{<(0,1)>} and one token of type
+\LS{<(1,0)>} for the instantiation \LS{x=0, y=1}.
+
+
+\subsubsection{Arc expression}
+\index{arc label!arc expression}
+As stated previously, an expression labeling an arc of the net is a
+linear combination of tuples, or a sum of complex tuples.  Both are
+defined just afterwards.\\
+
+\arclabeldef
+
+
+\SSsection{Tuples}{subsubsection_tuples}{arc label!tuple}
+Tuples are basic components of arc label.  They may be guarded by a
+boolean expression.  If this expression is evaluated to \LS{true} for
+the firing instantiation, the corresponding tokens are normally
+produced.  Otherwise, if the condition does not hold, tokens are not
+produced.  A condition can be specified by placing a construction
+\LS{if(cond)} before the tuple.  For instance, let us consider the
+tuple \LS{if(x > 0) <(x)>}.  If \LS{x <= 0}, the tuple does not
+produce any token, else it produces a single token \LS{<(x)>}.
+
+\index{iteration scheme}
+Helena also provides the following syntactical facility: instead of writing
+\begin{lstlisting}
+<(x,false,1)> + <(x,false,2)> + <(x,true,1)> + <(x,true,2)>
+\end{lstlisting}
+one can prefix the tuple with some iteration scheme (see
+Section~\ref{subsubsection_for}):
+\begin{lstlisting}
+for(b in bool, i in int range 1..2) <(x,b,i)>
+\end{lstlisting}
+Note that we do not allow the iteration variable to loop over places
+or containers.  Only discrete iteration variables are allowed.  In
+addition, if a range is specified for an iteration variable then it
+must necessarily be evaluable statically, i.e., the two bounds must be
+evaluable statically.
+
+The two possibilities can also be combined.  For instance:
+\begin{lstlisting}
+for(b in bool, i in int range 1..2) if(x != i or b) <(x,b,i)>
+\end{lstlisting}
+is a valid tuple.
+
+If the domain of the corresponding place is the empty product
+\LS{epsilon}, the only possible tuple is \LS{epsilon}.  The
+expressions list in the tuple must correspond to the domain of the
+corresponding place.
+
+A factor may appear before the tuple to denote the number of tokens
+produced by this tuple.  This one must be a numeric expression,
+statically evaluable and positive.\\
+
+\tupledef
+
+\subsection{State propositions}\index{state propositions}
+Most properties are expressed by means of state propositions.  A state
+proposition is a boolean expression that usually refers to the current
+state using iterators (see Section~\ref{subsubsection_iterator}).  A
+proposition has a name meant to be used in properties and
+simply consists of an expression.\\
+
+\statepropositiondef
+
+
+\section{Property specification language}
+
+The property specification simply consists of a list of properties.
+Helena currently supports two types of property: state properties and
+temporal properties expressed in the linear time temporal logic (LTL).\\
+
+\propertyspecificationdef
+
+\subsection{State properties}\index{state properties}
+State properties form the most basic type of property Helena can
+analyse.  A state property must hold in all the reachable states of
+the system.
+
+A state property consists of the keyword \LS{reject} followed by the
+description of the states that are rejected during the search.  When a
+state is rejected by Helena the search stops and Helena displays the
+trace, i.e., the sequence of transition bindings, which leads from the
+initial state to the rejected, i.e., faulty, state.  The keyword
+\LS{reject} can be followed by:
+\begin{enumerate}
+\item the keyword \LS{deadlock}.  In this case, Helena rejects states
+  in which no transition is enabled.
+\item a state proposition name.  Helena rejects any state in which the
+  proposition holds.
+\end{enumerate}
+Accept clauses can be used to limit the rejection of states which do
+satisfy the \LS{reject} predicate: if a state verifies at least one of
+the accept clauses, then it is considered that the state property
+holds at this state.
+
+For example, to express that no deadlock can occur we can write:
+\begin{lstlisting}
+state property not_dead:
+   reject deadlock;
+\end{lstlisting}
+Now to specify that the termination state is a valid ``deadlock
+state'', we can write:
+\begin{lstlisting}
+state property not_dead2:
+   reject deadlock;
+   accept valid_termination;
+\end{lstlisting}
+where state proposition \LS{valid_termination} has been defined in the
+net specification as:
+\begin{lstlisting}
+proposition valid_termination: termination'card > 0;
+\end{lstlisting}
+
+\statepropertydef
+
+\subsection{Temporal properties}\index{temporal properties}
+Helena can also analyse LTL properties.  An LTL property is defined by
+a name and a temporal expression.  To be verified, all maximal
+executable sequences must match the expression specified.  A temporal
+expression is built using state propositions.  Besides usual boolean
+operators, a temporal expression can also include the following
+temporal operators: \LS{[]} (``globally''), \LS{<>} (``finally'') and
+\LS{until}.\\
+
+For instance the following temporal property expresses that once state
+proposition \LS{p} holds it holds in all subsequent states of the
+sequence.
+\begin{lstlisting}
+ltl property prop: [] (not P or [] P);
+\end{lstlisting}
+
+\temporalpropertydef

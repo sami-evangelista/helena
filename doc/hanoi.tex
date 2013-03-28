@@ -1,0 +1,29 @@
+The towers of Hanoi is a well-known mathematical game\footnote{The
+  description is taken
+  from \url{http://en.wikipedia.org/wiki/Tower_of_Hanoi}.}.  It
+  consists of three towers, and a number of disks of different sizes
+  which can slide onto any tower.  The puzzle starts with the disks
+  neatly stacked in order of size on one tower, smallest at the top,
+  thus making a conical shape.
+
+The objective of the game is to move the entire stack to another
+tower, obeying the following rules:
+\begin{itemize}
+\item Only one disk may be moved at a time.
+\item Each move consists of taking the upper disk from one of the
+  towers and sliding it onto another tower, on top of the other disks
+  that may already be present on that tower.
+\item No disk may be placed on top of a smaller disk.
+\end{itemize}
+
+This example illustrates the use of lists in Helena.
+
+\lstinputlisting[frame=single,
+caption={Helena file of the towers of Hanoi
+(file \texttt{examples/hanoi.lna})},
+numbers=left,basicstyle=\small] {../examples/hanoi.lna}
+
+\lstinputlisting[frame=single,
+caption={Helena file of the towers of Hanoi properties
+(file \texttt{examples/hanoi.prop.lna})},
+numbers=left,basicstyle=\small] {../examples/hanoi.prop.lna}

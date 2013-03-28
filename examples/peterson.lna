@@ -1,0 +1,109 @@
+/******************************************************************************
+*
+*  Example file of the Helena distribution
+*
+*  File  : peterson.lna
+*  Author: Sami Evangelista
+*  Date  : 20 dec. 2004
+*
+*  This net describes the Peterson mutual exclusion algorithm.
+*
+******************************************************************************/
+
+
+peterson (N := 3) {  /*  N = number of processes  */
+
+   type pid  : range 0 .. N - 1;
+   type turn : range 0 .. N - 2;
+
+   place idle {
+      dom : pid;
+      init : for(p in pid) <(p)>;
+   }
+   place want_section {
+      dom : pid * bool;
+      init : for(p in pid) <(p,false)>;
+   }
+   place turn {
+      dom : turn * pid;
+      init : for(t in turn) <(t,0)>;
+   }
+   place ask_for_section { dom : pid * turn; }
+   place test_turn       { dom : pid * turn; }
+   place begin_loop      { dom : pid * turn * pid; }
+   place end_turn        { dom : pid * turn; }
+   place test_identity   { dom : pid * turn * pid; }
+   place cs              { dom : pid; }
+   place test_alone      { dom : pid * turn * pid; }
+   place is_end_loop     { dom : pid * turn * pid; }
+
+
+
+   /*
+    *  more than one process in critical section
+    */
+   proposition cs_not_ok:
+      cs'card > 1;
+
+
+   transition ask {
+      in  { idle            : <(i)>;    want_section : <(i, false)>; }
+      out { ask_for_section : <(i, 0)>; want_section : <(i, true)>; }
+   }
+   transition update_turn {
+      in  { ask_for_section : <(i, j)>; turn : <(j, k)>; }
+      out { test_turn       : <(i, j)>; turn : <(j, i)>; }
+   }
+   transition turn_equal {
+      in  { test_turn  : <(i, j)>;    turn : <(j, i)>; }
+      out { begin_loop : <(i, j, 0)>; turn : <(j, i)>; }
+   }
+   transition turn_diff {
+      in  { test_turn : <(i, j)>; turn : <(j, k)>; }
+      out { end_turn  : <(i, j)>; turn : <(j, k)>; }
+      guard : i != k;
+   }
+   transition continue_loop {
+      in  { begin_loop    : <(i, j, k)>; }
+      out { test_identity : <(i, j, k)>; }
+   }
+   transition progress_turn {
+      in  { end_turn        : <(i, j)>; }
+      out { ask_for_section : <(i, succ j)>; }
+      guard: j < turn'last;
+   }
+   transition access_cs {
+      in  { end_turn : <(i, turn'last)>; }
+      out { cs       : <(i)>; }
+   }
+   transition become_idle {
+      in  { cs   : <(i)>; want_section : <(i, true)>; }
+      out { idle : <(i)>; want_section : <(i, false)>; }
+   }
+   transition end_loop {
+      in  { is_end_loop : <(i, j, pid'last)>; }
+      out { end_turn    : <(i, j)>; }
+   }
+   transition no_identity {
+      in  { test_identity : <(i, j, k)>; }
+      out { test_alone    : <(i, j, k)>; }
+      guard : i != k;
+   }
+   transition identity {
+      in  { test_identity : <(i, j, i)>; }
+      out { is_end_loop   : <(i, j, i)>; }
+   }
+   transition not_alone {
+      in  { test_alone : <(i, j, k)>; want_section : <(k, true)>; }
+      out { test_turn  : <(i, j)>;    want_section : <(k, true)>; }
+   }
+   transition alone {
+      in  { test_alone  : <(i, j, k)>; want_section : <(k, false)>; }
+      out { is_end_loop : <(i, j, k)>; want_section : <(k, false)>; }
+   }
+   transition loop {
+      in  { is_end_loop : <(i, j, k)>; }
+      out { begin_loop  : <(i, j, succ k)>; }
+      guard: k < pid'last;
+   }
+}

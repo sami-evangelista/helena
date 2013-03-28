@@ -1,0 +1,2 @@
+state property not_dead:
+   reject deadlock;

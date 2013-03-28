@@ -1,0 +1,46 @@
+/******************************************************************************
+*
+*  Example file of the Helena distribution
+*
+*  File  : free_vars.lna
+*  Author: Sami Evangelista
+*  Date  : 21 jan. 2010
+*
+*  A small example that illustrates the use of free variables.  See the pick
+*  section of transition split.
+*
+******************************************************************************/
+
+free_vars {
+
+constant int N := 10;
+
+subtype smallInt: int range 1 .. N;
+
+type intSet: set of smallInt with capacity N;
+
+function all() -> intSet {
+   intSet result := empty;
+   for (n in smallInt)
+      result := result or n;
+   return result;
+}
+
+place S { dom : intSet; init: <( all() )>; }
+place A { dom : intSet; init: <( empty )>; }
+place B { dom : intSet; init: <( empty )>; }
+
+//  transition split takes the set of integers in place p, then it picks two
+//  different integers a and b from this set, puts a in the set of place A and
+//  b in the set of place B.  both integers are then removed from the set of
+//  place S
+transition split {
+   in   { S: <( s )>;            A: <( sa )>;      B: <( sb )>; }
+   out  { S: <( s - | a, b | )>; A: <( sa or a )>; B: <( sb or b )>; }
+   pick {
+      a in s;
+      b in s - a;
+   }
+}
+
+}

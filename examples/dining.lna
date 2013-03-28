@@ -1,0 +1,77 @@
+/******************************************************************************
+*
+*  Example file of the Helena distribution
+*
+*  File  : dining.lna
+*  Author: Sami Evangelista
+*  Date  : 27 oct. 2004
+*
+*  The high level net described by this file models a solution of the
+*  dining philosophers problem.
+*
+*  There are N philosophers. The deadlock is avoided by the use of N-1
+*  chairs. Each philosopher first takes a chair, then he successively
+*  takes his left and his right forks. Once his meat finished, he puts
+*  his two forks back and leaves the table.
+*
+******************************************************************************/
+
+
+dining (N := 10) {  /*  N = number of philosophers  */
+
+   type philos_id : mod N;
+
+   place thinking {
+      dom : philos_id;
+      init : for(p in philos_id) <( p )>;
+      capacity : 1;
+   }
+   place seated {
+      dom : philos_id;
+      capacity : 1;
+   }
+   place with_left {
+      dom : philos_id;
+      capacity : 1;
+   }
+   place eating {
+      dom : philos_id;
+      capacity : 1;
+   }
+   place forks {
+      dom : philos_id;
+      init : for(p in philos_id) <( p )>;
+      capacity : 1;
+   }
+   place chairs {
+      dom : epsilon;
+      init : (N - 1) * epsilon;
+      capacity : N - 1;
+   }
+
+   //  philosopher 0 has a seat
+   proposition p0_seated:
+      exists (p in seated | p->1 = 0);
+   //  philosopher 0 is eating
+   proposition p0_eating:
+      exists (p in eating | p->1 = 0);
+
+   transition seat {
+      in  { thinking : <( p )>; chairs : epsilon; }
+      out { seated   : <( p )>; }
+   }
+   transition take_left {
+      in  { seated    : <( p )>; forks : <( p )>; }
+      out { with_left : <( p )>; }
+   }
+   transition take_right {
+      in  { with_left : <( p )>; forks : <( succ p )>; }
+      out { eating    : <( p )>; }
+   }
+   transition leave {
+      in  { eating   : <( p )>; }
+      out { thinking : <( p )>;
+            chairs   : epsilon;
+            forks    : <( p )> + <( succ p )>; }
+   }
+}

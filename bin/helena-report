@@ -1,0 +1,336 @@
+#!/usr/bin/python
+#
+#  File: helena-report
+#
+#  Parse an XML report file and print it to the standard output.
+#
+
+from xml.dom.minidom import parse, parseString
+import os
+import shutil
+import subprocess
+import sys
+
+def exitWithError(errMsg):
+    sys.stderr.write(errMsg + "\n")
+    exit(1)
+
+def printDashes(n):
+    str = ""
+    for i in range(0, n): str += " "
+    for i in range(0, 80 - n): str += "-"
+    print str
+
+def formatNumber(n):
+    pos = n.find(".")
+    if pos >= 0:
+        left = formatNumber(n[0 : pos])
+        right = n[pos + 1 : len(n)]
+        right = formatNumber(right[::-1])
+        return left + "." + right[::-1]
+    else:
+        tmp = n[::-1]
+        result = ""
+        for i in range(0, len(tmp)):
+            if (i % 3 == 0) and i > 0: result += ","
+            result += tmp[i] 
+        return result[::-1]
+
+def noFormat(val):
+    return val
+
+generalInfos = {
+    "model"                     : "Model analyzed  ",
+    "date"                      : "Analysis date   ",
+    "language"                  : "Model language  ",
+    "filePath"                  : "File path       ",
+    "host"                      : "Host machine    " }
+searchInfos = {
+    "workers"                   : "Working threads  ",
+    "errorMessage"              : "Error message    " }
+terminationStates = {
+    "searchTerminated"          : "Search terminated",
+    "stateLimitReached"         : "State limit reached",
+    "memoryExhausted"           : "Memory exhausted",
+    "timeElapsed"               : "Time elapsed",
+    "noCounterExample"          : "No counter-example found",
+    "propertyHolds"             : "Property holds",
+    "propertyViolated"          : "Property violated (see the trace report)",
+    "interruption"              : "Search interrupted",
+    "error"                     : "An error occurred" }
+algorithms = {
+    "breadthSearch"             : "Breadth-first search",
+    "frontierSearch"            : "Frontier search",
+    "depthSearch"               : "Depth-first search",
+    "randomWalk"                : "Random walk",
+    "parallelDDDD"              : "Delta-DDD" }
+options = {
+    "staticReductions"          : "Static reductions",
+    "deltaCompression"          : "Delta compression with --k-delta=",
+    "partialOrder"              : "Partial order reduction",
+    "hashCompact"               : "Hash compaction",
+    "stateCaching"              : "State caching with --cache-size=",
+    "candidateSetSize"          :
+        "Candidate set size (for --algo=delta-ddd) = ",
+    "hashTableSlots"            : "Hash table size = " }
+optionsWithVal = {
+    "stateCaching"              : noFormat,
+    "candidateSetSize"          : noFormat,
+    "deltaCompression"          : formatNumber,
+    "hashTableSlots"            : formatNumber }
+statistics = {
+    "searchTime"                : "State space search        ",
+    "duplicateDetectionTime"    : "   for duplicate detection",
+    "barrierTime"               : "   for barrier wait       ",
+    "compilationTime"           : "Model compilation         ",
+    "places"                    : "Places                    ",
+    "transitions"               : "Transitions               ",
+    "netArcs"                   : "Arcs                      ",
+    "inArcs"                    : "   in arcs                ",
+    "outArcs"                   : "   out arcs               ",
+    "inhibArcs"                 : "   inhibitor arcs         ",
+    "stateVectorSize"           : "State vector size         ",
+    "stateComparisons"          : "State comparisons         ",
+    "statesStored"              : "States stored (at the end)",
+    "statesMaxStored"           : "States stored (at most)   ",
+    "statesExpanded"            : "States visited            ",
+    "statesAccepting"           : "Accepting states          ",
+    "statesTerminal"            : "Deadlock states           ",
+    "arcs"                      : "Arcs                      ",
+    "bfsLevels"                 : "BFS levels                ",
+    "eventsExecuted"            : "Events executed by the\n" +
+    "      search algorithm          ",
+    "eventsExecutedDDD"         : "   for duplicate detection",
+    "eventsExecutedExpansion"   : "   for state expansion    ",
+    "eventsExecutedDelta"       : "Events executed for delta\n" + 
+    "      states reconstruction     ",
+    "eventExecPerSecond"        : "Event execution rate      ",
+    "maxDfsStack"               : "Max. search stack size    ",
+    "maxBfsQueue"               : "Max. search queue size    ",
+    "maxMemoryUsed"             : "Max. memory used          " }
+statisticsUnits = {
+    "searchTime"                : "s.",
+    "duplicateDetectionTime"    : "s.",
+    "compilationTime"           : "s.",
+    "barrierTime"               : "s. (sum over all working threads)",
+    "eventExecPerSecond"        : "exec. / s.",
+    "maxMemoryUsed"             : "MB",
+    "stateVectorSize"           : "bytes" }
+statisticsCategories = {
+    "timeStatistics"            : "Time statistics",
+    "modelStatistics"           : "Model statistics",
+    "graphStatistics"           : "Exploration statistics",
+    "hashTableStatistics"       : "Hash table statistics",
+    "otherStatistics"           : "Other statistics" }
+subReports = {
+    "infoReport"                : "General informations",
+    "searchReport"              : "Search report",
+    "statisticsReport"          : "Statistics report",
+    "traceReport"               : "Trace report" }
+
+def printInfoReport(r):
+    for e in r.childNodes:
+        name = e.nodeName
+        if e.childNodes:
+            val = e.childNodes[0].nodeValue
+        if name in generalInfos:
+            print "    " + generalInfos[name] + ": " + val
+        elif name == "modelParameters":
+            P = [ c for c in e.childNodes if c.nodeName == "modelParameter" ]
+            pref = "    Model parameters: "
+            for p in P:
+                n = p.getElementsByTagName("modelParameterName")[0]
+                n = n.childNodes[0].nodeValue
+                v = p.getElementsByTagName("modelParameterValue")[0]
+                v = v.childNodes[0].nodeValue
+                print pref + n + " = " + v
+                pref = "                      "
+
+def printSearchReport(r):
+    for e in r.childNodes:
+        name = e.nodeName
+        if e.childNodes:
+            val = e.childNodes[0].nodeValue
+        if name in terminationStates:
+            print "    Termination state: " + terminationStates[name]
+        if name in algorithms:
+            print "    Algorithm used   : " + algorithms[name]
+        if name in searchInfos:
+            print "    " + searchInfos[name] + ": " + val
+        if name == "searchOptions":
+            pref = "    Options          : "
+            for o in [ o for o in e.childNodes if o.nodeName in options ]:
+                name = o.nodeName
+                line = pref + options[name]
+                if o.nodeName in optionsWithVal:
+                    f = optionsWithVal[o.nodeName]
+                    line += f(o.childNodes[0].nodeValue)
+                print line
+                pref = "                       "
+
+def printStatisticsReport(r):
+    c = [ c for c in r.childNodes if c.nodeName in statisticsCategories ]
+    for e in c:
+        name = e.nodeName
+        print ""
+        print "    " + statisticsCategories[name]
+        printDashes(4)
+        for s in e.childNodes:
+            name = s.nodeName
+            if name in statistics:
+                val = formatNumber(s.childNodes[0].nodeValue)
+                line = "      " + statistics[name] + " : " + val
+                if name in statisticsUnits:
+                    line += " " + statisticsUnits[name]
+                print line
+
+def printTraceReport(r):
+    def printExprList(e, d):
+        result = ""
+        for ex in e.childNodes:
+            name = ex.nodeName
+            if name in d:
+                if result != "": result += ", "
+                result += d[name](ex, d)
+        return result
+    def printEnum(e, d):
+        return e.childNodes[0].nodeValue
+    def printNum(e, d):
+        return e.childNodes[0].nodeValue
+    def printVector(e, d):
+        l = e.getElementsByTagName("exprList")[0]
+        return "[" + printExprList(l, d) + "]"
+    def printStruct(e, d):
+        l = e.getElementsByTagName("exprList")[0]
+        return "{" + printExprList(l, d) + "}"
+    def printContainer(e, d):
+        l = e.getElementsByTagName("exprList")[0]
+        if len(l.childNodes) == 0: return "empty"
+        else: return "|" + printExprList(l, d) + "|"
+    def printToken(e, d):
+        m = e.getElementsByTagName("mult")[0].childNodes[0].nodeValue
+        l = e.getElementsByTagName("exprList")[0]
+        if len(l.childNodes) == 0: l = "epsilon"
+        else: l = "<( " + printExprList(l, d) + " )>"
+        if m != "1": return m + " * " + l
+        else: return l
+    def printState(e, d):
+        print "    {"
+        for s in e.getElementsByTagName("placeState"):
+            p = s.getElementsByTagName("place")[0].childNodes[0].nodeValue
+            l = ""
+            for t in s.getElementsByTagName("token"):
+                if l != "": l += " + "
+                l += printToken(t, d)
+            print "      " + p + " = " + l
+        print "    }"
+    def printBinding(e, d):
+        result = ""
+        bs = e.getElementsByTagName("varBinding")
+        for b in bs:
+            var = b.getElementsByTagName("var")[0]
+            if result != "": result += ", " 
+            result += var.childNodes[0].nodeValue + " = "
+            e = b.childNodes[1]
+            result += d[e.nodeName](e, d)
+        return result
+    def printEvent(e, d):
+        descElement = e.getElementsByTagName("eventDescription")
+        if len(descElement) > 0:
+            desc = descElement[0].childNodes[0].nodeValue
+        else:
+            trans = e.getElementsByTagName("transition")
+            trans = trans[0].childNodes[0].nodeValue
+            l = e.getElementsByTagName("binding")
+            desc = "(" + trans
+            if len(l) > 0:
+                desc = desc + ", [" + printBinding(l[0], d) + "]"
+            des = desc + ")"
+        print "    " + desc + " ->"
+    traceItem = {
+        "enum"      : printEnum,
+        "num"       : printNum,
+        "vector"    : printVector,
+        "struct"    : printStruct,
+        "container" : printContainer,
+        "state"     : printState,
+        "event"     : printEvent
+        }
+    traceTypes = {
+        "traceFull"  : "The following run invalidates the property.",
+        "traceEvents": "The following run invalidates the property.",
+        "traceState" : "The following state invalidates the property."
+        }
+    for item in r.childNodes:
+        name = item.nodeName
+        if name in traceTypes:
+            print "    " +  traceTypes[name] + "\n"
+            for sub in item.childNodes:
+                name = sub.nodeName
+                if name in traceItem:
+                    traceItem[name](sub, traceItem)
+
+def printDoc(doc):
+    printer = {
+        "infoReport"      : printInfoReport,
+        "searchReport"    : printSearchReport,
+        "statisticsReport": printStatisticsReport,
+        "traceReport"     : printTraceReport
+        }
+    report = doc.getElementsByTagName("helenaReport")
+    print "Helena report"
+    printDashes(0)
+    for e in report[0].childNodes:
+        name = e.nodeName
+        if name in subReports:
+            print ""
+            print "  " + subReports[name]
+            printDashes(2)
+            printer[name](e)
+
+def findReportFile(m):
+    for lang in os.listdir(modelsDir):
+        langDir = os.path.join(modelsDir, lang)
+        for mod in os.listdir(langDir):
+            if mod == m:
+                f = os.path.join(langDir, mod, "report.xml") 
+                if os.path.exists(f):
+                    return f
+                else:
+                    raise IOError("error: report file \"" + f + "\" not found")
+    raise IOError("error: model \"" + m + "\" not found")
+
+if not(len(sys.argv) in range(2, 4)):
+    print "usage: helena-report model-name [out-file]"
+    print "       helena-report report.xml [out-file]"
+    exit(1)
+else:
+    helenaDir = os.path.join(os.getenv("HOME"), ".helena")
+    modelsDir = os.path.join(helenaDir, "models")
+    model = sys.argv[1]
+    if len(sys.argv) > 2:
+        out = sys.argv[2]
+        (_, outType) = os.path.splitext(out)
+    else:
+        outType = "stdout"
+    if os.path.exists(model):
+        xml = model
+    else:
+        try:
+            xml = findReportFile(model)
+        except IOError, err:
+            exitWithError(err)
+    if outType == "stdout":
+        try:
+            doc = parse(xml)
+        except:
+            msg = "error: could not parse file " + xml
+            exitWithError(msg)
+        printDoc(doc)
+    elif outType == ".xml":
+        shutil.copyfile(xml, out)
+    else:
+        msg = "error: \"" + outType + \
+            "\" is not a valid extension for output file"
+        exitWithError(msg)
+exit(0)

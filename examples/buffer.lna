@@ -1,0 +1,27 @@
+/******************************************************************************
+*
+*  Example file of the Helena distribution
+*
+*  File  : buffer.lna
+*  Author: Sami Evangelista
+*  Date  : 1 aug. 2011
+*
+*  This is a simple model to illustrate the use of priority.
+*  Transition write puts a token in place buffer and read removes it.
+*  Without priority the net would be unbounded since write does not have
+*  any input place but when N tokens are in place buffer write becomes
+*  disabled because it has a lesser priority than read.
+*
+******************************************************************************/
+
+buffer (N := 10000) {
+   place buffer { dom: epsilon; capacity: N;}
+   transition write {
+      in  { }
+      out { buffer: epsilon; }
+      priority: (buffer'mult = N) ? -1 : 0;
+   }
+   transition read {
+      in { buffer: epsilon; } out {}
+   }
+}

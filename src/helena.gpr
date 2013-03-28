@@ -1,0 +1,100 @@
+--=============================================================================
+--
+--  Description:
+--
+--  The gnat project file to compile Helena.
+--  You need gprmake to use this file.
+--  The syntax is the following:
+--  > gprmake -P helena.gpr
+--     This will automatically compile all the source files.
+--     By default the executables are placed in ../bin.
+--
+--  You can also pass these parameters to gprmake:
+--  -XBUILD=debug
+--      compilation in debug mode. put warnings and style messages. this is the
+--      default
+--  -XBUILD=install
+--      compilation in install mode. do not put warnings and style messages
+--  -XINSTALL_PATH=/usr/bin
+--      specify that the executables will be placed in /usr/bin
+--
+--  Example:
+--  > gprmake -P helena.gpr -XBUILD=install -XINSTALL_PATH=/usr/bin
+--
+--=============================================================================
+
+
+project Helena is
+
+   --  get the parameters
+   type Build_Type is ("install",
+                       "debug");
+   Build : Build_Type := External ("BUILD", "debug");
+   Install_Path       := External ("INSTALL_PATH", "../bin");
+
+   --  directory in which .ali and .o files are placed
+   for Object_Dir use "obj";
+
+   --  directory in which executables are placed
+   for Exec_Dir use Install_Path;
+
+   --  languages used
+   for Languages use ("Ada");
+
+   --  source directories
+   for Source_Dirs use ("checker", "utils", "pn", "pn/helena-parser",
+                        "prop", "prop/parser", "helena",
+                        "progs");
+
+   --  main procedures
+   for Main use ("helena_generate_main.adb",
+                 "helena_generate_interface_main.adb",
+                 "helena_generate_prop_main.adb",
+                 "helena_generate_vectors_main.adb");
+
+   --  compilation parameters
+   package Compiler is
+
+      --  default compilation flags for ada files (style and warning flags are
+      --  disabled when build mode is install)
+      case Build is
+         when "debug" =>
+            for Default_Switches ("Ada") use ("-O3",
+                                              "-gnat05",
+                                              "-gnata",
+                                              "-gnatyabmki",
+					      "-gnatwvrmkcwy");
+         when "install" =>
+            for Default_Switches ("Ada") use ("-O3",
+                                              "-gnat05",
+                                              "-gnata");
+      end case;
+
+      --  default compilation flags for C files
+      for Default_Switches ("C") use ("-O3 -ansi");
+   end Compiler;
+
+   --  linking parameters
+   package Linker is
+
+      --  default linking flags for ada files
+      for Default_Switches ("Ada") use ("");
+
+      --  default linking flags for C files
+      for Default_Switches ("C") use ();
+   end Linker;
+
+   --  building parameters
+   package Builder is
+      --  name of the executables created for each main procedure
+      for Executable ("helena_generate_main.adb")
+      	  use "helena-generate";
+      for Executable ("helena_generate_interface_main.adb")
+      	  use "helena-generate-interface";
+      for Executable ("helena_generate_prop_main.adb")
+      	  use "helena-generate-property";
+      for Executable ("helena_generate_vectors_main.adb")
+      	  use "helena-generate-vectors";
+   end Builder;
+
+end Helena;

@@ -1,0 +1,11 @@
+/*
+ *  there is no deadlock
+ */
+state property not_dead:
+   reject deadlock;
+
+/*
+ *  if philosopher 0 has a seat he will eventually eat
+ */
+ltl property p0_no_starvation:
+   [] (p0_seated => <> p0_eating);

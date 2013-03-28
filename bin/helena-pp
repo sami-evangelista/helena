@@ -1,0 +1,49 @@
+#! /bin/bash
+#
+#  File: helena-pp
+#
+
+if [ -z "$1" ]
+then
+    echo "usage: helena-pp input-file" > /dev/stderr
+    exit 1
+elif [ ! -e "$1" -o ! -r "$1" -o ! -f "$1" ]
+then
+    echo "$1: file not found" > /dev/stderr
+    exit 1
+fi
+
+file=$(readlink -f $1)
+dir=$(dirname $file)
+l=1
+echo "#set file $file"
+echo "#set line 0"
+cat $file | while IFS='' read line
+do
+    case "$line" in
+	"#include "*)
+	    eval nfile=$(echo $line | cut -d' ' -f2)
+	    case $nfile in
+		/*) ;;
+		*)  nfile=$dir/$nfile ;;
+	    esac
+	    if [ ${nfile:0:2} = './' ]
+	    then
+		nfile=${nfile:2}
+	    fi
+	    if [ ! -e $nfile ]
+	    then
+		echo "$file:$l: included file '$nfile' not found" > /dev/stderr
+		exit 1
+	    else
+		helena-pp $nfile || exit 1
+		echo "#set file $file"
+		echo "#set line $l"
+	    fi
+	    ;;
+	*)
+	    printf "%s\n" "$line"
+    esac
+    l=$((l + 1))
+done
+exit $?

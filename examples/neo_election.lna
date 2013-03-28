@@ -1,0 +1,237 @@
+/******************************************************************************
+*
+*  Example file of the Helena distribution
+*
+*  File  : neo_election.lna
+*  Author: Sami Evangelista
+*  Date  : 27 oct. 2011
+*
+******************************************************************************/
+
+neo_election (M := 3) {
+
+/***
+ *  definitions
+ ***/
+type M      : range 0 .. M;
+subtype RM  : M range 1 .. M'last;
+subtype POS : M range 1 .. M'last - 1;
+type STAGE  : enum (NEG, PRIM, SEC);
+type NEGSTEP: enum (NONE, CO, DONE);
+type MT     : enum (AskP, AnsP, RI, AI, AnnP, RP);
+
+
+function ithPeer (M m, POS p) -> M {
+   if (m > p) return p;
+   else return p + 1;
+}
+
+
+/***
+ *  places
+ ***/
+place electionInit {
+   dom: M;
+   init: for (m in RM) <( m )>;
+}
+place masterState {
+   dom: M * bool * M;
+   init: for (m in RM) <( m, true, 0 )>;
+}
+place waiting {
+   dom: M * M;
+   init: for (m in RM) <( m, M'last - 1 )>;   
+}
+place stage {
+   dom: M * STAGE;
+   init: for (m in RM) <( m, NEG )>;
+}
+place network {
+   dom: M * M * MT * M;
+}
+place polling {
+   dom: M;
+}
+place choosingRole {
+   dom: M;
+}
+
+proposition termination_state:
+   network'card = 0
+   and polling'card = M
+   and forall (s in stage: s->2 != NEG);
+
+
+/***
+ *  transitions
+ ***/
+transition handleAI1 {
+   in  {
+      network: <( m, s, AI, 0 )>;
+      polling: <( m )>;
+      waiting: <( m, n )>;
+   }
+   out {
+      waiting: <( m, n - 1 )>;
+      polling: if (n > 1) <( m )>;
+      choosingRole: if (n = 1) <( m )>;
+   }
+   guard: (m >= s);
+}
+transition handleAI2 {
+   in  {
+      network: <( m, s, AI, 0 )>;
+      polling: <( m )>;
+      masterState: <( m, iam, pm )>;
+      waiting: <( m, n )>;
+   }
+   out {
+      masterState: <( m, false, pm )>;
+      waiting: <( m, n - 1 )>;
+      polling: if (n > 1) <( m )>;
+      choosingRole: if (n = 1) <( m )>;
+   }
+   guard: (m < s);
+}
+transition handleAnnP1 {
+   in  {
+      polling: <( m )>;
+      masterState: <( m, iam, pm )>;
+      network: <( m, s, AnnP, 0 )>;
+   }
+   out {
+      masterState: <( m, false, s )>;
+      polling: <( m )>;
+   }
+   guard: (pm != m);
+}
+transition handleAnnP2 {
+   in  {
+      polling: <( m )>;
+      masterState: <( m, true, m )>;
+      network: <( m, s, AnnP, 0 )>;
+   }
+   out {
+      masterState: <( m, true, 0 )>;
+      polling: <( m )>;
+   }
+}
+transition handleAnsP1 {
+   in  {
+      network: <( m, s, AnsP, 0 )>;
+      polling: <( m )>;
+   }
+   out {
+      polling: <( m )>;
+      network: <( s, m, RI, 0 )>;
+   }
+}
+transition handleAnsP2 {
+   in  {
+      polling: <( m )>;
+      masterState: <( m, iam, p )>;
+      network: <( m, s, AnsP, p )>;
+   }
+   out {
+      masterState: <( m, false, p )>;
+      polling: <( m )>;
+      network: <( s, m, RI, 0 )>;
+   }
+   guard: (p != 0);
+}
+transition handleAnsP3 {
+   in  {
+      network: <( m, s, AnsP, p )>;
+      masterState: <( m, iam, pm )>;
+      polling: <( m )>;
+   }
+   out {
+      masterState: <( m, true, 0 )>;
+      polling: <( m )>;
+   }
+   guard: (((p != 0) and (pm != 0)) and (pm != p));
+}
+transition handleAnsP4 {
+   in  {
+      polling: <( m )>;
+      masterState: <( m, iam, 0 )>;
+      network: <( m, s, AnsP, p )>;
+   }
+   out {
+      network: <( s, m, RI, 0 )>;
+      masterState: <( m, false, p )>;
+      polling: <( m )>;
+   }
+   guard: (p != 0);
+}
+transition handleAskP {
+   in  {
+      masterState: <( m, iam, pm )>;
+      network: <( m, s, AskP, 0 )>;
+      polling: <( m )>;
+   }
+   out {
+      masterState: <( m, iam, pm )>;
+      network: <( s, m, AnsP, pm )>;
+      polling: <( m )>;
+   }
+}
+transition handleRI {
+   in  {
+      network: <( m, s, RI, 0 )>;
+      polling: <( m )>;
+   }
+   out {
+      polling: <( m )>;
+      network: <( s, m, AI, 0 )>;
+   }
+}
+transition handleRP {
+   in  {
+      polling: <( m )>;
+      network: <( m, s, RP, 0 )>;
+   }
+   out {
+      polling: <( m )>;
+   }
+}
+transition iAmPrimary {
+   in  {
+      stage: <( m, NEG )>;
+      choosingRole: <( m )>;
+      masterState: <( m, true, 0 )>;
+      waiting: <( m, 0 )>;
+   }
+   out {
+      stage: <( m, PRIM )>;
+      masterState: <( m, true, m )>;
+      waiting: <( m, 0 )>;
+      polling: <( m )>;
+      network: for (p in POS) <( ithPeer (m, p), m, AnnP, 0 )>;
+   }
+}
+transition iAmSecondary {
+   in  {
+      stage: <( m, NEG )>;
+      choosingRole: <( m )>;
+      masterState: <( m, false, pm )>;
+      waiting: <( m, 0 )>;
+   }
+   out {
+      waiting: <( m, 0 )>;
+      stage: <( m, SEC )>;
+      polling: <( m )>;
+      masterState: <( m, false, pm )>;
+   }
+}
+transition startNeg {
+   in  {
+      electionInit: <( m )>;
+   }
+   out {
+      polling: <( m )>;
+      network: for (p in POS) <( ithPeer (m, p), m, AskP, 0 )>;
+   }
+}
+
+}

@@ -1,0 +1,8 @@
+#!/bin/bash
+
+l=""
+for i in $*
+do
+    l=$l" "--parameter=$i
+done
+echo $l

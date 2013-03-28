@@ -1,0 +1,5 @@
+/*
+ *  at most one process in critical section
+ */
+state property cs_ok:
+   reject cs_not_ok;

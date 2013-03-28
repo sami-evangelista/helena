@@ -1,0 +1,12 @@
+/*
+ *  reject any deadlock state
+ */
+state property not_dead:
+   reject deadlock;
+
+/*
+ *  the loads are balanced or are being rebalanced
+ */
+state property balance_ok:
+   reject load_not_balanced;
+   accept balancing;

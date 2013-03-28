@@ -1,0 +1,345 @@
+/******************************************************************************
+*
+*  Example file of the Helena distribution
+*
+*  File  : szymanski.lna
+*  Author: Sami Evangelista
+*  Date  : 02 feb. 2007
+*  Source: Mutual Exclusion Revisited. In Proceedings of the fifth
+*          Jerusalem conference on Information
+*          technology. 1990. B. K. Szymanski.
+*
+*  This a mutual exclusion algorithm for N processes proposed by
+*  Szymanski.  Below is the pseudo-code of the algorithm.
+*
+*
+**********
+*
+*  global variables
+*     N : constant int := 4; //  the number of process
+*     a : boolean[N];
+*     s : boolean[N];
+*     w : boolean[N];
+*
+*  p1:    a[i] := true;
+*  p2:    for(j := 0; j < N; j := j + 1) while(s[j]);
+*  p3:    w[i] := true; a[i] := false;
+*  p4:    while(not s[i]) {
+*  p5:       for(j := 0; j < N and not a[j]; j := j + 1);
+*  p6:       if(j = N) { s[i] := true;
+*  p6.1:        for(j := 0; j < N and not a[j]; j := j + 1);
+*  p6.2:        if(j < N) s[i] := false;
+*  p6.3:        else { w[i] := false;
+*  p6.4:           for(j := 0; j < N; j := j + 1) while(w[j]);
+*               }
+*            }
+*  p7:       if(j < N)
+*  p7.1:        for(j := 0; j < N and (w[j] or not s[j]); j := j + 1);
+*  p8:       if(j != i and j < N) {
+*  p8.1:        s[i] := true; w[i] := false;
+*            }
+*         }
+*  p9:    for(j := 0; j < i; j := j + 1) while(w[j] | s[j]);
+*  cs:    //  critical section
+*  e1:    s[i] := false;
+*
+**********
+*
+*
+*  The name of the process places of the net are attributed according
+*  line numbering.  Each of these place has domain (pid * extendedPid)
+*  where pid is the type of the process identifiers and extendedPid is
+*  this type augmented with the N constant (the number of processes).
+*  The first one corresponds to the id of the process and the second
+*  one corresponds to the loop variable j.
+*
+******************************************************************************/
+
+
+szymanski (N := 3) {  /*  N = number of processes  */
+
+   type extendedPid: range 0 .. N;
+   subtype pid     : extendedPid range 0 .. extendedPid'last - 1;
+   type pidSet     : vector [pid] of bool;
+
+
+   place a { dom: pidSet; init : <( [false] )>; }
+   place w { dom: pidSet; init : <( [false] )>; }
+   place s { dom: pidSet; init : <( [false] )>; }
+
+   place ncs { dom : pid * extendedPid;
+               init: for(i in pid) <(i, extendedPid'first )>; }
+   place p2  { dom : pid * extendedPid; }
+   place p3  { dom : pid * extendedPid; }
+   place p4  { dom : pid * extendedPid; }
+   place p5  { dom : pid * extendedPid; }
+   place p6  { dom : pid * extendedPid; }
+   place p61 { dom : pid * extendedPid; }
+   place p64 { dom : pid * extendedPid; }
+   place p7  { dom : pid * extendedPid; }
+   place p71 { dom : pid * extendedPid; }
+   place p8  { dom : pid * extendedPid; }
+   place p9  { dom : pid * extendedPid; }
+   place cs  { dom : pid * extendedPid; }
+
+   proposition cs_not_ok:
+      cs'card > 1;
+
+   transition ncsToP2 {
+      in  {
+         ncs: <( i, j )>;
+         a  : <( a )>;
+      }
+      out {
+         p2: <( i, 0 )>;
+         a : <( a :: ([i] := true) )>;
+      }
+   }
+   transition p2ToP2 {
+      in  {
+         p2: <( i, j )>;
+         s : <( s )>;
+      }
+      out {
+         p2: <( i, j + 1 )>;
+         s : <( s )>;
+      }
+      guard: j < extendedPid'last and not s[j];
+   }
+   transition p2ToP3 {
+      in  {
+         p2: <( i, j )>;
+      }
+      out {
+         p3: <( i, j )>;
+      }
+      guard: j = extendedPid'last;
+   }
+   transition p3ToP4 {
+      in  {
+         p3: <( i, j )>;
+         a : <( a )>;
+         w : <( w )>;
+      }
+      out {
+         p4: <( i, j )>;
+         a : <( a :: ([i] := false) )>;
+         w : <( w :: ([i] := true)  )>;
+      }
+   }
+   transition p4ToP9 {
+      in  {
+         p4: <( i, j )>;
+         s : <( s )>;
+      }
+      out {
+         p9: <( i, 0 )>;
+         s : <( s )>;
+      }
+      guard: s[i];
+   }
+   transition p4ToP5 {
+      in  {
+         p4: <( i, j )>;
+         s : <( s )>;
+      }
+      out {
+         p5: <( i, 0 )>;
+         s : <( s )>;
+      }
+      guard: not s[i];
+   }
+   transition p5ToP5 {
+      in  {
+         p5: <( i, j )>;
+         a : <( a )>;
+      }
+      out {
+         p5: <( i, j + 1 )>;
+         a : <( a )>;
+      }
+      guard: j < extendedPid'last and not a[j];
+   }
+   transition p5ToP6 {
+      in  {
+         p5: <( i, j )>;
+         a : <( a )>;
+      }
+      out {
+         p6: <( i, j )>;
+         a : <( a )>;
+      }
+      guard: not (j < extendedPid'last and not a[j]);
+   }
+   transition p6ToP7 {
+      in  {
+         p6: <( i, j )>;
+      }
+      out {
+         p7: <( i, j )>;
+      }
+      guard: j < extendedPid'last;
+   }
+   transition p6ToP61 {
+      in  {
+         p6: <( i, j )>;
+         s : <( s )>;
+      }
+      out {
+         p61: <( i, 0 )>;
+         s  : <( s :: ([i] := true) )>;
+      }
+      guard: j = extendedPid'last;
+   }
+   transition p61ToP61 {
+      in  {
+         p61: <( i, j )>;
+         a  : <( a )>;
+      }
+      out {
+         p61: <( i, j + 1 )>;
+         a  : <( a )>;
+      }
+      guard: j < extendedPid'last and not a[j];
+   }
+   transition p61ToP7 {
+      in  {
+         p61: <( i, j )>;
+         a  : <( a )>;
+         s  : <( s )>;
+      }
+      out {
+         p7: <( i, j )>;
+         a : <( a )>;
+         s : <( s :: ([i] := false) )>;
+      }
+      guard: j < extendedPid'last and a[j];
+   }
+   transition p61ToP64 {
+      in  {
+         p61: <( i, j )>;
+         w  : <( w )>;
+      }
+      out {
+         p64: <( i, 0 )>;
+         w  : <( w :: ([i] := false) )>;
+      }
+      guard: j = extendedPid'last;
+   }
+   transition p64ToP64 {
+      in  {
+         p64: <( i, j )>;
+         w  : <( w )>;
+      }
+      out {
+         p64: <( i, j + 1 )>;
+         w  : <( w )>;
+      }
+      guard: j < extendedPid'last and not w[j];
+   }
+   transition p64ToP7 {
+      in  {
+         p64: <( i, extendedPid'last )>;
+      }
+      out {
+         p7: <( i, extendedPid'last )>;
+      }
+   }
+   transition p7ToP8 {
+      in  {
+         p7: <( i, extendedPid'last )>;
+      }
+      out {
+         p8: <( i, extendedPid'last )>;
+      }
+   }
+   transition p7ToP71 {
+      in  {
+         p7: <( i, j )>;
+      }
+      out {
+         p71: <( i, 0 )>;
+      }
+      guard: j < extendedPid'last;
+   }
+   transition p71ToP71 {
+      in  {
+         p71: <( i, j )>;
+         w  : <( w )>;
+         s  : <( s )>;
+      }
+      out {
+         p71: <( i, j + 1 )>;
+         w  : <( w )>;
+         s  : <( s )>;
+      }
+      guard: j < extendedPid'last and (w[j] or not s[j]);
+   }
+   transition p71ToP8 {
+      in  {
+         p71: <( i, j )>;
+         w  : <( w )>;
+         s  : <( s )>;
+      }
+      out {
+         p8: <( i, j )>;
+         w : <( w )>;
+         s : <( s )>;
+      }
+      guard: not (j < extendedPid'last and (w[j] or not s[j]));
+   }
+   transition p8ToP4 {
+      in  {
+         p8: <( i, j )>;
+         w : <( w )>;
+         s : <( s )>;
+      }
+      out {
+         p4: <( i, j )>;
+         w : <( w :: ([i] := false) )>;
+         s : <( s :: ([i] := true)  )>;
+      }
+      guard: j != i and j < extendedPid'last;
+   }
+   transition p8ToP4_2 {
+      in  {
+         p8: <( i, j )>;
+      }
+      out {
+         p4: <( i, j )>;
+      }
+      guard: not (j != i and j < extendedPid'last);
+   }
+   transition p9ToP9 {
+      in  {
+         p9: <( i, j )>;
+         w : <( w )>;
+         s : <( s )>;
+      }
+      out {
+         p9: <( i, j + 1 )>;
+         w : <( w )>;
+         s : <( s )>;
+      }
+      guard: j < i and not w[j] and not s[j];
+   }
+   transition p9ToCs {
+      in  {
+         p9: <( i, j )>;
+      }
+      out {
+         cs: <( i, j )>;
+      }
+      guard: i = j;
+   }
+   transition csToNcs {
+      in  {
+         cs: <( i, j )>;
+         s : <( s )>;
+      }
+      out {
+         ncs: <( i, j )>;
+         s  : <( s :: ([i] := false) )>;
+      }
+   }
+}

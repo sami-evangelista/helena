@@ -1,0 +1,35 @@
+We consider in this system a set of $N$ database managers which
+communicate to maintain consistent replica of a database.  It is a
+well-known and recurrent example of the colored Petri nets literature,
+initially presented by Genrich and later by Jensen.
+
+When a manager updates its local copy of the database, he sends
+requests to other managers for updating their local copy (transition
+{\it Update}). As soon as a manager receives such a request
+(transition {\it Receive}) he starts the update of its copy. Its
+update finished, each manager acknowledges the initiating manager
+(transition {\it Send ack}).  This process finishes when the
+initiating manager collects all the acknowledgments (transition {\it
+Receive acks}). Managers can be either {\it Inactive}, either {\it
+Waiting} for acknowledgments, either {\it Performing} an
+update. Places {\it Msgs}, {\it Received}, {\it Acks} and {\it Unused}
+model communication channels between sites. Thus, $N.(N-1)$ tokens are
+distributed upon these places at each marking. At last the correctness
+of the protocol is ensured by place \lstinline{Mutex} which guarantees
+that two managers cannot concurrently update their local copy.
+
+\begin{figure}[!h]
+\centerline{\scalebox{0.55}{\input{dbm.pdf_t}}}
+\caption{The distributed database system}
+\label{fig_dbm}
+\end{figure}
+
+\lstinputlisting[frame=single,
+caption={Helena file of the distributed database system
+(file \texttt{examples/dbm.lna})},
+numbers=left,basicstyle=\small] {../examples/dbm.lna}
+
+\lstinputlisting[frame=single,
+caption={Helena file of the distributed database system properties
+(file \texttt{examples/dbm.prop.lna})},
+numbers=left,basicstyle=\small] {../examples/dbm.prop.lna}

@@ -1,0 +1,453 @@
+/******************************************************************************
+*
+*  Example file of the Helena distribution
+*
+*  File  : telephony.lna
+*  Author: Sami Evangelista
+*  Date  : 27 jul. 2007
+*  Source:
+*     Using SPIN for feature interaction analysis, a case study
+*     Proceedings of the 8th international SPIN workshop on Model
+*     checking of software 2001, p. 143-162
+*     Muffy Calder and Alice Miller
+*
+*  Symbols that can be defined
+*  FORWARD - Enable forward when busy feature
+*  BACK    - Enable ring back when free
+*  ERROR   - An artificial error
+*
+******************************************************************************/
+
+
+//  #define FORWARD
+//  #define BACK
+//  #define ERROR
+
+telephony (N := 2) {
+
+   constant int ON   := 1;
+   constant int OFF  := 0;
+   constant int TR   := 20;
+   constant int NULL := 255;
+
+   subtype byte   : int  range 0 .. 255;
+   subtype id     : byte range 0 .. N - 1;
+   type byteVector: vector[id] of byte;
+
+   function first(byte i) -> byte {
+      return i % TR;
+   }
+   function second(byte i) -> byte {
+      return i / TR;
+   }
+   function pair(byte i,
+                 byte j) -> byte {
+      return i + j * TR;
+   }
+   function init_call_forward_busy() -> byteVector {
+      byteVector result;
+      for(i in id range id'first .. id'last - 1)
+         result[i] := i + 1;
+      result[id'last] := NULL;
+      return result;
+   }
+
+   place chan              { dom : byteVector;
+                             init: <( [NULL] )>; }
+   place partner           { dom : byteVector;
+                             init: <( [NULL] )>; }
+#ifdef FORWARD
+   place call_forward_busy { dom : byteVector;
+                             init: <( init_call_forward_busy() )>; }
+#endif
+#ifdef BACK
+   place record            { dom : byteVector;
+                             init: <( [NULL] )>; }
+#endif
+
+   place idle              { dom : byte * byte;
+                             init: for(i in id) <( i, ON )>; }
+   place dialing           { dom : byte * byte; }
+   place calling           { dom : byte * byte; }
+   place busy              { dom : byte * byte; }
+   place qi                { dom : byte * byte; }
+   place talert            { dom : byte * byte; }
+   place unobtainable      { dom : byte * byte; }
+   place oalert            { dom : byte * byte; }
+   place errorstate        { dom : byte * byte; }
+   place oconnected        { dom : byte * byte; }
+   place oringout          { dom : byte * byte; }
+   place tpickup           { dom : byte * byte; }
+   place tconnected        { dom : byte * byte; }
+   place ringback          { dom : byte * byte; }
+   place all               { dom : byte;
+                             init: for(i in byte range 0 .. N) <( i )>; }
+
+   //  idle -> dialing
+   transition idleToDialing1 {
+      in  { idle   : <( i, dev )>;
+            chan   : <( chan )>; }
+      out { dialing: <( i, OFF)>;
+            chan   : <( chan :: ([i] := pair(i, 0)) )>; }
+      guard: chan[i] = NULL;
+   }
+
+   //  idle -> q_i
+   transition idleToQi {
+      in  { idle   : <( i, dev )>;
+            chan   : <( chan )>;
+            partner: <( partner )>; }
+      out { qi     : <( i, dev )>;
+            chan   : <( chan )>;
+            partner: <( partner :: ([i] := first(chan[i])) )>; }
+      guard: chan[i] != NULL;
+   }
+
+   //  q_i -> talert
+   transition qiToTalert {
+      in  { qi     : <( i, dev )>;
+            chan   : <( chan )>;
+            partner: <( partner )>; }
+      out { talert : <( i, dev )>;
+            chan   : <( chan )>;
+            partner: <( partner )>; }
+      guard: first(chan[partner[i]]) = i;
+   }
+
+   //  q_i -> idle
+   transition qiToIdle {
+      in  { qi     : <( i, dev )>;
+            chan   : <( chan )>;
+            partner: <( partner )>; }
+      out { idle   : <( i, dev )>;
+            chan   : <( chan )>;
+            partner: <( partner :: ([i] := NULL) )>; }
+      guard: first(chan[partner[i]]) != i;
+   }
+
+   //  dialing -> idle
+   transition dialingToIdle {
+      in  { dialing: <( i, dev )>;
+            chan   : <( chan )>; }
+      out { idle   : <( i, ON)>;
+            chan   : <( chan :: ([i] := NULL) )>; }
+   }
+
+   //  dialing -> calling
+   transition dialingToCalling {
+      in  { dialing: <( i, dev )>;
+            partner: <( partner )>;
+            all    : <( j )>; }
+      out { calling: <( i, dev )>;
+            partner: <( partner :: ([i] := j) )>;
+            all    : <( j )>; }
+   }
+
+   //  calling -> busy
+   transition callingToBusy1 {
+      in  { calling: <( i, dev )>;
+            partner: <( partner )>; }
+      out { busy   : <( i, dev )>;
+            partner: <( partner )>; }
+      guard: partner[i] = i;
+   }
+
+   //  calling -> unobtainable
+   transition callingToUnobtainable {
+      in  { calling     : <( i, dev )>;
+            partner     : <( partner )>; }
+      out { unobtainable: <( i, dev )>;
+            partner     : <( partner )>; }
+      guard: partner[i] = N;
+   }
+
+   //  calling -> ringback
+#ifdef BACK
+   transition callingToRingBack {
+      in  { calling : <( i, dev )>;
+            partner : <( partner )>; }
+      out { ringback: <( i, dev )>;
+            partner : <( partner )>; }
+      guard: partner[i] = N;
+   }
+#endif
+
+   //  calling -> busy
+   transition callingToBusy2 {
+      in  { calling : <( i, dev )>;
+            chan    : <( chan )>;
+            partner : <( partner )>;
+#ifdef FORWARD
+            call_forward_busy: <( call_forward_busy )>;
+#endif
+#ifdef BACK
+            record: <( record )>;
+#endif
+      }
+      out { busy    : <( i, dev )>;
+            chan    : <( chan )>;
+            partner : <( partner )>;
+#ifdef FORWARD
+            call_forward_busy: <( call_forward_busy )>;
+#endif
+#ifdef BACK
+            record: <( record :: ([partner[i]] := i) )>;
+#endif
+      }
+      guard: (partner[i] != i)
+         and (partner[i] != N)
+         and (chan[partner[i]] != NULL)
+#ifdef FORWARD
+         and (call_forward_busy[partner[i]] = NULL)
+#endif
+             ;
+   }
+
+   //  calling -> calling
+#ifdef FORWARD
+   transition callingToCalling {
+      in  { calling          : <( i, dev )>;
+            partner          : <( partner )>;
+            chan             : <( chan )>;
+            call_forward_busy: <( call_forward_busy )>;
+#ifdef BACK
+            record           : <( record )>;
+#endif
+      }
+      out { calling          : <( i, dev )>;
+            partner          : <( partner :: ([i] :=
+                                             call_forward_busy[partner[i]]) )>;
+            chan             : <( chan )>;
+            call_forward_busy: <( call_forward_busy )>;
+#ifdef BACK
+            record           : <( record :: ([partner[i]] := i) )>;
+#endif
+      }
+      guard: (partner[i] != i)
+         and (partner[i] != N)
+         and (chan[partner[i]] != NULL)
+         and (call_forward_busy[partner[i]] != NULL);
+   }
+#endif
+
+   //  calling -> oalert
+   transition callingToOalert {
+      in  { calling: <( i, dev )>;
+            partner: <( partner )>;
+            chan   : <( chan )>;
+#ifdef BACK
+            record : <( record )>;
+#endif
+      }
+      out { oalert : <( i, dev )>;
+            partner: <( partner )>;
+            chan   : <( chan :: ([partner[i]] := pair(i, 0))
+                             :: ([i] := pair(partner[i], 0)) )>;
+#ifdef BACK
+            record : <( record :: ([partner[i]] := i) )>;
+#endif
+      }
+      guard: (partner[i] != i)
+         and (partner[i] != N)
+         and (chan[partner[i]] = NULL);
+   }
+
+   //  busy -> idle
+   transition busyToIdle {
+      in  { busy   : <( i, dev )>;
+            partner: <( partner )>;
+            chan   : <( chan )>; }
+      out { idle   : <( i, ON)>;
+            partner: <( partner :: ([i] := NULL) )>;
+            chan   : <( chan    :: ([i] := NULL) )>; }
+   }
+
+   //  oalert -> errorstate
+   transition oalertToErrorState {
+      in  { oalert    : <( i, dev )>;
+            partner   : <( partner )>;
+            chan      : <( chan )>; }
+      out { errorstate: <( i, dev )>;
+            partner   : <( partner )>;
+            chan      : <( chan )>; }
+      guard: first(chan[i]) != partner[i];
+   }
+
+   //  oalert -> oconnected
+   transition oalertToOconnected {
+      in  { oalert    : <( i, dev )>;
+            partner   : <( partner )>;
+            chan      : <( chan )>; }
+      out { oconnected: <( i, dev )>;
+            partner   : <( partner )>;
+            chan      : <( chan )>; }
+      guard: (first(chan[i]) = partner[i])
+         and (second(chan[i]) = 1);
+   }
+
+   //  oalert -> oringout
+   transition oalertToOringout {
+      in  { oalert  : <( i, dev )>;
+            partner : <( partner )>;
+            chan    : <( chan )>; }
+      out { oringout: <( i, dev )>;
+            partner : <( partner )>;
+            chan    : <( chan )>; }
+      guard: (first(chan[i]) = partner[i])
+         and (second(chan[i]) = 0);
+   }
+
+function assign_chan(byteVector chan,
+                     byteVector partner,
+                     id i) -> byteVector {
+   byteVector result := chan;
+   result[i] := NULL;
+   result[partner[i]] := NULL;
+   return result;
+}
+   //  oconnected -> idle
+   transition oconnectedToIdle {
+      in  { oconnected: <( i, dev )>;
+            partner   : <( partner )>;
+            chan      : <( chan )>; }
+      out { idle      : <( i, ON)>;
+            partner   : <( partner )>;
+            chan      : <( chan :: ([i] := NULL)
+                                :: ([partner[i]] := NULL) )>; }
+   }
+
+   //  oringout -> idle
+   transition oringoutToIdle {
+      in  { oringout: <( i, dev )>;
+            partner : <( partner )>;
+            chan    : <( chan )>; }
+      out { idle    : <( i, ON)>;
+            partner : <( partner :: ([i] := pair(first(partner[i]), 0)) )>;
+            chan    : <( chan    :: ([i] := NULL) )>; }
+   }
+
+   //  unobtainable -> idle
+   transition unobtainableToIdle {
+      in  { unobtainable: <( i, dev )>;
+            partner     : <( partner )>;
+            chan        : <( chan )>; }
+      out { idle        : <( i, ON)>;
+            partner     : <( partner :: ([i] := NULL) )>;
+            chan        : <( chan    :: ([i] := NULL) )>; }
+   }
+
+   //  ringback -> idle
+#ifdef BACK
+   transition ringbackToIdle {
+      in  { ringback: <( i, dev )>;
+            partner : <( partner )>;
+            chan    : <( chan )>; }
+      out { idle    : <( i, ON)>;
+            partner : <( partner :: ([i] := NULL) )>;
+            chan    : <( chan    :: ([i] := NULL) )>; }
+   }
+#endif
+
+   //  ringback -> calling
+#ifdef BACK
+   transition ringbackToCalling {
+      in  { ringback: <( i, dev )>;
+            partner : <( partner )>;
+            record  : <( record )>; }
+      out { calling : <( i, dev )>;
+            partner : <( partner :: ([i] := record[i]) )>;
+            record  : <( record )>; }
+      guard: record[i] != NULL;
+   }
+#endif
+
+   //  talert -> errorstate
+   transition talertToErrorstate {
+      in  { talert    : <( i, dev )>;
+            chan      : <( chan )>; }
+      out { errorstate: <( i, dev )>;
+            chan      : <( chan )>; }
+      guard: (dev != ON) or (chan[i] = NULL);
+   }
+
+   //  talert -> tpickup
+   transition talertToTpickup {
+      in  { talert : <( i, dev )>;
+            partner: <( partner )>;
+            chan   : <( chan )>; }
+      out { tpickup: <( i, dev )>;
+            partner: <( partner )>;
+            chan   : <( chan )>; }
+      guard: first(chan[partner[i]]) = i;
+   }
+
+   //  talert -> idle
+   transition talertToIdle {
+      in  { talert : <( i, dev )>;
+            partner: <( partner )>;
+            chan   : <( chan )>; }
+      out { idle   : <( i, dev )>;
+            partner: <( partner )>;
+            chan   : <( chan )>; }
+      guard: first(chan[partner[i]]) != i;
+   }
+
+   //  tpickup -> tconnected
+   transition tpickupToTconnected {
+      in  { tpickup   : <( i, dev )>;
+            partner   : <( partner )>;
+            chan      : <( chan )>; }
+      out { tconnected: <( i, OFF )>;
+            partner   : <( partner )>;
+            chan      : <( chan :: ([partner[i]] := pair(i, 1))
+                                :: ([i] := pair(partner[i], 1)) )>; }
+      guard: (first(chan[partner[i]]) = i)
+         and (second(chan[partner[i]]) = 0);
+   }
+
+   //  tpickup -> idle
+   transition tpickupToIdle {
+      in  { tpickup   : <( i, dev )>;
+            partner   : <( partner )>;
+            chan      : <( chan )>; }
+      out { idle      : <( i, ON )>;
+            partner   : <( partner :: ([i] := NULL) )>;
+            chan      : <( chan    :: ([i] := NULL) )>; }
+      guard: (chan[partner[i]] = NULL)
+          or (first(chan[partner[i]]) != i);
+   }
+
+   //  tconnected -> tconnected
+   transition tconnectedToTconnected1 {
+      in  { tconnected: <( i, OFF )>;
+            chan      : <( chan )>; }
+      out { tconnected: <( i, ON )>;
+            chan      : <( chan )>; }
+      guard: second(chan[i]) = 1;
+   }
+
+   //  tconnected -> tconnected
+   transition tconnectedToTconnected2 {
+      in  { tconnected: <( i, ON )>;
+            chan      : <( chan )>; }
+      out { tconnected: <( i, OFF )>;
+            chan      : <( chan )>; }
+      guard: second(chan[i]) = 1;
+   }
+
+   //  tconnected -> idle
+   transition tconnectedToIdle {
+      in  { tconnected: <( i, dev )>;
+            partner   : <( partner )>;
+            chan      : <( chan )>; }
+      out {
+#ifdef ERROR
+            idle      : <( i, dev )>;
+#else
+            idle      : <( i, ON )>;
+#endif
+            partner   : <( partner :: ([i] := NULL) )>;
+            chan      : <( chan    :: ([i] := NULL) )>; }
+      guard: second(chan[i]) = 0;
+   }
+}

@@ -1,0 +1,225 @@
+/******************************************************************************
+*
+*  Example file of the Helena distribution
+*
+*  File  : load_balancer.lna
+*  Author: Sami Evangelista
+*  Date  : 27 oct. 2004
+*
+*  This file contains the description of a load balancing system.
+*
+******************************************************************************/
+
+
+load_balancer (C := 7,    /*  number of clients  */
+               S := 2) {  /*  number of servers  */
+
+   /*  clients  */
+   type client_id  : range 1 .. C;
+   type clients_no : range 0 .. client_id'last;
+
+   /*  servers  */
+   type server_id : range 1 .. S;
+
+   /*  load  */
+   type servers_load : vector [server_id] of clients_no;
+   constant servers_load empty_load := [0];
+
+
+   /*  return the least loaded server  */
+   function least (servers_load load) -> server_id {
+      server_id result := server_id'first;
+      for(i in server_id)
+         if(load[i] < load[result])
+            result := i;
+      return result;
+   }
+
+   /*  return the most loaded server  */
+   function most (servers_load load) -> server_id {
+      server_id result := server_id'first;
+      for(i in server_id)
+         if(load[i] > load[result])
+            result := i;
+      return result;
+   }
+
+   /*  check if load is balanced  */
+   function is_balanced (servers_load load) -> bool {
+      clients_no max_no := 0;
+      clients_no min_no := clients_no'last;
+      for(i in server_id)
+      {
+         if(load[i] > max_no) max_no := load[i];
+         if(load[i] < min_no) min_no := load[i];
+      }
+      return (max_no - min_no) <= 1;
+   }
+
+   /*  increment the load of server i  */
+   function incr (servers_load l, server_id i) -> servers_load
+      return l :: ([i] := l[i] + 1);
+   
+   /*  decrement the load of server i  */
+   function decr (servers_load l, server_id i) -> servers_load
+      return l :: ([i] := l[i] - 1);
+
+   /*  return the difference between the two loads  */
+   function diff (clients_no c1, clients_no c2) -> clients_no
+      return (c1 > c2) ? (c1 - c2) : (c2 - c1);
+
+
+   /*
+    *  clients
+    */
+   place client_idle {
+      dom : client_id;
+      init : for(c in client_id) <( c )>;
+      capacity : 1;
+   }
+   place client_waiting {
+      dom : client_id;
+      capacity : 1;
+   }
+   place client_request {
+      dom : client_id;
+      capacity : 1;
+   }
+   place client_ack {
+      dom : client_id;
+      capacity : 1;
+   }
+   transition client_send {
+      in  { client_idle    : <( c )>; }
+      out { client_waiting : <( c )>;
+            client_request : <( c )>; }
+      description: "client %d: send request", c;
+   }
+   transition client_receive {
+      in  { client_waiting : <( c )>;
+            client_ack     : <( c )>; }
+      out { client_idle    : <( c )>; }
+      description: "client %d: receives response", c;
+   }
+
+
+   /*
+    *  servers
+    */
+   place server_idle {
+      dom : server_id;
+      init : for(s in server_id) <( s )>;
+      capacity : 1;
+   }
+   place server_waiting {
+      dom : server_id * client_id;
+      capacity : 1;
+   }
+   place server_processing {
+      dom : server_id * client_id;
+      capacity : 1;
+   }
+   place server_notification {
+      dom : server_id;
+      capacity : 1;
+   }
+   place server_notification_ack {
+      dom : server_id;
+      capacity : 1;
+   }
+   place server_request {
+      dom : client_id * server_id;
+      capacity : 1;
+   }
+   transition server_notify {
+      in  { server_idle         : <( s )>;
+            server_request      : <( c, s )>; }
+      out { server_waiting      : <( s, c )>;
+            server_notification : <( s )>; }
+      description: "server %d: lb process notification", s;
+   }
+   transition server_receive {
+      in  {server_waiting          : <( s, c )>;
+           server_notification_ack : <( s )>; }
+      out {server_processing       : <( s, c )>; }
+      description: "server %d: reception of request from client %d", s, c;
+   }
+   transition server_send {
+      in  {server_processing : <( s, c )>; }
+      out {server_idle       : <( s )>;
+           client_ack        : <( c )>;}
+      description: "server %d: send response to client %d", s, c;
+   }
+
+
+   /*
+    *  load balancer process
+    */
+   place balancer_idle {
+      dom : servers_load;
+      init : <( empty_load )>;
+      capacity : 1;
+   }
+   place balancer_routing {
+      dom : servers_load * client_id;
+      capacity : 1;
+   }
+   place balancer_balancing {
+      dom : servers_load;
+      capacity : 1;
+   }
+   transition balancer_receive_client {
+      in  {balancer_idle    : <( l )>;
+           client_request   : <( c )>; }
+      out {balancer_routing : <( l, c )>; }
+      description: "lb: receive request of client %d", c;
+   }
+   transition balancer_route {
+      in  { balancer_routing : <( l, c )>; }
+      out { balancer_idle    : <( incr(l, ll) )>;
+            server_request   : <( c, ll )>; }
+      let { server_id ll := least(l); }
+      description: "lb: route request of client %d to server %d", c, ll;
+   }
+   transition balancer_receive_notification {
+      in  { balancer_idle           : <( l )>;
+            server_notification     : <( s )>; }
+      out { server_notification_ack : <( s )>;
+            balancer_balancing      : <( decr(l, s) )>; }
+      description: "lb: receive notification of server %d", s;
+   }
+   transition balancer_balance {
+      in  { balancer_balancing : <( l )>;
+            server_request     : <( c, most(l) )>; }
+      out { balancer_idle      : <( decr(incr(l, ll), ml) )>;
+            server_request     : <( c, ll )>; }
+      let { server_id ll := least(l);
+            server_id ml := most(l); }
+      guard: not is_balanced(l);
+      description: "lb: redirect request of client %d from server %d \
+to server %d", c, ml, ll;
+   }
+   transition balancer_no_balance {
+      in  { balancer_balancing : <( l )>; }
+      out { balancer_idle      : <( l )>; }
+      guard: is_balanced(l);
+      description: "lb: no rebalance";
+   }
+
+
+   /*
+    *  state propositions
+    *
+    *  load_not_balanced: for each couple of servers (s1,s2) with s1 != s2,
+    *  the difference between the number of requests pending or accepted by
+    *  s1 and the number of requests pending or accepted by s2 is at most 1.
+    */
+   proposition load_not_balanced:
+      not forall (s1 in server_id, s2 in server_id | s1 != s2 :
+             diff (card (sr in server_request | sr->2 = s1) +
+                   card (sn in server_notification | sn->1 = s1),
+                   card (sr in server_request | sr->2 = s2) +
+                   card (sn in server_notification | sn->1 = s2)) <= 1);
+   proposition balancing:
+      balancer_balancing'card = 1;
+}

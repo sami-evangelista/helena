@@ -1,0 +1,76 @@
+/******************************************************************************
+*
+*  Example file of the Helena distribution
+*
+*  File  : bakery.lna
+*  Author: Sami Evangelista
+*  Date  : 20 jun. 2007
+*
+*  This file contains the description of Lamport's bakery algorithm.
+*
+******************************************************************************/
+
+
+bakery (N := 3,       /*  N = number of processors  */
+        MAX := 5)  {  /*  MAX = max attempts to access CS  */
+   
+   subtype small   : int range 0 .. MAX;
+   subtype pid     : int range 0 .. N;
+   type smallVector: vector[pid] of small;
+   type boolVector : vector[pid] of bool;
+   
+   place ncs      { dom : pid;
+                    init: for(i in pid range pid'first .. pid'last - 1)
+                             <( i )>;
+                  }
+   place choose   { dom : pid * pid * small; }
+   place forLoop  { dom : pid * pid * small; }
+   place wait     { dom : pid * pid * small; }
+   place cs       { dom : pid; }
+   place choosing { dom : boolVector;  init: <( [false] )>;  }
+   place number   { dom : smallVector; init: <( [0] )>; }
+
+   proposition cs_not_ok:
+      cs'card > 1;
+   
+   transition ncs2choose {
+      in  { ncs:    <( i )>;      choosing: <( c )>; }
+      out { choose: <( i, 0, 0)>; choosing: <( c :: ([i] := true) )>; }
+   }
+   transition choose2choose1 {
+      in  { choose: <( i, j,     m )>;    number: <( n )>; }
+      out { choose: <( i, j + 1, n[j] )>; number: <( n )>; }
+      guard: j < N and n[j] > m;
+   }
+   transition choose2choose2 {
+      in  { choose: <( i, j,     m )>; number: <( n )>; }
+      out { choose: <( i, j + 1, m )>; number: <( n )>; }
+      guard: j < N and n[j] <= m;
+   }
+   transition choose2forLoop {
+      in  { choose : <( i, N, m )>; number:   <( n )>;
+                                    choosing: <( c )>; }
+      out { forLoop: <( i, 0, m )>; number:   <( n :: ([i] := m + 1) )>;
+                                    choosing: <( c :: ([i] := false) )>; }
+      guard: m < MAX;
+   }
+   transition forLoop2wait {
+      in  { forLoop: <( i, j, m )>; choosing: <( c )>; }
+      out { wait:    <( i, j, m )>; choosing: <( c )>; }
+      guard: j < N and not c[j];
+   }
+   transition wait2forLoop {
+      in  { wait:    <( i, j,     m )>; number: <( n )>; }
+      out { forLoop: <( i, j + 1, m )>; number: <( n )>; }
+      guard: (n[j] = 0) or (n[j] > n[i]) or (n[j] = n[i] and i <= j);
+   
+   }
+   transition forLoop2CS {
+      in  { forLoop: <( i, N, m )>; }
+      out { cs     : <( i )>; }
+   }
+   transition cs2ncs {
+      in  { cs : <( i )>; number: <( n )>; }
+      out { ncs: <( i )>; number: <( n :: ([i] := 0)  )>; }
+   }
+}

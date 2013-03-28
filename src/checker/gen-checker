@@ -1,0 +1,67 @@
+#! /bin/bash
+
+files="
+sbfs
+bfs
+bfs_queue
+buchi
+common
+dfs
+dfs_stack
+event
+hash_array
+hash_storage
+heap
+graph
+includes
+main
+observer
+pd4
+pss
+random_walk
+report
+simulator
+state
+storage"
+
+toolName=helena-generate-checker
+binName=../../bin/$toolName
+
+function genString () {
+    F=$1
+    if [ -e $F ]
+    then
+	echo "    ############################################################"
+	echo "    f = open (dir + \"/\" + \"$F\", \"w\")"
+	echo "    f.write (\"\\"
+	cat $F | \
+	    sed 's/\\/\\\\/g' | \
+	    sed 's/"/\\"/g' | \
+	    sed 's/$/\\n\\/'
+	echo "\"    )"
+	echo "    f.close ()"
+    fi
+}
+
+echo "#!/usr/bin/python" > $binName
+echo >> $binName
+echo "import sys" >> $binName
+echo >> $binName
+echo "def genFiles (dir):" >> $binName
+for file in $files
+do
+    genString $file.h >> $binName
+    genString $file.c >> $binName
+done
+
+echo >> $binName
+echo >> $binName
+echo >> $binName
+echo "if (len (sys.argv) != 2):" >> $binName
+echo "    print (\"usage: $toolName directory\")" >> $binName
+echo "    exit (1)" >> $binName
+echo "else:" >> $binName
+echo "    genFiles (sys.argv[1])" >> $binName
+echo "    exit (0)" >> $binName
+
+chmod +x $binName

@@ -1,0 +1,59 @@
+\begin{picture}(0,0)%
+\includegraphics{dbm.pdf}%
+\end{picture}%
+\setlength{\unitlength}{4144sp}%
+%
+\begingroup\makeatletter\ifx\SetFigFont\undefined%
+\gdef\SetFigFont#1#2#3#4#5{%
+  \reset@font\fontsize{#1}{#2pt}%
+  \fontfamily{#3}\fontseries{#4}\fontshape{#5}%
+  \selectfont}%
+\fi\endgroup%
+\begin{picture}(13385,5144)(1028,-7133)
+\put(10891,-5056){\makebox(0,0)[lb]{\smash{{\SetFigFont{14}{16.8}{\rmdefault}{\mddefault}{\updefault}{\color[rgb]{0,0,0}$m_0($Unused$) = \Sigma_{s,r \in D | s \neq r}\tuple{s,r}$}%
+}}}}
+\put(10891,-3526){\makebox(0,0)[lb]{\smash{{\SetFigFont{14}{16.8}{\rmdefault}{\mddefault}{\updefault}{\color[rgb]{0,0,0}type $D$ is $\{1\dots N\}$}%
+}}}}
+\put(10891,-4426){\makebox(0,0)[lb]{\smash{{\SetFigFont{14}{16.8}{\rmdefault}{\mddefault}{\updefault}{\color[rgb]{0,0,0}$m_0($Mutex$) = \tuple{}$}%
+}}}}
+\put(10891,-4741){\makebox(0,0)[lb]{\smash{{\SetFigFont{14}{16.8}{\rmdefault}{\mddefault}{\updefault}{\color[rgb]{0,0,0}$m_0($Inactive$) = \Sigma_{s \in D}\tuple{s}$}%
+}}}}
+\put(10891,-3976){\makebox(0,0)[lb]{\smash{{\SetFigFont{14}{16.8}{\rmdefault}{\mddefault}{\updefault}{\color[rgb]{0,0,0}$s \in D$, $r \in D$}%
+}}}}
+\put(3106,-6991){\makebox(0,0)[lb]{\smash{{\SetFigFont{14}{16.8}{\rmdefault}{\mddefault}{\updefault}{\color[rgb]{0,0,0}$\Sigma_{r \in D \setminus \{ s \} } \tuple{s,r}$}%
+}}}}
+\put(7921,-6991){\makebox(0,0)[lb]{\smash{{\SetFigFont{14}{16.8}{\rmdefault}{\mddefault}{\updefault}{\color[rgb]{0,0,0}$\tuple{s,r}$}%
+}}}}
+\put(7921,-2446){\makebox(0,0)[lb]{\smash{{\SetFigFont{14}{16.8}{\rmdefault}{\mddefault}{\updefault}{\color[rgb]{0,0,0}$\tuple{s,r}$}%
+}}}}
+\put(3106,-2446){\makebox(0,0)[lb]{\smash{{\SetFigFont{14}{16.8}{\rmdefault}{\mddefault}{\updefault}{\color[rgb]{0,0,0}$\Sigma_{r \in D \setminus \{ s \} } \tuple{s,r}$}%
+}}}}
+\put(2161,-5371){\makebox(0,0)[lb]{\smash{{\SetFigFont{14}{16.8}{\rmdefault}{\mddefault}{\updefault}{\color[rgb]{0,0,0}$\Sigma_{r \in D \setminus \{ s \} } \tuple{s,r}$}%
+}}}}
+\put(1351,-5371){\makebox(0,0)[lb]{\smash{{\SetFigFont{14}{16.8}{\rmdefault}{\mddefault}{\updefault}{\color[rgb]{0,0,0}$\tuple{}$}%
+}}}}
+\put(4771,-5371){\makebox(0,0)[lb]{\smash{{\SetFigFont{14}{16.8}{\rmdefault}{\mddefault}{\updefault}{\color[rgb]{0,0,0}$\tuple{s}$}%
+}}}}
+\put(5671,-5371){\makebox(0,0)[lb]{\smash{{\SetFigFont{14}{16.8}{\rmdefault}{\mddefault}{\updefault}{\color[rgb]{0,0,0}$\tuple{s}$}%
+}}}}
+\put(6571,-5371){\makebox(0,0)[lb]{\smash{{\SetFigFont{14}{16.8}{\rmdefault}{\mddefault}{\updefault}{\color[rgb]{0,0,0}$\tuple{r}$}%
+}}}}
+\put(7921,-5371){\makebox(0,0)[lb]{\smash{{\SetFigFont{14}{16.8}{\rmdefault}{\mddefault}{\updefault}{\color[rgb]{0,0,0}$\tuple{s,r}$}%
+}}}}
+\put(9496,-5371){\makebox(0,0)[lb]{\smash{{\SetFigFont{14}{16.8}{\rmdefault}{\mddefault}{\updefault}{\color[rgb]{0,0,0}$\tuple{r}$}%
+}}}}
+\put(9496,-3886){\makebox(0,0)[lb]{\smash{{\SetFigFont{14}{16.8}{\rmdefault}{\mddefault}{\updefault}{\color[rgb]{0,0,0}$\tuple{r}$}%
+}}}}
+\put(7921,-3886){\makebox(0,0)[lb]{\smash{{\SetFigFont{14}{16.8}{\rmdefault}{\mddefault}{\updefault}{\color[rgb]{0,0,0}$\tuple{s,r}$}%
+}}}}
+\put(6571,-3886){\makebox(0,0)[lb]{\smash{{\SetFigFont{14}{16.8}{\rmdefault}{\mddefault}{\updefault}{\color[rgb]{0,0,0}$\tuple{r}$}%
+}}}}
+\put(2161,-3886){\makebox(0,0)[lb]{\smash{{\SetFigFont{14}{16.8}{\rmdefault}{\mddefault}{\updefault}{\color[rgb]{0,0,0}$\Sigma_{r \in D \setminus \{ s \} } \tuple{s,r}$}%
+}}}}
+\put(4771,-3886){\makebox(0,0)[lb]{\smash{{\SetFigFont{14}{16.8}{\rmdefault}{\mddefault}{\updefault}{\color[rgb]{0,0,0}$\tuple{s}$}%
+}}}}
+\put(5671,-3886){\makebox(0,0)[lb]{\smash{{\SetFigFont{14}{16.8}{\rmdefault}{\mddefault}{\updefault}{\color[rgb]{0,0,0}$\tuple{s}$}%
+}}}}
+\put(1351,-3886){\makebox(0,0)[lb]{\smash{{\SetFigFont{14}{16.8}{\rmdefault}{\mddefault}{\updefault}{\color[rgb]{0,0,0}$\tuple{}$}%
+}}}}
+\end{picture}%

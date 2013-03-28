@@ -1,0 +1,44 @@
+/******************************************************************************
+*
+*  Example file of Helena distribution
+*
+*  File  : sort.lna
+*  Author: Sami Evangelista
+*  Date  : 3 mar. 2010
+*
+*  This simple example illustrates the use of imported functions.
+*
+*  Please read the user's guide in directory doc if you want more
+*  informations on this model.
+*
+*  To analyse this net you must first compile the C imported functions and then
+*  invoke helena as follows:
+*  > helena-generate-interface sort.lna sort_interface.h
+*  > gcc -c initList.c quickSort.c isSorted.c
+*  > helena -L=initList.o -L=quickSort.o -L=isSorted.o sort.lna
+*
+******************************************************************************/
+
+sort {
+
+type intList: list[nat] of int with capacity 1000;
+
+function initList ()                      -> intList;
+function quickSort (intList l, int steps) -> intList;
+function isSorted (intList l)             -> bool;
+
+constant intList toSort := initList();
+
+place myList { dom : intList * int; init: <( toSort, 1 )>; }
+
+transition swap {
+   in  { myList: <( l, steps )>; }
+   out { myList: <( quickSort(toSort, steps), steps + 1 )>; }
+   guard: not isSorted(l);
+}
+
+import function initList ()                      -> intList;
+import function quickSort (intList l, int steps) -> intList;
+import function isSorted (intList l)             -> bool;
+
+}

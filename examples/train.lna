@@ -1,0 +1,272 @@
+/******************************************************************************
+*
+*  Example file of the Helena distribution
+*
+*  File  : train.lna
+*  Author: Sami Evangelista
+*  Date  : 27 jul. 2007
+*  Source:
+*     Automatic verification of real-time communicating systems by
+*     constraint-solving. Formal Description Techniques, 1995.
+*
+******************************************************************************/
+
+
+train (N := 8) {  /*  N = number of trains + 1  */
+
+subtype byte : nat  range 0 .. 255;
+subtype small: byte range 0 .. N - 1;
+subtype tid  : nat  range 1 .. N - 1;
+
+type bytes: vector [tid] of byte;
+
+type intList: vector [small] of byte;
+
+
+//  global variables
+place e    { dom: byte;  init: <( 0 )>; }
+place x    { dom: byte;  init: <( 0 )>; }
+place maxX { dom: bytes; init: <( [0] )>; }
+
+function allInf(bytes v, byte val) -> bool {
+   for(i in tid)
+      if(val > v[i])
+         return false;
+   return true;
+}
+
+
+//  process places of trains
+place trainSafe  { dom: tid; init: for(i in tid) <( i )>; }
+place trainStop  { dom: tid; }
+place trainCross { dom: tid; }
+place trainAppr  { dom: tid; }
+place trainStart { dom: tid; }
+
+//  process places of the gate
+place gateFree { dom: epsilon; init: epsilon;}
+place gateOcc  { dom: epsilon; }
+place gateS1   { dom: epsilon; }
+place gateS2   { dom: epsilon; }
+place gateS3   { dom: epsilon; }
+place gateS4   { dom: epsilon; }
+place gateS5   { dom: epsilon; }
+place gateS6   { dom: epsilon; }
+place gateSend { dom: epsilon; }
+
+//  process places of the clock
+place clockS1 { dom: epsilon; init: epsilon; }
+
+//  process places of the intQueue
+place intQueueStart     { dom : intList * byte * byte;
+                          init: <( [0], 0, 0 )>; }
+place intQueueShiftdown { dom : intList * byte * byte; }
+
+
+
+/////
+//
+//  transition of train processes
+//
+/////
+
+//  appr -> cross
+transition trainApprToCross {
+   in  { trainAppr : <( i )>;
+         x         : <( x )>;
+         maxX      : <( maxX )>; }
+   out { trainCross: <( i )>;
+         x         : <( 0 )>;
+         maxX      : <( maxX :: ([i] := 5) )>; }
+   guard: x >= 10;
+}
+
+//  cross -> safe
+transition trainCrossToSafe {
+   in  { trainCross: <( i )>;
+         gateOcc   : epsilon;
+         e         : <( e )>;
+         x         : <( x )>;
+         maxX      : <( maxX )>; }
+   out { trainSafe : <( i )>;
+         gateS1    : epsilon;
+         e         : <( i )>;
+         x         : <( 0 )>;
+         maxX      : <( maxX :: ([i] := 25) )>; }
+   guard: x >= 3;
+}
+
+//  safe -> appr (gate can be on on state Occ or S4)
+transition trainSafeToAppr {
+   in  { trainSafe: <( i )>;
+         gateOcc  : epsilon;
+         e        : <( e )>;
+         x        : <( x )>;
+         maxX     : <( maxX )>; }
+   out { trainAppr: <( i )>;
+         gateS6   : epsilon;
+         e        : <( i )>;
+         x        : <( 0 )>;
+         maxX     : <( maxX :: ([i] := 20) )>; }
+}
+transition trainSafeToAppr_2 {
+   in  { trainSafe: <( i )>;
+         gateS4   : epsilon;
+         e        : <( e )>;
+         x        : <( x )>;
+         maxX     : <( maxX )>; }
+   out { trainAppr: <( i )>;
+         gateS3   : epsilon;
+         e        : <( i )>;
+         x        : <( 0 )>;
+         maxX     : <( maxX :: ([i] := 20) )>; }
+}
+
+//  start -> cross
+transition trainStartToCross {
+   in  { trainStart: <( i )>;
+         x         : <( x )>;
+         maxX      : <( maxX )>; }
+   out { trainCross: <( i )>;
+         x         : <( 0 )>;
+         maxX      : <( maxX :: ([i] := 5) )>; }
+   guard: x >= 7;
+}
+
+
+
+/////
+//
+//  transitions of the clock
+//
+/////
+
+//  S1 -> S1
+transition clockS1ToS1 {
+   in  { clockS1: epsilon;
+         x      : <( x )>;
+         maxX   : <( maxX )>; }
+   out { clockS1: epsilon;
+         x      : <( x + 1 )>;
+         maxX   : <( maxX )>; }
+   guard: allInf(maxX, x);
+}
+
+
+
+/////
+//
+//  transitions of the gate
+//
+/////
+
+//  S6 -> S2
+transition gateS6ToS2 {
+   in  { gateS6   : epsilon;
+         trainAppr: <( i )>;
+         x        : <( x )>;
+         e        : <( e )>;
+         maxX     : <( maxX )>; }
+   out { gateS2   : epsilon;
+         trainStop: <( i )>;
+         x        : <( 0 )>;
+         e        : <( e )>;
+         maxX     : <( maxX :: ([i] := 25) )>; }
+   guard: x <= 10 and e = i;
+}
+
+//  Send -> Occ
+transition gateSendToOcc {
+   in  { gateSend  : epsilon;
+         trainStop : <( i )>;
+         x         : <( x )>;
+         e         : <( e )>;
+         maxX      : <( maxX )>; }
+   out { gateOcc   : epsilon;
+         trainStart: <( i )>;
+         x         : <( 0 )>;
+         e         : <( e )>;
+         maxX      : <( maxX :: ([i] := 15) )>; }
+   guard: e = i;
+}
+
+//  S5 -> Send
+transition gateS5ToSend {
+   in  { gateS5       : epsilon;
+         intQueueStart: <( l, len, i )>;
+         e            : <( e )>; }
+   out { gateSend     : epsilon;
+         intQueueStart: <( l, len, i )>;
+         e            : <( l[0] )>; }
+}
+
+//  S3 -> Occ
+transition gateS3ToOcc {
+   in  { gateS3       : epsilon;
+         intQueueStart: <( l, len, i )>;
+         e            : <( e )>; }
+   out { gateOcc      : epsilon;
+         intQueueStart: <( l :: ([len] := e), len + 1, i )>;
+         e            : <( e )>; }
+}
+
+//  S2 -> Occ
+transition gateS2ToOcc {
+   in  { gateS2       : epsilon;
+         intQueueStart: <( l, len, i )>;
+         e            : <( e )>; }
+   out { gateOcc      : epsilon;
+         intQueueStart: <( l :: ([len] := e), len + 1, i )>;
+         e            : <( e )>; }
+}
+
+
+
+/////
+//
+//  transitions of the int queue
+//
+/////
+
+//  Shiftdown -> Shiftdown
+transition intQueueShiftdownToShiftdown {
+   in  { intQueueShiftdown: <( l, len, i )>; }
+   out { intQueueShiftdown: <( l :: ([i] := l[i + 1]), len, i + 1 )>; }
+   guard: i < len;
+}
+
+//  Shiftdown -> Start
+transition intQueueShiftdownToStart {
+   in  { intQueueShiftdown: <( l, len, i )>; }
+   out { intQueueStart    : <( l :: ([i] := 0), len, 0 )>; }
+   guard: i = len;
+}
+
+//  Start -> Shiftdown
+transition intQueueStartToShiftdown {
+   in  { intQueueStart    : <( l, len, i )>;
+         gateS1           : epsilon; }
+   out { intQueueShiftdown: <( l, len - 1, 0 )>;
+         gateFree         : epsilon; }
+   guard: len >= 1;
+}
+
+//  Start -> Start
+transition intQueueStartToStart {
+   in  { intQueueStart: <( l, len, i )>;
+         gateFree     : epsilon; }
+   out { intQueueStart: <( l, len, i )>;
+         gateS4       : epsilon; }
+   guard: len = 0;
+}
+
+//  Start -> Start
+transition intQueueStartToStart_2 {
+   in  { intQueueStart: <( l, len, i )>;
+         gateFree     : epsilon; }
+   out { intQueueStart: <( l, len, i )>;
+         gateS5       : epsilon; }
+   guard: len > 0;
+}
+
+}
