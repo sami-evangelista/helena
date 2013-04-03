@@ -1,98 +1,74 @@
-              leader         9            N=2
-   lookup_processors        14            N=2
-             slotted        24            N=2
-              leader        27            N=3
-        neo_election        51            M=2
-   lookup_processors        53            N=3
-       load_balancer        61        C=2 S=1
-              leader        78            N=4
-            peterson       104            N=2
-       load_balancer       120        C=2 S=2
-             slotted       160            N=3
-   lookup_processors       188            N=4
-              leader       219            N=5
-       load_balancer       316        C=3 S=1
-             lamport       348            N=2
-   eisenberg_mcguire       378            N=2
-           telephony       384            N=2
-           szymanski       489            N=2
-              leader       603            N=6
-   lookup_processors       647            N=5
-       load_balancer       888        C=3 S=2
-             slotted      1120            N=4
-       load_balancer      1531        C=4 S=1
-              leader      1638            N=7
-       load_balancer      1932        C=3 S=3
-   lookup_processors      2186            N=6
-              leader      4407            N=8
-       load_balancer      6420        C=4 S=2
-       load_balancer      7162        C=5 S=1
-   lookup_processors      7289            N=7
-             slotted      8064            N=5
-            peterson     10158            N=3
-         eratosthene     10801           N=20
-              leader     11775            N=9
-   eisenberg_mcguire     13967            N=3
-       load_balancer     16938        C=4 S=3
-             lamport     17255            N=3
-           szymanski     20264            N=3
-   lookup_processors     24056            N=8
-        neo_election     25562            M=3
-              leader     31302           N=10
-       load_balancer     32761        C=6 S=1
-       load_balancer     39642        C=4 S=4
-       load_balancer     41456        C=5 S=2
-         eratosthene     48560           N=25
-           telephony     51826            N=3
-             slotted     59136            N=6
-   lookup_processors     78731            N=9
-              leader     82899           N=11
-       load_balancer    139836        C=5 S=3
-       load_balancer    147448        C=7 S=1
-         eratosthene    187287           N=30
-              leader    218931           N=12
-   lookup_processors    255878           N=10
-       load_balancer    260744        C=6 S=2
-       load_balancer    405006        C=5 S=4
-             slotted    439296            N=7
-              leader    576966           N=13
-   eisenberg_mcguire    624790            N=4
-       load_balancer    655351        C=8 S=1
-         eratosthene    657388           N=35
-   lookup_processors    826685           N=11
-           szymanski   1128424            N=4
-       load_balancer   1232262        C=6 S=3
-            peterson   1242528            N=4
-              leader   1518111           N=14
-       load_balancer   1574530        C=7 S=2
-             lamport   1672728            N=4
-         eratosthene   2028969           N=40
-   lookup_processors   2657204           N=12
-       load_balancer   2883574        C=9 S=1
-             slotted   3294720            N=8
-       load_balancer   3703050        C=6 S=4
-              leader   3989655           N=15
-         eratosthene   6094198           N=45
-   lookup_processors   8503055           N=13
-       load_balancer   9324768        C=8 S=2
-       load_balancer   9613008        C=7 S=3
-              leader  10475430           N=16
-           telephony  12291552            N=4
-         eratosthene  18879295           N=50
-             slotted  24893440            N=9
-   lookup_processors  27103490           N=14
-              leader  27485787           N=17
-   eisenberg_mcguire  33055447            N=5
-       load_balancer  35432802        C=7 S=4
-       load_balancer  54163116        C=9 S=2
-         eratosthene  62881554           N=55
-       load_balancer  71199214        C=8 S=3
-              leader  72080235           N=18
-           szymanski  79518740            N=5
-   lookup_processors  86093441           N=15
-            peterson 172147671            N=5
-              leader 188951526           N=19
-             slotted 189190144           N=10
-         eratosthene 195322177           N=60
-       load_balancer 379489914        C=8 S=4
-        neo_election 406137651            M=4
+              leader           9          68       5            N=2
+              leader          27         177       7            N=3
+   lookup_processors          34         468       9            N=2
+        neo_election          51         378      14            M=2
+              leader          78         582       9            N=4
+       load_balancer          91         647      17        C=2 S=1
+            peterson         158         986      18            N=2
+       load_balancer         196        1335      19        C=2 S=2
+   lookup_processors         199        2029      13            N=3
+             slotted         208        1568      18            N=2
+              leader         219        1730      11            N=5
+             lamport         380        2204      24            N=2
+         eratosthene         384        2646      46           N=10
+           telephony         384        3004      21            N=2
+           szymanski         489        2909      43            N=2
+       load_balancer         532        2968      25        C=3 S=1
+              leader         603        4856      13            N=6
+   eisenberg_mcguire         615        3782      42            N=2
+   lookup_processors        1124       12976      17            N=4
+              leader        1638       12890      15            N=7
+       load_balancer        1728        7297      25        C=3 S=2
+         eratosthene        2267       13724      81           N=15
+       load_balancer        2875       17963      33        C=4 S=1
+             slotted        4032       27175      31            N=3
+       load_balancer        4065       16368      29        C=3 S=3
+              leader        4407       38982      17            N=8
+   lookup_processors        6249       66302      21            N=5
+         eratosthene       10802       65483     122           N=20
+              leader       11775      100878      19            N=9
+       load_balancer       13776       62725      33        C=4 S=2
+       load_balancer       14842       75204      41        C=5 S=1
+             lamport       19742       74385      43            N=3
+           szymanski       20264       72982      72            N=3
+            peterson       20754       84759      64            N=3
+        neo_election       25562      159987      33            M=3
+   eisenberg_mcguire       28866      113154      75            N=3
+              leader       31302      282668      21           N=10
+   lookup_processors       34374      390021      25            N=6
+       load_balancer       43806      193291      33        C=4 S=3
+         eratosthene       48561      294923     159           N=25
+           telephony       51826      253875      36            N=3
+       load_balancer       74233      394249      49        C=6 S=1
+             slotted       82176      551935      46            N=4
+              leader       82899      752288      23           N=11
+       load_balancer       99061      477314      41        C=5 S=2
+       load_balancer      108750      494068      39        C=4 S=4
+         eratosthene      187288     1159877     194           N=30
+   lookup_processors      187499     2353056      29            N=7
+              leader      218931     2107076      25           N=12
+       load_balancer      362488     2051580      57        C=7 S=1
+       load_balancer      409581     1870261      41        C=5 S=3
+              leader      576966     5984994      27           N=13
+         eratosthene      657389     4020258     235           N=35
+       load_balancer      673814     3399412      49        C=6 S=2
+           szymanski     1128424     4873914     111            N=4
+       load_balancer     1404651     6501977      42        C=5 S=4
+              leader     1518111    16291532      29           N=14
+   eisenberg_mcguire     1633037     7498421     112            N=4
+             slotted     1723392    12370222      64            N=5
+             lamport     1914784     9873019      64            N=4
+         eratosthene     2028970    12600087     274           N=40
+            peterson     3407946    15150864     130            N=4
+       load_balancer     3766968    18598266      49        C=6 S=3
+              leader     3989655    45138493      31           N=15
+       load_balancer     4397196    23344750      57        C=7 S=2
+         eratosthene     6094199    39600920     341           N=45
+           telephony    12291552    67033885      51            N=4
+       load_balancer    15005412    75440774      49        C=6 S=4
+         eratosthene    18879296   117309997     390           N=50
+       load_balancer    32056569   170706802      57        C=7 S=3
+         eratosthene    62881555   395524564     441           N=55
+   eisenberg_mcguire   109019052   563441322     154            N=5
+       load_balancer   153276507   843640595      57        C=7 S=4
+         eratosthene   195322178  1301074709     490           N=60
