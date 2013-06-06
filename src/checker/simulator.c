@@ -100,7 +100,7 @@ stack   -> show the stack of executed events\n\
 enabled -> show enabled events of the current state\n\
 pop     -> pop the state on top of the stack\n\
 push N  -> push the Nth successor of the current state on the stack\n\
-eval P  -> evaluates proposition on the current state\n\
+eval P  -> evaluate proposition on the current state\n\
 help\n\
 quit\n");
     } else if (!strcmp (cmd, "quit")) {

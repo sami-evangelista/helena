@@ -461,11 +461,11 @@ values of $(\text{\LS{i}},\text{\LS{b}}) \in
 \subsubsection{Bound variables}\index{transition!bound variables}
 The \LS{let} section of a transition declaration is provided to
 declare bound variables that are used to avoid repeating the same
-expression in the transition.  Note that bound variables are evaluated
-right after input arcs and free variables.  Hence, they may not appear
-in these arcs or in the definition of free variables but can appear at
-all other places within the transition declaration: in the output or
-inhibitor arcs, in the guard and in the priority.
+expression in the transition.  Note that bound variables are always
+evaluated after input arcs and free variables.  Hence, they may not
+appear in these arcs or in the definition of free variables but can
+appear at all other places within the transition declaration: in the
+output or inhibitor arcs, in the guard and in the priority.
 
 For instance, the following declaration:
 \begin{lstlisting}
@@ -577,9 +577,9 @@ prototype or body is declared.\\
 \subsection{Statements}\index{statement}
 Helena allows rich possibilities to write functions: conditional
 statements (if, case), loop statements (for, while), sequence of
-statements (block), assertions and naturally the return and
-assignments statement.  Except for the for statement, each has the
-same semantic as C's corresponding statement.\\
+statements (block), assertions return and assignments statement.
+Except for the for statement, each has the same semantic as C's
+corresponding statement.\\
 
 \statementdef
 
@@ -698,10 +698,9 @@ function compute_sum (int_set s) -> int {
 
 
 \subsubsection{Assertion}\index{statement!assertion}
-Assertions can also be placed in functions.  As for transitions, the
-boolean expression associated to an assertion is checked, and if this
-expression is evaluated to \LS{false} the search is immediately
-stopped.\\
+Assertions can also be placed in functions.  The boolean expression
+associated to an assertion is checked, and if this expression is
+evaluated to \LS{false} the search is immediately stopped.\\
 
 \assertstatdef
 

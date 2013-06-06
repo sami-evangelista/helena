@@ -376,7 +376,7 @@
 \newcommand\descriptiondef{
   \begin{tabular}{lcl}
     \nonterm{transition description} & \isdef &
-    \term{description} \term{:} \nonterm{string} \optional{ \term{;} \nonterm{non empty expression list}} \term{;}\\
+    \term{description} \term{:} \nonterm{string} \optional{ \term{,} \nonterm{non empty expression list}} \term{;}\\
   \end{tabular}
 }
 
@@ -541,7 +541,8 @@
 %%%
 \newcommand\assertstatdef{
   \begin{tabular}{lcl}
-    \nonterm{assert statement} & \isdef & \nonterm{assert}
+    \nonterm{assert statement} & \isdef & \term{assert}
+    \term{:} \nonterm{expression} \term{;}
   \end{tabular}
 }
 
