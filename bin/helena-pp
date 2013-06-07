@@ -38,7 +38,7 @@ do
 	    else
 		helena-pp $nfile || exit 1
 		echo "#set file $file"
-		echo "#set line $l"
+		echo "#set line $((l + 1))"
 	    fi
 	    ;;
 	*)

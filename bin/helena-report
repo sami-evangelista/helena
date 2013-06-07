@@ -133,6 +133,8 @@ def printInfoReport(r):
         name = e.nodeName
         if e.childNodes:
             val = e.childNodes[0].nodeValue
+        else:
+            val = ""
         if name in generalInfos:
             print "    " + generalInfos[name] + ": " + val
         elif name == "modelParameters":

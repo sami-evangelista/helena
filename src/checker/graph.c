@@ -1,17 +1,24 @@
 #include "graph.h"
+
+#ifdef MODEL_HAS_GRAPH_ROUTINES
 #include "model.h"
 #include "model_graph.h"
-
-#ifndef MODEL_HAS_GRAPH_ROUTINES
+#else
 typedef int model_graph_data_t;
-void model_graph_data_init (model_graph_data_t * dfs_data, uint32_t states) {}
-void model_graph_data_free (model_graph_data_t * dfs_data) {}
-void model_graph_data_output (model_graph_data_t dfs_data, FILE * out) {}
-void model_graph_dfs_start (model_graph_data_t dfs_data) {}
-void model_graph_dfs_stop (model_graph_data_t dfs_data) {}
-void model_graph_dfs_push (model_graph_data_t dfs_data,
-			   edge_num_t num, bool_t new_succ) {}
-void model_graph_dfs_pop (model_graph_data_t dfs_data) {}
+void model_graph_data_init (model_graph_data_t * mdata, uint32_t states) {}
+void model_graph_data_free (model_graph_data_t * mdata) {}
+void model_graph_data_output (model_graph_data_t mdata, FILE * out) {}
+void model_graph_dfs_start (model_graph_data_t mdata) {}
+void model_graph_dfs_stop (model_graph_data_t mdata) {}
+void model_graph_dfs_push (model_graph_data_t mdata, edge_num_t num,
+			   bool_t new_succ) {}
+void model_graph_dfs_pop (model_graph_data_t mdata) {}
+void model_graph_scc_dfs_start (model_graph_data_t mdata) {}
+void model_graph_scc_dfs_stop (model_graph_data_t mdata) {}
+void model_graph_scc_dfs_push (model_graph_data_t mdata, edge_num_t num) {}
+void model_graph_scc_dfs_pop (model_graph_data_t mdata) {}
+void model_graph_scc_enter (model_graph_data_t mdata, bool_t terminal) {}
+void model_graph_scc_exit (model_graph_data_t mdata) {}
 #endif
 
 void graph_free

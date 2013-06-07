@@ -219,10 +219,12 @@ class Config:
         if self.inFileExt == ".lna":
             W("#define LANGUAGE \"helena\"\n")
             W("#define LANGUAGE_LNA\n")
-            W("#define MODEL_NAME \"blbla\"\n")
             W("#define EVENT_UNDOABLE\n")
             W("#define MODEL_HAS_GRAPH_ROUTINES\n")
         elif self.inFileExt == ".dve":
+            (model, _) = os.path.splitext(os.path.basename(self.inFile))
+            if model == "": model = "model"
+            W("#define MODEL_NAME \"" + model + "\"\n")
             W("#define LANGUAGE \"dve\"\n")
             W("#define LANGUAGE_DVE\n")
         if self.inFileExt in [ ".lna", ".dve" ]:

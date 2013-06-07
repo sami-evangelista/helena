@@ -5,7 +5,7 @@
 
 helenaDir=$HOME/.helena
 tmpDir=$HOME/.helena/tmp-$RANDOM
-gcc='/usr/bin/gcc -Wunused-result -Wformat -Wformat-security'
+gcc='/usr/bin/gcc -Wunused-result'
 
 #  executable names
 lnaGenerator=helena-generate
@@ -28,7 +28,7 @@ CCnoOpt="-pthread -lm"
 
 commonFiles="vectors"
 checkerSrcFiles="bfs bfs_queue buchi common config dfs dfs_stack event graph
-heap hash_array hash_storage observer pd4 prop pss random_walk report sbfs
+heap hash_array hash_storage observer pd4 prop random_walk report sbfs
 state simulator storage vectors"
 
 exitWithError () {
