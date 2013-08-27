@@ -5,8 +5,7 @@ bool_t check_error () {
     return TRUE;
   } else {
     printf ("model error: %s\n", glob_error_msg);
-    free (glob_error_msg);
-    glob_error_msg = NULL;
+    flush_error ();
     return FALSE;
   }
 }

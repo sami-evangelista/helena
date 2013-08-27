@@ -334,11 +334,23 @@ uint32_t random_int
 bool_t raise_error
 (char * msg) {
 #ifdef SIMULATE
-  glob_error_msg = mem_alloc (SYSTEM_HEAP, sizeof(char) * strlen(msg) + 1);
-  strcpy (glob_error_msg, msg);
+  if (!glob_error_msg) {
+    glob_error_msg = mem_alloc (SYSTEM_HEAP, sizeof(char) * strlen(msg) + 1);
+    strcpy (glob_error_msg, msg);
+  }
   return TRUE;
 #else
   return report_error (msg);
+#endif
+}
+
+void flush_error
+() {
+#ifdef SIMULATE
+  if (glob_error_msg) {
+    mem_free (SYSTEM_HEAP, glob_error_msg);
+    glob_error_msg = NULL;
+  }
 #endif
 }
 

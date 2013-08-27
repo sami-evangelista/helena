@@ -97,10 +97,14 @@ hash_key_t bit_vector_hash
 bool_t raise_error
 (char * msg);
 
+void flush_error
+();
+
 void stop_search
 (termination_state_t state);
 
-FILE * open_graph_file ();
+FILE * open_graph_file
+();
 
 large_unsigned_t do_large_sum
 (large_unsigned_t * array,
