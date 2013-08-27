@@ -276,8 +276,6 @@ package body Helena_Parser.Stats is
          else
             Free(Cond_Expr);
          end if;
-      else
-         Free(Cond_Expr);
       end if;
    end;
 
