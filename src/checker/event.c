@@ -1,6 +1,6 @@
 #include "event.h"
 
-#ifdef CHECK_LTL
+#ifdef ACTION_CHECK_LTL
 
 bool_t event_is_dummy
 (event_t e) {

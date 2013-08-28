@@ -9,6 +9,7 @@ with
   Pn.Stats.Returns,
   Pn.Stats.Fors,
   Pn.Stats.Ifs,
+  Pn.Stats.Prints,
   Pn.Stats.Whiles,
   Pn.Vars;
 
@@ -23,6 +24,7 @@ use
   Pn.Stats.Returns,
   Pn.Stats.Fors,
   Pn.Stats.Ifs,
+  Pn.Stats.Prints,
   Pn.Stats.Whiles,
   Pn.Vars;
 

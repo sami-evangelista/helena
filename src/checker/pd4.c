@@ -310,7 +310,7 @@ bool_t pd4_merge_candidate_set
 	  }
 	  break;
 	case PD4_CAND_NEW :
-#ifdef BUILD_RG
+#ifdef ACTION_BUILD_RG
 	  pos = (pos + 1) % CS_max_size;
 	  assert (pos != fst);
 #else
@@ -354,7 +354,7 @@ void pd4_storage_delete_candidate
     case PD4_CAND_NEW  :
       if (state_cmp_vector (s, CS[x][i].s)) {
 	CS[x][i].content = PD4_CAND_DEL;
-#ifdef BUILD_RG
+#ifdef ACTION_BUILD_RG
 	CS[x][i].id = id;
 	break;
 #else
@@ -418,7 +418,7 @@ state_t pd4_duplicate_detection_dfs
 }
 
 
-#ifdef BUILD_RG
+#ifdef ACTION_BUILD_RG
 void pd4_remove_duplicates_around
 (pd4_candidate_t * C,
  unsigned int      i) {
@@ -486,7 +486,7 @@ pd4_storage_id_t pd4_insert_new_state
     assert ((slot = (slot + NO_WORKERS) & HASH_SIZE_M) != fst);
   }
   s.next = s.fst_child = slot;
-#ifdef BUILD_RG
+#ifdef ACTION_BUILD_RG
   s.num = next_num ++;
 #endif
   ST[slot] = s;
@@ -519,14 +519,14 @@ void pd4_insert_new_states
       ns.e = c.e;
       ns.father = 0;
       C[NCS[w][i]].id = pd4_insert_new_state (w, c.h, ns, c.pred);
-#ifdef BUILD_RG
+#ifdef ACTION_BUILD_RG
       pd4_remove_duplicates_around (C, NCS[w][i]);
 #endif
     }
   }
   S->size[w] += no_new;
   next_lvls[w] += no_new;
-#ifdef BUILD_RG
+#ifdef ACTION_BUILD_RG
   pd4_write_nodes_graph (w);
 #endif
 
@@ -656,7 +656,7 @@ state_t pd4_expand_dfs
      *  we have reached a leaf => we expand it
      */
     en = state_enabled_events_mem (s, heap);
-#ifdef CHECK_SAFETY
+#ifdef ACTION_CHECK_SAFETY
     if (state_check_property (s, en)) {
       pthread_mutex_lock (&report_mutex);
       if (!error_reported) {
@@ -762,7 +762,7 @@ void * pd4_worker
     ns.dd = ns.dd_visit = ns.recons[0] = FALSE;
     ns.recons[1] = ns.father = 1;
     ns.next = ns.fst_child = slot;
-#ifdef BUILD_RG
+#ifdef ACTION_BUILD_RG
     ns.num = next_num ++;
     fwrite (&t, sizeof (uint8_t), 1, R->graph_file);
     fwrite (&ns.num, sizeof (node_t), 1, R->graph_file);

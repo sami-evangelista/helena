@@ -287,23 +287,23 @@ class Config:
 
         #  action to perform
         if self.action == EXPLORE:
-            W("#define EXPLORE\n")
+            W("#define ACTION_EXPLORE\n")
         elif self.action == BUILD_GRAPH:
-            W("#define BUILD_RG\n")
+            W("#define ACTION_BUILD_RG\n")
         elif self.action == SIMULATE:
-            W("#define SIMULATE\n")
+            W("#define ACTION_SIMULATE\n")
         elif self.action == CHECK:
             W("#define PROPERTY \"" + self.property + "\"\n")
             if self.propertyType == LTL:
-                W("#define CHECK_LTL\n")
+                W("#define ACTION_CHECK_LTL\n")
                 if self.partialOrder:
                     W("#define PROVISO\n")
             elif self.propertyType == STATE:
-                W("#define CHECK_SAFETY\n")
+                W("#define ACTION_CHECK_SAFETY\n")
                 if self.partialOrder:
                     W("#define PROVISO\n")
             elif self.propertyType == DEADLOCK:
-                W("#define CHECK_SAFETY\n")
+                W("#define ACTION_CHECK_SAFETY\n")
 
         #  other parameters
         W("#define TRACE_" + self.traceType + "\n")

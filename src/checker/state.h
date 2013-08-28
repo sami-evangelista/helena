@@ -9,7 +9,7 @@
 #error Model configuration missing!
 #endif
 
-#ifdef CHECK_LTL
+#ifdef ACTION_CHECK_LTL
 
 
 

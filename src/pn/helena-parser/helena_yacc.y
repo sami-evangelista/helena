@@ -35,6 +35,7 @@
 %token PLACE_TOKEN
 %token PICK_TOKEN
 %token PRED_TOKEN
+%token PRINT_TOKEN
 %token PRIORITY_TOKEN
 %token PRODUCT_TOKEN
 %token PROPOSITION_TOKEN
@@ -371,6 +372,10 @@
          when While_Stat =>
             While_Stat_Cond : Element;
             While_Stat_True : Element;
+         when Print_Stat =>
+            Print_Stat_With_Str : Element;
+            Print_Stat_Str      : Element;
+            Print_Stat_Exprs    : Element;
          when Return_Stat =>
             Return_Stat_Expr : Element;
          when For_Stat =>
@@ -1204,6 +1209,7 @@ while_stat {$$ := $1;} |
 return_stat {$$ := $1;} |
 for_stat {$$ := $1;} |
 if_stat {$$ := $1;} |
+print_stat {$$ := $1;} |
 assert {$$ := $1;};
 
 assign_stat :
@@ -1279,6 +1285,12 @@ $$.For_Stat_Vars := $3;
 $$.for_stat_stat := $5;
 set_pos($$);};
 
+assert_stat :
+ASSERT_TOKEN COLON_TOKEN expr SEMICOLON_TOKEN
+{$$ := new element_record(assert);
+$$.assert_cond := $3;
+set_pos($$);};
+
 block_stat :
 LBRACE_TOKEN var_decl_list stat_list RBRACE_TOKEN
 {$$ := new element_record(block_stat);
@@ -1327,12 +1339,6 @@ const_decl :
 CONSTANT_TOKEN init_var_decl
 {$$ := $2;
  $$.var_decl_const := true; };
-
-assert :
-ASSERT_TOKEN COLON_TOKEN expr SEMICOLON_TOKEN
-{$$ := new element_record(assert);
-$$.assert_cond := $3;
-set_pos($$);};
 
 stat_list :
 stat_list stat
