@@ -2,9 +2,9 @@
 --
 --  Package: Pn
 --
---  This is the top level package of the Pn library of Helena.
---  It only contains the declarations of some the basic stuffs used everywhere
---  in the library.
+--  This is the top level package of the Pn library of Helena.  It
+--  only contains the declarations of some the basic stuffs used
+--  everywhere in the library.
 --
 --=============================================================================
 
@@ -48,9 +48,9 @@ package Pn is
    --  Group: Basic types
    --==========================================================================
 
-   type Arc_Type is (Pre, Post, Inhibit);
+   type Arc_Type is (Pre, Post, Reset, Inhibit);
 
-   subtype Update_Arc_Type is Arc_Type range Pre .. Post;
+   subtype Update_Arc_Type is Arc_Type range Pre .. Reset;
 
    type Num_Type is range Interfaces.C.Int'First .. Interfaces.C.Int'Last;
 
@@ -396,7 +396,8 @@ package Pn is
    --==========================================================================
 
    type Expr_Type is
-     (A_Attribute,
+     (A_Any,
+      A_Attribute,
       A_Bin_Op,
       A_Cast,
       A_Const,

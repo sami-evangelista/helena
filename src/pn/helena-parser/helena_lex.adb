@@ -90,6 +90,7 @@ package body Helena_Lex is
       PROPOSITION_TOKEN => To_Unbounded_String("proposition"),
       PRODUCT_TOKEN     => To_Unbounded_String("product"),
       RANGE_TOKEN       => To_Unbounded_String("range"),
+      RESET_TOKEN       => To_Unbounded_String("reset"),
       RETURN_TOKEN      => To_Unbounded_String("return"),
       STRUCT_TOKEN      => To_Unbounded_String("struct"),
       SAFE_TOKEN        => To_Unbounded_String("safe"),
@@ -368,18 +369,18 @@ subtype short is integer range -32768..32767;
 
 -- returned upon end-of-file
 YY_END_TOK : constant integer := 0;
-YY_END_OF_BUFFER : constant := 42;
+YY_END_OF_BUFFER : constant := 43;
 subtype yy_state_type is integer;
 yy_current_state : yy_state_type;
 INITIAL : constant := 0;
-yy_accept : constant array(0..54) of short :=
+yy_accept : constant array(0..55) of short :=
     (   0,
-        0,    0,   42,   40,   38,   39,   40,   40,   40,   19,
-       31,   29,    3,    4,   17,   15,   14,   16,    9,   18,
-       37,   11,    2,   22,   20,   24,   28,   36,    7,    8,
-        5,   30,    6,   38,   21,    0,   33,    0,   32,   27,
-        1,   10,   35,    0,   37,   12,   13,   26,   23,   25,
-       36,    0,   34,    0
+        0,    0,   43,   41,   39,   40,   41,   41,   41,   19,
+       32,   29,    3,    4,   17,   15,   14,   16,    9,   18,
+       38,   11,    2,   22,   20,   24,   28,   37,    7,    8,
+       31,    5,   30,    6,   39,   21,    0,   34,    0,   33,
+       27,    1,   10,   36,    0,   38,   12,   13,   26,   23,
+       25,   37,    0,   35,    0
     ) ;
 
 yy_ec : constant array(ASCII.NUL..Character'Last) of short :=
@@ -422,38 +423,38 @@ yy_meta : constant array(0..31) of short :=
         1
     ) ;
 
-yy_base : constant array(0..57) of short :=
+yy_base : constant array(0..58) of short :=
     (   0,
         0,    0,   66,   67,   30,   67,   43,   59,   60,   67,
        67,   31,   67,   39,   67,   67,   67,   38,   44,   24,
        41,   15,   67,   25,   67,   36,   67,   20,   67,   67,
-       67,   67,   67,   40,   67,   52,   67,   53,   67,   67,
-       67,   67,   67,   52,   36,   67,   67,   67,   67,   67,
-       25,   49,   67,   67,   50,   45,   43
+       67,   67,   67,   67,   40,   67,   52,   67,   53,   67,
+       67,   67,   67,   67,   52,   36,   67,   67,   67,   67,
+       67,   25,   49,   67,   67,   50,   45,   43
     ) ;
 
-yy_def : constant array(0..57) of short :=
+yy_def : constant array(0..58) of short :=
     (   0,
-       54,    1,   54,   54,   54,   54,   54,   55,   56,   54,
-       54,   54,   54,   54,   54,   54,   54,   54,   54,   54,
-       54,   54,   54,   54,   54,   54,   54,   54,   54,   54,
-       54,   54,   54,   54,   54,   55,   54,   56,   54,   54,
-       54,   54,   54,   57,   54,   54,   54,   54,   54,   54,
-       54,   57,   54,    0,   54,   54,   54
+       55,    1,   55,   55,   55,   55,   55,   56,   57,   55,
+       55,   55,   55,   55,   55,   55,   55,   55,   55,   55,
+       55,   55,   55,   55,   55,   55,   55,   55,   55,   55,
+       55,   55,   55,   55,   55,   55,   56,   55,   57,   55,
+       55,   55,   55,   55,   58,   55,   55,   55,   55,   55,
+       55,   55,   58,   55,    0,   55,   55,   55
     ) ;
 
 yy_nxt : constant array(0..98) of short :=
     (   0,
         4,    5,    6,    7,    8,    9,   10,   11,   12,   13,
        14,   15,   16,   17,   18,   19,   20,   21,   22,   23,
-       24,   25,   26,   27,   28,   29,   30,    4,   31,   32,
-       33,   34,   34,   46,   48,   43,   47,   51,   34,   34,
-       44,   34,   51,   52,   51,   38,   49,   51,   34,   51,
-       36,   53,   51,   45,   53,   39,   37,   50,   45,   42,
-       41,   40,   39,   37,   35,   54,    3,   54,   54,   54,
-       54,   54,   54,   54,   54,   54,   54,   54,   54,   54,
-       54,   54,   54,   54,   54,   54,   54,   54,   54,   54,
-       54,   54,   54,   54,   54,   54,   54,   54
+       24,   25,   26,   27,   28,   29,   30,   31,   32,   33,
+       34,   35,   35,   47,   49,   44,   48,   52,   35,   35,
+       45,   35,   52,   53,   52,   39,   50,   52,   35,   52,
+       37,   54,   52,   46,   54,   40,   38,   51,   46,   43,
+       42,   41,   40,   38,   36,   55,    3,   55,   55,   55,
+       55,   55,   55,   55,   55,   55,   55,   55,   55,   55,
+       55,   55,   55,   55,   55,   55,   55,   55,   55,   55,
+       55,   55,   55,   55,   55,   55,   55,   55
 
     ) ;
 
@@ -463,12 +464,12 @@ yy_chk : constant array(0..98) of short :=
         1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
         1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
         1,    5,   12,   22,   24,   20,   22,   28,    5,   12,
-       20,   34,   51,   57,   28,   56,   24,   28,   34,   51,
-       55,   52,   51,   45,   44,   38,   36,   26,   21,   19,
-       18,   14,    9,    8,    7,    3,   54,   54,   54,   54,
-       54,   54,   54,   54,   54,   54,   54,   54,   54,   54,
-       54,   54,   54,   54,   54,   54,   54,   54,   54,   54,
-       54,   54,   54,   54,   54,   54,   54,   54
+       20,   35,   52,   58,   28,   57,   24,   28,   35,   52,
+       56,   53,   52,   46,   45,   39,   37,   26,   21,   19,
+       18,   14,    9,    8,    7,    3,   55,   55,   55,   55,
+       55,   55,   55,   55,   55,   55,   55,   55,   55,   55,
+       55,   55,   55,   55,   55,   55,   55,   55,   55,   55,
+       55,   55,   55,   55,   55,   55,   55,   55
 
     ) ;
 
@@ -530,7 +531,7 @@ begin
 	end if;
 	while ( yy_chk(yy_base(yy_current_state) + yy_c) /= yy_current_state ) loop
 	    yy_current_state := yy_def(yy_current_state);
-	    if ( yy_current_state >= 55 ) then
+	    if ( yy_current_state >= 56 ) then
 		yy_c := yy_meta(yy_c);
 	    end if;
 	end loop;
@@ -596,13 +597,13 @@ begin -- of YYLex
 		end if;
 		while ( yy_chk(yy_base(yy_current_state) + yy_c) /= yy_current_state ) loop
 		    yy_current_state := yy_def(yy_current_state);
-		    if ( yy_current_state >= 55 ) then
+		    if ( yy_current_state >= 56 ) then
 			yy_c := yy_meta(yy_c);
 		    end if;
 		end loop;
 		yy_current_state := yy_nxt(yy_base(yy_current_state) + yy_c);
 	    yy_cp := yy_cp + 1;
-if ( yy_current_state = 54 ) then
+if ( yy_current_state = 55 ) then
     exit;
 end if;
 	end loop;
@@ -754,46 +755,50 @@ return proceed_special_token(Pipe_Token);
 
 when 31 => 
 --# line 41 "helena_lex.l"
-return proceed_special_token(Amp_Token);
+return proceed_special_token(Underscore_Token);
 
 when 32 => 
 --# line 42 "helena_lex.l"
-return proceed_directive;
+return proceed_special_token(Amp_Token);
 
 when 33 => 
 --# line 43 "helena_lex.l"
-return proceed_string;
+return proceed_directive;
 
 when 34 => 
 --# line 44 "helena_lex.l"
-return proceed_new_line;
+return proceed_string;
 
 when 35 => 
 --# line 45 "helena_lex.l"
-return proceed_comment;
+return proceed_new_line;
 
 when 36 => 
 --# line 46 "helena_lex.l"
-return proceed_alpha;
+return proceed_comment;
 
 when 37 => 
 --# line 47 "helena_lex.l"
-return proceed_num;
+return proceed_alpha;
 
 when 38 => 
 --# line 48 "helena_lex.l"
-return proceed_blanks;
+return proceed_num;
 
 when 39 => 
 --# line 49 "helena_lex.l"
-return proceed_new_line;
+return proceed_blanks;
 
 when 40 => 
 --# line 50 "helena_lex.l"
-return proceed_others;
+return proceed_new_line;
 
 when 41 => 
---# line 52 "helena_lex.l"
+--# line 51 "helena_lex.l"
+return proceed_others;
+
+when 42 => 
+--# line 53 "helena_lex.l"
 ECHO;
 when YY_END_OF_BUFFER + INITIAL + 1 => 
     return End_Of_Input;
@@ -846,7 +851,7 @@ when YY_END_OF_BUFFER + INITIAL + 1 =>
             end case; -- case (yy_act)
         end loop; -- end of loop waiting for end of file
 end YYLex;
---# line 52 "helena_lex.l"
+--# line 53 "helena_lex.l"
 
 end Helena_Lex;
 

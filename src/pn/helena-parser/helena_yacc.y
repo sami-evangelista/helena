@@ -39,6 +39,7 @@
 %token PRODUCT_TOKEN
 %token PROPOSITION_TOKEN
 %token RANGE_TOKEN
+%token RESET_TOKEN
 %token RETURN_TOKEN
 %token SAFE_TOKEN
 %token SET_TOKEN
@@ -89,6 +90,7 @@
 %token COLON_TOKEN
 %token COLON_COLON_TOKEN
 %token COLON_EQUAL_TOKEN
+%token UNDERSCORE_TOKEN
 
 %right QUESTION_TOKEN COLON_TOKEN
 %left OR_TOKEN
@@ -168,6 +170,7 @@
       Container_Aggregate,
       Empty,
       List_Slice,
+      Underscore,
 
       --  iterator types
       card_iterator,
@@ -391,6 +394,7 @@
             Transition_Inputs     : Element;
             Transition_Outputs    : Element;
             Transition_Inhibits   : Element;
+            Transition_Resets     : Element;
             Transition_Pick_Vars  : Element;
             Transition_Let_Vars   : Element;
             Transition_Attributes : Element;
@@ -433,8 +437,9 @@
             string_string : Unbounded_String;
          when Number =>
             Number_Number : Unbounded_String;
-         when card_iterator => null;
+         when Underscore => null;
 	 when mult_iterator => null;
+         when card_iterator => null;
 	 when forall_iterator => null;
 	 when exists_iterator => null;
 	 when max_iterator => null;
@@ -870,6 +875,24 @@ expr
 $$.list_elements := Empty_Element_list;
 append($$.list_elements, $1);
 set_pos($$);};
+
+non_empty_expr_or_uscore_list :
+non_empty_expr_or_uscore_list COMMA_TOKEN expr_or_uscore
+{$$ := $1;
+append($$.list_elements, $3);
+set_pos($$);
+} |
+expr_or_uscore
+{$$ := new element_record(List);
+$$.list_elements := Empty_Element_list;
+append($$.list_elements, $1);
+set_pos($$);};
+
+expr_or_uscore :
+expr {$$ := $1;} |
+UNDERSCORE_TOKEN {
+ $$ := new element_record(Underscore);
+ set_pos($$);};
 
 bin_op :
 expr PLUS_TOKEN expr
@@ -1412,6 +1435,7 @@ TRANSITION_TOKEN trans_name LBRACE_TOKEN
 transition_inputs
 transition_outputs
 transition_inhibs
+transition_resets
 transition_pick_vars
 transition_let_vars
 transition_attribute_list
@@ -1421,9 +1445,10 @@ $$.transition_name := $2;
 $$.transition_inputs := $4;
 $$.transition_outputs := $5;
 $$.transition_inhibits := $6;
-$$.transition_pick_vars := $7;
-$$.transition_let_vars := $8;
-$$.transition_attributes := $9;
+$$.transition_resets := $7;
+$$.transition_pick_vars := $8;
+$$.transition_let_vars := $9;
+$$.transition_attributes := $10;
 set_pos($$, $2);};
 
 transition_inputs :
@@ -1436,6 +1461,13 @@ OUT_TOKEN LBRACE_TOKEN arc_list RBRACE_TOKEN
 
 transition_inhibs :
 INHIBIT_TOKEN LBRACE_TOKEN arc_list RBRACE_TOKEN
+{$$ := $3;} |
+{$$ := new element_record(list);
+$$.list_elements := Empty_Element_list;
+set_pos($$);};
+
+transition_resets :
+RESET_TOKEN LBRACE_TOKEN arc_list RBRACE_TOKEN
 {$$ := $3;} |
 {$$ := new element_record(list);
 $$.list_elements := Empty_Element_list;
@@ -1507,7 +1539,7 @@ expr TIMES_TOKEN
 {$$ := null;};
 
 simple_tuple_tuple :
-LTUPLE_TOKEN non_empty_expr_list RTUPLE_TOKEN
+LTUPLE_TOKEN non_empty_expr_or_uscore_list RTUPLE_TOKEN
 {$$ := $2;} |
 EPSILON_TOKEN
 {$$ := new element_record(List);

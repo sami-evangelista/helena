@@ -31,7 +31,8 @@ place output { dom: int; }
 transition calc {
   in      { input : <(n,m)>;}
   out     { output: <(pow)>;}
-  inhibit { output: <(pow)>; }
+  inhibit { output: <(_)>;}
+  reset   { output: <(_)>;}
   let     { int pow := power (n, m); }
   guard      : pow <= MAX;
   priority   : pow;

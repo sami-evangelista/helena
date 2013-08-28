@@ -42,12 +42,13 @@ private package Helena_Parser.Exprs is
       Ok  :    out Boolean);
 
    procedure Parse_Expr_List
-     (E    : in     Element;
-      Vars : in out Var_List_List;
-      D    : in     Dom;
-      Check: in     Boolean;
-      El   :    out Expr_List;
-      Ok   :    out Boolean);
+     (E     : in     Element;
+      Vars  : in out Var_List_List;
+      D     : in     Dom;
+      Check : in     Boolean;
+      El    :    out Expr_List;
+      Ok    :    out Boolean;
+      Uscore: in     Boolean := False);
 
    procedure Parse_Discrete_Expr_List
      (E    : in     Element;
@@ -56,12 +57,13 @@ private package Helena_Parser.Exprs is
       Ok   :    out Boolean);
 
    procedure Parse_Basic_Expr_List
-     (E    : in     Element;
-      Vars : in out Var_List_List;
-      D    : in     Dom;
-      Check: in     Boolean;
-      El   :    out Expr_List;
-      Ok   :    out Boolean);
+     (E     : in     Element;
+      Vars  : in out Var_List_List;
+      D     : in     Dom;
+      Check : in     Boolean;
+      El    :    out Expr_List;
+      Ok    :    out Boolean;
+      Uscore: in     Boolean := False);
 
    procedure Parse_Symbol
      (E    : in     Element;

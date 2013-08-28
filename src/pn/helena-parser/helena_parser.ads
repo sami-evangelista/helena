@@ -63,10 +63,8 @@ package Helena_Parser is
    procedure Parse_Net
      (File_Name: in     Ustring;
       N        :    out Pn.Nets.Net);
-   --  parse net in file with name File_Name. N is the parsed net
 
    function Get_Error_Msg return Ustring;
-   --  return the error message if an exception occured
 
    Io_Exception,
    Parse_Exception: exception;

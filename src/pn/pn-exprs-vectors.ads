@@ -9,67 +9,27 @@
 
 package Pn.Exprs.Vectors is
 
-   --=====
-   --  Type: Vector_Record
-   --
-   --  See also:
-   --  o <Pn> to see all the primitive operations overridden by this type
-   --=====
    type Vector_Record is new Expr_Record with private;
 
-   --=====
-   --  Type: Vector
-   --=====
    type Vector is access all Vector_Record;
 
 
-   --=====
-   --  Function: New_Vector
-   --  Vector constructor.
-   --
-   --  Parameters:
-   --  E - expression list which appears in the vector
-   --  C - color class of the expression constructed
-   --=====
    function New_Vector
      (E: in Expr_List;
       C: in Cls) return Expr;
 
-   --=====
-   --  Function: Get_Elements
-   --
-   --  Return:
-   --  the element list in the vector
-   --=====
    function Get_Elements
      (V: in Vector) return Expr_List;
 
-   --=====
-   --  Function: Get_Element
-   --
-   --  Return:
-   --  the element at index I in the vector, or the last element of the vector
-   --  if I > Length(Get_Elements)
-   --=====
    function Get_Element
      (V: in Vector;
       I: in Index_Type) return Expr;
-   --  return the Ith element of the vector
 
-   --=====
-   --  Procedure: Replace_Element
-   --  Replace the Ith element of vector V by expression E.  The replaced
-   --  expression is freed.
-   --=====
    procedure Replace_Element
      (V: in Vector;
       E: in Expr;
       I: in Index_Type);
-
-   --=====
-   --  Procedure: Append
-   --  Append expression E at the end of vector V.
-   --=====
+   
    procedure Append
      (V: in Vector;
       E: in Expr);
