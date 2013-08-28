@@ -192,6 +192,7 @@ package body Helena_Lex is
       PICK_TOKEN        => To_Unbounded_String("pick"),
       PLACE_TOKEN       => To_Unbounded_String("place"),
       PRED_TOKEN        => To_Unbounded_String("pred"),
+      PRINT_TOKEN       => To_Unbounded_String("print"),
       PRIORITY_TOKEN    => To_Unbounded_String("priority"),
       PROPOSITION_TOKEN => To_Unbounded_String("proposition"),
       PRODUCT_TOKEN     => To_Unbounded_String("product"),

@@ -34,7 +34,7 @@ state_t dfs_main
     id_seed = id;
   }
 
-#ifdef CHECK_SAFETY
+#ifdef ACTION_CHECK_SAFETY
   if (state_check_property (now, item.en)) {
     report_faulty_state (R, now);
     dfs_stack_create_trace (blue_stack, red_stack, R);
@@ -81,7 +81,7 @@ state_t dfs_main
        *  we check an ltl property => launch the red search if the
        *  state is accepting
        */
-#ifdef CHECK_LTL
+#ifdef ACTION_CHECK_LTL
       if (!red && state_accepting (now)) {
 	R->states_accepting[w] ++;
 	dfs_main (now, item.id, heap, TRUE, blue_stack, red_stack);
@@ -114,7 +114,7 @@ state_t dfs_main
       event_exec (e, now);
       R->events_executed[w] ++;
       if (red) {
-#ifdef CHECK_LTL
+#ifdef ACTION_CHECK_LTL
 	storage_get_attr (storage, now, w, &push, &id, &attr);
 	push = push && (!attr.is_red);
 	if (push) {
@@ -155,7 +155,7 @@ state_t dfs_main
 	 *  check if the state property is verified and stop the
 	 *  search if not after setting the trace
 	 */
-#ifdef CHECK_SAFETY
+#ifdef ACTION_CHECK_SAFETY
 	if (state_check_property (now, item.en)) {
 	  report_faulty_state (R, now);
 	  dfs_stack_create_trace (blue_stack, red_stack, R);
@@ -166,7 +166,7 @@ state_t dfs_main
 	 *  if we check an LTL property, test whether the state
 	 *  reached is the seed
 	 */
-#ifdef CHECK_LTL
+#ifdef ACTION_CHECK_LTL
 	if (red && (EQUAL == storage_id_cmp (id, id_seed))) {
 	  R->keep_searching = FALSE;
 	  R->result = FAILURE;
@@ -189,7 +189,7 @@ void * dfs_worker
   bounded_heap_t heap = bounded_heap_new ("state heap", 1024 * 100);
   state_t now = state_initial_mem (heap);
   dfs_stack_t blue_stack = dfs_stack_new (0);
-#ifdef CHECK_LTL
+#ifdef ACTION_CHECK_LTL
   dfs_stack_t red_stack = dfs_stack_new (1);
 #else
   dfs_stack_t red_stack = NULL;

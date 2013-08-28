@@ -21,7 +21,7 @@ int main (int argc,
   /*
    *  simulation mode
    */
-#if   defined(SIMULATE)
+#if   defined(ACTION_SIMULATE)
   
   simulator ();
 
@@ -77,7 +77,7 @@ int main (int argc,
 
   report_free (glob_report);
 
-#ifdef BUILD_RG
+#ifdef ACTION_BUILD_RG
   graph_make_report (GRAPH_FILE, RG_REPORT_FILE, NULL);
 #endif
 

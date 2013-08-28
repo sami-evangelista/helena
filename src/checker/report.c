@@ -272,7 +272,7 @@ void report_finalise
 	   (ssize > r->states_max_stored) ? ssize : r->states_max_stored);
   visited = do_large_sum (r->states_visited, r->no_workers);
   fprintf (out, "<statesExpanded>%llu</statesExpanded>\n", visited);
-#ifdef CHECK_LTL
+#ifdef ACTION_CHECK_LTL
   fprintf (out, "<statesAccepting>%llu</statesAccepting>\n",
 	   do_large_sum (r->states_accepting, r->no_workers));
 #endif

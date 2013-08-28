@@ -82,7 +82,7 @@ void * bfs_worker
     /*
      *  check the state property
      */
-#ifdef CHECK_SAFETY
+#ifdef ACTION_CHECK_SAFETY
     if (state_check_property (s, en)) {
       set_bfs_report_trace (R, l, tr, s);
     }
@@ -99,7 +99,7 @@ void * bfs_worker
     /*
      *  print the node informations in the reachability graph file
      */
-#ifdef BUILD_RG
+#ifdef ACTION_BUILD_RG
     t = GT_NODE;
     fwrite (&t, 1, 1, R->graph_file);
     num = storage_get_num (storage, id);
@@ -153,7 +153,7 @@ void * bfs_worker
       /*
        *  print the edge in the reachability graph file
        */
-#ifdef BUILD_RG
+#ifdef ACTION_BUILD_RG
       num = storage_get_num (storage, id_new);
       fwrite (&e_id, sizeof (edge_num_t), 1, R->graph_file);
       fwrite (&num, sizeof (node_t), 1, R->graph_file);
