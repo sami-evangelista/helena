@@ -211,6 +211,7 @@
       Case_Stat,
       Case_Alternative,
       While_Stat,
+      Print_Stat,
       Return_Stat,
       For_Stat,
       Block_Stat,
@@ -373,7 +374,7 @@
             While_Stat_Cond : Element;
             While_Stat_True : Element;
          when Print_Stat =>
-            Print_Stat_With_Str : Element;
+            Print_Stat_With_Str : Boolean;
             Print_Stat_Str      : Element;
             Print_Stat_Exprs    : Element;
          when Return_Stat =>
@@ -1210,7 +1211,7 @@ return_stat {$$ := $1;} |
 for_stat {$$ := $1;} |
 if_stat {$$ := $1;} |
 print_stat {$$ := $1;} |
-assert {$$ := $1;};
+assert_stat {$$ := $1;};
 
 assign_stat :
 var COLON_EQUAL_TOKEN expr SEMICOLON_TOKEN
@@ -1284,6 +1285,30 @@ FOR_TOKEN LBRACKET_TOKEN iteration_vars RBRACKET_TOKEN stat
 $$.For_Stat_Vars := $3;
 $$.for_stat_stat := $5;
 set_pos($$);};
+
+print_stat :
+PRINT_TOKEN non_empty_expr_list SEMICOLON_TOKEN
+{$$ := new element_record(print_stat);
+ $$.Print_Stat_With_Str := False;
+ $$.Print_Stat_Str      := null;
+ $$.Print_Stat_Exprs    := $2;
+ set_pos($$);
+} |
+PRINT_TOKEN string COMMA_TOKEN non_empty_expr_list SEMICOLON_TOKEN
+{$$ := new element_record(print_stat);
+ $$.Print_Stat_With_Str := True;
+ $$.Print_Stat_Str      := $2;
+ $$.Print_Stat_Exprs    := $4;
+ set_pos($$);
+} |
+PRINT_TOKEN string SEMICOLON_TOKEN
+{$$ := new element_record(print_stat);
+ $$.Print_Stat_With_Str := True;
+ $$.Print_Stat_Str      := $2;
+ $$.Print_Stat_Exprs    := new element_record(list);
+ $$.Print_Stat_Exprs.list_elements := Empty_Element_list;
+ set_pos($$);
+};
 
 assert_stat :
 ASSERT_TOKEN COLON_TOKEN expr SEMICOLON_TOKEN

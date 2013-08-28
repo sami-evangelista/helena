@@ -102,6 +102,7 @@ package Helena_Yacc_Tokens is
       Case_Stat,
       Case_Alternative,
       While_Stat,
+      Print_Stat,
       Return_Stat,
       For_Stat,
       Block_Stat,
@@ -263,6 +264,10 @@ package Helena_Yacc_Tokens is
          when While_Stat =>
             While_Stat_Cond : Element;
             While_Stat_True : Element;
+         when Print_Stat =>
+            Print_Stat_With_Str : Boolean;
+            Print_Stat_Str      : Element;
+            Print_Stat_Exprs    : Element;
          when Return_Stat =>
             Return_Stat_Expr : Element;
          when For_Stat =>
@@ -375,24 +380,24 @@ package Helena_Yacc_Tokens is
          Min_Token, Mod_Token, Mult_Token,
          Not_Token, Of_Token, Or_Token,
          Out_Token, Place_Token, Pick_Token,
-         Pred_Token, Priority_Token, Product_Token,
-         Proposition_Token, Range_Token, Reset_Token,
-         Return_Token, Safe_Token, Set_Token,
-         Struct_Token, Subtype_Token, Succ_Token,
-         Sum_Token, Transition_Token, Type_Token,
-         Vector_Token, While_Token, With_Token,
-         Identifier_Token, Number_Token, String_Token,
-         Amp_Token, Comma_Token, Div_Token,
-         Dot_Dot_Token, Dot_Token, Eq_Token,
-         Implies_Token, Inf_Token, Inf_Eq_Token,
-         Lbrace_Token, Lbracket_Token, Lhook_Token,
-         Ltuple_Token, Minus_Token, Neq_Token,
-         Pipe_Token, Plus_Token, Question_Token,
-         Quote_Token, Rbrace_Token, Rarrow_Token,
-         Rbracket_Token, Rhook_Token, Rtuple_Token,
-         Semicolon_Token, Sup_Token, Sup_Eq_Token,
-         Times_Token, Colon_Token, Colon_Colon_Token,
-         Colon_Equal_Token, Underscore_Token );
+         Pred_Token, Print_Token, Priority_Token,
+         Product_Token, Proposition_Token, Range_Token,
+         Reset_Token, Return_Token, Safe_Token,
+         Set_Token, Struct_Token, Subtype_Token,
+         Succ_Token, Sum_Token, Transition_Token,
+         Type_Token, Vector_Token, While_Token,
+         With_Token, Identifier_Token, Number_Token,
+         String_Token, Amp_Token, Comma_Token,
+         Div_Token, Dot_Dot_Token, Dot_Token,
+         Eq_Token, Implies_Token, Inf_Token,
+         Inf_Eq_Token, Lbrace_Token, Lbracket_Token,
+         Lhook_Token, Ltuple_Token, Minus_Token,
+         Neq_Token, Pipe_Token, Plus_Token,
+         Question_Token, Quote_Token, Rbrace_Token,
+         Rarrow_Token, Rbracket_Token, Rhook_Token,
+         Rtuple_Token, Semicolon_Token, Sup_Token,
+         Sup_Eq_Token, Times_Token, Colon_Token,
+         Colon_Colon_Token, Colon_Equal_Token, Underscore_Token );
 
     Syntax_Error : exception;
 
