@@ -29,7 +29,7 @@ package Pn.Exprs.Vectors is
      (V: in Vector;
       E: in Expr;
       I: in Index_Type);
-   
+
    procedure Append
      (V: in Vector;
       E: in Expr);
@@ -78,14 +78,14 @@ private
      (E     : in     Vector_Record;
       B     : in     Binding;
       Result:    out Expr;
-      State:    out Evaluation_State);
+      State :    out Evaluation_State);
 
    function Static_Equal
-     (Left: in Vector_Record;
+     (Left : in Vector_Record;
       Right: in Vector_Record) return Boolean;
 
    function Compare
-     (Left: in Vector_Record;
+     (Left : in Vector_Record;
       Right: in Vector_Record) return Comparison_Result;
 
    function Vars_In
@@ -107,8 +107,8 @@ private
       M: in Var_Mapping) return Ustring;
 
    function Replace_Var
-     (E: in Vector_Record;
-      V: in Var;
+     (E : in Vector_Record;
+      V : in Var;
       Ne: in Expr) return Expr;
 
 end Pn.Exprs.Vectors;

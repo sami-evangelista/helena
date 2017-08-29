@@ -1,7 +1,9 @@
 with
+  Ada.Text_Io,
   Gnat.Os_Lib;
 
 use
+  Ada.Text_Io,
   Gnat.Os_Lib;
 
 package body Prop.Ltl is
@@ -122,9 +124,9 @@ package body Prop.Ltl is
 		     Result := To_Ustring("(!");
 		  end if;
 	       when Ltl_Generally =>
-		  Result := To_Ustring("(<>");
-	       when Ltl_Finally =>
 		  Result := To_Ustring("([]");
+	       when Ltl_Finally =>
+		  Result := To_Ustring("(<>");
 	    end case;
 	    Result := Result & " " & Convert(E.Operand, H) & ")";
 	 when Ltl_Expr_Bin_Op =>
@@ -153,6 +155,12 @@ package body Prop.Ltl is
 		     Result := Result & "=>";
 		  else
 		     Result := Result & "->";
+		  end if;
+	       when Ltl_Equivalence =>
+		  if H then
+		     Result := Result & "<=>";
+		  else
+		     Result := Result & "<->";
 		  end if;
 	    end case;
 	    Result := Result & Convert(E.Right, H) & ")";

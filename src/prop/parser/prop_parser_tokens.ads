@@ -27,6 +27,7 @@ package Prop_Parser_Tokens is
       And_Op,
       Or_Op,
       Implies_Op,
+      Equivalence_Op,
       Until_Op,
       Property,
       Deadlock,
@@ -50,6 +51,7 @@ package Prop_Parser_Tokens is
          when Generally_Op => null;
          when Finally_Op => null;
          when Implies_Op => null;
+         when equivalence_Op => null;
          when Until_Op => null;
 	 when property =>
             property_name     : element;
@@ -86,7 +88,8 @@ package Prop_Parser_Tokens is
          Reject_Token, State_Token, True_Token,
          Until_Token, Identifier_Token, Implies_Token,
          Semicolon_Token, Colon_Token, Generally_Token,
-         Finally_Token, Rbracket_Token, Lbracket_Token );
+         Finally_Token, Rbracket_Token, Lbracket_Token,
+         Equivalence_Token );
 
     Syntax_Error : exception;
 

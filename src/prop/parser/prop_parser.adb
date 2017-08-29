@@ -333,7 +333,7 @@ begin
                 case yy.rule_id is
 
 when  1 =>
---#line  118
+--#line  121
 
 yyval := new element_record(list);
 
@@ -344,7 +344,7 @@ yyval);
 yyval;
 
 when  2 =>
---#line  123
+--#line  126
 
 yyval := 
 yy.value_stack(yy.tos-1);
@@ -355,7 +355,7 @@ set_pos(
 yyval);
 
 when  3 =>
---#line  129
+--#line  132
 
 yyval := new element_record(Prop_Parser_Tokens.property);
 
@@ -369,7 +369,7 @@ yyval,
 yy.value_stack(yy.tos-2));
 
 when  4 =>
---#line  134
+--#line  137
 
 yyval := new element_record(Prop_Parser_Tokens.property);
 
@@ -383,7 +383,7 @@ yyval,
 yy.value_stack(yy.tos-3));
 
 when  5 =>
---#line  141
+--#line  144
 
 yyval := new element_record(state_property);
 
@@ -396,20 +396,20 @@ set_pos(
 yyval);
 
 when  6 =>
---#line  148
+--#line  151
 
 yyval := new element_record(deadlock);
 set_pos(
 yyval);
 
 when  7 =>
---#line  151
+--#line  154
 
 yyval := 
 yy.value_stack(yy.tos);
 
 when  8 =>
---#line  154
+--#line  157
 
 yyval := new element_record(list);
 
@@ -418,7 +418,7 @@ set_pos(
 yyval);
 
 when  9 =>
---#line  158
+--#line  161
 
 yyval := 
 yy.value_stack(yy.tos-1);
@@ -429,13 +429,13 @@ set_pos(
 yyval);
 
 when  10 =>
---#line  164
+--#line  167
 
 yyval := 
 yy.value_stack(yy.tos-1);
 
 when  11 =>
---#line  168
+--#line  171
 
 yyval := new element_record(Ltl_Property);
 
@@ -445,13 +445,13 @@ set_pos(
 yyval);
 
 when  12 =>
---#line  174
+--#line  177
 
 yyval := 
 yy.value_stack(yy.tos-1);
 
 when  13 =>
---#line  176
+--#line  179
 
 yyval := new element_record(Ltl_Prop);
 
@@ -461,7 +461,7 @@ set_pos(
 yyval);
 
 when  14 =>
---#line  180
+--#line  183
 
 yyval := new element_record(Ltl_Const);
 
@@ -470,7 +470,7 @@ set_pos(
 yyval);
 
 when  15 =>
---#line  184
+--#line  187
 
 yyval := new element_record(Ltl_Const);
 
@@ -479,7 +479,7 @@ set_pos(
 yyval);
 
 when  16 =>
---#line  188
+--#line  191
 
 yyval := new element_record(Ltl_Bin_Op);
 
@@ -494,7 +494,7 @@ set_pos(
 yyval);
 
 when  17 =>
---#line  194
+--#line  197
 
 yyval := new element_record(Ltl_Bin_Op);
 
@@ -509,7 +509,7 @@ set_pos(
 yyval);
 
 when  18 =>
---#line  200
+--#line  203
 
 yyval := new element_record(Ltl_Bin_Op);
 
@@ -524,7 +524,7 @@ set_pos(
 yyval);
 
 when  19 =>
---#line  206
+--#line  209
 
 yyval := new element_record(Ltl_Bin_Op);
 
@@ -539,7 +539,22 @@ set_pos(
 yyval);
 
 when  20 =>
---#line  212
+--#line  215
+
+yyval := new element_record(Ltl_Bin_Op);
+
+yyval.Ltl_Bin_Op_Operator := new element_record(equivalence_op);
+
+yyval.Ltl_Bin_Op_Left_Operand := 
+yy.value_stack(yy.tos-2);
+
+yyval.Ltl_Bin_Op_Right_Operand := 
+yy.value_stack(yy.tos);
+set_pos(
+yyval);
+
+when  21 =>
+--#line  221
 
 yyval := new element_record(Ltl_Un_Op);
 
@@ -550,8 +565,8 @@ yy.value_stack(yy.tos);
 set_pos(
 yyval);
 
-when  21 =>
---#line  217
+when  22 =>
+--#line  226
 
 yyval := new element_record(Ltl_Un_Op);
 
@@ -562,8 +577,8 @@ yy.value_stack(yy.tos);
 set_pos(
 yyval);
 
-when  22 =>
---#line  222
+when  23 =>
+--#line  231
 
 yyval := new element_record(Ltl_Un_Op);
 
@@ -574,8 +589,8 @@ yy.value_stack(yy.tos);
 set_pos(
 yyval);
 
-when  23 =>
---#line  229
+when  24 =>
+--#line  238
 
 yyval := new element_record(name);
 

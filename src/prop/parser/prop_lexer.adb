@@ -221,15 +221,15 @@ subtype short is integer range -32768..32767;
 
 -- returned upon end-of-file
 YY_END_TOK : constant integer := 0;
-YY_END_OF_BUFFER : constant := 16;
+YY_END_OF_BUFFER : constant := 17;
 subtype yy_state_type is integer;
 yy_current_state : yy_state_type;
 INITIAL : constant := 0;
-yy_accept : constant array(0..25) of short :=
+yy_accept : constant array(0..27) of short :=
     (   0,
-        0,    0,   16,   14,   12,   13,    2,    3,   14,   14,
-        4,    1,   14,   14,    8,   14,   12,   11,   10,    9,
-        5,    7,    8,    6,    0
+        0,    0,   17,   15,   13,   14,    2,    3,   15,   15,
+        4,    1,   15,   15,    9,   15,   13,   12,   11,   10,
+        0,    6,    7,    9,    5,    8,    0
     ) ;
 
 yy_ec : constant array(ASCII.NUL..Character'Last) of short :=
@@ -270,36 +270,36 @@ yy_meta : constant array(0..16) of short :=
         1,    1,    1,    1,    1,    1
     ) ;
 
-yy_base : constant array(0..25) of short :=
+yy_base : constant array(0..27) of short :=
     (   0,
-        0,    0,   29,   30,   26,   30,   30,   30,   20,   11,
-       30,   30,   11,   10,   11,    6,   19,   30,   30,   30,
-       30,   30,   12,   30,   30
+        0,    0,   31,   32,   28,   32,   32,   32,   22,   11,
+       32,   32,    7,   13,   13,    9,   22,   32,   32,   32,
+       10,   32,   32,   14,   32,   32,   32
     ) ;
 
-yy_def : constant array(0..25) of short :=
+yy_def : constant array(0..27) of short :=
     (   0,
-       25,    1,   25,   25,   25,   25,   25,   25,   25,   25,
-       25,   25,   25,   25,   25,   25,   25,   25,   25,   25,
-       25,   25,   25,   25,    0
+       27,    1,   27,   27,   27,   27,   27,   27,   27,   27,
+       27,   27,   27,   27,   27,   27,   27,   27,   27,   27,
+       27,   27,   27,   27,   27,   27,    0
     ) ;
 
-yy_nxt : constant array(0..46) of short :=
+yy_nxt : constant array(0..48) of short :=
     (   0,
         4,    5,    6,    7,    8,    9,   10,    4,   11,   12,
-       13,   14,    4,   15,   16,    4,   19,   20,   23,   23,
-       17,   24,   22,   21,   23,   23,   18,   17,   25,    3,
-       25,   25,   25,   25,   25,   25,   25,   25,   25,   25,
-       25,   25,   25,   25,   25,   25
+       13,   14,    4,   15,   16,    4,   19,   20,   21,   22,
+       24,   24,   26,   17,   25,   23,   24,   24,   18,   17,
+       27,    3,   27,   27,   27,   27,   27,   27,   27,   27,
+       27,   27,   27,   27,   27,   27,   27,   27
     ) ;
 
-yy_chk : constant array(0..46) of short :=
+yy_chk : constant array(0..48) of short :=
     (   0,
         1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
-        1,    1,    1,    1,    1,    1,   10,   10,   15,   23,
-       17,   16,   14,   13,   15,   23,    9,    5,    3,   25,
-       25,   25,   25,   25,   25,   25,   25,   25,   25,   25,
-       25,   25,   25,   25,   25,   25
+        1,    1,    1,    1,    1,    1,   10,   10,   13,   13,
+       15,   24,   21,   17,   16,   14,   15,   24,    9,    5,
+        3,   27,   27,   27,   27,   27,   27,   27,   27,   27,
+       27,   27,   27,   27,   27,   27,   27,   27
     ) ;
 
 
@@ -360,7 +360,7 @@ begin
 	end if;
 	while ( yy_chk(yy_base(yy_current_state) + yy_c) /= yy_current_state ) loop
 	    yy_current_state := yy_def(yy_current_state);
-	    if ( yy_current_state >= 26 ) then
+	    if ( yy_current_state >= 28 ) then
 		yy_c := yy_meta(yy_c);
 	    end if;
 	end loop;
@@ -426,13 +426,13 @@ begin -- of YYLex
 		end if;
 		while ( yy_chk(yy_base(yy_current_state) + yy_c) /= yy_current_state ) loop
 		    yy_current_state := yy_def(yy_current_state);
-		    if ( yy_current_state >= 26 ) then
+		    if ( yy_current_state >= 28 ) then
 			yy_c := yy_meta(yy_c);
 		    end if;
 		end loop;
 		yy_current_state := yy_nxt(yy_base(yy_current_state) + yy_c);
 	    yy_cp := yy_cp + 1;
-if ( yy_current_state = 25 ) then
+if ( yy_current_state = 27 ) then
     exit;
 end if;
 	end loop;
@@ -492,34 +492,38 @@ return proceed_special_token(Implies_Token);
 
 when 8 => 
 --# line 17 "prop_lexer.l"
-return proceed_string;
+return proceed_special_token(Equivalence_Token);
 
 when 9 => 
 --# line 18 "prop_lexer.l"
-return proceed_start_simple_comment;
+return proceed_string;
 
 when 10 => 
 --# line 19 "prop_lexer.l"
-return proceed_start_comment;
+return proceed_start_simple_comment;
 
 when 11 => 
 --# line 20 "prop_lexer.l"
-return proceed_end_comment;
+return proceed_start_comment;
 
 when 12 => 
 --# line 21 "prop_lexer.l"
-return proceed_blanks;
+return proceed_end_comment;
 
 when 13 => 
 --# line 22 "prop_lexer.l"
-return proceed_new_line;
+return proceed_blanks;
 
 when 14 => 
 --# line 23 "prop_lexer.l"
-return proceed_others;
+return proceed_new_line;
 
 when 15 => 
---# line 25 "prop_lexer.l"
+--# line 24 "prop_lexer.l"
+return proceed_others;
+
+when 16 => 
+--# line 26 "prop_lexer.l"
 ECHO;
 when YY_END_OF_BUFFER + INITIAL + 1 => 
     return End_Of_Input;
@@ -572,7 +576,7 @@ when YY_END_OF_BUFFER + INITIAL + 1 =>
             end case; -- case (yy_act)
         end loop; -- end of loop waiting for end of file
 end YYLex;
---# line 25 "prop_lexer.l"
+--# line 26 "prop_lexer.l"
 
 end Prop_Lexer;
 

@@ -24,6 +24,7 @@
 %left OR_TOKEN
 %left AND_TOKEN
 %left IMPLIES_TOKEN
+%left EQUIVALENCE_TOKEN
 %left UNTIL_TOKEN
 %left GENERALLY_TOKEN
 %left FINALLY_TOKEN
@@ -58,6 +59,7 @@
       And_Op,
       Or_Op,
       Implies_Op,
+      Equivalence_Op,
       Until_Op,
       Property,
       Deadlock,
@@ -81,6 +83,7 @@
          when Generally_Op => null;
          when Finally_Op => null;
          when Implies_Op => null;
+         when equivalence_Op => null;
          when Until_Op => null;
 	 when property =>
             property_name     : element;
@@ -205,6 +208,12 @@ set_pos($$);} |
 ltl_formula IMPLIES_TOKEN ltl_formula
 {$$ := new element_record(Ltl_Bin_Op);
 $$.Ltl_Bin_Op_Operator := new element_record(implies_op);
+$$.Ltl_Bin_Op_Left_Operand := $1;
+$$.Ltl_Bin_Op_Right_Operand := $3;
+set_pos($$);} |
+ltl_formula EQUIVALENCE_TOKEN ltl_formula
+{$$ := new element_record(Ltl_Bin_Op);
+$$.Ltl_Bin_Op_Operator := new element_record(equivalence_op);
 $$.Ltl_Bin_Op_Left_Operand := $1;
 $$.Ltl_Bin_Op_Right_Operand := $3;
 set_pos($$);} |

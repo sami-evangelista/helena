@@ -147,6 +147,7 @@ package body Prop_Parser.Analyser is
 		     when PPT.And_Op => Bop := Ltl_And;
 		     when PPT.Or_Op => Bop := Ltl_Or;
 		     when PPT.Implies_Op => Bop := Ltl_Implies;
+		     when PPT.Equivalence_Op => Bop := Ltl_Equivalence;
 		     when others => pragma Assert(False); null;
 		  end case;
 		  F := New_Ltl_Bin_Op(Left, Bop, Right);

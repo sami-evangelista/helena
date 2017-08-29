@@ -17,7 +17,8 @@ package Prop.Ltl is
 
    type Ltl_Un_Op is (Ltl_Generally, Ltl_Finally, Ltl_Not);
 
-   type Ltl_Bin_Op is (Ltl_And, Ltl_Or, Ltl_Until, Ltl_Implies);
+   type Ltl_Bin_Op is (Ltl_And, Ltl_Or, Ltl_Until, Ltl_Implies,
+		       Ltl_Equivalence);
 
 
    --==========================================================================

@@ -11,9 +11,10 @@ new_line       [\n]
 "("  {return proceed_special_token(lbracket_Token);}
 ")"  {return proceed_special_token(rbracket_Token);}
 ":"  {return proceed_special_token(colon_Token);}
-"<>" {return proceed_special_token(generally_Token);}
-"[]" {return proceed_special_token(finally_Token);}
+"[]" {return proceed_special_token(generally_Token);}
+"<>" {return proceed_special_token(finally_Token);}
 "=>" {return proceed_special_token(Implies_Token);}
+"<=>" {return proceed_special_token(Equivalence_Token);}
 {alpha_char}({id_char}*) {return proceed_string;}
 "//" {return proceed_start_simple_comment;}
 "/*" {return proceed_start_comment;}

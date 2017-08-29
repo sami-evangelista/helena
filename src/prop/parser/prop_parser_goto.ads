@@ -50,7 +50,7 @@ package Prop_Parser_Goto is
 -- State  15
 
 -- State  16
-,(-10, 31),(-4, 17)
+,(-10, 32),(-4, 17)
 
 -- State  17
 
@@ -59,12 +59,12 @@ package Prop_Parser_Goto is
 -- State  19
 
 -- State  20
-,(-10, 32),(-4, 17)
--- State  21
 ,(-10, 33),(-4, 17)
+-- State  21
+,(-10, 34),(-4, 17)
 
 -- State  22
-,(-10, 34),(-4, 17)
+,(-10, 35),(-4, 17)
 -- State  23
 
 -- State  24
@@ -74,16 +74,17 @@ package Prop_Parser_Goto is
 -- State  26
 
 -- State  27
-,(-10, 37),(-4, 17)
+,(-10, 38),(-4, 17)
 
 -- State  28
-,(-10, 38),(-4, 17)
--- State  29
 ,(-10, 39),(-4, 17)
+-- State  29
+,(-10, 40),(-4, 17)
 
 -- State  30
-,(-10, 40),(-4, 17)
+,(-10, 41),(-4, 17)
 -- State  31
+,(-10, 42),(-4, 17)
 
 -- State  32
 
@@ -94,9 +95,9 @@ package Prop_Parser_Goto is
 -- State  35
 
 -- State  36
-,(-8, 42)
--- State  37
 
+-- State  37
+,(-8, 44)
 -- State  38
 
 -- State  39
@@ -106,35 +107,39 @@ package Prop_Parser_Goto is
 -- State  41
 
 -- State  42
-,(-9, 44)
 
 -- State  43
-,(-7, 45),(-4, 25)
--- State  44
 
+-- State  44
+,(-9, 46)
 -- State  45
+,(-7, 47),(-4, 25)
 
 -- State  46
 
+-- State  47
+
+-- State  48
+
 );
 --  The offset vector
-GOTO_OFFSET : array (0.. 46) of Integer :=
+GOTO_OFFSET : array (0.. 48) of Integer :=
 ( 0,
  1, 2, 2, 2, 2, 2, 3, 4, 4, 4,
  4, 5, 8, 10, 10, 10, 12, 12, 12, 12,
  14, 16, 18, 18, 18, 18, 18, 20, 22, 24,
- 26, 26, 26, 26, 26, 26, 27, 27, 27, 27,
- 27, 27, 28, 30, 30, 30);
+ 26, 28, 28, 28, 28, 28, 28, 29, 29, 29,
+ 29, 29, 29, 29, 30, 32, 32, 32);
 
 subtype Rule        is Natural;
 subtype Nonterminal is Integer;
 
-   Rule_Length : array (Rule range  0 ..  23) of Natural := ( 2,
+   Rule_Length : array (Rule range  0 ..  24) of Natural := ( 2,
  0, 2, 5, 6, 4, 1, 1, 0,
  2, 3, 1, 3, 1, 1, 1, 3,
- 3, 3, 3, 2, 2, 2, 1);
-   Get_LHS_Rule: array (Rule range  0 ..  23) of Nonterminal := (-1,
+ 3, 3, 3, 3, 2, 2, 2, 1);
+   Get_LHS_Rule: array (Rule range  0 ..  24) of Nonterminal := (-1,
 -2,-2,-3,-3,-5,-7,-7,-8,
 -8,-9,-6,-10,-10,-10,-10,-10,
--10,-10,-10,-10,-10,-10,-4);
+-10,-10,-10,-10,-10,-10,-10,-4);
 end Prop_Parser_Goto;
