@@ -2,8 +2,8 @@
 
 # $1 = numero de version pour la release
 
-TMP_DIR=/tmp
-RELEASE_DIR=~/public_html/helena/releases/
+TMP_DIR=$(mktemp -d)
+RELEASE_DIR=~/svn/helena/releases/
 HELENA_SUBDIRS="bin doc examples src xml"
 EXEC="
 helena
@@ -12,74 +12,52 @@ helena-graph
 helena-report"
 
 #  tests preliminaires
-if [ $# -ne 1 ]
-then
-    echo "il faut le numero de version"
-    exit -1
-fi
-if [ -d $RELEASE_DIR/$1 ]
-then
-    echo "la version existe deja"
-    exit -1
-fi
+[ $# -ne 1 ] && echo "il faut le numero de version" && exit -1
+[ -d $RELEASE_DIR/$1 ] && echo "la version existe deja" && exit -1
 
 #  copie helena dans le repertoire temporaire
 echo "Copie le repertoire helena"
-rm -rf $TMP_DIR/helena &> /dev/null
 cd ..
 tar czf $TMP_DIR/helena.tgz helena
 cd $TMP_DIR
 tar xzf helena.tgz
+rm helena/make-release \
+   helena/TODO
 
-#  supprimer les fichiers ~ crees par emacs et les repertoires svn
+#  supprimer les fichiers ~ crees par emacs
 cd $TMP_DIR
-for emacs in $(find . -name \*~)
-do
-    rm -rf $emacs
-done
-for svn in $(find . -name .svn)
-do
-    rm -rf $svn
-done
-
+find . -name \*~ -o -name .git -exec rm -rf {} \;
 
 #  supprime les repertoires qui ne doivent pas apparaitre dans la
 #  distribution
 cd $TMP_DIR/helena
 for i in *
 do
-    if [ -d $i ]
+    [ ! -d $i ] && continue
+    if [ -z "$(echo $HELENA_SUBDIRS | grep $i)" ]
     then
-	if [ -z "$(echo $HELENA_SUBDIRS | grep $i)" ]
-	then
-	    rm -rf $TMP_DIR/helena/$i
-	fi
+	rm -rf $TMP_DIR/helena/$i
     fi
 done
-
 
 #  on ne garde que les fichiers pdf dans le repertoire docs
 cd $TMP_DIR/helena/doc
 echo "Compile la doc"
 make -s all &> /dev/null
 make -s all &> /dev/null
-mv helena*.pdf ..
-rm -rf *
-mv ../*.pdf .
-
+find . -type f -a ! -name helena\*.pdf -exec rm {} \;
 
 #  compile les sources
 cd $TMP_DIR/helena/src
 echo "Compile les sources"
 ./compile-helena --clean-all &> /dev/null
-export PATH=~/tools/gnat/bin:$PATH
 ./compile-helena --with-all #&> /dev/null
 ./compile-helena --clean &> /dev/null
 
 #  cree deux archives : avec les binaires et sans
 cd $TMP_DIR
 echo "Cree les archives"
-tar czf helena-$1-linux-x86.tgz helena
+tar czf helena-$1-$(uname --hardware-platform).tgz helena
 for e in $EXEC
 do
     mv helena/bin/$e helena/
@@ -89,13 +67,13 @@ for e in $EXEC
 do
     mv helena/$e helena/bin/
 done
-tar czf helena-$1-linux.tgz helena
+tar czf helena-$1.tgz helena
 
 #  copie les archives dans le repertoire des releases
 cd $RELEASE_DIR
 mkdir $1
 cd $1
-mv $TMP_DIR/helena-$1-*.tgz .
+mv $TMP_DIR/helena-$1*.tgz .
 
-#  supprime le repertoire temporaire d'helena
-rm -rf $TMP_DIR/helena*
+#  supprime le repertoire temporaire
+rm -rf $TMP_DIR
