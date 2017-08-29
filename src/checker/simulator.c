@@ -19,7 +19,7 @@ void simulator () {
   mstate_t stack[65536], succ;
   unsigned int stack_evt[65536];
   mevent_t e;
-  unsigned int n;
+  size_t n;
   char prop[65536];
   
   stack[0] = mstate_initial ();

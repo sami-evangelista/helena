@@ -152,6 +152,9 @@ void hash_storage_update_refs
  hash_storage_id_t id,
  int               update);
 
+large_unsigned_t hash_storage_size
+(hash_storage_t storage);
+
 void hash_storage_get_attr
 (hash_storage_t              storage,
  state_t                     s,

@@ -2,6 +2,7 @@
 #include "dfs.h"
 #include "bfs.h"
 #include "pd4.h"
+#include "simulator.h"
 #include "random_walk.h"
 #include "graph.h"
 
@@ -61,8 +62,6 @@ int main (int argc,
   pd4 (glob_report);
 #elif defined(ALGO_RWALK)
   random_walk (glob_report);
-#elif defined(ALGO_PSS)
-  pss (glob_report);
 #endif
   report_finalise (glob_report);
 

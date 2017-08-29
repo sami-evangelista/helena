@@ -45,8 +45,6 @@ fi
 
 (cd checker ; \
     ./gen-checker ; \
-    cd ../../xml ; \
-    ./gen-xml ; \
     cd -) &> /dev/null
 
 gprbuild -P helena.gpr -XBUILD=debug -XINSTALL_PATH=../bin

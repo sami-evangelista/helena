@@ -1,7 +1,8 @@
 #ifndef LIB_INCLUDES
 #define LIB_INCLUDES
 
-#define _XOPEN_SOURCE 600  /*  for pthread_barrier_t  */
+/*  for pthread_barrier_t and stdio.h */
+#define _XOPEN_SOURCE 700
 
 #include "stdio.h"
 #include "stdlib.h"

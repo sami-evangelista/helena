@@ -17,7 +17,6 @@ includes
 main
 observer
 pd4
-pss
 random_walk
 report
 simulator
