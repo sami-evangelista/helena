@@ -51,7 +51,8 @@ package body Pn.Compiler.Model is
 	 Mappings_Lib,
 	 Event_Lib,
 	 Event_Set_Lib,
-	 Enabling_Test_Lib);
+	 Enabling_Test_Lib,
+	 Por_Lib);
       Comment  : constant String :=
 	"This library contains functions generated for a model.";
       Params   : constant Ustring_List := Get_Parameters(N);
