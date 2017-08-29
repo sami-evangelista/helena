@@ -47,7 +47,6 @@ int main (int argc,
       float comp_time;
       sscanf (argv[i + 1], "%f", &comp_time);
       report_set_comp_time (glob_report, comp_time);
-    } else if (0 == strcmp (argv[i], "ip-manager")) {
     }
   }
 
