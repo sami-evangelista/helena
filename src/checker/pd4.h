@@ -18,30 +18,30 @@ typedef uint32_t pd4_storage_id_t;
 typedef struct {
   pd4_storage_id_t fst_child;
   pd4_storage_id_t next;
-  bool_t           father;
-  bool_t           dd;
-  bool_t           dd_visit;
-  bool_t           recons[2];
-  event_id_t       e;
+  bool_t father;
+  bool_t dd;
+  bool_t dd_visit;
+  bool_t recons[2];
+  event_id_t e;
 #ifdef ACTION_BUILD_RG
-  uint32_t         num;
+  uint32_t num;
 #endif
 } pd4_state_t;
 
 typedef struct {
-  unsigned char    content;
+  unsigned char content;
   pd4_storage_id_t id;
   pd4_storage_id_t pred;
-  event_id_t       e;
-  bit_vector_t     s;
-  hash_key_t       h;
-  uint16_t         width;
+  event_id_t e;
+  bit_vector_t s;
+  hash_key_t h;
+  uint16_t width;
 } pd4_candidate_t;
 
 typedef struct {
   pd4_storage_id_t root;
-  pd4_state_t      ST[HASH_SIZE];
-  int32_t          size[NO_WORKERS];
+  pd4_state_t ST[HASH_SIZE];
+  int32_t size[NO_WORKERS];
   large_unsigned_t dd_time;
   large_unsigned_t barrier_time[NO_WORKERS];
 } struct_pd4_storage_t;
@@ -66,27 +66,27 @@ large_unsigned_t pd4_storage_size
 
 void pd4_storage_output_stats
 (pd4_storage_t storage,
- FILE *        out);
+ FILE * out);
 
 void pd4_storage_id_serialise
 (pd4_storage_id_t id,
- bit_vector_t     v);
+ bit_vector_t v);
 
 pd4_storage_id_t pd4_storage_id_unserialise
 (bit_vector_t v);
 
 void pd4_storage_insert
-(pd4_storage_t      storage,
- state_t            s,
+(pd4_storage_t storage,
+ state_t s,
  pd4_storage_id_t * pred,
- event_id_t *       exec,
- uint32_t           depth,
- worker_id_t        w,
- bool_t *           is_new,
+ event_id_t * exec,
+ uint32_t depth,
+ worker_id_t w,
+ bool_t * is_new,
  pd4_storage_id_t * id);
 
 void pd4_storage_remove
-(pd4_storage_t    storage,
+(pd4_storage_t storage,
  pd4_storage_id_t id);
 
 order_t pd4_storage_id_cmp
@@ -94,36 +94,36 @@ order_t pd4_storage_id_cmp
  pd4_storage_id_t id2);
 
 state_t pd4_storage_get
-(pd4_storage_t    storage,
+(pd4_storage_t storage,
  pd4_storage_id_t ptr,
- worker_id_t      w);
+ worker_id_t w);
 
 state_t pd4_storage_get_mem
-(pd4_storage_t    storage,
+(pd4_storage_t storage,
  pd4_storage_id_t ptr,
- worker_id_t      w,
- heap_t           heap);
+ worker_id_t w,
+ heap_t heap);
 
 void pd4_storage_set_in_unproc
-(pd4_storage_t    storage,
+(pd4_storage_t storage,
  pd4_storage_id_t id,
- bool_t           in_unproc);
+ bool_t in_unproc);
 
 bool_t pd4_storage_get_in_unproc
-(pd4_storage_t    storage,
+(pd4_storage_t storage,
  pd4_storage_id_t id);
 
 state_num_t pd4_storage_get_num
-(pd4_storage_t    storage,
+(pd4_storage_t storage,
  pd4_storage_id_t id);
 
 void pd4_storage_update_refs
-(pd4_storage_t    storage,
+(pd4_storage_t storage,
  pd4_storage_id_t id,
- int              update);
+ int update);
 
 void pd4_storage_set_is_red
-(pd4_storage_t    storage,
+(pd4_storage_t storage,
  pd4_storage_id_t id);
 
 #endif

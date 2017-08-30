@@ -3,14 +3,14 @@
 
 void dfs_stack_slot_free
 (dfs_stack_slot_t slot) {
-  free (slot);
+  free(slot);
 }
 
 dfs_stack_slot_t dfs_stack_slot_new
 () {
   dfs_stack_slot_t result;
 
-  result = mem_alloc (SYSTEM_HEAP, sizeof (struct_dfs_stack_slot_t));
+  result = mem_alloc(SYSTEM_HEAP, sizeof(struct_dfs_stack_slot_t));
   return result;
 }
 
@@ -20,16 +20,16 @@ dfs_stack_t dfs_stack_new
   int i;
   char name[100];
 
-  result = mem_alloc (SYSTEM_HEAP, sizeof(struct_dfs_stack_t));
+  result = mem_alloc(SYSTEM_HEAP, sizeof(struct_dfs_stack_t));
   result->id = id;
   result->top = - 1;
   result->size = 0;
   result->current = 0;
   result->files = 0;
-  for (i = 0; i < DFS_STACK_SLOTS; i ++) {
-    sprintf (name, "DFS stack heap");
-    result->heaps[i] = bounded_heap_new (name, DFS_STACK_SLOT_SIZE * 1024);
-    result->slots[i] = dfs_stack_slot_new ();
+  for(i = 0; i < DFS_STACK_SLOTS; i ++) {
+    sprintf(name, "DFS stack heap");
+    result->heaps[i] = bounded_heap_new(name, DFS_STACK_SLOT_SIZE * 1024);
+    result->slots[i] = dfs_stack_slot_new();
   }
   return result;
 }
@@ -38,22 +38,22 @@ void dfs_stack_free
 (dfs_stack_t stack) {
   int i;
 
-  if (stack) {
-    for (i = 0; i < DFS_STACK_SLOTS; i ++) {
-      if (stack->slots[i]) {
-	dfs_stack_slot_free (stack->slots[i]);
+  if(stack) {
+    for(i = 0; i < DFS_STACK_SLOTS; i ++) {
+      if(stack->slots[i]) {
+	dfs_stack_slot_free(stack->slots[i]);
       }
-      if (stack->heaps[i]) {
-	heap_free (stack->heaps[i]);
+      if(stack->heaps[i]) {
+	heap_free(stack->heaps[i]);
       }
     }
-    free (stack);
+    free(stack);
   }
 }
 
 unsigned int dfs_stack_size
 (dfs_stack_t stack) {
-  if (stack) {
+  if(stack) {
     return stack->size;
   } else {
     return 0;
@@ -68,23 +68,23 @@ void dfs_stack_write
   char buffer[10000];
   dfs_stack_slot_t slot = stack->slots[0];
   
-  sprintf (buffer, "STACK-%d-%d", stack->id, stack->files);
-  f = fopen (buffer, "w");
-  for (i = 0; i < DFS_STACK_SLOT_SIZE; i ++) {
-    w = event_set_char_width (slot->items[i].en);
-    fwrite (&(slot->items[i].n), sizeof (unsigned char), 1, f);
-    event_set_serialise (slot->items[i].en, &(buffer[0]));
-    event_set_free (slot->items[i].en);
-    fwrite (&w, sizeof (unsigned int), 1, f);
-    fwrite (&(buffer[0]), w, 1, f);
-    storage_id_serialise (slot->items[i].id, &(buffer[0]));
-    fwrite (&(buffer[0]), storage_id_char_width, 1, f);
+  sprintf(buffer, "STACK-%d-%d", stack->id, stack->files);
+  f = fopen(buffer, "w");
+  for(i = 0; i < DFS_STACK_SLOT_SIZE; i ++) {
+    w = event_set_char_width(slot->items[i].en);
+    fwrite(&(slot->items[i].n), sizeof(unsigned char), 1, f);
+    event_set_serialise(slot->items[i].en, &(buffer[0]));
+    event_set_free(slot->items[i].en);
+    fwrite(&w, sizeof(unsigned int), 1, f);
+    fwrite(&(buffer[0]), w, 1, f);
+    storage_id_serialise(slot->items[i].id, &(buffer[0]));
+    fwrite(&(buffer[0]), storage_id_char_width, 1, f);
 #if defined(POR) && defined(PROVISO)
-    fwrite (&(slot->items[i].prov_ok), sizeof(bool_t), 1, f);
-    fwrite (&(slot->items[i].fully_expanded), sizeof(bool_t), 1, f);
+    fwrite(&(slot->items[i].prov_ok), sizeof(bool_t), 1, f);
+    fwrite(&(slot->items[i].fully_expanded), sizeof(bool_t), 1, f);
 #endif
   }
-  fclose (f);
+  fclose(f);
   stack->files ++;
 }
 
@@ -93,47 +93,47 @@ void dfs_stack_read
   int i;
   unsigned int w;
   FILE * f;
-  char buffer[10000], name[16];
+  char buffer[10000], name[20];
   dfs_stack_item_t item;
 
   stack->files --;
-  sprintf (name, "STACK-%d-%d", stack->id, stack->files);
-  f = fopen (name, "r");
-  heap_reset (stack->heaps[0]);
-  for (i = 0; i < DFS_STACK_SLOT_SIZE; i ++) {
-    fread (&item.n, sizeof (unsigned char), 1, f);
-    fread (&w, sizeof (unsigned int), 1, f);
-    fread (&(buffer[0]), w, 1, f);
-    item.heap_pos = heap_get_position (stack->heaps[0]);
-    item.en = event_set_unserialise_mem (&buffer[0], stack->heaps[0]);
-    fread (&(buffer[0]), storage_id_char_width, 1, f);
-    item.id = storage_id_unserialise (&(buffer[0]));
+  sprintf(name, "STACK-%d-%d", stack->id, stack->files);
+  f = fopen(name, "r");
+  heap_reset(stack->heaps[0]);
+  for(i = 0; i < DFS_STACK_SLOT_SIZE; i ++) {
+    fread(&item.n, sizeof(unsigned char), 1, f);
+    fread(&w, sizeof(unsigned int), 1, f);
+    fread(&(buffer[0]), w, 1, f);
+    item.heap_pos = heap_get_position(stack->heaps[0]);
+    item.en = event_set_unserialise_mem(&buffer[0], stack->heaps[0]);
+    fread(&(buffer[0]), storage_id_char_width, 1, f);
+    item.id = storage_id_unserialise(&(buffer[0]));
 #if defined(POR) && defined(PROVISO)
-    fread (&(item.prov_ok), sizeof(bool_t), 1, f);
-    fread (&(item.fully_expanded), sizeof(bool_t), 1, f);
+    fread(&(item.prov_ok), sizeof(bool_t), 1, f);
+    fread(&(item.fully_expanded), sizeof(bool_t), 1, f);
 #endif
     stack->slots[0]->items[i] = item;
   }
-  fclose (f);
-  remove (name);
+  fclose(f);
+  remove(name);
 }
 
 void dfs_stack_push
 (dfs_stack_t      stack,
  dfs_stack_item_t item) {
-  char name[100];
   stack->top ++;
   stack->size ++;
-  if (stack->top == DFS_STACK_SLOT_SIZE) {
-    if (stack->current == 1) {
-      dfs_stack_write (stack);
-      dfs_stack_slot_free (stack->slots[0]);
+  if(stack->top == DFS_STACK_SLOT_SIZE) {
+    if(stack->current == 1) {
+      char name[100];
+      dfs_stack_write(stack);
+      dfs_stack_slot_free(stack->slots[0]);
       stack->slots[0] = stack->slots[1];
-      stack->slots[1] = dfs_stack_slot_new ();
-      heap_free (stack->heaps[0]);
+      stack->slots[1] = dfs_stack_slot_new();
+      heap_free(stack->heaps[0]);
       stack->heaps[0] = stack->heaps[1];
-      sprintf (name, "DFS stack heap");
-      stack->heaps[1] = bounded_heap_new (name, DFS_STACK_SLOT_SIZE * 1024);
+      sprintf(name, "DFS stack heap");
+      stack->heaps[1] = bounded_heap_new(name, DFS_STACK_SLOT_SIZE * 1024);
     }
     stack->current = 1;
     stack->top = 0;
@@ -143,20 +143,20 @@ void dfs_stack_push
 
 void dfs_stack_pop
 (dfs_stack_t stack) {
-  if (stack->size == 0) {
-    fatal_error ("dfs_stack_pop: empty stack");
+  if(stack->size == 0) {
+    fatal_error("dfs_stack_pop: empty stack");
   }
-  heap_set_position (stack->heaps[stack->current],
-		     stack->slots[stack->current]->items[stack->top].heap_pos);
-  event_set_free (stack->slots[stack->current]->items[stack->top].en);
+  heap_set_position(stack->heaps[stack->current],
+                    stack->slots[stack->current]->items[stack->top].heap_pos);
+  event_set_free(stack->slots[stack->current]->items[stack->top].en);
   stack->top --;
   stack->size --;
-  if (stack->size > 0 && stack->top == -1) {
-    if (stack->current == 0) {
-      if (stack->files <= 0) {
-	fatal_error ("dfs_stack_read: no file to read from");
+  if(stack->size > 0 && stack->top == -1) {
+    if(stack->current == 0) {
+      if(stack->files <= 0) {
+	fatal_error("dfs_stack_read: no file to read from");
       }
-      dfs_stack_read (stack);
+      dfs_stack_read(stack);
     }
     stack->current = 0;
     stack->top = DFS_STACK_SLOT_SIZE - 1;
@@ -165,8 +165,8 @@ void dfs_stack_pop
 
 dfs_stack_item_t dfs_stack_top
 (dfs_stack_t stack) {
-  if (stack->size == 0) {
-    fatal_error ("dfs_stack_top: empty stack");
+  if(stack->size == 0) {
+    fatal_error("dfs_stack_top: empty stack");
   }
   return stack->slots[stack->current]->items[stack->top];
 }
@@ -186,19 +186,19 @@ event_set_t dfs_stack_compute_events
   unsigned int en_size;
   dfs_stack_item_t item = stack->slots[stack->current]->items[stack->top];
 
-  if (stack->size == 0) {
-    fatal_error ("dfs_stack_compute_events: empty stack");
+  if(stack->size == 0) {
+    fatal_error("dfs_stack_compute_events: empty stack");
   }
   item.n = 0;
-  item.heap_pos = heap_get_position (stack->heaps[stack->current]);
-  result = state_enabled_events_mem (s, stack->heaps[stack->current]);
+  item.heap_pos = heap_get_position(stack->heaps[stack->current]);
+  result = state_enabled_events_mem(s, stack->heaps[stack->current]);
 #ifdef POR
-  if (filter) {
-    en_size = event_set_size (result);
-    state_stubborn_set (s, result);
+  if(filter) {
+    en_size = event_set_size(result);
+    state_stubborn_set(s, result);
 #ifdef PROVISO
     item.prov_ok = TRUE;
-    item.fully_expanded = (en_size == event_set_size (result)) ? TRUE : FALSE;
+    item.fully_expanded =(en_size == event_set_size(result)) ? TRUE : FALSE;
   } else {
     item.prov_ok = TRUE;
     item.fully_expanded = TRUE;
@@ -206,12 +206,12 @@ event_set_t dfs_stack_compute_events
   }
 #endif
 #ifdef EDGE_LEAN
-  if (exec != NULL) {
-    bool_t keep_event (event_t e) {
-      return (LESS == event_cmp (*exec, e) ||
-	      !event_are_independent (e, *exec));
+  if(exec != NULL) {
+    bool_t keep_event(event_t e) {
+      return(LESS == event_cmp(*exec, e) ||
+             !event_are_independent(e, *exec));
     }
-    event_set_filter (result, keep_event);
+    event_set_filter(result, keep_event);
   }
 #endif
   item.en = result;
@@ -231,20 +231,20 @@ void dfs_stack_create_trace
   stacks[0] = red_stack;
   stacks[1] = blue_stack;
   r->trace_len = blue_stack->size - 1;
-  if (red_stack) {
+  if(red_stack) {
     r->trace_len += red_stack->size - 1;
   }
-  r->trace = mem_alloc (SYSTEM_HEAP, sizeof (event_t) * r->trace_len);
+  r->trace = mem_alloc(SYSTEM_HEAP, sizeof(event_t) * r->trace_len);
   now = r->trace_len - 1;
 
-  for (i = 0; i < 2; i ++) {
+  for(i = 0; i < 2; i ++) {
     stack = stacks[i];
-    if (stack) {
-      dfs_stack_pop (stack);
-      while (stack->size > 0) {
-	item = dfs_stack_top (stack);
-	r->trace[now --] = event_copy (event_set_nth (item.en, item.n - 1));
-	dfs_stack_pop (stack);
+    if(stack) {
+      dfs_stack_pop(stack);
+      while(stack->size > 0) {
+	item = dfs_stack_top(stack);
+	r->trace[now --] = event_copy(event_set_nth(item.en, item.n - 1));
+	dfs_stack_pop(stack);
       }
     }
   }

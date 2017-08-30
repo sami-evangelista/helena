@@ -352,7 +352,7 @@ package body Pn.Compiler.Vectors is
             Pc(Lib, ")");
          end if;
          Pc(Lib, " & " &
-            Get_Mask(I, Natural'Min(I + Bits_Per_Slot - 1, Size - 1)) & ")");
+              Get_Mask(I, Natural'Min(I + Bits_Per_Slot - 1, Size - 1)) & ")");
          I := I + Bits_Per_Slot;
          J := J + 1;
       end loop;
@@ -601,28 +601,6 @@ package body Pn.Compiler.Vectors is
       Plc(Lib, "}");
    end;
 
-   --  reallocation function
-   procedure Gen_Vector_Reallocate_Func
-     (Lib: in Library) is
-   begin
-      Plh(Lib,
-          "#define VECTOR_reallocate(_v, _old_size, _new_size) \");
-      Plh(Lib, "{ \");
-      Plh(Lib, 1, "vector new_v; \");
-      Plh(Lib, 1, "unsigned int i=0, size = (_new_size > _old_size) ? " &
-          Slots_For_Bits_Func & "(_old_size): " &
-          Slots_For_Bits_Func & "(_new_size); \");
-      Plh(Lib, 1, "VECTOR_new(new_v, _new_size); \");
-      Plh(Lib, 1, "for(; i<size; i++) \");
-      Plh(Lib, 2, "new_v.vector[i] = _v.vector[i]; \");
-      Plh(Lib, 1, "if(_v.vector) \");
-      Plh(Lib, 1, "{ \");
-      Plh(Lib, 2, "VECTOR_free(_v); \");
-      Plh(Lib, 1, "} \");
-      Plh(Lib, 1, "_v.vector = new_v.vector; \");
-      Plh(Lib, "}");
-   end;
-
    --  move into a bit vector
    procedure Gen_Vector_Move_Func
      (Lib: in Library) is
@@ -685,7 +663,6 @@ package body Pn.Compiler.Vectors is
       Gen_Vector_New_Func(Lib);
       Gen_Vector_Free_Func(Lib);
       Gen_Vector_Start_Func(Lib);
-      Gen_Vector_Reallocate_Func(Lib);
       Gen_Vector_At_Start_Func(Lib);
       Gen_Vector_Key_Func(Lib);
       Gen_Vector_Move_Func(Lib);

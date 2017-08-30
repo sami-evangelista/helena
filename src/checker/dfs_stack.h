@@ -8,17 +8,17 @@
 #error Model configuration missing!
 #endif
 
-#define DFS_STACK_SLOT_SIZE 10000
+#define DFS_STACK_SLOT_SIZE 100000
 #define DFS_STACK_SLOTS 2
 
 typedef struct {
   unsigned char n;
-  storage_id_t  id;
-  event_set_t   en;
-  heap_t        heap_pos;
+  storage_id_t id;
+  event_set_t en;
+  heap_t heap_pos;
 #if defined(POR) && defined(PROVISO)
-  bool_t        prov_ok;
-  bool_t        fully_expanded;
+  bool_t prov_ok;
+  bool_t fully_expanded;
 #endif
 } dfs_stack_item_t;
 
@@ -50,7 +50,7 @@ unsigned int dfs_stack_size
 (dfs_stack_t stack);
 
 void dfs_stack_push
-(dfs_stack_t      stack,
+(dfs_stack_t stack,
  dfs_stack_item_t item);
 
 void dfs_stack_pop
@@ -60,18 +60,18 @@ dfs_stack_item_t dfs_stack_top
 (dfs_stack_t stack);
 
 void dfs_stack_update_top
-(dfs_stack_t      stack,
+(dfs_stack_t stack,
  dfs_stack_item_t item);
 
 event_set_t dfs_stack_compute_events
 (dfs_stack_t stack,
- state_t     s,
- bool_t      filter,
- event_t *   exec);
+ state_t s,
+ bool_t filter,
+ event_t * exec);
 
 void dfs_stack_create_trace
 (dfs_stack_t blue_stack,
  dfs_stack_t red_stack,
- report_t    r);
+ report_t r);
 
 #endif

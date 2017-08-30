@@ -169,7 +169,6 @@ class Config:
                 self.traceType = FULL
         elif self.action == SIMULATE:
             self.runTimeChecks = True
-
         if self.algo == RWALK:
             self.stateCaching = False
             self.hashCompaction = False
@@ -188,7 +187,8 @@ class Config:
             self.hashCompaction = False
             self.workers = 1            
         elif self.algo == DFS:
-            self.workers = 1
+            pass
+            #self.workers = 1
 
         if self.hashCompaction:
             self.delta = False
@@ -278,12 +278,12 @@ class Config:
         W("#define HASH_SIZE_M " + str(pow(2, self.hashSize) - 1) + "\n")
         W("#define HASH_SIZE_BITS " + str(self.hashSize) + "\n")
         if self.delta:
-            W("#define STORAGE_DELTA\n")
-            W("#define STORAGE_DELTA_K " + str(self.kDelta) + "\n")
+            W("#define HASH_DELTA\n")
+            W("#define HASH_DELTA_K " + str(self.kDelta) + "\n")
         elif self.hashCompaction:
-            W("#define STORAGE_HASH_COMPACTION\n")
+            W("#define HASH_COMPACTION\n")
         else:
-            W("#define STORAGE_HASH\n")
+            W("#define HASH_STANDARD\n")
 
         #  action to perform
         if self.action == EXPLORE:
@@ -316,20 +316,11 @@ class Config:
 
         #  state attributes
         bitw = 0
-        W("#define ATTRIBUTE_ID\n")
-        W("#define ATTRIBUTE_ID_POS 0\n")
-        W("#define ATTRIBUTE_ID_WIDTH 16\n")
-        bitw = bitw + 16
         if True:
             W("#define ATTRIBUTE_IN_UNPROC\n")
             W("#define ATTRIBUTE_IN_UNPROC_POS " + str(bitw) + "\n")
             W("#define ATTRIBUTE_IN_UNPROC_WIDTH 1\n")
             bitw = bitw + 1
-        if self.action == BUILD_GRAPH:
-            W("#define ATTRIBUTE_NUM\n")
-            W("#define ATTRIBUTE_NUM_POS " + str(bitw) + "\n")
-            W("#define ATTRIBUTE_NUM_WIDTH 32\n")
-            bitw = bitw + 32
         predPtr = self.stateCaching and(self.delta or self.algo != DFS)
         if predPtr:
             W("#define ATTRIBUTE_REFS\n")

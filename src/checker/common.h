@@ -110,4 +110,6 @@ large_unsigned_t do_large_sum
 (large_unsigned_t * array,
  unsigned int       nb);
 
+#define CAS(val, old, new) (__sync_bool_compare_and_swap(val, old, new))
+
 #endif

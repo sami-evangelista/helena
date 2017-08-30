@@ -85,18 +85,18 @@ void report_stop_search
 
 void report_set_comp_time
 (report_t r,
- float    comp_time);
+ float comp_time);
 
 void report_update_bfs_levels
-(report_t     r,
+(report_t r,
  unsigned int bfs_levels);
 
 void report_update_max_unproc_size
-(report_t         r,
+(report_t r,
  large_unsigned_t max_unproc_size);
 
 void report_faulty_state
 (report_t r,
- state_t  s);
+ state_t s);
 
 #endif

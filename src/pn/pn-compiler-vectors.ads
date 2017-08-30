@@ -48,9 +48,10 @@ package Pn.Compiler.Vectors is
 
    --=====
    --  Constant: Max_Width
-   --  Maximal size in bits of an object that can be encoded in a bit vector.
+   --  Maximal size in bits of a basic object that can be encoded in a bit
+   --  vector.
    --=====
-   Max_Width: constant Natural := 32;
+   Max_Width: constant Natural := 64;
 
    --=====
    --  Subtype: Item_Width

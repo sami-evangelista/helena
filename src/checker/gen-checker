@@ -1,7 +1,6 @@
 #! /bin/bash
 
 files="
-sbfs
 bfs
 bfs_queue
 buchi
@@ -10,7 +9,7 @@ dfs
 dfs_stack
 event
 hash_array
-hash_storage
+hash_tbl
 heap
 graph
 includes
@@ -19,6 +18,7 @@ observer
 pd4
 random_walk
 report
+shared_hash_tbl
 simulator
 state
 storage"

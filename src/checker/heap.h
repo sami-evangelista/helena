@@ -10,8 +10,11 @@
 #define HEAP_TYPES 2
 
 
-void init_heap ();
-void free_heap ();
+void init_heap
+();
+
+void free_heap
+();
 
 typedef unsigned long long int mem_size_t;
 
@@ -31,7 +34,7 @@ typedef struct {
 typedef struct_bounded_heap_t * bounded_heap_t;
 
 void * bounded_heap_new
-(char *     name,
+(char * name,
  mem_size_t size);
 
 
@@ -59,7 +62,7 @@ typedef struct {
 typedef struct_evergrowing_heap_t * evergrowing_heap_t;
 
 void * evergrowing_heap_new
-(char *     name,
+(char * name,
  mem_size_t block_size);
 
 
@@ -70,7 +73,7 @@ void * evergrowing_heap_new
 typedef void * heap_t;
 
 void * mem_alloc
-(heap_t     heap,
+(heap_t heap,
  mem_size_t size);
 
 void mem_free

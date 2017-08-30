@@ -1,7 +1,8 @@
 #ifndef LIB_STORAGE
 #define LIB_STORAGE
 
-#include "hash_storage.h"
+#include "shared_hash_tbl.h"
+#include "hash_tbl.h"
 #include "pd4.h"
 
 #ifndef MODEL_CONFIG
@@ -10,13 +11,43 @@
 
 
 /*****
+ *  shared hash table used in multi-core algorithms
+ *****/
+#if defined (HASH_STORAGE)
+
+typedef shared_hash_tbl_t storage_t;
+typedef shared_hash_tbl_id_t storage_id_t;
+
+#define init_storage           init_shared_hash_tbl
+#define free_storage           free_shared_hash_tbl
+#define storage_id_serialise   shared_hash_tbl_id_serialise
+#define storage_id_unserialise shared_hash_tbl_id_unserialise
+#define storage_id_char_width  shared_hash_tbl_id_char_width
+#define storage_new            shared_hash_tbl_default_new
+#define storage_free           shared_hash_tbl_free
+#define storage_size           shared_hash_tbl_size
+#define storage_insert         shared_hash_tbl_insert
+#define storage_remove         shared_hash_tbl_remove
+#define storage_lookup         shared_hash_tbl_lookup
+#define storage_id_cmp         shared_hash_tbl_id_cmp
+#define storage_get            shared_hash_tbl_get
+#define storage_get_mem        shared_hash_tbl_get_mem
+#define storage_set_in_unproc  shared_hash_tbl_set_in_unproc
+#define storage_get_in_unproc  shared_hash_tbl_get_in_unproc
+#define storage_get_num        shared_hash_tbl_get_num
+#define storage_get_is_red     shared_hash_tbl_get_is_red
+#define storage_set_is_red     shared_hash_tbl_set_is_red
+#define storage_update_refs    shared_hash_tbl_update_refs
+#define storage_output_stats   shared_hash_tbl_output_stats
+
+
+/*****
  *  storage used by delta-ddd algorithm
  *****/
-#if defined (PD4_STORAGE)
+#elif defined (PD4_STORAGE)
 
 typedef pd4_storage_t storage_t;
 typedef pd4_storage_id_t storage_id_t;
-typedef void * storage_state_attr_t;
 
 #define init_storage           init_pd4_storage
 #define free_storage           free_pd4_storage
@@ -28,6 +59,7 @@ typedef void * storage_state_attr_t;
 #define storage_size           pd4_storage_size
 #define storage_insert         pd4_storage_insert
 #define storage_remove         pd4_storage_remove
+#define storage_lookup         pd4_storage_lookup
 #define storage_id_cmp         pd4_storage_id_cmp
 #define storage_get            pd4_storage_get
 #define storage_get_mem        pd4_storage_get_mem
@@ -35,8 +67,8 @@ typedef void * storage_state_attr_t;
 #define storage_get_in_unproc  pd4_storage_get_in_unproc
 #define storage_get_num        pd4_storage_get_num
 #define storage_set_is_red     pd4_storage_set_is_red
+#define storage_get_is_red     pd4_storage_get_is_red
 #define storage_update_refs    pd4_storage_update_refs
-#define storage_get_attr       pd4_storage_get_attr
 #define storage_output_stats   pd4_storage_output_stats
 
 
@@ -45,30 +77,30 @@ typedef void * storage_state_attr_t;
  *****/
 #else
 
-typedef hash_storage_t storage_t;
-typedef hash_storage_id_t storage_id_t;
-typedef hash_storage_state_attr_t storage_state_attr_t;
+typedef hash_tbl_t storage_t;
+typedef hash_tbl_id_t storage_id_t;
 
-#define init_storage           init_hash_storage
-#define free_storage           free_hash_storage
-#define storage_id_serialise   hash_storage_id_serialise
-#define storage_id_unserialise hash_storage_id_unserialise
-#define storage_id_char_width  hash_storage_id_char_width
-#define storage_new            hash_storage_default_new
-#define storage_free           hash_storage_free
-#define storage_size           hash_storage_size
-#define storage_insert         hash_storage_insert
-#define storage_remove         hash_storage_remove
-#define storage_id_cmp         hash_storage_id_cmp
-#define storage_get            hash_storage_get
-#define storage_get_mem        hash_storage_get_mem
-#define storage_set_in_unproc  hash_storage_set_in_unproc
-#define storage_get_in_unproc  hash_storage_get_in_unproc
-#define storage_get_num        hash_storage_get_num
-#define storage_set_is_red     hash_storage_set_is_red
-#define storage_update_refs    hash_storage_update_refs
-#define storage_get_attr       hash_storage_get_attr
-#define storage_output_stats   hash_storage_output_stats
+#define init_storage           init_hash_tbl
+#define free_storage           free_hash_tbl
+#define storage_id_serialise   hash_tbl_id_serialise
+#define storage_id_unserialise hash_tbl_id_unserialise
+#define storage_id_char_width  hash_tbl_id_char_width
+#define storage_new            hash_tbl_default_new
+#define storage_free           hash_tbl_free
+#define storage_size           hash_tbl_size
+#define storage_insert         hash_tbl_insert
+#define storage_remove         hash_tbl_remove
+#define storage_lookup         hash_tbl_lookup
+#define storage_id_cmp         hash_tbl_id_cmp
+#define storage_get            hash_tbl_get
+#define storage_get_mem        hash_tbl_get_mem
+#define storage_set_in_unproc  hash_tbl_set_in_unproc
+#define storage_get_in_unproc  hash_tbl_get_in_unproc
+#define storage_get_num        hash_tbl_get_num
+#define storage_get_is_red     hash_tbl_get_is_red
+#define storage_set_is_red     hash_tbl_set_is_red
+#define storage_update_refs    hash_tbl_update_refs
+#define storage_output_stats   hash_tbl_output_stats
 
 #endif
 

@@ -28,7 +28,7 @@ CCnoOpt="-pthread -lm"
 
 commonFiles="vectors"
 checkerSrcFiles="bfs bfs_queue buchi common config dfs dfs_stack event graph
-heap hash_array hash_storage observer pd4 prop random_walk report sbfs
+heap hash_array hash_tbl observer pd4 prop random_walk report shared_hash_tbl
 state simulator storage vectors"
 
 exitWithError () {

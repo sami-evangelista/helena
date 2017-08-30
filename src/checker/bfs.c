@@ -96,17 +96,6 @@ void * bfs_worker
     arcs = 0;
     en_size = event_set_size (en);
 
-    /*
-     *  print the node informations in the reachability graph file
-     */
-#ifdef ACTION_BUILD_RG
-    t = GT_NODE;
-    fwrite (&t, 1, 1, R->graph_file);
-    num = storage_get_num (storage, id);
-    fwrite (&num, sizeof (node_t), 1, R->graph_file);
-    fwrite (&en_size, sizeof (uint8_t), 1, R->graph_file);
-#endif
-
     for (i = 0; i < en_size; i ++) {
       event_t e = event_set_nth (en, i);
       event_id_t e_id = event_set_nth_id (en, i);
@@ -149,16 +138,6 @@ void * bfs_worker
 #endif
       }
       event_undo (e, s);
-
-      /*
-       *  print the edge in the reachability graph file
-       */
-#ifdef ACTION_BUILD_RG
-      num = storage_get_num (storage, id_new);
-      fwrite (&e_id, sizeof (edge_num_t), 1, R->graph_file);
-      fwrite (&num, sizeof (node_t), 1, R->graph_file);
-#endif
-
     }
     state_free (s);
     event_set_free (en);
