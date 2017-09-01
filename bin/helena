@@ -3,9 +3,18 @@
 #  File: helena
 #
 
+gcc='/usr/bin/gcc -Wunused-result'
+shcc='/usr/bin/oshcc -Wunused-result'
+shrun='/usr/bin/oshrun'
+
 helenaDir=$HOME/.helena
 tmpDir=$HOME/.helena/tmp-$RANDOM
-gcc='/usr/bin/gcc -Wunused-result'
+
+#  by default we compile the generated code with gcc
+CC=$gcc
+CC=$shcc
+
+RUN="./helena-checker"
 
 #  executable names
 lnaGenerator=helena-generate
@@ -24,7 +33,7 @@ version=2.3
 versionFile=VERSION
 
 #  options to pass for basic compilation
-CCnoOpt="-pthread -lm"
+CCopt="-pthread -lm"
 
 commonFiles="vectors"
 checkerSrcFiles="bfs bfs_queue buchi common config dfs dfs_stack event graph
@@ -42,16 +51,13 @@ error () {
 }
 
 msg () {
-    if [ $verbose -eq 1 ]
-    then
-	echo $*
-    fi
+    [ $verbose -eq 1 ] && echo $*
 }
 
 getModelDir () {
     if [ z$modelDir != z ]
     then
-	echo $modelDir/
+	echo $modelDir
     elif [ z$language = z ]
     then
 	error "\$language not set"
@@ -59,7 +65,7 @@ getModelDir () {
     then
 	error "\$model not set"
     else
-	echo $helenaDir/models/$language/$model/
+	echo $helenaDir/models/$language/$model
     fi
 }
 
@@ -77,15 +83,10 @@ checkExecutable () {
 
 createDirectory () {
     dir=$1
-    if [ ! -d $dir ]
-    then
-	if [ ! $(mkdir $dir &> /dev/null) ]
-	then
-	    msg "create directory '"$dir"'"
-	else
-	    error "directory '"$dir"' could not be created"
-	fi
-    fi
+    [ -d $dir ] && return
+    msg "create directory '"$dir"'"
+    mkdir $dir &> /dev/null
+    [ ! -d $dir ] && error "could not create directory '"$dir"'"
 }
 
 createEnvironment () {
@@ -114,18 +115,16 @@ compileCFiles () {
     links=$initLinks
     for f in $modelSrcFiles $checkerSrcFiles
     do
-	if [ -e $f.c ]
+	[ ! -e $f.c ] && continue
+	links=$links" "$f".o"
+	if [ ! -e $f.o ]
 	then
-	    links=$links" "$f".o"
-	    if [ ! -e $f.o ]
+	    compileCmd="$CC -c $f.c"
+	    msg "   > compile file "$f.c" ("$compileCmd")"
+	    eval $compileCmd		
+	    if [ ! $? -eq 0 ]
 	    then
-		compileCmd="$CC -c $f.c"
-		msg "   > compile file "$f.c" ("$compileCmd")"
-		eval $compileCmd		
-		if [ ! $? -eq 0 ]
-		then
-		    error "compilation of file "$dir"/"$f".c failed"
-		fi
+		error "compilation of file "$dir"/"$f".c failed"
 	    fi
 	fi
     done
@@ -221,8 +220,10 @@ generateChecker () {
 
 launchChecker () {
     local dir=$(getModelDir)/src
+    [ "$machineFile" != "" ] && cp "$machineFile" $dir
     pushd $dir &> /dev/null
-    ./helena-checker comp-time $ccTime
+    echo "$RUN comp-time $ccTime"
+    $RUN comp-time $ccTime
     if [ -e $xmlReportFile ]
     then
 	mv $xmlReportFile ..
@@ -243,7 +244,9 @@ launchChecker () {
 #####
 #  options
 verbose=0
+DDFS=0
 reportFile=""
+machineFile=""
 
 for arg in $*
 do
@@ -252,27 +255,44 @@ do
 	-h|--help) $configGenerator -h dummy dummy ; exit 0 ;;
 	-V|--version) $configGenerator -V dummy dummy ; exit 0 ;;
 	-md=*|--model-directory=*)
-	idx=$(expr index $arg =)
-	modelDir=${arg:$idx}
-	;;
+	    idx=$(expr index $arg =)
+	    modelDir=${arg:$idx}
+            ;;
+	-A=DDFS|--algo=DDFS)
+            CC=$shcc
+            DDFS=1
+	    ;;
 	-o=*|--report-file=*)
-	idx=$(expr index $arg =)
-	reportFile=${arg:$idx}
-	;;
+	    idx=$(expr index $arg =)
+	    reportFile=${arg:$idx}
+	    ;;
     esac
 done
+if [ $DDFS -eq 1 ]
+then
+    for arg in $*
+    do
+        case $arg in
+	    -mf=*|--machine-file=*)
+	        idx=$(expr index $arg =)
+	        machineFile=${arg:$idx}
+                [ ! -e "$machineFile" ] && \
+                    error "machine file '$machineFile' could not be found"
+                RUN=$shrun" -machinefile $machineFile "$RUN
+                ;;
+        esac
+    done
+    [ z"$machineFile" = z ] && \
+        error "algorithm DDF needs a machine file (option \
+                --machine-file=FILE)"
+fi
 
 #####
 #  check that model file exists and is readable
 modelFile=$arg
-if [ "$modelFile" = "" ]
-then
-    error "model file expected"
-fi
-if [ ! -f $modelFile -o ! -r $modelFile ]
-then
+[ "$modelFile" = "" ] &&  error "model file expected"
+[ ! -f $modelFile -o ! -r $modelFile ] && \
     error "file $modelFile does not exist or is not readable"
-fi
 
 createEnvironment
 
@@ -298,7 +318,7 @@ case $extension in
 	;;
     dve)
 	language=dve
-	CCnoOpt=$CCnoOpt" -fpack-struct"
+	CCopt=$CCopt" -fpack-struct"
 	generateDVE $modelFile
 	;;
     *)
@@ -332,10 +352,7 @@ fi
 #####
 #  create the model directory and put in it files generated for the
 #  model
-if [ -e $(getModelDir) ]
-then
-    rm -rf $(getModelDir)
-fi
+[ -e $(getModelDir) ] && rm -rf $(getModelDir)
 createDirectory $(getModelDir)
 createDirectory $(getModelDir)/src
 mv $tmpDir/* $(getModelDir)/src
@@ -350,13 +367,13 @@ for arg in $*
 do
     case $arg in
 	-L=*|--link=*)
-        idx=$(expr index $arg =)
-	inFile=${arg:$idx}
-	f=user_file_$num.o
-	num=$((num + 1))
-	cp $inFile $(getModelDir)/src/$f
-	initLinks=$initLinks" "$f
-	;;
+            idx=$(expr index $arg =)
+	    inFile=${arg:$idx}
+	    f=user_file_$num.o
+	    num=$((num + 1))
+	    cp $inFile $(getModelDir)/src/$f
+	    initLinks=$initLinks" "$f
+	    ;;
     esac
 done
 
@@ -365,9 +382,9 @@ done
 msg "Compiling source files ..."
 startSec=$(date +"%s")
 startNan=$(date +"%N")
-CC=$gcc" "$CCnoOpt" -O3"
-CC_GP=$gcc" "$CCnoOpt" -pg"
-CC_VG=$gcc" "$CCnoOpt" -O0 -g"
+CC=$CC" "$CCopt" -O3"
+CC_GP=$CC" "$CCopt" -pg"
+CC_VG=$CC" "$CCopt" -O0 -g"
 cp $helenaDir/common/* $(getModelDir)/src/ &> /dev/null
 compileCFiles
 endSec=$(date +"%s")

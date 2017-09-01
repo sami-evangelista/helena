@@ -20,10 +20,10 @@ VERSION = "2.3"
 DATE    = "April 1, 2013"
 
 DFS         = "DFS"
+DDFS        = "DDFS"
 BFS         = "BFS"
 FRONTIER    = "FRONTIER"
 DELTA_DDD   = "DELTA-DDD"
-PSS         = "PSS"
 RWALK       = "RWALK"
 FULL        = "FULL"
 EVENTS      = "EVENTS"
@@ -89,11 +89,12 @@ def printHelp():
     print "  -V   --version"
     print "  -v   --verbose"
     print "  -N   --action={EXPLORE|SIMULATE|BUILD-GRAPH|CHECK-prop}"
-    print "  -p   --property-file=FILE-NAME"
+    print "  -p   --property-file=FILE"
     print "  -md  --model-directory=DIRECTORY"
+    print "  -mf  --machine-file=FILE"
     print ""
     print "Search and storage options"
-    print "  -A   --algo={DFS|BFS|FRONTIER|DELTA-DDD|RWALK}"
+    print "  -A   --algo={DFS|DDFS|BFS|FRONTIER|DELTA-DDD|RWALK}"
     print "  -t   --hash-size=H"
     print "  -W   --workers=WORKERS"
     print "  -cs  --candidate-set-size=N"
@@ -154,6 +155,7 @@ class Config:
         self.propositions = []
         self.parameters = []
 
+    #  correct inconsistencies in received arguments
     def correct(self):
         if self.action == BUILD_GRAPH:
             self.algo = DELTA_DDD
@@ -163,7 +165,8 @@ class Config:
             self.partialOrder = False
             self.workers = 1
         elif self.action == CHECK and self.propertyType == LTL:
-            self.algo = DFS
+            if self.algo not in [ DFS, DDFS]:
+                self.algo = DFS
             self.stateCaching = False
             if self.traceType == STATE:
                 self.traceType = FULL
@@ -185,11 +188,7 @@ class Config:
             self.delta = False
         elif self.algo == BFS:
             self.hashCompaction = False
-            self.workers = 1            
-        elif self.algo == DFS:
-            pass
-            #self.workers = 1
-
+            self.workers = 1 
         if self.hashCompaction:
             self.delta = False
 
@@ -199,7 +198,7 @@ class Config:
         else:
             return open(self.directory + os.sep + name, mode)
 
-    def compile(self):
+    def generateConfigFile(self):
         f = self.openFile("config.h", "w")
         W = f.write
         now = datetime.now()
@@ -241,6 +240,9 @@ class Config:
             W("#define HASH_STORAGE\n")
         elif self.algo == DFS:
             W("#define ALGO_DFS\n")
+            W("#define HASH_STORAGE\n")
+        elif self.algo == DDFS:
+            W("#define ALGO_DDFS\n")
             W("#define HASH_STORAGE\n")
         elif self.algo == DELTA_DDD:
             W("#define ALGO_PD4\n")
@@ -447,6 +449,8 @@ class Config:
                 recognized = self.handleStringOption("reportFile", val)
             elif opt in [ "md", "model-directory" ]:
                 recognized = True
+            elif opt in [ "mf", "machine-file" ]:
+                recognized = True
             elif opt in [ "m", "parameter" ]:
                 recognized = self.handleStringOption(None, val)
                 if recognized:
@@ -458,8 +462,8 @@ class Config:
             #  enum options
             elif opt in [ "A", "algo" ]:
                 recognized = self.handleEnumOption \
-                    ("algo", val, [DFS, BFS, FRONTIER, \
-                                       DELTA_DDD, RWALK, PSS])
+                    ("algo", val, [DDFS, DFS, BFS, FRONTIER, \
+                                   DELTA_DDD, RWALK])
             elif opt in [ "tr", "trace-type" ]:
                 recognized = self.handleEnumOption \
                     ("traceType", val, [FULL, EVENTS, STATE])
@@ -536,13 +540,12 @@ class Config:
             f.write(" " + o)
         f.close()
 
-def main():
+if __name__ == "__main__":
     C = Config()
     C.parseFromCommandLine()
     C.generatePropertyCode()
     C.correct()
-    C.compile()
+    C.generateConfigFile()
     C.outputModelOptions()
 
-main()
 exit(0)

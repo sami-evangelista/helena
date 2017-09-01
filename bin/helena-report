@@ -62,6 +62,7 @@ algorithms = {
     "breadthSearch"             : "Breadth-first search",
     "frontierSearch"            : "Frontier search",
     "depthSearch"               : "Depth-first search",
+    "distributedDepthSearch"    : "Distributed depth-first searches",
     "randomWalk"                : "Random walk",
     "parallelDDDD"              : "Delta-DDD" }
 options = {

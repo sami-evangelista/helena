@@ -211,8 +211,10 @@ void report_finalise
     fprintf(out, "<errorMessage>%s</errorMessage>\n", r->error_msg);
     break;
   }
-#if   defined(ALGO_DFS)
+#if defined(ALGO_DFS)
   fprintf(out, "<depthSearch/>\n");
+#elif defined(ALGO_DDFS)
+  fprintf(out, "<distributedDepthSearch/>\n");
 #elif defined(ALGO_BFS)
   fprintf(out, "<breadthSearch/>\n");
 #elif defined(ALGO_FRONTIER)

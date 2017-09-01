@@ -56,7 +56,7 @@ int main
    */
 #if defined(ALGO_BFS) || defined(ALGO_FRONTIER)
   bfs(glob_report);
-#elif defined(ALGO_DFS)
+#elif defined(ALGO_DFS) || defined(ALGO_DDFS)
   dfs(glob_report);
 #elif defined(ALGO_PD4)
   pd4(glob_report);
