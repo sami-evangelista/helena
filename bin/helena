@@ -36,9 +36,9 @@ versionFile=VERSION
 CCopt="-pthread -lm"
 
 commonFiles="vectors"
-checkerSrcFiles="bfs bfs_queue buchi common config dfs dfs_stack event graph
-heap hash_array hash_compaction hash_tbl observer pd4 prop random_walk report
-shared_hash_tbl state simulator storage vectors"
+checkerSrcFiles="bfs bfs_queue buchi common config ddfs_comm dfs dfs_stack
+event graph heap hash_array hash_compaction hash_tbl observer pd4 prop
+random_walk report shared_hash_tbl state simulator storage vectors"
 
 exitWithError () {
     rm -rf $tmpDir &> /dev/null
@@ -222,7 +222,7 @@ launchChecker () {
     local dir=$(getModelDir)/src
     [ "$machineFile" != "" ] && cp "$machineFile" $dir
     pushd $dir &> /dev/null
-    echo "$RUN comp-time $ccTime"
+    msg "Launching search ($RUN comp-time $ccTime) ..."
     $RUN comp-time $ccTime
     if [ -e $xmlReportFile ]
     then

@@ -165,8 +165,7 @@ class Config:
             self.partialOrder = False
             self.workers = 1
         elif self.action == CHECK and self.propertyType == LTL:
-            if self.algo not in [ DFS, DDFS]:
-                self.algo = DFS
+            self.algo = DFS
             self.stateCaching = False
             if self.traceType == STATE:
                 self.traceType = FULL
@@ -189,6 +188,10 @@ class Config:
         elif self.algo == BFS:
             self.hashCompaction = False
             self.workers = 1 
+        elif self.algo == DDFS:
+            self.partialOrder = False
+            self.delta = False
+            self.stateCaching = False
         if self.hashCompaction:
             self.delta = False
 

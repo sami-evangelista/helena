@@ -1,5 +1,4 @@
 #include "hash_tbl.h"
-#include "report.h"
 #include "math.h"
 #include "vectors.h"
 

@@ -3,6 +3,10 @@
 #include "storage.h"
 #include "dfs_stack.h"
 #include "prop.h"
+#ifdef ALGO_DDFS
+#include "ddfs_comm.h"
+#include "shmem.h"
+#endif
 
 static report_t R;
 
@@ -14,6 +18,7 @@ state_t dfs_main
  bool_t blue,
  dfs_stack_t blue_stack,
  dfs_stack_t red_stack) {
+#if defined(ALGO_DDFS) || defined(ALGO_DFS)
   storage_id_t id_seed;
   storage_t storage = R->storage;
   bool_t push;
@@ -102,6 +107,13 @@ state_t dfs_main
       } else {
         storage_set_red(storage, id_top, TRUE);
       }
+
+      /*
+       *  in distributed DFS we process the state to be later sent
+       */
+#ifdef ALGO_DDFS
+      ddfs_comm_process_explored_state(storage, id_top);
+#endif
 
       /*
        *  and finally pop the state
@@ -214,10 +226,12 @@ state_t dfs_main
     storage_set_red(storage, id_seed, TRUE);
   }
   return now;
+#endif
 }
 
 void * dfs_worker
 (void * arg) {
+#if defined(ALGO_DDFS) || defined(ALGO_DFS)
   worker_id_t w = (worker_id_t) (unsigned long int) arg;
   bool_t dummy;
   storage_id_t id;
@@ -236,14 +250,29 @@ void * dfs_worker
   dfs_stack_free(red_stack);
   state_free(now);
   heap_free(heap);
+#endif
 }
 
 void dfs
 (report_t r) {
+#if defined(ALGO_DDFS) || defined(ALGO_DFS)
   worker_id_t w;
   void * dummy;
 
   R = r;
+
+#ifdef ALGO_DDFS
+  start_pes(0);
+  int data = 1024;
+  int me = shmem_my_pe();
+  printf("# of PEs = %d\n", shmem_n_pes());
+  printf("me       = %d\n", me);
+  int * i = shmalloc(1000000);
+  printf("%p\n", i);
+  if(me == 0) {
+    shmem_int_put (i, &data, 1, 1);
+  }
+#endif
 
   /*
    *  start the threads and wait for their termination
@@ -254,4 +283,10 @@ void dfs
   for(w = 0; w < r->no_workers; w ++) {
     pthread_join(r->workers[w], &dummy);
   }
+
+#ifdef ALGO_DDFS
+  shmem_barrier_all();
+  printf("%d a recu : %d\n", me, *i);
+#endif
+#endif
 }
