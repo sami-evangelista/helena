@@ -47,8 +47,9 @@ shared_hash_tbl_t shared_hash_tbl_new
   for(i = 0; i < result->hash_size; i++) {
     result->update_status[i] = BUCKET_READY;
     result->status[i] = BUCKET_EMPTY;
+#ifndef HASH_COMPACTION
     result->state[i] = NULL;
-    result->hash[i] = 0;
+#endif
   }
   return result;
 
@@ -64,16 +65,16 @@ void shared_hash_tbl_free
   uint64_t i = 0;
   worker_id_t w;
   
+#ifndef HASH_COMPACTION
+  for(i = 0; i < tbl->hash_size; i++) {
+    if(tbl->state[i]) {
+      mem_free(tbl->heaps[w], tbl->state[i]);
+    }
+  }
+#endif
   for(w = 0; w < NO_WORKERS; w ++) {
     heap_free(tbl->heaps[w]);
   }
-  /*
-  for(i = 0; i < tbl->hash_size; i++) {
-    if(tbl->state[i]) {
-      mem_free(SYSTEM_HEAP, tbl->state[i]);
-    }
-  }
-  */
   mem_free(SYSTEM_HEAP, tbl);
 }
 
@@ -100,9 +101,18 @@ void shared_hash_tbl_insert
   unsigned int trials = 0;
   vector bits;
   unsigned int i, len;
-  hash_key_t h = state_hash(s);
-  shared_hash_tbl_id_t pos = h % tbl->hash_size;
+  hash_key_t h;
+  shared_hash_tbl_id_t pos;
   bit_vector_t es;
+  hash_compact_t hc, hc_other;
+
+#ifdef HASH_COMPACTION
+  hash_compact(s, &hc);
+  h = hc.keys[0];
+#else
+  h = state_hash(s);
+#endif
+  pos = h % tbl->hash_size;
   
   while(TRUE) {
     if(tbl->status[pos] == BUCKET_EMPTY) {
@@ -111,15 +121,18 @@ void shared_hash_tbl_insert
         /*
          *  encode the state
          */
+#ifdef HASH_COMPACTION
+        memcpy(&(tbl->state[pos][ATTRIBUTES_CHAR_WIDTH]), &hc,
+               sizeof(hash_compact_t));
+#else
         len = state_char_width(s) + ATTRIBUTES_CHAR_WIDTH;
         es = mem_alloc(tbl->heaps[w], len);
         for(i = 0; i < len; i ++) {
           es[i] = 0;
         }
         state_serialise(s, es + ATTRIBUTES_CHAR_WIDTH);
-        
-        tbl->hash[pos] = h;
         tbl->state[pos] = es;
+#endif
         tbl->status[pos] = BUCKET_READY;
         tbl->size[w] ++;
         (*is_new) = TRUE;
@@ -130,9 +143,18 @@ void shared_hash_tbl_insert
     while(tbl->status[pos] == BUCKET_WRITE) {
       nanosleep(&SLEEP_TIME, NULL);
     }
-    if(tbl->hash[pos] == h && tbl->status[pos] == BUCKET_READY) {
+    if(tbl->status[pos] == BUCKET_READY) {
       tbl->state_cmps[w] ++;
-      if(state_cmp_vector(s, tbl->state[pos] + ATTRIBUTES_CHAR_WIDTH)) {
+#ifdef HASH_COMPACTION
+      memcpy(&hc_other, &(tbl->state[pos][ATTRIBUTES_CHAR_WIDTH]),
+             sizeof(hash_compact_t));
+      (*is_new) = hash_compact_equal(hc, hc_other)
+        ? FALSE : TRUE;
+#else
+      (*is_new) = state_cmp_vector(s, tbl->state[pos] + ATTRIBUTES_CHAR_WIDTH)
+        ? FALSE : TRUE;
+#endif
+      if(!(*is_new)) {
         (*is_new) = FALSE;
         (*id) = pos;
         return;
@@ -175,7 +197,11 @@ state_t shared_hash_tbl_get_mem
  worker_id_t w,
  heap_t heap) {
   state_t result;
+#ifdef HASH_COMPACTION
+  fatal_error("shared_hash_tbl_get_mem disabled by hash compaction");
+#else
   result = state_unserialise_mem(tbl->state[id] + ATTRIBUTES_CHAR_WIDTH, heap);
+#endif
   return result;
 }
 

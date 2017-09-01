@@ -161,9 +161,9 @@ void pd4_storage_free
   mem_free (SYSTEM_HEAP, storage);
 }
 
-large_unsigned_t pd4_storage_size
+uint64_t pd4_storage_size
 (pd4_storage_t storage) {
-  large_unsigned_t result = 0;
+  uint64_t result = 0;
   worker_id_t w;
   for (w = 0; w < NO_WORKERS; w ++) {
     result += storage->size[w];

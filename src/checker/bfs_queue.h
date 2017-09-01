@@ -20,9 +20,9 @@ typedef struct_bfs_queue_node_t * bfs_queue_node_t;
 typedef struct {
   bfs_queue_node_t first;
   bfs_queue_node_t last;
-  large_unsigned_t first_index;
-  large_unsigned_t last_index;
-  large_unsigned_t size;
+  uint64_t first_index;
+  uint64_t last_index;
+  uint64_t size;
   bool_t shared;
 } struct_bfs_queue_t;
 
@@ -38,10 +38,10 @@ bool_t bfs_queue_is_empty
 void bfs_queue_free
 (bfs_queue_t q);
 
-large_unsigned_t bfs_queue_size
+uint64_t bfs_queue_size
 (bfs_queue_t q);
 
-large_unsigned_t bfs_queue_enqueue
+uint64_t bfs_queue_enqueue
 (bfs_queue_t  q,
  bfs_queue_item_t s);
 

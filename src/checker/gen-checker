@@ -9,6 +9,7 @@ dfs
 dfs_stack
 event
 hash_array
+hash_compaction
 hash_tbl
 heap
 graph

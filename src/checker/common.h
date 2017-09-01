@@ -29,8 +29,6 @@ typedef unsigned short state_sizeof_t;
 
 typedef char * bit_vector_t;
 
-typedef uint64_t large_unsigned_t;
-
 typedef uint32_t hash_key_t;
 
 typedef uint32_t state_num_t;
@@ -56,7 +54,7 @@ rseed_t random_int (rseed_t * seed);
 
 typedef struct {
   struct timeval start;
-  large_unsigned_t value;
+  uint64_t value;
 } lna_timer_t;
 
 void lna_timer_init
@@ -68,10 +66,10 @@ void lna_timer_start
 void lna_timer_stop
 (lna_timer_t * t);
 
-large_unsigned_t lna_timer_value
+uint64_t lna_timer_value
 (lna_timer_t t);
 
-large_unsigned_t duration
+uint64_t duration
 (struct timeval t0,
  struct timeval t1);
 
@@ -106,8 +104,8 @@ void stop_search
 FILE * open_graph_file
 ();
 
-large_unsigned_t do_large_sum
-(large_unsigned_t * array,
+uint64_t do_large_sum
+(uint64_t * array,
  unsigned int       nb);
 
 #define CAS(val, old, new) (__sync_bool_compare_and_swap(val, old, new))

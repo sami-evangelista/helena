@@ -240,7 +240,7 @@ void graph_bfs
   uint32_t edges = 0;
   uint32_t lg;
   uint32_t * depth;
-  large_unsigned_t ble_length_sum = 0;
+  uint64_t ble_length_sum = 0;
   int i;
   node_t * queue;
   bool_t * visited;

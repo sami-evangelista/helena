@@ -4,6 +4,7 @@
 #include "state.h"
 #include "event.h"
 #include "heap.h"
+#include "hash_compaction.h"
 
 #ifndef MODEL_CONFIG
 #error Model configuration missing!
@@ -24,8 +25,11 @@ typedef struct {
   uint64_t state_cmps[NO_WORKERS];
   bucket_status_t update_status[HASH_SIZE];
   bucket_status_t status[HASH_SIZE];
+#ifdef HASH_COMPACTION
+  char state[HASH_SIZE][ATTRIBUTES_CHAR_WIDTH + sizeof(hash_compact_t)];
+#else
   bit_vector_t state[HASH_SIZE];
-  hash_key_t hash[HASH_SIZE];
+#endif
 } struct_shared_hash_tbl_t;
 
 typedef struct_shared_hash_tbl_t * shared_hash_tbl_t;

@@ -30,17 +30,17 @@ void bfs_queue_free
   free (q);
 }
 
-large_unsigned_t bfs_queue_size
+uint64_t bfs_queue_size
 (bfs_queue_t q) {
-  large_unsigned_t result;
+  uint64_t result;
   result = q->size;
   return result;
 }
 
-large_unsigned_t bfs_queue_enqueue
+uint64_t bfs_queue_enqueue
 (bfs_queue_t  q,
  bfs_queue_item_t s) {
-  large_unsigned_t result;
+  uint64_t result;
   if(!q->first) {
     q->last_index = 0;
     q->last = (bfs_queue_node_t)

@@ -42,8 +42,8 @@ typedef struct {
   pd4_storage_id_t root;
   pd4_state_t ST[HASH_SIZE];
   int32_t size[NO_WORKERS];
-  large_unsigned_t dd_time;
-  large_unsigned_t barrier_time[NO_WORKERS];
+  uint64_t dd_time;
+  uint64_t barrier_time[NO_WORKERS];
 } struct_pd4_storage_t;
 
 typedef struct_pd4_storage_t * pd4_storage_t;
@@ -61,7 +61,7 @@ pd4_storage_t pd4_storage_new
 void pd4_storage_free
 (pd4_storage_t storage);
 
-large_unsigned_t pd4_storage_size
+uint64_t pd4_storage_size
 (pd4_storage_t storage);
 
 void pd4_storage_output_stats

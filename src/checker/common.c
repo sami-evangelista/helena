@@ -287,22 +287,22 @@ void lna_timer_stop
 (lna_timer_t * t) {
   struct timeval end;
   gettimeofday (&end, NULL);
-  t->value += (large_unsigned_t)
+  t->value += (uint64_t)
     (end.tv_sec * 1000000 + end.tv_usec) -
     (t->start.tv_sec * 1000000 + t->start.tv_usec);
 }
 
-large_unsigned_t lna_timer_value
+uint64_t lna_timer_value
 (lna_timer_t t) {
   return t.value;
 }
 
-large_unsigned_t duration
+uint64_t duration
 (struct timeval t0,
  struct timeval t1) {
-  large_unsigned_t t0_time = t0.tv_sec * 1000000 + t0.tv_usec;
-  large_unsigned_t t1_time = t1.tv_sec * 1000000 + t1.tv_usec;
-  return (large_unsigned_t) t1_time - t0_time;
+  uint64_t t0_time = t0.tv_sec * 1000000 + t0.tv_usec;
+  uint64_t t1_time = t1.tv_sec * 1000000 + t1.tv_usec;
+  return (uint64_t) t1_time - t0_time;
 }
 
 uint32_t random_seed
@@ -367,10 +367,10 @@ FILE * open_graph_file () {
   return result;
 }
 
-large_unsigned_t do_large_sum
-(large_unsigned_t * array,
+uint64_t do_large_sum
+(uint64_t * array,
  unsigned int       nb) {
-  large_unsigned_t result = 0;
+  uint64_t result = 0;
   unsigned int i = 0;
   for (i = 0; i < nb; i ++) {
     result += array[i];

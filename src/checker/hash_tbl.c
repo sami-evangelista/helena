@@ -154,7 +154,7 @@ hash_tbl_t hash_tbl_default_new
  *
  *****/
 hash_tbl_t hash_tbl_new
-(large_unsigned_t hash_size) {
+(uint64_t hash_size) {
   int i;
   hash_tbl_t result;
   worker_id_t w;
@@ -233,12 +233,12 @@ void hash_tbl_free
  *  Function: hash_tbl_size
  *
  *****/
-large_unsigned_t hash_tbl_size
+uint64_t hash_tbl_size
 (hash_tbl_t tbl) {
-  large_unsigned_t result = 0;
+  uint64_t result = 0;
   unsigned int i = 0;
   for (i = 0; i < tbl->hash_size; i ++) {
-    result += (large_unsigned_t) tbl->no_states[i];
+    result += (uint64_t) tbl->no_states[i];
   }
   return result;
 }

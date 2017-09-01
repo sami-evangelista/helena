@@ -12,19 +12,19 @@ report_t report_new
    *  initialisation of statistic related fields
    */
   result->states_visited =
-    mem_alloc(SYSTEM_HEAP, no_workers * sizeof(large_unsigned_t));
+    mem_alloc(SYSTEM_HEAP, no_workers * sizeof(uint64_t));
   result->states_dead =
-    mem_alloc(SYSTEM_HEAP, no_workers * sizeof(large_unsigned_t));
+    mem_alloc(SYSTEM_HEAP, no_workers * sizeof(uint64_t));
   result->states_accepting =
-    mem_alloc(SYSTEM_HEAP, no_workers * sizeof(large_unsigned_t));
+    mem_alloc(SYSTEM_HEAP, no_workers * sizeof(uint64_t));
   result->arcs =
-    mem_alloc(SYSTEM_HEAP, no_workers * sizeof(large_unsigned_t));
+    mem_alloc(SYSTEM_HEAP, no_workers * sizeof(uint64_t));
   result->events_executed =
-    mem_alloc(SYSTEM_HEAP, no_workers * sizeof(large_unsigned_t));
+    mem_alloc(SYSTEM_HEAP, no_workers * sizeof(uint64_t));
   result->events_executed_dd =
-    mem_alloc(SYSTEM_HEAP, no_workers * sizeof(large_unsigned_t));
+    mem_alloc(SYSTEM_HEAP, no_workers * sizeof(uint64_t));
   result->state_cmps =
-    mem_alloc(SYSTEM_HEAP, no_workers * sizeof(large_unsigned_t));
+    mem_alloc(SYSTEM_HEAP, no_workers * sizeof(uint64_t));
   for(i = 0; i < no_workers; i ++) {
     result->states_visited[i] = 0;
     result->states_accepting[i] = 0;
@@ -142,12 +142,12 @@ void report_finalise
 (report_t r) {
   FILE * out;
   void * dummy;
-  large_unsigned_t ssize;
-  large_unsigned_t sum_visited;
-  large_unsigned_t min_visited;
-  large_unsigned_t max_visited;
-  large_unsigned_t avg_visited;
-  large_unsigned_t dev_visited;
+  uint64_t ssize;
+  uint64_t sum_visited;
+  uint64_t min_visited;
+  uint64_t max_visited;
+  uint64_t avg_visited;
+  uint64_t dev_visited;
   worker_id_t w;
   
   if(NULL != r->graph_file) {
@@ -412,7 +412,7 @@ void report_update_bfs_levels
 
 void report_update_max_unproc_size
 (report_t r,
- large_unsigned_t max_unproc_size) {
+ uint64_t max_unproc_size) {
   if(max_unproc_size > r->max_unproc_size) 
     r->max_unproc_size = max_unproc_size;
 }

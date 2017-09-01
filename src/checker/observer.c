@@ -21,8 +21,8 @@ void * observer_start
   struct timeval now;
   float mem;
   int i;
-  large_unsigned_t visited;
-  large_unsigned_t stored;
+  uint64_t visited;
+  uint64_t stored;
 
   while (r->keep_searching) {
     sleep (1);

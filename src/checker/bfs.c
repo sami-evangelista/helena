@@ -100,7 +100,7 @@ void * bfs_worker
       event_t e = event_set_nth (en, i);
       event_id_t e_id = event_set_nth_id (en, i);
       bool_t is_new;
-      large_unsigned_t queue_size;
+      uint64_t queue_size;
 
       arcs ++;
       R->events_executed[w] ++;

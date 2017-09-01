@@ -41,16 +41,16 @@ struct struct_report_t {
   /*
    *  statistics field
    */
-  large_unsigned_t * states_accepting;
-  large_unsigned_t * states_visited;
-  large_unsigned_t * states_dead;
-  large_unsigned_t * arcs;
-  large_unsigned_t * events_executed;
-  large_unsigned_t * events_executed_dd;
-  large_unsigned_t * state_cmps;
-  large_unsigned_t exec_time;
-  large_unsigned_t max_unproc_size;
-  large_unsigned_t states_max_stored;
+  uint64_t * states_accepting;
+  uint64_t * states_visited;
+  uint64_t * states_dead;
+  uint64_t * arcs;
+  uint64_t * events_executed;
+  uint64_t * events_executed_dd;
+  uint64_t * state_cmps;
+  uint64_t exec_time;
+  uint64_t max_unproc_size;
+  uint64_t states_max_stored;
   unsigned int bfs_levels;
   bool_t bfs_levels_ok;
   float max_mem_used;
@@ -93,7 +93,7 @@ void report_update_bfs_levels
 
 void report_update_max_unproc_size
 (report_t r,
- large_unsigned_t max_unproc_size);
+ uint64_t max_unproc_size);
 
 void report_faulty_state
 (report_t r,

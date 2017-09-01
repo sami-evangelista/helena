@@ -52,9 +52,9 @@ order_t hash_tbl_id_cmp
  hash_tbl_id_t id2);
 
 typedef struct {
-  large_unsigned_t hash_size;
-  large_unsigned_t events_executed[NO_WORKERS];
-  large_unsigned_t state_cmps[NO_WORKERS];
+  uint64_t hash_size;
+  uint64_t events_executed[NO_WORKERS];
+  uint64_t state_cmps[NO_WORKERS];
   unsigned short no_states[HASH_SIZE];
   encoded_state_t * states[HASH_SIZE];
   unsigned int seed;
@@ -74,7 +74,7 @@ hash_tbl_t hash_tbl_default_new
 ();
 
 hash_tbl_t hash_tbl_new
-(large_unsigned_t hash_size);
+(uint64_t hash_size);
 
 void hash_tbl_free
 (hash_tbl_t storage);
@@ -100,7 +100,7 @@ void hash_tbl_lookup
  bool_t * found,
  hash_tbl_id_t * id);
 
-large_unsigned_t storage_size
+uint64_t storage_size
 (hash_tbl_t storage);
 
 order_t hash_tbl_id_cmp
@@ -163,7 +163,7 @@ void hash_tbl_update_refs
  hash_tbl_id_t id,
  int update);
 
-large_unsigned_t hash_tbl_size
+uint64_t hash_tbl_size
 (hash_tbl_t storage);
 
 void hash_tbl_build_trace

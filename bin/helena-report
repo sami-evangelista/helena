@@ -96,7 +96,7 @@ statistics = {
     "statesExpanded"            : "States visited            ",
     "statesExpandedMax"         : "   max over threads       ",
     "statesExpandedMin"         : "   min over threads       ",
-    "statesExpandedDev"         : "   std. dev. other threads",
+    "statesExpandedDev"         : "   std. dev. over threads ",
     "statesAccepting"           : "Accepting states          ",
     "statesTerminal"            : "Deadlock states           ",
     "arcs"                      : "Arcs                      ",

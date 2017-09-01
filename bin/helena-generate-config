@@ -286,6 +286,7 @@ class Config:
             W("#define HASH_COMPACTION\n")
         else:
             W("#define HASH_STANDARD\n")
+        W("#define HASH_COMPACTION_KEYS 10\n")
 
         #  action to perform
         if self.action == EXPLORE:
