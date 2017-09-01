@@ -52,23 +52,6 @@ unsigned int event_char_width
     (e.dummy ? 0 : mevent_char_width (e.m));
 }
 
-void event_serialise
-(event_t e,
- bit_vector_t v) {
-  unsigned int bsize = bstate_char_width ();
-  memcpy (v, &(e.b.from), bsize);
-  memcpy (v + bsize, &(e.b.to), bsize);
-  v[bsize + bsize] = e.dummy;
-  if (!e.dummy) {
-    mevent_serialise (e.m, v + bsize + bsize + 1);
-  }
-}
-
-event_t event_unserialise
-(bit_vector_t v) {
-  return event_unserialise_mem (v, SYSTEM_HEAP);
-}
-
 order_t event_cmp
 (event_t e,
  event_t f) {

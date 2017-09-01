@@ -11,30 +11,34 @@ state_t dfs_main
  state_t now,
  storage_id_t id,
  heap_t heap,
- bool_t red,
+ bool_t blue,
  dfs_stack_t blue_stack,
  dfs_stack_t red_stack) {
-  dfs_stack_item_t item;
   storage_id_t id_seed;
   storage_t storage = R->storage;
   bool_t push;
-  dfs_stack_t stack = red ? red_stack : blue_stack;
+  dfs_stack_t stack = blue ? blue_stack : red_stack;
   state_t copy;
   event_t e;
-  event_id_t e_id;
-
+  event_id_t eid;
+  bool_t is_new;
+  event_set_t en;
+  storage_id_t id_top;
+  
   /*
    *  push the root state on the stack
    */
-  item.id = id;
-  dfs_stack_push(stack, item);
-  item.en = dfs_stack_compute_events(stack, now, TRUE, NULL);
-  if(red) {
+  dfs_stack_push(stack, id);
+  en = dfs_stack_compute_events(stack, now, TRUE);
+  if(blue) {
+    storage_set_cyan(storage, id, w, TRUE);
+  } else {
     id_seed = id;
+    storage_set_pink(storage, id, w, TRUE);
   }
 
 #ifdef ACTION_CHECK_SAFETY
-  if(state_check_property(now, item.en)) {
+  if(state_check_property(now, en)) {
     report_faulty_state(R, now);
     dfs_stack_create_trace(blue_stack, red_stack, R);
   }
@@ -45,7 +49,6 @@ state_t dfs_main
    */
   while(dfs_stack_size(stack) && R->keep_searching) {
   loop_start:
-    item = dfs_stack_top(stack);
 
     /*
      *  reinitialise the heap if we do not have enough space
@@ -57,96 +60,128 @@ state_t dfs_main
       state_free(copy);
     }
 
-    /*
-     *  all events of the top state have been executed => the state
+    /**
+     *  1st case: all events of the top state have been executed => the state
      *  has been expanded and we must pop it
-     */
-    if(item.n == event_set_size(item.en)) {
+     **/
+    if(dfs_stack_top_expanded(stack)) {
 
       /*
        *  check if proviso is verified.  if not we reexpand the state
        */
 #if defined(POR) && defined(PROVISO)
-      if((!item.prov_ok) &&(!item.fully_expanded)) {
-	event_set_free(item.en);
-	dfs_stack_pop(stack);
-	dfs_stack_push(stack, item);
-	dfs_stack_compute_events(stack, now, FALSE, NULL);
+      if(!dfs_stack_proviso(stack)) {
+	dfs_stack_compute_events(stack, now, FALSE);
 	goto loop_start;
       }
 #endif
 
       /*
        *  we check an ltl property => launch the red search if the
-       *  state is accepting
+       *  state is accepting and halt after if an accepting cycle has
+       *  been found
        */
 #ifdef ACTION_CHECK_LTL
-      if(!red && state_accepting(now)) {
+      if(blue && state_accepting(now)) {
 	R->states_accepting[w] ++;
-	dfs_main(now, item.id, heap, TRUE, blue_stack, red_stack);
+	dfs_main(w, now, dfs_stack_top(stack), heap,
+                 FALSE, blue_stack, red_stack);
 	if(!R->keep_searching) {
 	  return now;
 	}
       }
 #endif
 
-      if(!red ||(EQUAL != storage_id_cmp(id_seed, item.id))) {
-	storage_set_in_unproc(storage, item.id, FALSE);
-      }
-      R->states_visited[w] ++;
-      dfs_stack_pop(stack);
-      if(dfs_stack_size(stack)) {
-	item = dfs_stack_top(stack);
-	event_undo(event_set_nth(item.en, item.n - 1), now);
-      }
-    }
-
-    /*
-     *  some events of the top state remain to be executed => we
-     *  execute the next one
-     */
-    else {
-      e = event_set_nth(item.en, item.n);
-      e_id = event_set_nth_id(item.en, item.n);
-      item.n ++;
-      dfs_stack_update_top(stack, item);
-      event_exec(e, now);
-      R->events_executed[w] ++;
-      if(red) {
-#ifdef ACTION_CHECK_LTL
-	storage_lookup(storage, now, w, &push, &id);
-	push = push &&(!storage_get_is_red(storage, id));
-	if(push) {
-	  storage_set_is_red(storage, id);
-	  storage_set_in_unproc(storage, item.id, TRUE);
-	}
-#endif
+      /* 
+       * put new colors on the popped state as it leaves the stack
+       */
+      id_top = dfs_stack_top(stack);
+      if(blue) {
+	storage_set_cyan(storage, id_top, w, FALSE);
+        storage_set_blue(storage, id_top, TRUE);
       } else {
-	R->arcs[w] ++;
-	storage_insert(storage, now, &item.id, &e_id,
-                       dfs_stack_size(stack), w, &push, &id);
+        storage_set_red(storage, id_top, TRUE);
       }
 
       /*
-       *  if the state reached is not new we undo the event used to
-       *  reach it.  otherwise we push it on the stack
+       *  and finally pop the state
        */
-      if(!push) {
-    	event_undo(e, now);
-#if defined(POR) && defined(PROVISO)
-	if(storage_get_in_unproc(storage, id)) {
-	  item.prov_ok = FALSE;
-	  dfs_stack_update_top(stack, item);
-	}
+      R->states_visited[w] ++;
+      dfs_stack_pop(stack);
+      if(dfs_stack_size(stack)) {
+	dfs_stack_event_undo(stack, now);
+      }
+    }
+
+    /**
+     *  2nd case: some events of the top state remain to be executed
+     *  => we execute the next one
+     **/
+    else {
+      
+      /*
+       *  get the next event to process on the top state and excute it
+       */
+      dfs_stack_pick_event(stack, &e, &eid);
+      event_exec(e, now);
+      R->events_executed[w] ++;
+
+      /*
+       *  try to insert the successor
+       */
+      id_top = dfs_stack_top(stack);
+      storage_insert(storage, now, &id_top, &eid,
+                     dfs_stack_size(stack), w, &is_new, &id);
+
+      /*
+       *  see if it must be pushed on the stack to be processed
+       */
+      if(blue) {
+	R->arcs[w] ++;
+        push = is_new ||
+          ((!storage_get_blue(storage, id)) &&
+           (!storage_get_cyan(storage, id, w)));
+#ifdef ACTION_CHECK_LTL
+      } else {
+        push = is_new ||
+          ((!storage_get_red(storage, id)) &&
+           (!storage_get_pink(storage, id, w)));
 #endif
       }
-      else {
-    	item.id = id;
-	dfs_stack_push(stack, item);
-    	item.en = dfs_stack_compute_events(stack, now, TRUE, &e);
+
+      /*
+       *  if the successor state must not be explored we undo the
+       *  event used to reach it.  otherwise we push it on the stack
+       */
+      if(!push) {
+        dfs_stack_event_undo(stack, now);
+#if defined(POR) && defined(PROVISO)
+	if(storage_get_cyan(storage, id, w)) {
+	  dfs_stack_unset_proviso(stack);
+	}
+#endif
+      } else {
+
+        /*
+         *  push the successor state on the stack and then set some
+         *  color on it
+         */
+	dfs_stack_push(stack, id);
+    	en = dfs_stack_compute_events(stack, now, TRUE);
+        if(blue) {
+          storage_set_cyan(storage, id, w, TRUE);
+        } else {
+          storage_set_pink(storage, id, w, TRUE);
+        }
+
+        /*
+         *  update some statistics
+         */
+#ifndef PARALLEL
     	report_update_max_unproc_size
           (R, dfs_stack_size(red_stack) + dfs_stack_size(blue_stack));
-	if(!red &&(0 == event_set_size(item.en))) {
+#endif
+	if(blue && (0 == event_set_size(en))) {
 	  R->states_dead[w] ++;
 	}
 
@@ -155,7 +190,7 @@ state_t dfs_main
 	 *  search if not after setting the trace
 	 */
 #ifdef ACTION_CHECK_SAFETY
-	if(state_check_property(now, item.en)) {
+	if(state_check_property(now, en)) {
 	  report_faulty_state(R, now);
 	  dfs_stack_create_trace(blue_stack, red_stack, R);
 	}
@@ -166,7 +201,7 @@ state_t dfs_main
 	 *  reached is the seed
 	 */
 #ifdef ACTION_CHECK_LTL
-	if(red &&(EQUAL == storage_id_cmp(id, id_seed))) {
+	if(!blue && (EQUAL == storage_id_cmp(id, id_seed))) {
 	  R->keep_searching = FALSE;
 	  R->result = FAILURE;
 	  dfs_stack_create_trace(blue_stack, red_stack, R);
@@ -175,8 +210,8 @@ state_t dfs_main
       }
     }
   }
-  if(red) {
-    storage_set_is_red(storage, id_seed);
+  if(!blue) {
+    storage_set_red(storage, id_seed, TRUE);
   }
   return now;
 }
@@ -196,7 +231,7 @@ void * dfs_worker
 #endif
 
   storage_insert(R->storage, now, NULL, NULL, 0, w, &dummy, &id);
-  now = dfs_main(w, now, id, heap, FALSE, blue_stack, red_stack);
+  now = dfs_main(w, now, id, heap, TRUE, blue_stack, red_stack);
   dfs_stack_free(blue_stack);
   dfs_stack_free(red_stack);
   state_free(now);

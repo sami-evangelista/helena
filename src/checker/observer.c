@@ -40,9 +40,9 @@ void * observer_start
       visited += r->states_visited[i];
     }
     time = ((float) duration (r->start_time, now)) / 1000000.0;
-    printf ("States:%10llu stored,", stored);
-    printf ("%10llu visited. ", visited);
-    printf ("Mem.:%7.1f MB. ", mem);
+    printf ("St.:%11llu stored,", stored);
+    printf ("%10llu processed. ", visited);
+    printf ("Mem.:%8.1f MB. ", mem);
     printf ("Time:%8.2f s.\n", time);
     /*
      *  check for limits

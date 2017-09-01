@@ -16,6 +16,7 @@ typedef struct {
   storage_id_t id;
   event_set_t en;
   heap_t heap_pos;
+  unsigned int * shuffle;
 #if defined(POR) && defined(PROVISO)
   bool_t prov_ok;
   bool_t fully_expanded;
@@ -29,13 +30,14 @@ typedef struct {
 typedef struct_dfs_stack_slot_t * dfs_stack_slot_t;
 
 typedef struct {
+  int id;
   dfs_stack_slot_t slots[DFS_STACK_SLOTS];
   heap_t heaps[DFS_STACK_SLOTS];
   unsigned char current;
   int top;
   unsigned int size;
   unsigned int files;
-  int id;
+  rseed_t seed;
 } struct_dfs_stack_t;
 
 typedef struct_dfs_stack_t * dfs_stack_t;
@@ -51,23 +53,36 @@ unsigned int dfs_stack_size
 
 void dfs_stack_push
 (dfs_stack_t stack,
- dfs_stack_item_t item);
+ storage_id_t sid);
 
 void dfs_stack_pop
 (dfs_stack_t stack);
 
-dfs_stack_item_t dfs_stack_top
+storage_id_t dfs_stack_top
 (dfs_stack_t stack);
-
-void dfs_stack_update_top
-(dfs_stack_t stack,
- dfs_stack_item_t item);
 
 event_set_t dfs_stack_compute_events
 (dfs_stack_t stack,
  state_t s,
- bool_t filter,
- event_t * exec);
+ bool_t filter);
+
+void dfs_stack_pick_event
+(dfs_stack_t stack,
+ event_t * e,
+ event_id_t * eid);
+
+void dfs_stack_event_undo
+(dfs_stack_t stack,
+ state_t s);
+
+void dfs_stack_unset_proviso
+(dfs_stack_t stack);
+
+bool_t dfs_stack_top_expanded
+(dfs_stack_t stack);
+
+bool_t dfs_stack_proviso
+(dfs_stack_t stack);
 
 void dfs_stack_create_trace
 (dfs_stack_t blue_stack,

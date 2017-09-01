@@ -32,11 +32,14 @@ typedef shared_hash_tbl_id_t storage_id_t;
 #define storage_id_cmp         shared_hash_tbl_id_cmp
 #define storage_get            shared_hash_tbl_get
 #define storage_get_mem        shared_hash_tbl_get_mem
-#define storage_set_in_unproc  shared_hash_tbl_set_in_unproc
-#define storage_get_in_unproc  shared_hash_tbl_get_in_unproc
-#define storage_get_num        shared_hash_tbl_get_num
-#define storage_get_is_red     shared_hash_tbl_get_is_red
-#define storage_set_is_red     shared_hash_tbl_set_is_red
+#define storage_set_cyan       shared_hash_tbl_set_cyan
+#define storage_get_cyan       shared_hash_tbl_get_cyan
+#define storage_set_blue       shared_hash_tbl_set_blue
+#define storage_get_blue       shared_hash_tbl_get_blue
+#define storage_set_pink       shared_hash_tbl_set_pink
+#define storage_get_pink       shared_hash_tbl_get_pink
+#define storage_set_red        shared_hash_tbl_set_red
+#define storage_get_red        shared_hash_tbl_get_red
 #define storage_update_refs    shared_hash_tbl_update_refs
 #define storage_output_stats   shared_hash_tbl_output_stats
 
@@ -63,11 +66,12 @@ typedef pd4_storage_id_t storage_id_t;
 #define storage_id_cmp         pd4_storage_id_cmp
 #define storage_get            pd4_storage_get
 #define storage_get_mem        pd4_storage_get_mem
-#define storage_set_in_unproc  pd4_storage_set_in_unproc
-#define storage_get_in_unproc  pd4_storage_get_in_unproc
-#define storage_get_num        pd4_storage_get_num
-#define storage_set_is_red     pd4_storage_set_is_red
-#define storage_get_is_red     pd4_storage_get_is_red
+#define storage_set_cyan       pd4_storage_set_cyan
+#define storage_get_cyan       pd4_storage_get_cyan
+#define storage_set_blue       pd4_storage_set_blue
+#define storage_get_blue       pd4_storage_get_blue
+#define storage_set_red        pd4_storage_set_red
+#define storage_get_red        pd4_storage_get_red
 #define storage_update_refs    pd4_storage_update_refs
 #define storage_output_stats   pd4_storage_output_stats
 
@@ -94,11 +98,14 @@ typedef hash_tbl_id_t storage_id_t;
 #define storage_id_cmp         hash_tbl_id_cmp
 #define storage_get            hash_tbl_get
 #define storage_get_mem        hash_tbl_get_mem
-#define storage_set_in_unproc  hash_tbl_set_in_unproc
-#define storage_get_in_unproc  hash_tbl_get_in_unproc
-#define storage_get_num        hash_tbl_get_num
-#define storage_get_is_red     hash_tbl_get_is_red
-#define storage_set_is_red     hash_tbl_set_is_red
+#define storage_set_cyan       hash_tbl_set_cyan
+#define storage_get_cyan       hash_tbl_get_cyan
+#define storage_set_blue       hash_tbl_set_blue
+#define storage_get_blue       hash_tbl_get_blue
+#define storage_set_pink       hash_tbl_set_pink
+#define storage_get_pink       hash_tbl_get_pink
+#define storage_set_red        hash_tbl_set_red
+#define storage_get_red        hash_tbl_get_red
 #define storage_update_refs    hash_tbl_update_refs
 #define storage_output_stats   hash_tbl_output_stats
 

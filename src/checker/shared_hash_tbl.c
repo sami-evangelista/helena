@@ -2,7 +2,7 @@
 #include "report.h"
 #include "vectors.h"
 
-static const struct timespec SLEEP_TIME = { 0, 2500 };
+static const struct timespec SLEEP_TIME = { 0, 1 };
 
 void shared_hash_tbl_id_serialise
 (shared_hash_tbl_id_t id,
@@ -30,18 +30,22 @@ order_t shared_hash_tbl_id_cmp
 }
 
 shared_hash_tbl_t shared_hash_tbl_new
-(large_unsigned_t hash_size) {
-  large_unsigned_t i = 0;
+(uint64_t hash_size) {
+  uint64_t i = 0;
   shared_hash_tbl_t result;
   worker_id_t w;
+  char name[20];
 
   result = mem_alloc(SYSTEM_HEAP, sizeof(struct_shared_hash_tbl_t));
   result->hash_size = hash_size;
   for(w = 0; w < NO_WORKERS; w ++) {
     result->size[w] = 0;
     result->state_cmps[w] = 0;
+    sprintf(name, "heap of worker %d", w);
+    result->heaps[w] = evergrowing_heap_new(name, 100000);
   }
   for(i = 0; i < result->hash_size; i++) {
+    result->update_status[i] = BUCKET_READY;
     result->status[i] = BUCKET_EMPTY;
     result->state[i] = NULL;
     result->hash[i] = 0;
@@ -57,19 +61,25 @@ shared_hash_tbl_t shared_hash_tbl_default_new
 
 void shared_hash_tbl_free
 (shared_hash_tbl_t tbl) {
-  large_unsigned_t i = 0;
+  uint64_t i = 0;
+  worker_id_t w;
   
+  for(w = 0; w < NO_WORKERS; w ++) {
+    heap_free(tbl->heaps[w]);
+  }
+  /*
   for(i = 0; i < tbl->hash_size; i++) {
     if(tbl->state[i]) {
       mem_free(SYSTEM_HEAP, tbl->state[i]);
     }
   }
+  */
   mem_free(SYSTEM_HEAP, tbl);
 }
 
-large_unsigned_t shared_hash_tbl_size
+uint64_t shared_hash_tbl_size
 (shared_hash_tbl_t tbl) {
-  large_unsigned_t result = 0;
+  uint64_t result = 0;
   worker_id_t w;
   
   for(w = 0; w < NO_WORKERS; w ++) {
@@ -102,7 +112,7 @@ void shared_hash_tbl_insert
          *  encode the state
          */
         len = state_char_width(s) + ATTRIBUTES_CHAR_WIDTH;
-        es = mem_alloc(SYSTEM_HEAP, len);
+        es = mem_alloc(tbl->heaps[w], len);
         for(i = 0; i < len; i ++) {
           es[i] = 0;
         }
@@ -169,23 +179,126 @@ state_t shared_hash_tbl_get_mem
   return result;
 }
 
-void shared_hash_tbl_set_in_unproc
+void shared_hash_tbl_set_attribute
 (shared_hash_tbl_t tbl,
  shared_hash_tbl_id_t id,
- bool_t in_unproc) {
-  //fatal_error("shared_hash_tbl_set_in_unproc: not implemented");
+ uint32_t pos,
+ uint32_t size,
+ uint64_t val) {
+  vector bits;
+  
+  bits.vector = tbl->state[id];
+  VECTOR_start(bits);
+  VECTOR_move(bits, pos);
+  while(!CAS(&tbl->update_status[id], BUCKET_READY, BUCKET_WRITE)) {}
+  VECTOR_set(bits, val, size);
+  tbl->update_status[id] = BUCKET_READY;
 }
 
-bool_t shared_hash_tbl_get_in_unproc
+uint64_t shared_hash_tbl_get_attribute
 (shared_hash_tbl_t tbl,
- shared_hash_tbl_id_t id) {
-  fatal_error("shared_hash_tbl_get_in_unproc: not implemented");
+ shared_hash_tbl_id_t id,
+ uint32_t pos,
+ uint32_t size) {
+  uint64_t result;
+  vector bits;
+  bits.vector = tbl->state[id];
+  VECTOR_start(bits);
+  VECTOR_move(bits, pos);
+  VECTOR_get(bits, result, size);
+  return result;
 }
 
-state_num_t shared_hash_tbl_get_num
+bool_t shared_hash_tbl_get_cyan
+(shared_hash_tbl_t tbl,
+ shared_hash_tbl_id_t id,
+ worker_id_t w) {
+  return (bool_t)
+#ifdef ATTRIBUTE_CYAN
+    shared_hash_tbl_get_attribute(tbl, id, ATTRIBUTE_CYAN_POS + w, 1)
+#else
+    FALSE
+#endif
+    ;
+}
+
+bool_t shared_hash_tbl_get_blue
 (shared_hash_tbl_t tbl,
  shared_hash_tbl_id_t id) {
-  fatal_error("shared_hash_tbl_get_num: not implemented");
+  return (bool_t)
+#ifdef ATTRIBUTE_BLUE
+    shared_hash_tbl_get_attribute(tbl, id, ATTRIBUTE_BLUE_POS, 1)
+#else
+    FALSE
+#endif
+    ;
+}
+
+bool_t shared_hash_tbl_get_pink
+(shared_hash_tbl_t tbl,
+ shared_hash_tbl_id_t id,
+ worker_id_t w) {
+  return (bool_t)
+#ifdef ATTRIBUTE_PINK
+    shared_hash_tbl_get_attribute(tbl, id, ATTRIBUTE_PINK_POS + w, 1)
+#else
+    FALSE
+#endif
+    ;
+}
+
+bool_t shared_hash_tbl_get_red
+(shared_hash_tbl_t tbl,
+ shared_hash_tbl_id_t id) {
+  return (bool_t)
+#ifdef ATTRIBUTE_RED
+    shared_hash_tbl_get_attribute(tbl, id, ATTRIBUTE_RED_POS, 1)
+#else
+    FALSE
+#endif
+    ;
+}
+
+void shared_hash_tbl_set_cyan
+(shared_hash_tbl_t tbl,
+ shared_hash_tbl_id_t id,
+ worker_id_t w,
+ bool_t cyan) {
+#ifdef ATTRIBUTE_CYAN
+  shared_hash_tbl_set_attribute(tbl, id, ATTRIBUTE_CYAN_POS + w,
+                                1, (uint64_t) cyan);
+#endif
+}
+
+void shared_hash_tbl_set_blue
+(shared_hash_tbl_t tbl,
+ shared_hash_tbl_id_t id,
+ bool_t blue) {
+#ifdef ATTRIBUTE_BLUE
+  shared_hash_tbl_set_attribute(tbl, id, ATTRIBUTE_BLUE_POS,
+                                1, (uint64_t) blue);
+#endif
+}
+
+void shared_hash_tbl_set_pink
+(shared_hash_tbl_t tbl,
+ shared_hash_tbl_id_t id,
+ worker_id_t w,
+ bool_t pink) {
+#ifdef ATTRIBUTE_PINK
+  shared_hash_tbl_set_attribute(tbl, id, ATTRIBUTE_PINK_POS + w,
+                                1, (uint64_t) pink);
+#endif
+}
+
+void shared_hash_tbl_set_red
+(shared_hash_tbl_t tbl,
+ shared_hash_tbl_id_t id,
+ bool_t blue) {
+#ifdef ATTRIBUTE_RED
+  shared_hash_tbl_set_attribute(tbl, id, ATTRIBUTE_RED_POS,
+                                1, (uint64_t) blue);
+#endif
 }
 
 void shared_hash_tbl_update_refs
@@ -204,33 +317,6 @@ void shared_hash_tbl_build_trace
   fatal_error("shared_hash_tbl_build_trace: not implemented");
 }
 
-void shared_hash_tbl_set_is_red
-(shared_hash_tbl_t tbl,
- shared_hash_tbl_id_t id) {
-  fatal_error("shared_hash_tbl_set_is_red: not implemented");
-}
-
-void shared_hash_tbl_check
-(shared_hash_tbl_t tbl) {
-  int i, j;
-  state_t s1, s2;
-  for(i = 0; i < tbl->hash_size; i ++) {
-    if(tbl->state[i]) {
-      for(j = i + 1; j < tbl->hash_size; j ++) {
-        if(tbl->hash[i] == tbl->hash[j]) {
-          s1 = shared_hash_tbl_get(tbl, i, 0);
-          s2 = shared_hash_tbl_get(tbl, j, 0);
-          if(state_equal(s1, s2)) {
-            printf("ca chie (%d, %d)\n", i, j);
-          }
-          state_free(s1);
-          state_free(s2);
-        }
-      }
-    }
-  }
-}
-
 void shared_hash_tbl_output_stats
 (shared_hash_tbl_t tbl,
  FILE * out) {
@@ -238,8 +324,6 @@ void shared_hash_tbl_output_stats
   fprintf(out, "<stateComparisons>%llu</stateComparisons>\n",
           do_large_sum(tbl->state_cmps, NO_WORKERS));
   fprintf(out, "</hashTableStatistics>\n");
-  
-  //  shared_hash_tbl_check(tbl);
 }
 
 void init_shared_hash_tbl

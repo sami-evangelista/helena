@@ -128,7 +128,7 @@ void * bfs_worker
 	 *  for the proviso to be satisfied
 	 */
 #if defined(POR) && defined(PROVISO)
-	if (!fully_expanded && !storage_get_in_unproc (storage, id_new)) {
+	if(!fully_expanded && !storage_get_cyan(storage, id_new, w)) {
 	  fully_expanded = TRUE;
 	  event_undo (e, s);
 	  event_set_free (en);
@@ -152,7 +152,7 @@ void * bfs_worker
      */
     R->arcs[w] += arcs;
     R->states_visited[w] ++;
-    storage_set_in_unproc (storage, id, FALSE);
+    storage_set_cyan (storage, id, w, FALSE);
 #ifdef ALGO_FRONTIER
     storage_remove (storage, id);
 #endif

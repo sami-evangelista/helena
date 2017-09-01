@@ -18,9 +18,11 @@ typedef uint8_t bucket_status_t;
 #define MAX_TRIALS 1000
 
 typedef struct {
-  large_unsigned_t hash_size;
-  large_unsigned_t size[NO_WORKERS];
-  large_unsigned_t state_cmps[NO_WORKERS];
+  uint64_t hash_size;
+  heap_t heaps[NO_WORKERS];
+  uint64_t size[NO_WORKERS];
+  uint64_t state_cmps[NO_WORKERS];
+  bucket_status_t update_status[HASH_SIZE];
   bucket_status_t status[HASH_SIZE];
   bit_vector_t state[HASH_SIZE];
   hash_key_t hash[HASH_SIZE];
@@ -28,7 +30,7 @@ typedef struct {
 
 typedef struct_shared_hash_tbl_t * shared_hash_tbl_t;
 
-typedef large_unsigned_t shared_hash_tbl_id_t;
+typedef uint64_t shared_hash_tbl_id_t;
 
 unsigned int shared_hash_tbl_id_char_width;
 
@@ -44,7 +46,7 @@ order_t shared_hash_tbl_id_cmp
  shared_hash_tbl_id_t id2);
 
 shared_hash_tbl_t shared_hash_tbl_new
-(large_unsigned_t hash_size);
+(uint64_t hash_size);
 
 shared_hash_tbl_t shared_hash_tbl_default_new
 ();
@@ -52,7 +54,7 @@ shared_hash_tbl_t shared_hash_tbl_default_new
 void shared_hash_tbl_free
 (shared_hash_tbl_t tbl);
 
-large_unsigned_t shared_hash_tbl_size
+uint64_t shared_hash_tbl_size
 (shared_hash_tbl_t tbl);
 
 void shared_hash_tbl_insert
@@ -87,16 +89,43 @@ state_t shared_hash_tbl_get_mem
  worker_id_t w,
  heap_t heap);
 
-void shared_hash_tbl_set_in_unproc
+void shared_hash_tbl_set_cyan
 (shared_hash_tbl_t tbl,
  shared_hash_tbl_id_t id,
- bool_t in_unproc);
+ worker_id_t w,
+ bool_t cyan);
 
-bool_t shared_hash_tbl_get_in_unproc
+bool_t shared_hash_tbl_get_cyan
+(shared_hash_tbl_t tbl,
+ shared_hash_tbl_id_t id,
+ worker_id_t w);
+
+void shared_hash_tbl_set_blue
+(shared_hash_tbl_t tbl,
+ shared_hash_tbl_id_t id,
+ bool_t blue);
+
+bool_t shared_hash_tbl_get_blue
 (shared_hash_tbl_t tbl,
  shared_hash_tbl_id_t id);
 
-state_num_t shared_hash_tbl_get_num
+void shared_hash_tbl_set_pink
+(shared_hash_tbl_t tbl,
+ shared_hash_tbl_id_t id,
+ worker_id_t w,
+ bool_t pink);
+
+bool_t shared_hash_tbl_get_pink
+(shared_hash_tbl_t tbl,
+ shared_hash_tbl_id_t id,
+ worker_id_t w);
+
+void shared_hash_tbl_set_red
+(shared_hash_tbl_t tbl,
+ shared_hash_tbl_id_t id,
+ bool_t red);
+
+bool_t shared_hash_tbl_get_red
 (shared_hash_tbl_t tbl,
  shared_hash_tbl_id_t id);
 
@@ -111,14 +140,6 @@ void shared_hash_tbl_build_trace
  shared_hash_tbl_id_t id,
  event_t ** trace,
  unsigned int * trace_len);
-
-bool_t shared_hash_tbl_get_is_red
-(shared_hash_tbl_t tbl,
- shared_hash_tbl_id_t id);
-
-void shared_hash_tbl_set_is_red
-(shared_hash_tbl_t tbl,
- shared_hash_tbl_id_t id);
 
 void shared_hash_tbl_output_stats
 (shared_hash_tbl_t tbl,

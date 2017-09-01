@@ -104,14 +104,16 @@ state_t pd4_storage_get_mem
  worker_id_t w,
  heap_t heap);
 
-void pd4_storage_set_in_unproc
+void pd4_storage_set_cyan
 (pd4_storage_t storage,
  pd4_storage_id_t id,
- bool_t in_unproc);
+ worker_id_t w,
+ bool_t cyan);
 
-bool_t pd4_storage_get_in_unproc
+bool_t pd4_storage_get_cyan
 (pd4_storage_t storage,
- pd4_storage_id_t id);
+ pd4_storage_id_t id,
+ worker_id_t w);
 
 state_num_t pd4_storage_get_num
 (pd4_storage_t storage,

@@ -475,8 +475,8 @@ void hash_tbl_insert
     id->p = new_pos;
     VECTOR_start (bits);
     VECTOR_set_size8 (bits, new_pos);
-#ifdef ATTRIBUTE_IN_UNPROC
-    move_to_attribute (bits, ATTRIBUTE_IN_UNPROC_POS);
+#ifdef ATTRIBUTE_CYAN
+    move_to_attribute (bits, ATTRIBUTE_CYAN_POS);
     VECTOR_set_size1 (bits, TRUE);
 #endif
 #ifdef ATTRIBUTE_TYPE
@@ -664,23 +664,24 @@ state_t hash_tbl_get
 
 /*****
  *
- *  Function: hash_tbl_set_in_unproc
+ *  Function: hash_tbl_set_cyan
  *
  *****/
-void hash_tbl_set_in_unproc
+void hash_tbl_set_cyan
 (hash_tbl_t tbl,
  hash_tbl_id_t id,
- bool_t            in_unproc) {
-#ifdef ATTRIBUTE_IN_UNPROC
+ worker_id_t w,
+ bool_t cyan) {
+#ifdef ATTRIBUTE_CYAN
   bit_vector_t v;
   vector bits;
   if ((v = hash_tbl_get_vector (tbl, id)) == NULL) {
-    fatal_error ("hash_tbl_set_in_unproc could not find state");
+    fatal_error ("hash_tbl_set_cyan could not find state");
   }
   bits.vector = v;
-  move_to_attribute (bits, ATTRIBUTE_IN_UNPROC_POS);
-  VECTOR_set_size1 (bits, in_unproc);
-  if (!in_unproc) {
+  move_to_attribute (bits, ATTRIBUTE_CYAN_POS);
+  VECTOR_set_size1 (bits, cyan);
+  if (!cyan) {
 #ifdef ATTRIBUTE_REFS
     hash_tbl_update_refs (tbl, id, -1);
 #elif defined (STATE_CACHING)
@@ -694,21 +695,22 @@ void hash_tbl_set_in_unproc
 
 /*****
  *
- *  Function: hash_tbl_get_in_unproc
+ *  Function: hash_tbl_get_cyan
  *
  *****/
-bool_t hash_tbl_get_in_unproc
+bool_t hash_tbl_get_cyan
 (hash_tbl_t tbl,
- hash_tbl_id_t id) {
-#ifdef ATTRIBUTE_IN_UNPROC
+ hash_tbl_id_t id,
+ worker_id_t w) {
+#ifdef ATTRIBUTE_CYAN
   bool_t result;
   bit_vector_t v;
   vector bits;
   if ((v = hash_tbl_get_vector (tbl, id)) == NULL) {
-    fatal_error ("hash_tbl_get_in_unproc: could not find state");
+    fatal_error ("hash_tbl_get_cyan: could not find state");
   }
   bits.vector = v;
-  move_to_attribute (bits, ATTRIBUTE_IN_UNPROC_POS);
+  move_to_attribute (bits, ATTRIBUTE_CYAN_POS);
   VECTOR_get_size1 (bits, result);
   result = result ? TRUE : FALSE;
   return result;
@@ -762,10 +764,10 @@ void hash_tbl_update_refs
 
 /*****
  *
- *  Function: hash_tbl_get_is_red
+ *  Function: hash_tbl_get_red
  *
  *****/
-bool_t hash_tbl_get_is_red
+bool_t hash_tbl_get_red
 (hash_tbl_t tbl,
  hash_tbl_id_t id) {
   bool_t result = FALSE;
@@ -786,12 +788,13 @@ bool_t hash_tbl_get_is_red
 
 /*****
  *
- *  Function: hash_tbl_set_is_red
+ *  Function: hash_tbl_set_red
  *
  *****/
-void hash_tbl_set_is_red
+void hash_tbl_set_red
 (hash_tbl_t tbl,
- hash_tbl_id_t id) {
+ hash_tbl_id_t id,
+ bool_t red) {
 #ifdef ATTRIBUTE_IS_RED
   bit_vector_t v;
   vector bits;
@@ -800,7 +803,7 @@ void hash_tbl_set_is_red
   }
   bits.vector = v;
   move_to_attribute (bits, ATTRIBUTE_IS_RED_POS);
-  VECTOR_set_size1 (bits, TRUE);
+  VECTOR_set_size1 (bits, red);
 #endif
 }
 

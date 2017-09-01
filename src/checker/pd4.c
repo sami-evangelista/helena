@@ -968,17 +968,19 @@ state_t pd4_storage_get_mem
   fatal_error ("pd4_storage_get_mem: not implemented");
 }
 
-void pd4_storage_set_in_unproc
-(pd4_storage_t    storage,
+void pd4_storage_set_cyan
+(pd4_storage_t storage,
  pd4_storage_id_t id,
- bool_t           in_unproc) {
-  fatal_error ("pd4_storage_set_in_unproc: not implemented");
+ worker_id_t w,
+ bool_t cyan) {
+  fatal_error ("pd4_storage_set_cyan: not implemented");
 }
 
-bool_t pd4_storage_get_in_unproc
-(pd4_storage_t    storage,
- pd4_storage_id_t id) {
-  fatal_error ("pd4_storage_get_in_unproc: not implemented");
+bool_t pd4_storage_get_cyan
+(pd4_storage_t storage,
+ pd4_storage_id_t id,
+ worker_id_t w) {
+  fatal_error ("pd4_storage_get_cyan: not implemented");
 }
 
 state_num_t pd4_storage_get_num

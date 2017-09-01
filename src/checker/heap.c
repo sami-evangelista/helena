@@ -129,11 +129,11 @@ void * evergrowing_heap_mem_alloc
   void * result;
   evergrowing_heap_node_t new_node;
   
-  if((NULL == heap->fst) ||(size + heap->next >= heap->last->size)) {
+  if((NULL == heap->fst) || (size + heap->next >= heap->last->size)) {
     heap->next = 0;
     MALLOC(new_node, evergrowing_heap_node_t,
            sizeof(struct_evergrowing_heap_node_t));
-    new_node->size =(heap->block_size >= size) ? heap->block_size : size;
+    new_node->size = (heap->block_size >= size) ? heap->block_size : size;
     new_node->next = NULL;
     MALLOC(new_node->ptr, char *, new_node->size);
     if(NULL == heap->fst) {

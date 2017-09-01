@@ -254,6 +254,8 @@ class Config:
         #  partial order reduction
         if self.partialOrder:
             W("#define POR\n")
+            if self.propertyType != DEADLOCK:
+                W("#define PROVISO\n")
 
         #  state caching
         if self.stateCaching:
@@ -296,12 +298,8 @@ class Config:
             W("#define PROPERTY \"" + self.property + "\"\n")
             if self.propertyType == LTL:
                 W("#define ACTION_CHECK_LTL\n")
-                if self.partialOrder:
-                    W("#define PROVISO\n")
             elif self.propertyType == STATE:
                 W("#define ACTION_CHECK_SAFETY\n")
-                if self.partialOrder:
-                    W("#define PROVISO\n")
             elif self.propertyType == DEADLOCK:
                 W("#define ACTION_CHECK_SAFETY\n")
 
@@ -316,11 +314,14 @@ class Config:
 
         #  state attributes
         bitw = 0
-        if True:
-            W("#define ATTRIBUTE_IN_UNPROC\n")
-            W("#define ATTRIBUTE_IN_UNPROC_POS " + str(bitw) + "\n")
-            W("#define ATTRIBUTE_IN_UNPROC_WIDTH 1\n")
-            bitw = bitw + 1
+        W("#define ATTRIBUTE_CYAN\n")
+        W("#define ATTRIBUTE_CYAN_POS " + str(bitw) + "\n")
+        W("#define ATTRIBUTE_CYAN_WIDTH " + str(self.workers) + "\n")
+        bitw = bitw + self.workers
+        W("#define ATTRIBUTE_BLUE\n")
+        W("#define ATTRIBUTE_BLUE_POS " + str(bitw) + "\n")
+        W("#define ATTRIBUTE_BLUE_WIDTH 1\n")
+        bitw = bitw + 1
         predPtr = self.stateCaching and(self.delta or self.algo != DFS)
         if predPtr:
             W("#define ATTRIBUTE_REFS\n")
@@ -338,9 +339,13 @@ class Config:
             W("#define ATTRIBUTE_TYPE_WIDTH 1\n")
             bitw = bitw + 1
         if self.action == CHECK and self.propertyType == LTL:
-            W("#define ATTRIBUTE_IS_RED\n")
-            W("#define ATTRIBUTE_IS_RED_POS " + str(bitw) + "\n")
-            W("#define ATTRIBUTE_IS_RED_WIDTH 1\n")
+            W("#define ATTRIBUTE_PINK\n")
+            W("#define ATTRIBUTE_PINK_POS " + str(bitw) + "\n")
+            W("#define ATTRIBUTE_PINK_WIDTH " + str(self.workers) + "\n")
+            bitw = bitw + self.workers
+            W("#define ATTRIBUTE_RED\n")
+            W("#define ATTRIBUTE_RED_POS " + str(bitw) + "\n")
+            W("#define ATTRIBUTE_RED_WIDTH 1\n")
             bitw = bitw + 1            
         charw = bitw / 8
         if bitw % 8 != 0:

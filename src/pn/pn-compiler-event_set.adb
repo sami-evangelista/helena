@@ -285,25 +285,6 @@ package body Pn.Compiler.Event_Set is
       Plc(L, 1, "evts->first = " &
 	    "mevent_list_filter (evts->first, keep, &evts->size, evts->heap);");
       Plc(L, "}");
-      --=======================================================================
-      Prototype := To_Ustring
-	("void mevent_set_max_priority (" & Nl &
-	   "   mevent_set_t en," & Nl &
-	   "   priority_t * on_all," & Nl &
-	   "   priority_t * on_local)");
-      Plh(L, Prototype & ";");
-      Plc(L, Prototype & " {");
-      Plc(L, 1, "priority_t p;");
-      Plc(L, 1, "*on_all = INT_MIN;");
-      Plc(L, 1, "*on_local = INT_MIN;");
-      Plc(L, 1, "mevent_list_t tmp;");
-      Plc(L, 1, "for(tmp = en->first; tmp; tmp = tmp->next) {");
-      Plc(L, 2, "p = mevent_priority (tmp->e);");
-      Plc(L, 2, "if ((*on_all) < p) { *on_all = p; }");
-      Plc(L, 2, "if ((*on_local) < p && mevent_is_local (tmp->e)) " &
-	    "{ *on_local = p; }");
-      Plc(L, 1, "}");
-      Plc(L, "}");
    end;
 
 

@@ -57,7 +57,6 @@ typedef struct {
   large_unsigned_t state_cmps[NO_WORKERS];
   unsigned short no_states[HASH_SIZE];
   encoded_state_t * states[HASH_SIZE];
-  state_num_t state_next_num;
   unsigned int seed;
 #ifdef HASH_DELTA
   heap_t reconstruction_heaps[NO_WORKERS];
@@ -119,16 +118,43 @@ state_t hash_tbl_get_mem
  worker_id_t w,
  heap_t heap);
 
-void hash_tbl_set_in_unproc
+void hash_tbl_set_cyan
 (hash_tbl_t storage,
  hash_tbl_id_t id,
- bool_t in_unproc);
+ worker_id_t w,
+ bool_t cyan);
 
-bool_t hash_tbl_get_in_unproc
+bool_t hash_tbl_get_cyan
+(hash_tbl_t storage,
+ hash_tbl_id_t id,
+ worker_id_t w);
+
+void hash_tbl_set_blue
+(hash_tbl_t storage,
+ hash_tbl_id_t id,
+ bool_t blue);
+
+bool_t hash_tbl_get_blue
 (hash_tbl_t storage,
  hash_tbl_id_t id);
 
-state_num_t hash_tbl_get_num
+void hash_tbl_set_pink
+(hash_tbl_t storage,
+ hash_tbl_id_t id,
+ worker_id_t w,
+ bool_t pink);
+
+bool_t hash_tbl_get_pink
+(hash_tbl_t storage,
+ hash_tbl_id_t id,
+ worker_id_t w);
+
+void hash_tbl_set_red
+(hash_tbl_t storage,
+ hash_tbl_id_t id,
+ bool_t red);
+
+bool_t hash_tbl_get_red
 (hash_tbl_t storage,
  hash_tbl_id_t id);
 
@@ -146,10 +172,6 @@ void hash_tbl_build_trace
  hash_tbl_id_t id,
  event_t ** trace,
  unsigned int * trace_len);
-
-void hash_tbl_set_is_red
-(hash_tbl_t storage,
- hash_tbl_id_t id);
 
 void hash_tbl_fold
 (hash_tbl_t storage,
