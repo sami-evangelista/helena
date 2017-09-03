@@ -2,6 +2,12 @@
 #include "report.h"
 #include "vectors.h"
 
+#define BUCKET_EMPTY 1
+#define BUCKET_READY 2
+#define BUCKET_WRITE 3
+
+#define MAX_TRIALS 1000
+
 static const struct timespec SLEEP_TIME = { 0, 1 };
 
 void shared_hash_tbl_id_serialise

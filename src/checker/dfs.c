@@ -2,15 +2,12 @@
 #include "model.h"
 #include "storage.h"
 #include "dfs_stack.h"
-#include "prop.h"
-#ifdef ALGO_DDFS
 #include "ddfs_comm.h"
-#include "shmem.h"
-#endif
+#include "prop.h"
 
 #if defined(ALGO_DDFS) || defined(ALGO_DFS)
 
-static report_t R;
+report_t R;
 
 state_t dfs_main
 (worker_id_t w,
@@ -113,7 +110,7 @@ state_t dfs_main
        *  in distributed DFS we process the state to be later sent
        */
 #ifdef ALGO_DDFS
-      ddfs_comm_process_explored_state(storage, id_top);
+      ddfs_comm_process_explored_state(w, id_top);
 #endif
 
       /*
@@ -259,16 +256,7 @@ void dfs
   R = r;
 
 #ifdef ALGO_DDFS
-  start_pes(0);
-  int data = 1024;
-  int me = shmem_my_pe();
-  printf("# of PEs = %d\n", shmem_n_pes());
-  printf("me       = %d\n", me);
-  int * i = shmalloc(1000000);
-  printf("%p\n", i);
-  if(me == 0) {
-    shmem_int_put (i, &data, 1, 1);
-  }
+  ddfs_comm_start(R);
 #endif
 
   /*
@@ -277,13 +265,15 @@ void dfs
   for(w = 0; w < r->no_workers; w ++) {
     pthread_create(&(r->workers[w]), NULL, &dfs_worker, (void *)(long) w);
   }
+#ifdef ALGO_DDFS
+  ddfs_comm_job();
+#endif
   for(w = 0; w < r->no_workers; w ++) {
     pthread_join(r->workers[w], &dummy);
   }
 
 #ifdef ALGO_DDFS
-  shmem_barrier_all();
-  printf("%d a recu : %d\n", me, *i);
+  ddfs_comm_end();
 #endif
 }
 

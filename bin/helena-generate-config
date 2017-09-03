@@ -247,6 +247,7 @@ class Config:
         elif self.algo == DDFS:
             W("#define ALGO_DDFS\n")
             W("#define HASH_STORAGE\n")
+            W("#define DISTRIBUTED\n")
         elif self.algo == DELTA_DDD:
             W("#define ALGO_PD4\n")
             W("#define PD4_STORAGE\n")

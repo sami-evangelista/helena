@@ -18,12 +18,6 @@ void free_shared_hash_tbl
 
 typedef uint8_t bucket_status_t;
 
-#define BUCKET_EMPTY 1
-#define BUCKET_READY 2
-#define BUCKET_WRITE 3
-
-#define MAX_TRIALS 1000
-
 typedef struct {
   uint64_t hash_size;
   heap_t heaps[NO_WORKERS];

@@ -5,8 +5,17 @@
 #include "report.h"
 #include "storage.h"
 
+void ddfs_comm_start
+(report_t r);
+
+void ddfs_comm_end
+();
+
 void ddfs_comm_process_explored_state
-(storage_t storage,
+(worker_id_t w,
  storage_id_t id);
+
+void ddfs_comm_job
+();
 
 #endif

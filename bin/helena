@@ -219,7 +219,7 @@ generateChecker () {
 
 launchChecker () {
     local dir=$(getModelDir)/src
-    [ "$machineFile" != "" ] && cp "$machineFile" $dir
+    [ "$machineFile" != "" ] && cp "$machineFile" $dir/machinefile
     pushd $dir &> /dev/null
     msg "Launching search ($RUN comp-time $ccTime) ..."
     $RUN comp-time $ccTime
@@ -282,7 +282,7 @@ then
 	        machineFile=${arg:$idx}
                 [ ! -e "$machineFile" ] && \
                     error "machine file '$machineFile' could not be found"
-                RUN=$shrun" -machinefile $machineFile "$RUN
+                RUN=$shrun" -machinefile machinefile "$RUN
                 ;;
         esac
     done

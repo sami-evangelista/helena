@@ -1,6 +1,6 @@
-#include "simulator.h"
-
 #if defined(ACTION_SIMULATE)
+
+#include "simulator.h"
 
 bool_t check_error () {
   if (!glob_error_msg) {
