@@ -1,5 +1,7 @@
 #include "bfs_queue.h"
 
+#if defined(ALGO_BFS) || defined(ALGO_FRONTIER)
+
 bfs_queue_t bfs_queue_init
 () {
   bfs_queue_t result = (bfs_queue_t)
@@ -78,3 +80,5 @@ bfs_queue_item_t bfs_queue_dequeue
   q->size --;
   return result;
 }
+
+#endif  /*  defined(ALGO_BFS) || defined(ALGO_FRONTIER)  */

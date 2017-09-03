@@ -10,6 +10,12 @@
 #error Model configuration missing!
 #endif
 
+void init_shared_hash_tbl
+();
+
+void free_shared_hash_tbl
+();
+
 typedef uint8_t bucket_status_t;
 
 #define BUCKET_EMPTY 1
@@ -148,11 +154,5 @@ void shared_hash_tbl_build_trace
 void shared_hash_tbl_output_stats
 (shared_hash_tbl_t tbl,
  FILE * out);
-
-void init_shared_hash_tbl
-();
-
-void free_shared_hash_tbl
-();
 
 #endif

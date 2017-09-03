@@ -1,6 +1,8 @@
 #include "dfs_stack.h"
 #include "model.h"
 
+#if defined(ALGO_DFS) || defined(ALGO_DDFS)
+
 void dfs_stack_slot_free
 (dfs_stack_slot_t slot) {
   free(slot);
@@ -334,3 +336,5 @@ void dfs_stack_create_trace
     }
   }
 }
+
+#endif  /*  defined(ALGO_DFS) || defined(ALGO_DDFS)  */

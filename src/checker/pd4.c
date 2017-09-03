@@ -2,6 +2,8 @@
 #include "prop.h"
 #include "graph.h"
 
+#if defined(ALGO_PD4)
+
 static report_t R;
 static pd4_storage_t S;
 static uint32_t next_num;
@@ -912,92 +914,4 @@ void pd4
   }
 }
 
-
-/*****
- *
- *  Unimplemented functions that should not be called anyway
- *
- *****/
-void pd4_storage_id_serialise
-(pd4_storage_id_t id,
- bit_vector_t     v) {
-  fatal_error ("pd4_storage_id_serialise: not implemented");
-}
-
-pd4_storage_id_t pd4_storage_id_unserialise
-(bit_vector_t v) {
-  fatal_error ("pd4_storage_id_unserialise: not implemented");
-}
-
-order_t pd4_storage_id_cmp
-(pd4_storage_id_t id1,
- pd4_storage_id_t id2) {
-  fatal_error ("pd4_storage_id_cmp: not implemented");
-}
-
-void pd4_storage_insert
-(pd4_storage_t      storage,
- state_t            s,
- pd4_storage_id_t * pred,
- event_id_t *       exec,
- uint32_t           depth,
- worker_id_t        w,
- bool_t *           is_new,
- pd4_storage_id_t * id) {
-  fatal_error ("pd4_storage_insert: not implemented");
-}
-
-void pd4_storage_remove
-(pd4_storage_t    storage,
- pd4_storage_id_t id) {
-  fatal_error ("pd4_storage_remove: not implemented");
-}
-
-state_t pd4_storage_get
-(pd4_storage_t    storage,
- pd4_storage_id_t ptr,
- worker_id_t      w) {
-  fatal_error ("pd4_storage_get: not implemented");
-}
-
-state_t pd4_storage_get_mem
-(pd4_storage_t    storage,
- pd4_storage_id_t ptr,
- worker_id_t      w,
- heap_t           heap) {
-  fatal_error ("pd4_storage_get_mem: not implemented");
-}
-
-void pd4_storage_set_cyan
-(pd4_storage_t storage,
- pd4_storage_id_t id,
- worker_id_t w,
- bool_t cyan) {
-  fatal_error ("pd4_storage_set_cyan: not implemented");
-}
-
-bool_t pd4_storage_get_cyan
-(pd4_storage_t storage,
- pd4_storage_id_t id,
- worker_id_t w) {
-  fatal_error ("pd4_storage_get_cyan: not implemented");
-}
-
-state_num_t pd4_storage_get_num
-(pd4_storage_t    storage,
- pd4_storage_id_t id) {
-  fatal_error ("pd4_storage_get_num: not implemented");
-}
-
-void pd4_storage_update_refs
-(pd4_storage_t    storage,
- pd4_storage_id_t id,
- int              update) {
-  fatal_error ("pd4_storage_update_refs: not implemented");
-}
-
-void pd4_storage_set_is_red
-(pd4_storage_t    storage,
- pd4_storage_id_t id) {
-  fatal_error ("pd4_storage_set_is_red: not implemented");
-}
+#endif  /*  defined(ALGO_PD4)  */

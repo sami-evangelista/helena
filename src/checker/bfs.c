@@ -4,6 +4,8 @@
 #include "prop.h"
 #include "graph.h"
 
+#if defined(ALGO_BFS) || defined(ALGO_FRONTIER)
+
 static report_t R;
 static bfs_queue_t Q;
 
@@ -193,3 +195,5 @@ void bfs
 
   bfs_queue_free (Q);
 }
+
+#endif  /*  defined(ALGO_BFS) || defined(ALGO_FRONTIER)  */

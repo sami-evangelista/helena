@@ -8,6 +8,8 @@
 #include "shmem.h"
 #endif
 
+#if defined(ALGO_DDFS) || defined(ALGO_DFS)
+
 static report_t R;
 
 state_t dfs_main
@@ -18,7 +20,6 @@ state_t dfs_main
  bool_t blue,
  dfs_stack_t blue_stack,
  dfs_stack_t red_stack) {
-#if defined(ALGO_DDFS) || defined(ALGO_DFS)
   storage_id_t id_seed;
   storage_t storage = R->storage;
   bool_t push;
@@ -226,12 +227,10 @@ state_t dfs_main
     storage_set_red(storage, id_seed, TRUE);
   }
   return now;
-#endif
 }
 
 void * dfs_worker
 (void * arg) {
-#if defined(ALGO_DDFS) || defined(ALGO_DFS)
   worker_id_t w = (worker_id_t) (unsigned long int) arg;
   bool_t dummy;
   storage_id_t id;
@@ -250,12 +249,10 @@ void * dfs_worker
   dfs_stack_free(red_stack);
   state_free(now);
   heap_free(heap);
-#endif
 }
 
 void dfs
 (report_t r) {
-#if defined(ALGO_DDFS) || defined(ALGO_DFS)
   worker_id_t w;
   void * dummy;
 
@@ -288,5 +285,6 @@ void dfs
   shmem_barrier_all();
   printf("%d a recu : %d\n", me, *i);
 #endif
-#endif
 }
+
+#endif  /*  defined(ALGO_DDFS) || defined(ALGO_DFS)  */

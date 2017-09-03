@@ -1,6 +1,8 @@
 #include "random_walk.h"
 #include "prop.h"
 
+#if defined(ALGO_RWALK)
+
 #define RW_MAX_DEPTH 10000
 #define RW_HEAP_SIZE (RW_MAX_DEPTH * 1024)
 
@@ -79,3 +81,4 @@ void random_walk
     pthread_join (r->workers[w], &dummy);
 }
 
+#endif  /*  defined(ALGO_RWALK)  */

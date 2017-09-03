@@ -1,5 +1,7 @@
 #include "simulator.h"
 
+#if defined(ACTION_SIMULATE)
+
 bool_t check_error () {
   if (!glob_error_msg) {
     return TRUE;
@@ -114,3 +116,5 @@ quit\n");
     mstate_free (stack[top]);
   }
 }
+
+#endif  /*  defined(ACTION_SIMULATE)  */

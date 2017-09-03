@@ -155,7 +155,6 @@ void shared_hash_tbl_insert
         ? FALSE : TRUE;
 #endif
       if(!(*is_new)) {
-        (*is_new) = FALSE;
         (*id) = pos;
         return;
       }
@@ -320,10 +319,10 @@ void shared_hash_tbl_set_pink
 void shared_hash_tbl_set_red
 (shared_hash_tbl_t tbl,
  shared_hash_tbl_id_t id,
- bool_t blue) {
+ bool_t red) {
 #ifdef ATTRIBUTE_RED
   shared_hash_tbl_set_attribute(tbl, id, ATTRIBUTE_RED_POS,
-                                1, (uint64_t) blue);
+                                1, (uint64_t) red);
 #endif
 }
 

@@ -12,7 +12,6 @@ tmpDir=$HOME/.helena/tmp-$RANDOM
 
 #  by default we compile the generated code with gcc
 CC=$gcc
-CC=$shcc
 
 RUN="./helena-checker"
 
@@ -258,9 +257,14 @@ do
 	    idx=$(expr index $arg =)
 	    modelDir=${arg:$idx}
             ;;
-	-A=DDFS|--algo=DDFS)
-            CC=$shcc
-            DDFS=1
+	-A=*|--algo=*)
+	    idx=$(expr index $arg =)
+	    algo=$(echo ${arg:$idx} | tr [a-z] [A-Z])
+	    if [ "$algo" = DDFS ]
+	    then
+		CC=$shcc
+		DDFS=1
+	    fi
 	    ;;
 	-o=*|--report-file=*)
 	    idx=$(expr index $arg =)
@@ -283,7 +287,7 @@ then
         esac
     done
     [ z"$machineFile" = z ] && \
-        error "algorithm DDF needs a machine file (option \
+        error "algorithm DDFS needs a machine file (option \
                 --machine-file=FILE)"
 fi
 
