@@ -27,6 +27,7 @@ state_t dfs_main
   bool_t is_new;
   event_set_t en;
   storage_id_t id_top;
+  hash_key_t h;
   
   /*
    *  push the root state on the stack
@@ -141,7 +142,7 @@ state_t dfs_main
        */
       id_top = dfs_stack_top(stack);
       storage_insert(storage, now, &id_top, &eid,
-                     dfs_stack_size(stack), w, &is_new, &id);
+                     dfs_stack_size(stack), w, &is_new, &id, &h);
 
       /*
        *  see if it must be pushed on the stack to be processed
@@ -229,18 +230,20 @@ state_t dfs_main
 void * dfs_worker
 (void * arg) {
   worker_id_t w = (worker_id_t) (unsigned long int) arg;
+  uint32_t wid = worker_global_id(w);
+  hash_key_t h;
   bool_t dummy;
   storage_id_t id;
   bounded_heap_t heap = bounded_heap_new("state heap", 1024 * 100);
   state_t now = state_initial_mem(heap);
-  dfs_stack_t blue_stack = dfs_stack_new(w);
+  dfs_stack_t blue_stack = dfs_stack_new(wid * 2);
 #ifdef ACTION_CHECK_LTL
-  dfs_stack_t red_stack = dfs_stack_new(w + NO_WORKERS);
+  dfs_stack_t red_stack = dfs_stack_new(wid * 2 + 1);
 #else
   dfs_stack_t red_stack = NULL;
 #endif
 
-  storage_insert(R->storage, now, NULL, NULL, 0, w, &dummy, &id);
+  storage_insert(R->storage, now, NULL, NULL, 0, w, &dummy, &id, &h);
   now = dfs_main(w, now, id, heap, TRUE, blue_stack, red_stack);
   dfs_stack_free(blue_stack);
   dfs_stack_free(red_stack);
@@ -265,12 +268,10 @@ void dfs
   for(w = 0; w < r->no_workers; w ++) {
     pthread_create(&(r->workers[w]), NULL, &dfs_worker, (void *)(long) w);
   }
-#ifdef ALGO_DDFS
-  ddfs_comm_job();
-#endif
   for(w = 0; w < r->no_workers; w ++) {
     pthread_join(r->workers[w], &dummy);
   }
+  R->keep_searching = FALSE;
 
 #ifdef ALGO_DDFS
   ddfs_comm_end();

@@ -8,7 +8,7 @@
 #error Model configuration missing!
 #endif
 
-#define DFS_STACK_SLOT_SIZE 100000
+#define DFS_STACK_SLOT_SIZE 10000
 #define DFS_STACK_SLOTS 2
 
 typedef struct {

@@ -408,7 +408,8 @@ void hash_tbl_insert
  unsigned int depth,
  worker_id_t w,
  bool_t * is_new,
- hash_tbl_id_t * id) {
+ hash_tbl_id_t * id,
+ hash_key_t * h) {
   vector bits;
   unsigned int slot; 
   int i, j;
@@ -420,9 +421,9 @@ void hash_tbl_insert
   pos_t pos, new_pos;
   bool_t pos_found = FALSE;
 
-  id->h = state_hash (s);
+  (*h) = id->h = state_hash (s);
   slot = id->h % tbl->hash_size;
-  *is_new = TRUE;
+  (*is_new) = TRUE;
 
   /*
    *  look for the state in the slot
@@ -440,7 +441,7 @@ void hash_tbl_insert
     if (hash_tbl_check_state (tbl, tbl->states[slot][i],
                               s, id->h, w)) {
       id->p = pos;
-      *is_new = FALSE;
+      (*is_new) = FALSE;
       break;
     }
   }
@@ -482,19 +483,12 @@ void hash_tbl_insert
     move_to_attribute (bits, ATTRIBUTE_TYPE_POS);
     VECTOR_set_size1 (bits, t);
 #endif
-#ifdef ATTRIBUTE_REFS
-    move_to_attribute (bits, ATTRIBUTE_REFS_POS);
-    VECTOR_set (bits, 1, ATTRIBUTE_REFS_WIDTH);
-#endif
 #ifdef ATTRIBUTE_PRED
     move_to_attribute (bits, ATTRIBUTE_PRED_POS);
     if (id_pred == NULL) {
       hash_tbl_id_serialise_bits (null_hash_tbl_id, bits);
     } else {
       hash_tbl_id_serialise_bits (*id_pred, bits);
-#ifdef ATTRIBUTE_REFS
-      hash_tbl_update_refs (tbl, *id_pred, 1);
-#endif
     }
 #endif
 #ifdef ATTRIBUTE_IS_RED
@@ -570,11 +564,6 @@ void hash_tbl_remove
     VECTOR_start (bits);
     VECTOR_get_size8 (bits, p);
     if (p == id.p) {
-#if defined(ATTRIBUTE_REFS) && defined(ATTRIBUTE_PRED)
-      id_pred = null_hash_tbl_id;
-      move_to_attribute (bits, ATTRIBUTE_PRED_POS);
-      hash_tbl_id_unserialise_bits (bits, id_pred);
-#endif
       found = TRUE;
 #if defined(HASH_STANDARD)
       free (tbl->states[slot][i]);
@@ -606,11 +595,6 @@ void hash_tbl_remove
       }
       free (tbl->states[slot]);
       tbl->states[slot] = new_states;
-#if defined(ATTRIBUTE_REFS) && defined(ATTRIBUTE_PRED)
-      if (!hash_tbl_id_is_null (id_pred)) {
-        hash_tbl_update_refs (tbl, id_pred, -1);
-      }
-#endif
       break;
     }
   }
@@ -680,13 +664,11 @@ void hash_tbl_set_cyan
   bits.vector = v;
   move_to_attribute (bits, ATTRIBUTE_CYAN_POS);
   VECTOR_set_size1 (bits, cyan);
+#if defined(STATE_CACHING)
   if (!cyan) {
-#ifdef ATTRIBUTE_REFS
-    hash_tbl_update_refs (tbl, id, -1);
-#elif defined (STATE_CACHING)
     hash_tbl_cache_state (tbl, id);
-#endif
   }
+#endif
 #endif
 }
 
@@ -715,47 +697,6 @@ bool_t hash_tbl_get_cyan
   return result;
 #else
   return FALSE;
-#endif
-}
-
-
-
-/*****
- *
- *  Function: hash_tbl_update_refs
- *
- *  add update to the reference counter of state with identifier id
- *
- *****/
-void hash_tbl_update_refs
-(hash_tbl_t tbl,
- hash_tbl_id_t id,
- int update) {
-#ifdef ATTRIBUTE_REFS
-  if (hash_tbl_id_is_null (id)) {
-    return;
-  }
-  bit_vector_t v;
-  vector bits;
-  int refs;
-  if ((v = hash_tbl_get_vector (tbl, id)) == NULL) {
-    fatal_error ("hash_tbl_update_refs: could not find state");
-  }
-  bits.vector = v;
-  move_to_attribute (bits, ATTRIBUTE_REFS_POS);
-  VECTOR_get (bits, refs, ATTRIBUTE_REFS_WIDTH);
-  refs += update;
-  move_to_attribute (bits, ATTRIBUTE_REFS_POS);
-  VECTOR_set (bits, refs, ATTRIBUTE_REFS_WIDTH);
-  if (refs < 0) {
-    fatal_error ("hash_tbl_update_refs: negative reference counter");
-  }
-  
-#ifdef STATE_CACHING
-  if (refs == 0) {
-    hash_tbl_cache_state (tbl, id);
-  }
-#endif
 #endif
 }
 

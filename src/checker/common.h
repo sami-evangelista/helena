@@ -7,8 +7,10 @@
 #error Model configuration missing!
 #endif
 
-void init_common ();
-void free_common ();
+void init_common
+();
+void free_common
+();
 
 int crc32_tab[256];
 
@@ -48,9 +50,9 @@ typedef uint8_t order_t;
 
 typedef uint32_t rseed_t;
 
-rseed_t random_seed (worker_id_t w);
+rseed_t random_seed(worker_id_t w);
 
-rseed_t random_int (rseed_t * seed);
+rseed_t random_int(rseed_t * seed);
 
 typedef struct {
   struct timeval start;
@@ -78,18 +80,18 @@ hash_key_t bit_vector_hash
  unsigned int len);
 
 #define MALLOC(ptr, ptr_type, size) {				\
-    if (!((ptr) = (ptr_type) malloc(size))) {			\
-      stop_search (MEMORY_EXHAUSTED);				\
+    if(!((ptr) = (ptr_type) malloc(size))) {			\
+      stop_search(MEMORY_EXHAUSTED);				\
     }								\
   }
 
 #define fatal_error(msg) {						\
-    printf ("file       : %s\n", __FILE__);				\
-    printf ("line       : %d\n", __LINE__);				\
-    printf ("fatal error: %s\n", msg);					\
-    printf ("please send a mail with a file that caused this bug to\n"); \
-    printf ("      sami.evangelista@lipn.univ-paris13.fr\n");		\
-    exit (EXIT_FAILURE);						\
+    printf("file       : %s\n", __FILE__);				\
+    printf("line       : %d\n", __LINE__);				\
+    printf("fatal error: %s\n", msg);					\
+    printf("please send a mail with a file that caused this bug to\n"); \
+    printf("      sami.evangelista@lipn.univ-paris13.fr\n");		\
+    exit(EXIT_FAILURE);						\
   }
 
 bool_t raise_error
@@ -106,8 +108,11 @@ FILE * open_graph_file
 
 uint64_t do_large_sum
 (uint64_t * array,
- unsigned int       nb);
+ unsigned int nb);
 
-#define CAS(val, old, new) (__sync_bool_compare_and_swap(val, old, new))
+uint32_t worker_global_id
+(worker_id_t w);
+
+#define CAS(val, old, new) (__sync_bool_compare_and_swap((val), (old), (new)))
 
 #endif

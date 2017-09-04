@@ -9,7 +9,6 @@
 #include "stdarg.h"
 #include "limits.h"
 #include "pthread.h"
-#include "semaphore.h"
 #include "assert.h"
 #include "malloc.h"
 #include "math.h"
@@ -24,5 +23,9 @@
 #include "stdint.h"
 
 #include "config.h"
+
+#ifdef DISTRIBUTED
+#include "shmem.h"
+#endif
 
 #endif

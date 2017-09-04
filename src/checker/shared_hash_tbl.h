@@ -69,7 +69,8 @@ void shared_hash_tbl_insert
  unsigned int depth,
  worker_id_t w,
  bool_t * is_new,
- shared_hash_tbl_id_t * id);
+ shared_hash_tbl_id_t * id,
+ hash_key_t * h);
 
 void shared_hash_tbl_remove
 (shared_hash_tbl_t tbl,
@@ -92,6 +93,12 @@ state_t shared_hash_tbl_get_mem
  shared_hash_tbl_id_t id,
  worker_id_t w,
  heap_t heap);
+
+void shared_hash_tbl_get_serialized
+(shared_hash_tbl_t tbl,
+ shared_hash_tbl_id_t id,
+ bit_vector_t * s,
+ uint32_t * size);
 
 void shared_hash_tbl_set_cyan
 (shared_hash_tbl_t tbl,
@@ -132,11 +139,6 @@ void shared_hash_tbl_set_red
 bool_t shared_hash_tbl_get_red
 (shared_hash_tbl_t tbl,
  shared_hash_tbl_id_t id);
-
-void shared_hash_tbl_update_refs
-(shared_hash_tbl_t tbl,
- shared_hash_tbl_id_t id,
- int update);
 
 void shared_hash_tbl_build_trace
 (shared_hash_tbl_t tbl,

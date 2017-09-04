@@ -283,6 +283,7 @@ then
                 [ ! -e "$machineFile" ] && \
                     error "machine file '$machineFile' could not be found"
                 RUN=$shrun" -machinefile machinefile "$RUN
+                #RUN=$shrun" "$RUN
                 ;;
         esac
     done

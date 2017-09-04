@@ -1,7 +1,8 @@
 #include "common.h"
 #include "report.h"
 
-void init_common () {
+void init_common
+() {
   unsigned int i = 0;
   glob_error_msg = NULL;
   crc32_tab[i++] = 0x00000000;
@@ -261,7 +262,9 @@ void init_common () {
   crc32_tab[i++] = 0x5a05df1b;
   crc32_tab[i++] = 0x2d02ef8d;
 }
-void free_common () {}
+void free_common
+() {
+}
 
 hash_key_t bit_vector_hash
 (bit_vector_t v,
@@ -280,13 +283,13 @@ void lna_timer_init
 
 void lna_timer_start
 (lna_timer_t * t) {
-  gettimeofday (&t->start, NULL);
+  gettimeofday(&t->start, NULL);
 }
 
 void lna_timer_stop
 (lna_timer_t * t) {
   struct timeval end;
-  gettimeofday (&end, NULL);
+  gettimeofday(&end, NULL);
   t->value += (uint64_t)
     (end.tv_sec * 1000000 + end.tv_usec) -
     (t->start.tv_sec * 1000000 + t->start.tv_usec);
@@ -309,7 +312,7 @@ uint32_t random_seed
 (worker_id_t w) {
   struct timeval t;
   
-  gettimeofday (&t, NULL);
+  gettimeofday(&t, NULL);
   return t.tv_sec * 1000000 + t.tv_usec + w;
 }
 
@@ -323,10 +326,10 @@ uint32_t random_int
 (uint32_t * seed) {
   uint32_t lo, hi;
   uint32_t s = *seed;
-  lo = RANDOM_LOW (RANDOM_LOW (s) * RANDOM_LOW (RANDOM_MULT) + RANDOM_CONS);
-  hi = RANDOM_LOW (RANDOM_HIGH (s) * RANDOM_LOW (RANDOM_MULT))
-    + RANDOM_LOW (RANDOM_HIGH (RANDOM_MULT) * RANDOM_LOW (s))
-    + RANDOM_HIGH (RANDOM_LOW (s) * RANDOM_LOW (RANDOM_MULT) + RANDOM_CONS);
+  lo = RANDOM_LOW(RANDOM_LOW(s) * RANDOM_LOW(RANDOM_MULT) + RANDOM_CONS);
+  hi = RANDOM_LOW(RANDOM_HIGH(s) * RANDOM_LOW(RANDOM_MULT))
+    + RANDOM_LOW(RANDOM_HIGH(RANDOM_MULT) * RANDOM_LOW(s))
+    + RANDOM_HIGH(RANDOM_LOW(s) * RANDOM_LOW(RANDOM_MULT) + RANDOM_CONS);
   *seed = (hi << 16 | lo);
   return *seed;
 }
@@ -334,21 +337,21 @@ uint32_t random_int
 bool_t raise_error
 (char * msg) {
 #ifdef ACTION_SIMULATE
-  if (!glob_error_msg) {
-    glob_error_msg = mem_alloc (SYSTEM_HEAP, sizeof(char) * strlen(msg) + 1);
-    strcpy (glob_error_msg, msg);
+  if(!glob_error_msg) {
+    glob_error_msg = mem_alloc(SYSTEM_HEAP, sizeof(char) * strlen(msg) + 1);
+    strcpy(glob_error_msg, msg);
   }
   return TRUE;
 #else
-  return report_error (msg);
+  return report_error(msg);
 #endif
 }
 
 void flush_error
 () {
 #ifdef ACTION_SIMULATE
-  if (glob_error_msg) {
-    mem_free (SYSTEM_HEAP, glob_error_msg);
+  if(glob_error_msg) {
+    mem_free(SYSTEM_HEAP, glob_error_msg);
     glob_error_msg = NULL;
   }
 #endif
@@ -356,24 +359,37 @@ void flush_error
 
 void stop_search
 (termination_state_t state) {
-  report_stop_search (state);
+  report_stop_search(state);
 }
 
-FILE * open_graph_file () {
+FILE * open_graph_file
+() {
   FILE * result = NULL;
 #ifdef ACTION_BUILD_RG
-  result = fopen (GRAPH_FILE, "w");
+  result = fopen(GRAPH_FILE, "w");
 #endif
   return result;
 }
 
 uint64_t do_large_sum
 (uint64_t * array,
- unsigned int       nb) {
+ unsigned int nb) {
   uint64_t result = 0;
   unsigned int i = 0;
-  for (i = 0; i < nb; i ++) {
+  for(i = 0; i < nb; i ++) {
     result += array[i];
   }
+  return result;
+}
+
+uint32_t worker_global_id
+(worker_id_t w) {
+  uint32_t result;
+  
+#ifdef DISTRIBUTED
+  result = shmem_my_pe() * NO_WORKERS + w;
+#else
+  result = w;
+#endif
   return result;
 }

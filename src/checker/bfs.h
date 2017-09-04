@@ -11,14 +11,6 @@
 #error Model configuration missing!
 #endif
 
-typedef struct {
-  storage_id_t s;
-  unsigned int l;
-#ifdef WITH_TRACE
-  unsigned char * trace;
-#endif
-} bfs_queue_item_t;
-
 void bfs
 (report_t r);
 

@@ -187,7 +187,7 @@ class Config:
             self.delta = False
         elif self.algo == BFS:
             self.hashCompaction = False
-            self.workers = 1 
+            self.stateCaching = False
         elif self.algo == DDFS:
             self.partialOrder = False
             self.delta = False
@@ -260,7 +260,7 @@ class Config:
         #  partial order reduction
         if self.partialOrder:
             W("#define POR\n")
-            if self.propertyType != DEADLOCK:
+            if self.propertyType is not None and self.propertyType != DEADLOCK:
                 W("#define PROVISO\n")
 
         #  state caching
@@ -313,8 +313,7 @@ class Config:
         #  other parameters
         W("#define TRACE_" + self.traceType + "\n")
         if self.traceType != STATE:
-            W("#define WITH_TRACE\n")            
-        W("#define BFS_QUEUE_NODE_SIZE 10000\n")
+            W("#define WITH_TRACE\n")
         W("#define NO_WORKERS " + str(self.workers) + "\n")
         if self.workers > 1:
             W("#define PARALLEL\n")
@@ -329,13 +328,7 @@ class Config:
         W("#define ATTRIBUTE_BLUE_POS " + str(bitw) + "\n")
         W("#define ATTRIBUTE_BLUE_WIDTH 1\n")
         bitw = bitw + 1
-        predPtr = self.stateCaching and(self.delta or self.algo != DFS)
-        if predPtr:
-            W("#define ATTRIBUTE_REFS\n")
-            W("#define ATTRIBUTE_REFS_POS " + str(bitw) + "\n")
-            W("#define ATTRIBUTE_REFS_WIDTH 8\n")
-            bitw = bitw + 8
-        if predPtr or self.delta:
+        if self.delta:
             W("#define ATTRIBUTE_PRED\n")
             W("#define ATTRIBUTE_PRED_POS " + str(bitw) + "\n")
             W("#define ATTRIBUTE_PRED_WIDTH 40\n")

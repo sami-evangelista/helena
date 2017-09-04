@@ -103,22 +103,22 @@ void shared_hash_tbl_insert
  unsigned int depth,
  worker_id_t w,
  bool_t * is_new,
- shared_hash_tbl_id_t * id) {
+ shared_hash_tbl_id_t * id,
+ hash_key_t * h) {
   unsigned int trials = 0;
   vector bits;
   unsigned int i, len;
-  hash_key_t h;
   shared_hash_tbl_id_t pos;
   bit_vector_t es;
   hash_compact_t hc, hc_other;
 
 #ifdef HASH_COMPACTION
   hash_compact(s, &hc);
-  h = hc.keys[0];
+  (*h) = hc.keys[0];
 #else
-  h = state_hash(s);
+  (*h) = state_hash(s);
 #endif
-  pos = h % tbl->hash_size;
+  pos = (*h) % tbl->hash_size;
   
   while(TRUE) {
     if(tbl->status[pos] == BUCKET_EMPTY) {
@@ -208,6 +208,13 @@ state_t shared_hash_tbl_get_mem
   result = state_unserialise_mem(tbl->state[id] + ATTRIBUTES_CHAR_WIDTH, heap);
 #endif
   return result;
+}
+
+void shared_hash_tbl_get_serialized
+(shared_hash_tbl_t tbl,
+ shared_hash_tbl_id_t id,
+ bit_vector_t * s,
+ uint32_t * size) {
 }
 
 void shared_hash_tbl_set_attribute
@@ -330,13 +337,6 @@ void shared_hash_tbl_set_red
   shared_hash_tbl_set_attribute(tbl, id, ATTRIBUTE_RED_POS,
                                 1, (uint64_t) red);
 #endif
-}
-
-void shared_hash_tbl_update_refs
-(shared_hash_tbl_t tbl,
- shared_hash_tbl_id_t id,
- int update) {
-  fatal_error("shared_hash_tbl_update_refs: not implemented");
 }
 
 void shared_hash_tbl_build_trace

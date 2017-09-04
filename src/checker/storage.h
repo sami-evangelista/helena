@@ -40,7 +40,6 @@ typedef shared_hash_tbl_id_t storage_id_t;
 #define storage_get_pink       shared_hash_tbl_get_pink
 #define storage_set_red        shared_hash_tbl_set_red
 #define storage_get_red        shared_hash_tbl_get_red
-#define storage_update_refs    shared_hash_tbl_update_refs
 #define storage_output_stats   shared_hash_tbl_output_stats
 
 
@@ -54,25 +53,9 @@ typedef pd4_storage_id_t storage_id_t;
 
 #define init_storage           init_pd4_storage
 #define free_storage           free_pd4_storage
-#define storage_id_serialise   pd4_storage_id_serialise
-#define storage_id_unserialise pd4_storage_id_unserialise
-#define storage_id_char_width  pd4_storage_id_char_width
 #define storage_new            pd4_storage_new
 #define storage_free           pd4_storage_free
 #define storage_size           pd4_storage_size
-#define storage_insert         pd4_storage_insert
-#define storage_remove         pd4_storage_remove
-#define storage_lookup         pd4_storage_lookup
-#define storage_id_cmp         pd4_storage_id_cmp
-#define storage_get            pd4_storage_get
-#define storage_get_mem        pd4_storage_get_mem
-#define storage_set_cyan       pd4_storage_set_cyan
-#define storage_get_cyan       pd4_storage_get_cyan
-#define storage_set_blue       pd4_storage_set_blue
-#define storage_get_blue       pd4_storage_get_blue
-#define storage_set_red        pd4_storage_set_red
-#define storage_get_red        pd4_storage_get_red
-#define storage_update_refs    pd4_storage_update_refs
 #define storage_output_stats   pd4_storage_output_stats
 
 

@@ -87,7 +87,8 @@ void hash_tbl_insert
  unsigned int depth,
  worker_id_t w,
  bool_t * is_new,
- hash_tbl_id_t * id);
+ hash_tbl_id_t * id,
+ hash_key_t * h);
 
 void hash_tbl_remove
 (hash_tbl_t storage,
@@ -157,11 +158,6 @@ void hash_tbl_set_red
 bool_t hash_tbl_get_red
 (hash_tbl_t storage,
  hash_tbl_id_t id);
-
-void hash_tbl_update_refs
-(hash_tbl_t storage,
- hash_tbl_id_t id,
- int update);
 
 uint64_t hash_tbl_size
 (hash_tbl_t storage);

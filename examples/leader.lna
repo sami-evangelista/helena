@@ -57,7 +57,7 @@ leader (N := 12) {  /*  N = size of the ring  */
    }
 
    /*
-    *   there is one and one token <_, TRUE> in places wait or loosing
+    *   there is a single token <_, true> in places wait or loosing
     */
    proposition one_leader:
       exists (p in wait | p->2 and
