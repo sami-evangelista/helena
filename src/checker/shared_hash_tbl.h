@@ -18,17 +18,24 @@ void free_shared_hash_tbl
 
 typedef uint8_t bucket_status_t;
 
+#if defined(DISTRIBUTED)
+#define NO_WORKERS_STORAGE (NO_WORKERS + 1)
+#else
+#define NO_WORKERS_STORAGE (NO_WORKERS)
+#endif
+
 typedef struct {
   uint64_t hash_size;
-  heap_t heaps[NO_WORKERS];
-  uint64_t size[NO_WORKERS];
-  uint64_t state_cmps[NO_WORKERS];
+  heap_t heaps[NO_WORKERS_STORAGE];
+  uint64_t size[NO_WORKERS_STORAGE];
+  uint64_t state_cmps[NO_WORKERS_STORAGE];
   bucket_status_t update_status[HASH_SIZE];
   bucket_status_t status[HASH_SIZE];
 #ifdef HASH_COMPACTION
   char state[HASH_SIZE][ATTRIBUTES_CHAR_WIDTH + sizeof(hash_compact_t)];
 #else
   bit_vector_t state[HASH_SIZE];
+  hash_key_t hash[HASH_SIZE];
 #endif
 } struct_shared_hash_tbl_t;
 
@@ -60,6 +67,15 @@ void shared_hash_tbl_free
 
 uint64_t shared_hash_tbl_size
 (shared_hash_tbl_t tbl);
+
+void shared_hash_tbl_insert_serialised
+(shared_hash_tbl_t tbl,
+ bit_vector_t s,
+ uint16_t s_char_len,
+ hash_key_t h,
+ worker_id_t w,
+ bool_t * is_new,
+ shared_hash_tbl_id_t * id);
 
 void shared_hash_tbl_insert
 (shared_hash_tbl_t tbl,
@@ -94,11 +110,15 @@ state_t shared_hash_tbl_get_mem
  worker_id_t w,
  heap_t heap);
 
-void shared_hash_tbl_get_serialized
+void shared_hash_tbl_get_serialised
 (shared_hash_tbl_t tbl,
  shared_hash_tbl_id_t id,
  bit_vector_t * s,
- uint32_t * size);
+ uint16_t * size);
+
+hash_key_t shared_hash_tbl_get_hash
+(shared_hash_tbl_t tbl,
+ shared_hash_tbl_id_t id);
 
 void shared_hash_tbl_set_cyan
 (shared_hash_tbl_t tbl,
@@ -139,13 +159,6 @@ void shared_hash_tbl_set_red
 bool_t shared_hash_tbl_get_red
 (shared_hash_tbl_t tbl,
  shared_hash_tbl_id_t id);
-
-void shared_hash_tbl_build_trace
-(shared_hash_tbl_t tbl,
- worker_id_t w,
- shared_hash_tbl_id_t id,
- event_t ** trace,
- unsigned int * trace_len);
 
 void shared_hash_tbl_output_stats
 (shared_hash_tbl_t tbl,

@@ -384,10 +384,10 @@ package body Pn.Classes.Containers is
       Plh(Lib, Prototype & ";");
       Plc(Lib, Prototype & "{");
       Plc(Lib, 1, "int i = 0;");
-      Plc(Lib, 1, "fprintf (out, ""<container><exprList>"");");
+      Plc(Lib, 1, "fprintf (out, ""<container>\n<exprList>\n"");");
       Plc(Lib, 1, "for(; i < expr.length; i++)");
       Plc(Lib, 2, Cls_To_Xml_Func(C.Elements) & " (expr.items[i], out);");
-      Plc(Lib, 1, "fprintf (out, ""</exprList></container>"");");
+      Plc(Lib, 1, "fprintf (out, ""</exprList>\n</container>\n"");");
       Plc(Lib, "}");
    end;
 

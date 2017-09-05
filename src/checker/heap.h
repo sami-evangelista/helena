@@ -76,6 +76,10 @@ void * mem_alloc
 (heap_t heap,
  mem_size_t size);
 
+void * mem_alloc0
+(heap_t heap,
+ mem_size_t size);
+
 void mem_free
 (heap_t heap,
  void * ptr);

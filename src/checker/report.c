@@ -149,6 +149,9 @@ void report_finalise
   uint64_t avg_visited;
   uint64_t dev_visited;
   worker_id_t w;
+  char name[1024];
+  char * buf = NULL;
+  size_t n = 0;
   
   if(NULL != r->graph_file) {
     fclose(r->graph_file);
@@ -162,7 +165,7 @@ void report_finalise
   out = fopen(REPORT_FILE, "w");
   fprintf(out, "<helenaReport>\n");
 
-  /***
+  /**
    *  info report
    ***/
   fprintf(out, "<infoReport>\n");
@@ -177,12 +180,11 @@ void report_finalise
 #ifdef FILE_PATH
   fprintf(out, "<filePath>%s</filePath>\n", FILE_PATH);
 #endif
-#ifdef HOST
-  fprintf(out, "<host>%s</host>\n", HOST);
-#endif
+  gethostname(name, 1024);
+  fprintf(out, "<host>%s</host>\n", name);
   fprintf(out, "</infoReport>\n");
 
-  /***
+  /**
    *  search report
    ***/
   fprintf(out, "<searchReport>\n");
@@ -251,10 +253,14 @@ void report_finalise
   fprintf(out, "</searchOptions>\n");
   fprintf(out, "</searchReport>\n");
 
-  /***
+  /**
    *  statistics report
    ***/
   fprintf(out, "<statisticsReport>\n");
+  
+  /*  model */
+  model_xml_statistics(out);
+  
   /*  time  */
   fprintf(out, "<timeStatistics>\n");
   if(r->comp_time > 0) {
@@ -268,9 +274,6 @@ void report_finalise
           do_large_sum(r->storage->barrier_time, r->no_workers) / 1000000.0);
 #endif
   fprintf(out, "</timeStatistics>\n");
-  
-  /*  model */
-  model_xml_statistics(out);
   
   /*  reachability graph  */
   fprintf(out, "<graphStatistics>\n");
@@ -346,7 +349,7 @@ void report_finalise
   fprintf(out, "</otherStatistics>\n");
   fprintf(out, "</statisticsReport>\n");
 
-  /***
+  /**
    *  trace report
    ***/
   if(r->result == FAILURE) {
@@ -368,6 +371,19 @@ void report_finalise
   }
   fprintf(out, "</helenaReport>\n");
   fclose(out);
+
+  /**
+   *  in distributed mode the report file must be printed to the
+   *  standard output so that it can be sent to the main process
+   */
+#if defined(DISTRIBUTED)
+  out = fopen(REPORT_FILE, "r");
+  while(getline(&buf, &n, out) != -1) {
+    printf("[xml-%d] %s", shmem_my_pe(), buf);
+  }
+  free(buf);
+  fclose(out);
+#endif
 }
 
 void report_interruption_handler

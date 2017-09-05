@@ -82,7 +82,7 @@ void dfs_stack_write
     fwrite(buffer, w, 1, f);
     storage_id_serialise(slot->items[i].id, buffer);
     fwrite(buffer, storage_id_char_width, 1, f);
-#ifdef PARALLEL
+#if defined(PARALLEL) || defined(DISTRIBUTED)
     fwrite(slot->items[i].shuffle, sizeof(unsigned int),
            event_set_size(slot->items[i].en), f);
 #endif
@@ -115,7 +115,7 @@ void dfs_stack_read
     item.en = event_set_unserialise_mem(buffer, stack->heaps[0]);
     fread(buffer, storage_id_char_width, 1, f);
     item.id = storage_id_unserialise(buffer);
-#ifdef PARALLEL
+#if defined(PARALLEL) || defined(DISTRIBUTED)
     en_size = event_set_size(item.en);
     item.shuffle = mem_alloc(stack->heaps[stack->current],
                              sizeof(unsigned int) * en_size);
@@ -224,8 +224,8 @@ event_set_t dfs_stack_compute_events
 #endif
   item.en = result;
 
-  /*  shuffle enabled events in parallel mode  */
-#ifdef PARALLEL
+  /*  shuffle enabled events in parallel or distributed mode  */
+#if defined(PARALLEL) || defined(DISTRIBUTED)
   en_size = event_set_size(result);
   {
     unsigned int num[en_size];
@@ -253,7 +253,7 @@ void dfs_stack_pick_event
  event_id_t * eid) {
   dfs_stack_item_t item = stack->slots[stack->current]->items[stack->top];
   int chosen;
-#ifdef PARALLEL
+#if defined(PARALLEL) || defined(DISTRIBUTED)
   chosen = item.shuffle[item.n];
 #else
   chosen = item.n;
@@ -269,7 +269,7 @@ void dfs_stack_event_undo
  state_t s) {
   dfs_stack_item_t item = stack->slots[stack->current]->items[stack->top];
   unsigned int n;
-#ifdef PARALLEL
+#if defined(PARALLEL) || defined(DISTRIBUTED)
   n = item.shuffle[item.n - 1];
 #else
   n = item.n - 1;
@@ -325,7 +325,7 @@ void dfs_stack_create_trace
       dfs_stack_pop(stack);
       while(stack->size > 0) {
         item = stack->slots[stack->current]->items[stack->top];
-#ifdef PARALLEL
+#if defined(PARALLEL) || defined(DISTRIBUTED)
         n = item.shuffle[item.n - 1];
 #else
         n = item.n - 1;

@@ -2,6 +2,11 @@
 #include "report.h"
 #include "vectors.h"
 
+/**
+ *  TODO:
+ *  * merge shared_hash_tbl_insert & shared_hash_tbl_insert_serialised
+ */
+
 #define BUCKET_EMPTY 1
 #define BUCKET_READY 2
 #define BUCKET_WRITE 3
@@ -44,7 +49,7 @@ shared_hash_tbl_t shared_hash_tbl_new
 
   result = mem_alloc(SYSTEM_HEAP, sizeof(struct_shared_hash_tbl_t));
   result->hash_size = hash_size;
-  for(w = 0; w < NO_WORKERS; w ++) {
+  for(w = 0; w < NO_WORKERS_STORAGE; w ++) {
     result->size[w] = 0;
     result->state_cmps[w] = 0;
     sprintf(name, "heap of worker %d", w);
@@ -78,7 +83,7 @@ void shared_hash_tbl_free
     }
   }
 #endif
-  for(w = 0; w < NO_WORKERS; w ++) {
+  for(w = 0; w < NO_WORKERS_STORAGE; w ++) {
     heap_free(tbl->heaps[w]);
   }
   mem_free(SYSTEM_HEAP, tbl);
@@ -89,10 +94,79 @@ uint64_t shared_hash_tbl_size
   uint64_t result = 0;
   worker_id_t w;
   
-  for(w = 0; w < NO_WORKERS; w ++) {
+  for(w = 0; w < NO_WORKERS_STORAGE; w ++) {
     result += tbl->size[w];
   }
   return result;
+}
+
+void shared_hash_tbl_insert_serialised
+(shared_hash_tbl_t tbl,
+ bit_vector_t s,
+ uint16_t s_char_len,
+ hash_key_t h,
+ worker_id_t w,
+ bool_t * is_new,
+ shared_hash_tbl_id_t * id) {
+  unsigned int trials = 0;
+  vector bits;
+  shared_hash_tbl_id_t pos = h % tbl->hash_size;
+  hash_compact_t hc;
+
+#ifdef HASH_COMPACTION
+  s_char_len = sizeof(hash_compact_t);
+#endif  
+  while(TRUE) {
+    if(tbl->status[pos] == BUCKET_EMPTY) {
+      if(CAS(&tbl->status[pos], BUCKET_EMPTY, BUCKET_WRITE)) {
+#ifdef HASH_COMPACTION
+        memcpy(tbl->state[pos] + ATTRIBUTES_CHAR_WIDTH, s, s_char_len);
+#else
+        tbl->hash[pos] = h;
+        tbl->state[pos] = mem_alloc0(tbl->heaps[w],
+                                     s_char_len + ATTRIBUTES_CHAR_WIDTH);
+        memcpy(tbl->state[pos] + ATTRIBUTES_CHAR_WIDTH, s, s_char_len);
+        bits.vector = tbl->state[pos];
+        VECTOR_start(bits);
+        VECTOR_move(bits, ATTRIBUTE_CHAR_LEN_POS);
+        VECTOR_set(bits, s_char_len, ATTRIBUTE_CHAR_LEN_WIDTH);
+#endif
+        tbl->status[pos] = BUCKET_READY;
+        tbl->size[w] ++;
+        (*is_new) = TRUE;
+        (*id) = pos;
+        return;
+      }
+    }
+    while(tbl->status[pos] == BUCKET_WRITE) {
+      nanosleep(&SLEEP_TIME, NULL);
+    }
+    if(tbl->status[pos] == BUCKET_READY) {
+      tbl->state_cmps[w] ++;
+
+#ifndef HASH_COMPACTION
+      {
+        unsigned int len;
+        bits.vector = tbl->state[pos];
+        VECTOR_start(bits);
+        VECTOR_move(bits, ATTRIBUTE_CHAR_LEN_POS);
+        VECTOR_get(bits, len, ATTRIBUTE_CHAR_LEN_WIDTH);
+      }
+#endif
+      
+      if(0 == memcmp(s, tbl->state[pos] + ATTRIBUTES_CHAR_WIDTH, s_char_len)) {
+        (*is_new) = FALSE;
+        (*id) = pos;
+        return;
+      }
+    }
+    if((++ trials) == MAX_TRIALS) {
+      raise_error("state table too small (increase --hash-size and rerun)");
+      (*is_new) = FALSE;
+      return;
+    }
+    pos = (pos + 1) % tbl->hash_size;
+  }
 }
 
 void shared_hash_tbl_insert
@@ -107,10 +181,10 @@ void shared_hash_tbl_insert
  hash_key_t * h) {
   unsigned int trials = 0;
   vector bits;
-  unsigned int i, len;
   shared_hash_tbl_id_t pos;
   bit_vector_t es;
-  hash_compact_t hc, hc_other;
+  hash_compact_t hc;
+  uint16_t s_char_len;
 
 #ifdef HASH_COMPACTION
   hash_compact(s, &hc);
@@ -131,13 +205,15 @@ void shared_hash_tbl_insert
         memcpy(&(tbl->state[pos][ATTRIBUTES_CHAR_WIDTH]), &hc,
                sizeof(hash_compact_t));
 #else
-        len = state_char_width(s) + ATTRIBUTES_CHAR_WIDTH;
-        es = mem_alloc(tbl->heaps[w], len);
-        for(i = 0; i < len; i ++) {
-          es[i] = 0;
-        }
-        state_serialise(s, es + ATTRIBUTES_CHAR_WIDTH);
-        tbl->state[pos] = es;
+        s_char_len = state_char_width(s);
+        tbl->state[pos] = mem_alloc0(tbl->heaps[w],
+                                     s_char_len + ATTRIBUTES_CHAR_WIDTH);
+        tbl->hash[pos] = (*h);
+        state_serialise(s, tbl->state[pos] + ATTRIBUTES_CHAR_WIDTH);
+        bits.vector = tbl->state[pos];
+        VECTOR_start(bits);
+        VECTOR_move(bits, ATTRIBUTE_CHAR_LEN_POS);
+        VECTOR_set(bits, s_char_len, ATTRIBUTE_CHAR_LEN_WIDTH);        
 #endif
         tbl->status[pos] = BUCKET_READY;
         tbl->size[w] ++;
@@ -151,26 +227,25 @@ void shared_hash_tbl_insert
     }
     if(tbl->status[pos] == BUCKET_READY) {
       tbl->state_cmps[w] ++;
+      es = tbl->state[pos] + ATTRIBUTES_CHAR_WIDTH;
 #ifdef HASH_COMPACTION
-      memcpy(&hc_other, &(tbl->state[pos][ATTRIBUTES_CHAR_WIDTH]),
-             sizeof(hash_compact_t));
-      (*is_new) = hash_compact_equal(hc, hc_other)
-        ? FALSE : TRUE;
+      (*is_new) = (0 != memcmp(s, es, sizeof(hash_compact_t))) ?
+        FALSE : TRUE;
 #else
-      (*is_new) = state_cmp_vector(s, tbl->state[pos] + ATTRIBUTES_CHAR_WIDTH)
-        ? FALSE : TRUE;
+      (*is_new) = (tbl->hash[pos] == (*h) && state_cmp_vector(s, es)) ?
+        FALSE : TRUE;
 #endif
       if(!(*is_new)) {
         (*id) = pos;
         return;
       }
     }
-    pos = (pos + 1) % tbl->hash_size;
     if((++ trials) == MAX_TRIALS) {
       raise_error("state table too small (increase --hash-size and rerun)");
       (*is_new) = FALSE;
       return;
     }
+    pos = (pos + 1) % tbl->hash_size;
   }
 }
 
@@ -210,11 +285,19 @@ state_t shared_hash_tbl_get_mem
   return result;
 }
 
-void shared_hash_tbl_get_serialized
+hash_key_t shared_hash_tbl_get_hash
 (shared_hash_tbl_t tbl,
- shared_hash_tbl_id_t id,
- bit_vector_t * s,
- uint32_t * size) {
+ shared_hash_tbl_id_t id) {
+  hash_key_t result;
+  
+#ifdef HASH_COMPACTION
+  hash_compact_t h;
+  memcpy(&h, &(tbl->state[id][ATTRIBUTES_CHAR_WIDTH]), sizeof(hash_compact_t));
+  result = h.keys[0];
+#else
+  result = tbl->hash[id];
+#endif
+  return result;
 }
 
 void shared_hash_tbl_set_attribute
@@ -339,13 +422,20 @@ void shared_hash_tbl_set_red
 #endif
 }
 
-void shared_hash_tbl_build_trace
+void shared_hash_tbl_get_serialised
 (shared_hash_tbl_t tbl,
- worker_id_t w,
  shared_hash_tbl_id_t id,
- event_t ** trace,
- unsigned int * trace_len) {
-  fatal_error("shared_hash_tbl_build_trace: not implemented");
+ bit_vector_t * s,
+ uint16_t * size) {
+#ifdef HASH_COMPACTION
+  (*s) = &(tbl->state[id][ATTRIBUTES_CHAR_WIDTH]);
+  (*size) = sizeof(hash_compact_t);
+#else
+  (*s) = tbl->state[id] + ATTRIBUTES_CHAR_WIDTH;
+  (*size) = (uint16_t) shared_hash_tbl_get_attribute(tbl, id,
+                                                     ATTRIBUTE_CHAR_LEN_POS,
+                                                     ATTRIBUTE_CHAR_LEN_WIDTH);
+#endif
 }
 
 void shared_hash_tbl_output_stats
@@ -353,7 +443,7 @@ void shared_hash_tbl_output_stats
  FILE * out) {
   fprintf(out, "<hashTableStatistics>\n");
   fprintf(out, "<stateComparisons>%llu</stateComparisons>\n",
-          do_large_sum(tbl->state_cmps, NO_WORKERS));
+          do_large_sum(tbl->state_cmps, NO_WORKERS_STORAGE));
   fprintf(out, "</hashTableStatistics>\n");
 }
 

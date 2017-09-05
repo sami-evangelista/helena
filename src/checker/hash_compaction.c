@@ -5,6 +5,7 @@ void hash_compact
  hash_compact_t * result) {
   int i;
   
+  memset(result, 0, sizeof(hash_compact_t));
   for(i = 0; i < HASH_COMPACTION_KEYS; i++) {
     result->keys[i] = state_hash(s);
   }

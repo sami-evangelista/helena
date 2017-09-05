@@ -558,13 +558,13 @@ package body Pn.Classes.Vectors is
       Plh(Lib, Prototype & ";");
       Plc(Lib, Prototype & " {");
       Generate_Indexes_Declaration(Me, "i", 1, Lib, True);
-      Plc(Lib, 1, "fprintf (out, ""<vector><exprList>"");");
+      Plc(Lib, 1, "fprintf (out, ""<vector>\n<exprList>\n"");");
       Generate_Loops(Me, "i", 1, Lib, True, Indexes);
       Plc(Lib, 1, "{");
       Plc(Lib, 2,
           Cls_To_Xml_Func(C.Elements) & "(expr.vector" & Indexes & ", out);");
       Plc(Lib, 1, "}");
-      Plc(Lib, 1, "fprintf (out, ""</exprList></vector>"");");
+      Plc(Lib, 1, "fprintf (out, ""</exprList>\n</vector>\n"");");
       Plc(Lib, "}");
    end;
 

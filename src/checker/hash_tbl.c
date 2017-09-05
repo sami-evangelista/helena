@@ -786,26 +786,6 @@ void hash_tbl_lookup
 
 /*****
  *
- *  Function: hash_tbl_build_trace
- *
- *****/
-void hash_tbl_build_trace
-(hash_tbl_t tbl,
- worker_id_t w,
- hash_tbl_id_t id,
- event_t ** trace,
- unsigned int * trace_len) {
-#ifndef ATTRIBUTE_PRED
-  fatal_error ("hash_tbl_build_trace: unable to reconstruct trace");
-#else
-  fatal_error ("hash_tbl_build_trace: unimplemented feature");
-#endif
-}
-
-
-
-/*****
- *
  *  Function: hash_tbl_fold
  *
  *****/

@@ -598,14 +598,14 @@ package body Pn.Classes.Structs is
         "   FILE * out)";
       Plh(Lib, Prototype & ";");
       Plc(Lib, Prototype & " {");
-      Plc(Lib, 1, "fprintf (out, ""<struct><exprList>"");");
+      Plc(Lib, 1, "fprintf (out, ""<struct>\n<exprList>\n"");");
       for I in 1..Length(Comps) loop
          Comp := Ith(Comps, I);
          Name := Cls_Struct_Comp_Name(Get_Name(Comp));
          Plc(Lib, Tab & Cls_To_Xml_Func(Get_Cls(Comp)) &
              "(expr." & Name & ", out);");
       end loop;
-      Plc(Lib, 1, "fprintf (out, ""</exprList></struct>"");");
+      Plc(Lib, 1, "fprintf (out, ""</exprList>\n</struct>\n"");");
       Plc(Lib, "}");
    end;
 

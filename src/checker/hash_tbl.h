@@ -162,13 +162,6 @@ bool_t hash_tbl_get_red
 uint64_t hash_tbl_size
 (hash_tbl_t storage);
 
-void hash_tbl_build_trace
-(hash_tbl_t storage,
- worker_id_t w,
- hash_tbl_id_t id,
- event_t ** trace,
- unsigned int * trace_len);
-
 void hash_tbl_fold
 (hash_tbl_t storage,
  worker_id_t w,

@@ -26,7 +26,7 @@ reporter=helena-report
 preProc=helena-pp
 
 xmlReportFile=report.xml
-xmlRgReportFile=rg-report.xml
+xmlReportTmpFile=report.xml.tmp
 graphFile=graph.dat
 version=2.3
 versionFile=VERSION
@@ -217,19 +217,30 @@ generateChecker () {
     $checkerGenerator $tmpDir || exitWithError
 }
 
+collectReportFiles () {
+    for i in $(seq 0 1000000)
+    do
+        grep "^\[xml-$i]" $xmlReportTmpFile | \
+            sed "s/\[xml-[0-9]*\]//g" > report-$i.xml
+        [ ! -s report-$i.xml ] && rm report-$i.xml && break
+    done
+}
+
 launchChecker () {
     local dir=$(getModelDir)/src
     [ "$machineFile" != "" ] && cp "$machineFile" $dir/machinefile
     pushd $dir &> /dev/null
     msg "Launching search ($RUN comp-time $ccTime) ..."
-    $RUN comp-time $ccTime
+    if [ $distributed -eq 0 ]
+    then
+        $RUN comp-time $ccTime
+    else
+        $RUN comp-time $ccTime | tee $xmlReportTmpFile | grep -v "^\[xml"
+        collectReportFiles
+    fi
     if [ -e $xmlReportFile ]
     then
 	mv $xmlReportFile ..
-    fi
-    if [ -e $xmlRgReportFile ]
-    then
-	mv $xmlRgReportFile ..
     fi
     if [ -e $graphFile ]
     then
@@ -243,7 +254,7 @@ launchChecker () {
 #####
 #  options
 verbose=0
-DDFS=0
+distributed=0
 reportFile=""
 machineFile=""
 
@@ -263,7 +274,7 @@ do
 	    if [ "$algo" = DDFS ]
 	    then
 		CC=$shcc
-		DDFS=1
+		distributed=1
 	    fi
 	    ;;
 	-o=*|--report-file=*)
@@ -272,7 +283,7 @@ do
 	    ;;
     esac
 done
-if [ $DDFS -eq 1 ]
+if [ $distributed -eq 1 ]
 then
     for arg in $*
     do
@@ -283,7 +294,6 @@ then
                 [ ! -e "$machineFile" ] && \
                     error "machine file '$machineFile' could not be found"
                 RUN=$shrun" -machinefile machinefile "$RUN
-                #RUN=$shrun" "$RUN
                 ;;
         esac
     done

@@ -53,7 +53,7 @@ state_t dfs_main
    */
   while(dfs_stack_size(stack) && R->keep_searching) {
   loop_start:
-
+    
     /*
      *  reinitialise the heap if we do not have enough space
      */

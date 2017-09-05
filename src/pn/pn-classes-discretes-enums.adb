@@ -225,7 +225,7 @@ package body Pn.Classes.Discretes.Enums is
         "   FILE * out)";
       Plh(Lib, Prototype & ";");
       Plc(Lib, Prototype & " {");
-      Plc(Lib, 1, "fprintf (out, ""<enum>%s</enum>"", " &
+      Plc(Lib, 1, "fprintf (out, ""<enum>%s</enum>\n"", " &
 	    Cls_Name(Get_Root_Cls(C.Me)) & "_values[expr]);");
       Plc(Lib, "}");
    end;

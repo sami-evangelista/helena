@@ -216,6 +216,14 @@ void * mem_alloc
   }
 }
 
+void * mem_alloc0
+(heap_t     heap,
+ mem_size_t size) {
+  void * result = mem_alloc(heap, size);
+  memset(result, 0, size);
+  return result;
+}
+
 typedef void(* heap_mem_free_func_t)(void *, void *);
 heap_mem_free_func_t heap_mem_free_funcs[HEAP_TYPES];
 

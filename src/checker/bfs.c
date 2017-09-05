@@ -171,8 +171,9 @@ void * bfs_worker
 
     /*
      *  all states of the current BFS level have been processed =>
-     *  move to the next level of the queue.  this must be made by all
-     *  threads simultaneously.  hence the barriers
+     *  move to the next level of the queue and check if the queue is
+     *  empty in order to terminate.  this must be made by all threads
+     *  simultaneously.  hence the barriers
      */
 #ifdef PARALLEL
     pthread_barrier_wait (&B);
@@ -181,9 +182,11 @@ void * bfs_worker
     levels ++;
 #ifdef PARALLEL
     pthread_barrier_wait (&B);
+#endif
     if(0 == w) {
       TERM = (!R->keep_searching || bfs_queue_is_empty(Q)) ? TRUE : FALSE;
     }
+#ifdef PARALLEL
     pthread_barrier_wait (&B);
 #endif
   }

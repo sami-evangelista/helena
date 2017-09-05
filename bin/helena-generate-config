@@ -205,7 +205,6 @@ class Config:
         f = self.openFile("config.h", "w")
         W = f.write
         now = datetime.now()
-        host = socket.gethostname()
         W("#ifndef LIB_CONFIG\n")
         W("#define LIB_CONFIG\n")
         W("\n")
@@ -216,7 +215,6 @@ class Config:
         W("#define WITH_OBSERVER\n")
         W("#define DATE \"" + \
                now.strftime("%B, %d, %Y at %H:%M:%S") + "\"\n")
-        W("#define HOST \"" + host + "\"\n")
         W("#define FILE_PATH \"" + os.path.realpath(self.inFile) + "\"\n")
         if self.inFileExt == ".lna":
             W("#define LANGUAGE \"helena\"\n")
@@ -328,12 +326,16 @@ class Config:
         W("#define ATTRIBUTE_BLUE_POS " + str(bitw) + "\n")
         W("#define ATTRIBUTE_BLUE_WIDTH 1\n")
         bitw = bitw + 1
+        if not self.hashCompaction:
+            W("#define ATTRIBUTE_CHAR_LEN\n")
+            W("#define ATTRIBUTE_CHAR_LEN_POS " + str(bitw) + "\n")
+            W("#define ATTRIBUTE_CHAR_LEN_WIDTH 16\n")
+            bitw = bitw + 16
         if self.delta:
             W("#define ATTRIBUTE_PRED\n")
             W("#define ATTRIBUTE_PRED_POS " + str(bitw) + "\n")
             W("#define ATTRIBUTE_PRED_WIDTH 40\n")
             bitw = bitw + 40
-        if self.delta:
             W("#define ATTRIBUTE_TYPE\n")
             W("#define ATTRIBUTE_TYPE_POS " + str(bitw) + "\n")
             W("#define ATTRIBUTE_TYPE_WIDTH 1\n")

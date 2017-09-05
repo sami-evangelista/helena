@@ -213,7 +213,8 @@ package body Pn.Classes.Discretes.Nums is
         "   FILE * out)";
       Plh(Lib, Prototype & ";");
       Plc(Lib, Prototype & " {");
-      Plc(Lib, 1, "fprintf (out, ""<num>%lli</num>"", (long long int) expr);");
+      Plc(Lib, 1, "fprintf (out, ""<num>%lli</num>\n""," &
+            " (long long int) expr);");
       Plc(Lib, "}");
    end;
 

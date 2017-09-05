@@ -18,29 +18,32 @@
 typedef shared_hash_tbl_t storage_t;
 typedef shared_hash_tbl_id_t storage_id_t;
 
-#define init_storage           init_shared_hash_tbl
-#define free_storage           free_shared_hash_tbl
-#define storage_id_serialise   shared_hash_tbl_id_serialise
-#define storage_id_unserialise shared_hash_tbl_id_unserialise
-#define storage_id_char_width  shared_hash_tbl_id_char_width
-#define storage_new            shared_hash_tbl_default_new
-#define storage_free           shared_hash_tbl_free
-#define storage_size           shared_hash_tbl_size
-#define storage_insert         shared_hash_tbl_insert
-#define storage_remove         shared_hash_tbl_remove
-#define storage_lookup         shared_hash_tbl_lookup
-#define storage_id_cmp         shared_hash_tbl_id_cmp
-#define storage_get            shared_hash_tbl_get
-#define storage_get_mem        shared_hash_tbl_get_mem
-#define storage_set_cyan       shared_hash_tbl_set_cyan
-#define storage_get_cyan       shared_hash_tbl_get_cyan
-#define storage_set_blue       shared_hash_tbl_set_blue
-#define storage_get_blue       shared_hash_tbl_get_blue
-#define storage_set_pink       shared_hash_tbl_set_pink
-#define storage_get_pink       shared_hash_tbl_get_pink
-#define storage_set_red        shared_hash_tbl_set_red
-#define storage_get_red        shared_hash_tbl_get_red
-#define storage_output_stats   shared_hash_tbl_output_stats
+#define init_storage              init_shared_hash_tbl
+#define free_storage              free_shared_hash_tbl
+#define storage_id_serialise      shared_hash_tbl_id_serialise
+#define storage_id_unserialise    shared_hash_tbl_id_unserialise
+#define storage_id_char_width     shared_hash_tbl_id_char_width
+#define storage_new               shared_hash_tbl_default_new
+#define storage_free              shared_hash_tbl_free
+#define storage_size              shared_hash_tbl_size
+#define storage_insert            shared_hash_tbl_insert
+#define storage_insert_serialised shared_hash_tbl_insert_serialised
+#define storage_remove            shared_hash_tbl_remove
+#define storage_lookup            shared_hash_tbl_lookup
+#define storage_id_cmp            shared_hash_tbl_id_cmp
+#define storage_get_serialised    shared_hash_tbl_get_serialised
+#define storage_get               shared_hash_tbl_get
+#define storage_get_mem           shared_hash_tbl_get_mem
+#define storage_get_hash          shared_hash_tbl_get_hash
+#define storage_set_cyan          shared_hash_tbl_set_cyan
+#define storage_get_cyan          shared_hash_tbl_get_cyan
+#define storage_set_blue          shared_hash_tbl_set_blue
+#define storage_get_blue          shared_hash_tbl_get_blue
+#define storage_set_pink          shared_hash_tbl_set_pink
+#define storage_get_pink          shared_hash_tbl_get_pink
+#define storage_set_red           shared_hash_tbl_set_red
+#define storage_get_red           shared_hash_tbl_get_red
+#define storage_output_stats      shared_hash_tbl_output_stats
 
 
 /*****
