@@ -1,0 +1,71 @@
+#!/usr/bin/python
+#
+#  File: helena-merge-reports
+#
+#  Merge a set of XML report files into a single report file.
+#
+
+from xml.dom.minidom import parse, parseString
+import os
+import sys
+
+def mergeNode(nodeName, refDoc, docs):
+    n = refDoc.getElementsByTagName(nodeName)
+    if len(n) == 0:
+        return
+    n = n[0]
+    l = refDoc.createElement("list")
+    for doc in docs:
+        val = doc.getElementsByTagName(nodeName)[0].childNodes[0].nodeValue
+        item = refDoc.createElement("item")
+        item.appendChild(doc.createTextNode(val))
+        l.appendChild(item)
+    c = n.childNodes[0]
+    n.replaceChild(l, c)
+
+def mergeReports(refDoc, docs):
+    for node in [ "arcs",
+                  "barrierTime",
+                  "bfsLevels",
+                  "duplicateDetectionTime",
+                  "eventExecPerSecond",
+                  "eventsExecuted",
+                  "eventsExecutedDDD",
+                  "eventsExecutedExpansion",
+                  "host",
+                  "maxBfsQueue",
+                  "maxDfsStack",
+                  "maxMemoryUsed",
+                  "searchTime",
+                  "statesAccepting",
+                  "stateComparisons",
+                  "statesExpanded",
+                  "statesExpandedDev",
+                  "statesExpandedMax",
+                  "statesExpandedMin",
+                  "statesMaxStored",
+                  "statesStored",
+                  "statesTerminal" ]:        
+        mergeNode(node, refDoc, docs)
+
+def exitWithError(errMsg):
+    sys.stderr.write(errMsg + "\n")
+    exit(1)
+
+if len(sys.argv) == 1:
+    print "usage: helena-merge-reports report-0.xml report-1.xml"
+    exit(1)
+else:
+    docs = list()
+    for xml in sys.argv[1:]:
+        try:
+            docs.append(parse(xml))
+        except:
+            exitWithError("error: could not parse file " + xml)
+    docRef = docs[0]
+    mergeReports(docRef, docs)
+    out = open("report.xml", "w")
+    out.write(docRef.toprettyxml(indent = '  '))
+    out.close()
+    
+exit(0)
