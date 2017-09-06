@@ -114,44 +114,6 @@ in
     TextIO.output (cFile, "\n" ^ bodyMem ^ "\n")
 end
 
-fun compileGetSuccs getEvents funcName
-		    (s: System.system, checks, hFile, cFile) = let
-    fun compileTest (enVar, noVar) e =
-	concatLines [
-	"   if (" ^ ("is_enabled_" ^ (getEventName e)) ^ " (s)) {",
-	"      succs[*no_succs] = mstate_succ_mem (s, "
-	^ (getEventName e) ^ ", heap);",
-	"      (*no_succs) ++;",
-	"   }" ]
-    val events = getEvents s
-    val comps  = buildStateComps s
-
-    val protMem = String.concat [
-		  "void " ^ funcName ^ "_mem" ^
-		  " (mstate_t s, unsigned int * no_succs," ^
-		  " mstate_t * succs, heap_t heap)" ]
-    val bodyMem = [
-	protMem ^ " {",
-	"   *no_succs = 0;",
-	concatLines (List.map (compileTest ("en", "no_evts")) events),
-	"}" ]
-    val bodyMem = concatLines bodyMem
-
-    val prot = String.concat [ "void " ^ funcName ^
-			       " (mstate_t s, unsigned int * no_succs," ^
-			       " mstate_t * succs)" ]
-    val body = [
-	prot ^ " {",
-	"   " ^ funcName ^ "_mem (s, no_succs, succs, SYSTEM_HEAP);",
-	"}" ]
-    val body = concatLines body
-in
-    TextIO.output (hFile, "\n" ^ prot ^ ";\n");
-    TextIO.output (hFile, "\n" ^ protMem ^ ";\n");
-    TextIO.output (cFile, "\n" ^ body ^ "\n");
-    TextIO.output (cFile, "\n" ^ bodyMem ^ "\n")
-end
-
 fun gen (s, checks, hFile, cFile) = (
     TextIO.output (hFile, "/*  enabling test functions  */");
     TextIO.output (cFile, "/*  enabling test functions  */");
@@ -159,6 +121,14 @@ fun gen (s, checks, hFile, cFile) = (
 	buildEvents "mstate_enabled_event" (s, checks, hFile, cFile);
     compileGetEnabledEvents
 	buildEvents "mstate_enabled_events" (s, checks, hFile, cFile);
-    compileGetSuccs
-	buildEvents "mstate_succs" (s, checks, hFile, cFile))
+    TextIO.output
+        (hFile,
+         concatLines [
+	     "void mstate_stubborn_set (mstate_t s, mevent_set_t en);" ]);
+    TextIO.output
+        (cFile,
+         concatLines [
+	     "void mstate_stubborn_set (mstate_t s, mevent_set_t en) {",
+             "/*  not implemented  */",
+	     "}" ]))
 end

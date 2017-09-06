@@ -41,7 +41,7 @@ void * observer_start
     }
     time = ((float) duration(r->start_time, now)) / 1000000.0;
 #if defined(DISTRIBUTED)
-    printf("[%d] ", shmem_my_pe());    
+    printf("[%d] ", proc_id());    
 #endif
     printf("St.:%11llu stored,", stored);
     printf("%10llu processed. ", visited);

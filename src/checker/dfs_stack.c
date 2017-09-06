@@ -70,7 +70,7 @@ void dfs_stack_write
   FILE * f;
   char buffer[10000];
   dfs_stack_slot_t slot = stack->slots[0];
-  
+    
   sprintf(buffer, "STACK-%d-%d", stack->id, stack->files);
   f = fopen(buffer, "w");
   for(i = 0; i < DFS_STACK_SLOT_SIZE; i ++) {
@@ -82,14 +82,14 @@ void dfs_stack_write
     fwrite(buffer, w, 1, f);
     storage_id_serialise(slot->items[i].id, buffer);
     fwrite(buffer, storage_id_char_width, 1, f);
-#if defined(PARALLEL) || defined(DISTRIBUTED)
-    fwrite(slot->items[i].shuffle, sizeof(unsigned int),
-           event_set_size(slot->items[i].en), f);
-#endif
-#if defined(POR) && defined(PROVISO)
-    fwrite(&slot->items[i].prov_ok, sizeof(bool_t), 1, f);
-    fwrite(&slot->items[i].fully_expanded, sizeof(bool_t), 1, f);
-#endif
+    if(CFG_PARALLEL || CFG_DISTRIBUTED) {
+      fwrite(slot->items[i].shuffle, sizeof(unsigned int),
+             event_set_size(slot->items[i].en), f);
+    }
+    if(CFG_POR && CFG_PROVISO) {
+      fwrite(&slot->items[i].prov_ok, sizeof(bool_t), 1, f);
+      fwrite(&slot->items[i].fully_expanded, sizeof(bool_t), 1, f);
+    }
   }
   fclose(f);
   stack->files ++;
@@ -115,16 +115,16 @@ void dfs_stack_read
     item.en = event_set_unserialise_mem(buffer, stack->heaps[0]);
     fread(buffer, storage_id_char_width, 1, f);
     item.id = storage_id_unserialise(buffer);
-#if defined(PARALLEL) || defined(DISTRIBUTED)
-    en_size = event_set_size(item.en);
-    item.shuffle = mem_alloc(stack->heaps[stack->current],
-                             sizeof(unsigned int) * en_size);
-    fread(item.shuffle, sizeof(unsigned int), en_size, f);
-#endif
-#if defined(POR) && defined(PROVISO)
-    fread(&item.prov_ok, sizeof(bool_t), 1, f);
-    fread(&item.fully_expanded, sizeof(bool_t), 1, f);
-#endif
+    if(CFG_PARALLEL || CFG_DISTRIBUTED) {
+      en_size = event_set_size(item.en);
+      item.shuffle = mem_alloc(stack->heaps[stack->current],
+                               sizeof(unsigned int) * en_size);
+      fread(item.shuffle, sizeof(unsigned int), en_size, f);
+    }
+    if(CFG_POR && CFG_PROVISO) {
+      fread(&item.prov_ok, sizeof(bool_t), 1, f);
+      fread(&item.fully_expanded, sizeof(bool_t), 1, f);
+    }
     stack->slots[0]->items[i] = item;
   }
   fclose(f);
@@ -209,39 +209,43 @@ event_set_t dfs_stack_compute_events
   result = state_enabled_events_mem(s, h);
 
   /*  compute a stubborn set if POR is activated  */
-#ifdef POR
-  if(filter) {
-    en_size = event_set_size(result);
-    state_stubborn_set(s, result);
-#ifdef PROVISO
-    item.prov_ok = TRUE;
-    item.fully_expanded = (en_size == event_set_size(result)) ? TRUE : FALSE;
-  } else {
-    item.prov_ok = TRUE;
-    item.fully_expanded = TRUE;
-#endif
+  if(CFG_POR) {
+    if(filter) {
+      en_size = event_set_size(result);
+      state_stubborn_set(s, result);
+      if(CFG_PROVISO) {
+        item.prov_ok = TRUE;
+        item.fully_expanded = (en_size == event_set_size(result)) ?
+          TRUE : FALSE;
+      } else {
+        item.prov_ok = TRUE;
+        item.fully_expanded = TRUE;
+      }
+    } else if(CFG_PROVISO) {
+      item.prov_ok = TRUE;
+      item.fully_expanded = TRUE;
+    }
   }
-#endif
   item.en = result;
 
   /*  shuffle enabled events in parallel or distributed mode  */
-#if defined(PARALLEL) || defined(DISTRIBUTED)
-  en_size = event_set_size(result);
-  {
-    unsigned int num[en_size];
-    uint32_t rnd;
-    for(i = 0; i < en_size; i ++) {
-      num[i] = i;
-    }
-    item.shuffle = mem_alloc(stack->heaps[stack->current],
-                             sizeof(unsigned int) * en_size);
-    for(i = 0; i < en_size; i ++) {
-      rnd = random_int(&stack->seed) % (en_size - i);
-      item.shuffle[i] = num[rnd];
-      num[rnd] = num[en_size - i - 1];
+  if(CFG_PARALLEL || CFG_DISTRIBUTED) {
+    en_size = event_set_size(result);
+    {
+      unsigned int num[en_size];
+      uint32_t rnd;
+      for(i = 0; i < en_size; i ++) {
+        num[i] = i;
+      }
+      item.shuffle = mem_alloc(stack->heaps[stack->current],
+                               sizeof(unsigned int) * en_size);
+      for(i = 0; i < en_size; i ++) {
+        rnd = random_int(&stack->seed) % (en_size - i);
+        item.shuffle[i] = num[rnd];
+        num[rnd] = num[en_size - i - 1];
+      }
     }
   }
-#endif
   
   stack->slots[stack->current]->items[stack->top] = item;
   return result;
@@ -253,11 +257,11 @@ void dfs_stack_pick_event
  event_id_t * eid) {
   dfs_stack_item_t item = stack->slots[stack->current]->items[stack->top];
   int chosen;
-#if defined(PARALLEL) || defined(DISTRIBUTED)
-  chosen = item.shuffle[item.n];
-#else
-  chosen = item.n;
-#endif
+  if(CFG_PARALLEL || CFG_DISTRIBUTED) {
+    chosen = item.shuffle[item.n];
+  } else {
+    chosen = item.n;
+  }
   (*e) = event_set_nth(item.en, chosen);
   (*eid) = event_set_nth_id(item.en, chosen);
   item.n ++;
@@ -269,19 +273,19 @@ void dfs_stack_event_undo
  state_t s) {
   dfs_stack_item_t item = stack->slots[stack->current]->items[stack->top];
   unsigned int n;
-#if defined(PARALLEL) || defined(DISTRIBUTED)
-  n = item.shuffle[item.n - 1];
-#else
-  n = item.n - 1;
-#endif  
+  if(CFG_PARALLEL || CFG_DISTRIBUTED) {
+    n = item.shuffle[item.n - 1];
+  } else {
+    n = item.n - 1;
+  }
   event_undo(event_set_nth(item.en, n), s);
 }
 
 void dfs_stack_unset_proviso
 (dfs_stack_t stack) {
-#if defined(POR) && defined(PROVISO)
-  stack->slots[stack->current]->items[stack->top].prov_ok = FALSE;
-#endif
+  if(CFG_POR && CFG_PROVISO) {
+    stack->slots[stack->current]->items[stack->top].prov_ok = FALSE;
+  }
 }
 
 bool_t dfs_stack_top_expanded
@@ -292,12 +296,16 @@ bool_t dfs_stack_top_expanded
 
 bool_t dfs_stack_proviso
 (dfs_stack_t stack) {
-#if defined(POR) && defined(PROVISO)
-  dfs_stack_item_t item = stack->slots[stack->current]->items[stack->top];
-  return item.prov_ok || item.fully_expanded;
-#else
-  return TRUE;
-#endif
+  bool_t result;
+  dfs_stack_item_t item;
+  
+  if(CFG_POR && CFG_PROVISO) {
+    item = stack->slots[stack->current]->items[stack->top];
+    result = item.prov_ok || item.fully_expanded;
+  } else {
+    result = TRUE;
+  }
+  return result;
 }
 
 void dfs_stack_create_trace
@@ -325,11 +333,11 @@ void dfs_stack_create_trace
       dfs_stack_pop(stack);
       while(stack->size > 0) {
         item = stack->slots[stack->current]->items[stack->top];
-#if defined(PARALLEL) || defined(DISTRIBUTED)
-        n = item.shuffle[item.n - 1];
-#else
-        n = item.n - 1;
-#endif
+        if(CFG_PARALLEL || CFG_DISTRIBUTED) {
+          n = item.shuffle[item.n - 1];
+        } else {
+          n = item.n - 1;
+        }
         r->trace[now --] = event_copy(event_set_nth(item.en, n));
         dfs_stack_pop(stack);
       }

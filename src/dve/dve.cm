@@ -31,16 +31,12 @@ is
 	errors.sml
 	dve-compiler-utils.sml
 	dve-model-compiler.sml
-	dve-components-compiler.sml
-	dve-order-compiler.sml
 	dve-sem-analyzer.sml
-	dve-independence-relation-compiler.sml
 	dve-serializer-compiler.sml
 	dve-definitions-compiler.sml
 	dve-enabling-test-compiler.sml
 	dve-event-execution-compiler.sml
 	dve-hash-function-compiler.sml
 	dve-simplifier.sml
-	dve-progress-compiler.sml
 	dve-config-compiler.sml
 	dve-initial-state-compiler.sml

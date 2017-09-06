@@ -9,21 +9,17 @@ in
    errors.sml
    dve-compiler-utils.sml
    dve-simplifier.sml
-   dve-components-compiler.sml
    dve-config-compiler.sml
    dve-definitions-compiler.sml
    dve-enabling-test-compiler.sml
    dve-event-execution-compiler.sml
    dve-hash-function-compiler.sml
-   dve-independence-relation-compiler.sml
    dve-initial-state-compiler.sml
-   dve-order-compiler.sml
    dve.grm.sig
    dve.lex.sml
    dve.grm.sml
    dve-sem-analyzer.sml
    dve-parser.sml
-   dve-progress-compiler.sml
    dve-serializer-compiler.sml
    dve-xml-compiler.sml
    dve-compiler.sml

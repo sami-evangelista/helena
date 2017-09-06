@@ -199,7 +199,7 @@ in
 				   before (num := !num + 1))) }
 		systemEvents,
      "typedef struct {",
-     "   unsigned char no_evts;",
+     "   uint8_t no_evts;",
      "   mevent_t * evts;",
      "   heap_t * heap;",
      "} struct_mevent_set_t;",

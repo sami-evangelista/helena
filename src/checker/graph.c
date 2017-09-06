@@ -1,7 +1,7 @@
 #include "graph.h"
+#include "model.h"
 
 #ifdef MODEL_HAS_GRAPH_ROUTINES
-#include "model.h"
 #include "model_graph.h"
 #else
 typedef int model_graph_data_t;

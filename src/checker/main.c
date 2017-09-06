@@ -5,6 +5,7 @@
 #include "simulator.h"
 #include "random_walk.h"
 #include "graph.h"
+#include "vectors.h"
 
 int main
 (int argc,

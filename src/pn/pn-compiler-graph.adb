@@ -293,6 +293,7 @@ package body Pn.Compiler.Graph is
       Plh(L, Prototype & ";");
       Plc(L, Prototype & " {");
       Plc(L, "#ifdef ACTION_BUILD_RG");
+      Plc(L, 1, "hash_key_t h;");
       Plc(L, 1, "bool_t b;");
       Plc(L, 1, "hash_tbl_id_t id;");
       Plc(L, 1, "mevent_set_t en = mstate_enabled_events (s);");
@@ -311,7 +312,7 @@ package body Pn.Compiler.Graph is
          Plc(L, 1, "data->proj->" & C & ".mult = s->" & C & ".mult;");
          Plc(L, 1, "data->proj->" & C & ".heap = s->" & C & ".heap;");
 	 Plc(L, 1, "hash_tbl_insert(data->storage, data->proj, " &
-	       "NULL, NULL, 0, 0, &b, &id);");
+	       "NULL, NULL, 0, 0, &b, &id, &h);");
 	 Plc(L, 1, Local_State_Init_Func(P) &
 	       "(data->proj->" & C & ", SYSTEM_HEAP);");
 	 Plc(L, 1, "if (s->" & C &

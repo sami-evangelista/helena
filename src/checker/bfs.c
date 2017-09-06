@@ -58,7 +58,7 @@ void * bfs_worker
   hash_key_t h;
   
   sprintf(heap_name, "bfs heap of worker %d", w);
-  heap = bounded_heap_new(heap_name, 1024 * 1024);
+  heap = bounded_heap_new(heap_name, 10 * 1024 * 1024);
   levels = 0;
   while(!TERM) {
     for(x = 0; x < NO_WORKERS && R->keep_searching; x ++) {
@@ -81,11 +81,11 @@ void * bfs_worker
         if(0 == en_size) {
           R->states_dead[w] ++;
         }
-#ifdef POR
-        en_size = event_set_size(en);
-        state_stubborn_set(s, en);
-        fully_expanded = (en_size == event_set_size(en)) ? TRUE : FALSE;
-#endif
+        if(CFG_POR) {
+          en_size = event_set_size(en);
+          state_stubborn_set(s, en);
+          fully_expanded = (en_size == event_set_size(en)) ? TRUE : FALSE;
+        }
 
         /*
          *  check the state property
@@ -103,7 +103,6 @@ void * bfs_worker
       state_expansion:
         arcs = 0;
         en_size = event_set_size(en);
-        
         for(i = 0; i < en_size; i ++) {
           event_t e = event_set_nth(en, i);
           event_id_t e_id = event_set_nth_id(en, i);
@@ -137,15 +136,15 @@ void * bfs_worker
              *  if the successor state is not new it must be in the
              *  queue for the proviso to be satisfied
              */
-#if defined(POR) && defined(PROVISO)
-            if(!fully_expanded && !storage_get_cyan(storage, id_new, w)) {
+            if(CFG_POR && CFG_PROVISO &&
+               !fully_expanded &&
+               !storage_get_cyan(storage, id_new, w)) {
               fully_expanded = TRUE;
               event_undo(e, s);
               event_set_free(en);
               en = state_enabled_events_mem(s, heap);
               goto state_expansion;
             }
-#endif
           }
           event_undo(e, s);
         }
@@ -175,20 +174,20 @@ void * bfs_worker
      *  empty in order to terminate.  this must be made by all threads
      *  simultaneously.  hence the barriers
      */
-#ifdef PARALLEL
-    pthread_barrier_wait (&B);
-#endif
+    if(CFG_PARALLEL) {
+      pthread_barrier_wait (&B);
+    }
     bfs_queue_switch_level(Q, w);
     levels ++;
-#ifdef PARALLEL
-    pthread_barrier_wait (&B);
-#endif
+    if(CFG_PARALLEL) {
+      pthread_barrier_wait (&B);
+    }
     if(0 == w) {
       TERM = (!R->keep_searching || bfs_queue_is_empty(Q)) ? TRUE : FALSE;
     }
-#ifdef PARALLEL
-    pthread_barrier_wait (&B);
-#endif
+    if(CFG_PARALLEL) {
+      pthread_barrier_wait (&B);
+    }
   }
   heap_free(heap);
   report_update_bfs_levels(R, levels);

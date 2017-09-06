@@ -86,10 +86,9 @@ end
 
 fun compileEventSetCharWidth (s: System.system, hFile, cFile) = let
     val prot = "unsigned int mevent_set_char_width (mevent_set_t s)"
-    val body =
-	concatLines [
+    val body = concatLines [
 	prot ^ " {",
-	"   fatal_error (\"mevent_set_char_width: unimplemented feature\");",
+	"   return sizeof(uint8_t) + s->no_evts * sizeof(mevent_t);",
 	"}"
 	]
 in
@@ -101,8 +100,14 @@ fun compileEventSetSerialise (s: System.system, hFile, cFile) = let
     val prot = "void mevent_set_serialise (mevent_set_t s, bit_vector_t v)"
     val body =
 	concatLines [
-	prot ^ " {",
-	"   fatal_error (\"mevent_set_serialise: unimplemented feature\");",
+        prot ^ " {",
+        "   int i, pos = 0;",
+        "   memcpy(v, &(s->no_evts), sizeof(uint8_t));",
+        "   pos += sizeof(uint8_t);",
+        "   for(i = 0; i < s->no_evts; i ++) {",
+        "      memcpy(v + pos, &(s->evts[i]), sizeof(mevent_t));",
+        "      pos += sizeof(mevent_t);",
+        "   }",
 	"}"
 	]
 in
@@ -116,8 +121,19 @@ fun compileEventSetUnserialise (s: System.system, hFile, cFile) = let
     val bodyMem =
 	concatLines [
 	protMem ^ " {",
-	"   fatal_error (\"mevent_set_unserialise_mem: " ^
-	"unimplemented feature\");",
+        "   int i, pos = 0;",
+	"   mevent_set_t result;",
+	"   result = mem_alloc(heap, sizeof(struct_mevent_set_t));",
+	"   result->heap = heap;",
+        "   memcpy(&(result->no_evts), v, sizeof(uint8_t));",
+	"   result->evts = mem_alloc(heap, result->no_evts *",
+        "                            sizeof(mevent_t));",
+        "   pos += sizeof(uint8_t);",
+        "   for(i = 0; i < result->no_evts; i ++) {",
+        "      memcpy(&(result->evts[i]), v + pos, sizeof(mevent_t));",
+        "      pos += sizeof(mevent_t);",
+        "   }",
+	"   return result;",
 	"}"
 	]
     val prot = "mevent_set_t mevent_set_unserialise (bit_vector_t v)"

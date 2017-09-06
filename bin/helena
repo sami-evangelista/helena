@@ -28,6 +28,7 @@ preProc=helena-pp
 
 xmlReportFile=report.xml
 xmlReportTmpFile=report.xml.tmp
+xmlGraphReportFile=rg-report.xml
 graphFile=graph.dat
 version=2.3
 versionFile=VERSION
@@ -241,14 +242,13 @@ launchChecker () {
         checkExecutable $reportsMerger
         $reportsMerger report-*.xml
     fi
-    if [ -e $xmlReportFile ]
-    then
-	mv $xmlReportFile ..
-    fi
-    if [ -e $graphFile ]
-    then
-	mv $graphFile ..
-    fi
+    for f in $xmlReportFile $xmlGraphReportFile $graphFile
+    do
+        if [ -e $f ]
+        then
+	    mv $f ..
+        fi
+    done
     popd &> /dev/null
 }
 

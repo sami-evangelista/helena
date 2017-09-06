@@ -7,7 +7,37 @@
 
 #if defined(ALGO_DDFS) || defined(ALGO_DFS)
 
-report_t R;
+static report_t R;
+static storage_t S;
+
+state_t dfs_recover_state
+(dfs_stack_t stack,
+ state_t now,
+ worker_id_t w,
+ heap_t heap) {
+  storage_id_t id;
+#ifdef EVENT_UNDOABLE
+  dfs_stack_event_undo(stack, now);
+#else
+  state_free(now);
+  id = dfs_stack_top(stack);
+  now = storage_get_mem(S, id, w, heap);
+#endif
+  return now;
+}
+
+state_t dfs_check_state
+(state_t now,
+ event_set_t en,
+ dfs_stack_t blue_stack,
+ dfs_stack_t red_stack) { 
+#ifdef ACTION_CHECK_SAFETY
+  if(state_check_property(now, en)) {
+    report_faulty_state(R, now);
+    dfs_stack_create_trace(blue_stack, red_stack, R);
+  }
+#endif
+}
 
 state_t dfs_main
 (worker_id_t w,
@@ -18,7 +48,6 @@ state_t dfs_main
  dfs_stack_t blue_stack,
  dfs_stack_t red_stack) {
   storage_id_t id_seed;
-  storage_t storage = R->storage;
   bool_t push;
   dfs_stack_t stack = blue ? blue_stack : red_stack;
   state_t copy;
@@ -35,18 +64,12 @@ state_t dfs_main
   dfs_stack_push(stack, id);
   en = dfs_stack_compute_events(stack, now, TRUE);
   if(blue) {
-    storage_set_cyan(storage, id, w, TRUE);
+    storage_set_cyan(S, id, w, TRUE);
   } else {
     id_seed = id;
-    storage_set_pink(storage, id, w, TRUE);
+    storage_set_pink(S, id, w, TRUE);
   }
-
-#ifdef ACTION_CHECK_SAFETY
-  if(state_check_property(now, en)) {
-    report_faulty_state(R, now);
-    dfs_stack_create_trace(blue_stack, red_stack, R);
-  }
-#endif
+  dfs_check_state(now, en, blue_stack, red_stack);
 
   /*
    *  search loop
@@ -73,12 +96,10 @@ state_t dfs_main
       /*
        *  check if proviso is verified.  if not we reexpand the state
        */
-#if defined(POR) && defined(PROVISO)
-      if(!dfs_stack_proviso(stack)) {
-	dfs_stack_compute_events(stack, now, FALSE);
-	goto loop_start;
+      if(CFG_POR && CFG_PROVISO && !dfs_stack_proviso(stack)) {
+        dfs_stack_compute_events(stack, now, FALSE);
+        goto loop_start;
       }
-#endif
 
       /*
        *  we check an ltl property => launch the red search if the
@@ -101,10 +122,10 @@ state_t dfs_main
        */
       id_top = dfs_stack_top(stack);
       if(blue) {
-	storage_set_cyan(storage, id_top, w, FALSE);
-        storage_set_blue(storage, id_top, TRUE);
+	storage_set_cyan(S, id_top, w, FALSE);
+        storage_set_blue(S, id_top, TRUE);
       } else {
-        storage_set_red(storage, id_top, TRUE);
+        storage_set_red(S, id_top, TRUE);
       }
 
       /*
@@ -120,7 +141,7 @@ state_t dfs_main
       R->states_visited[w] ++;
       dfs_stack_pop(stack);
       if(dfs_stack_size(stack)) {
-	dfs_stack_event_undo(stack, now);
+        now = dfs_recover_state(stack, now, w, heap);
       }
     }
 
@@ -141,7 +162,7 @@ state_t dfs_main
        *  try to insert the successor
        */
       id_top = dfs_stack_top(stack);
-      storage_insert(storage, now, &id_top, &eid,
+      storage_insert(S, now, &id_top, &eid,
                      dfs_stack_size(stack), w, &is_new, &id, &h);
 
       /*
@@ -150,27 +171,25 @@ state_t dfs_main
       if(blue) {
 	R->arcs[w] ++;
         push = is_new ||
-          ((!storage_get_blue(storage, id)) &&
-           (!storage_get_cyan(storage, id, w)));
-#ifdef ACTION_CHECK_LTL
+          ((!storage_get_blue(S, id)) &&
+           (!storage_get_cyan(S, id, w)));
       } else {
         push = is_new ||
-          ((!storage_get_red(storage, id)) &&
-           (!storage_get_pink(storage, id, w)));
-#endif
+          ((!storage_get_red(S, id)) &&
+           (!storage_get_pink(S, id, w)));
       }
 
       /*
        *  if the successor state must not be explored we undo the
-       *  event used to reach it.  otherwise we push it on the stack
+       *  event used to reach it.  otherwise we push it on the stack.
+       *  if the successor is on the stack the proviso is not verified
+       *  for the current state.
        */
       if(!push) {
-        dfs_stack_event_undo(stack, now);
-#if defined(POR) && defined(PROVISO)
-	if(storage_get_cyan(storage, id, w)) {
-	  dfs_stack_unset_proviso(stack);
-	}
-#endif
+        now = dfs_recover_state(stack, now, w, heap);
+        if(CFG_POR && CFG_PROVISO && storage_get_cyan(S, id, w)) {
+          dfs_stack_unset_proviso(stack);
+        }
       } else {
 
         /*
@@ -180,32 +199,22 @@ state_t dfs_main
 	dfs_stack_push(stack, id);
     	en = dfs_stack_compute_events(stack, now, TRUE);
         if(blue) {
-          storage_set_cyan(storage, id, w, TRUE);
+          storage_set_cyan(S, id, w, TRUE);
         } else {
-          storage_set_pink(storage, id, w, TRUE);
+          storage_set_pink(S, id, w, TRUE);
         }
 
         /*
-         *  update some statistics
+         *  update some statistics and check the state
          */
-#ifndef PARALLEL
-    	report_update_max_unproc_size
-          (R, dfs_stack_size(red_stack) + dfs_stack_size(blue_stack));
-#endif
+        if(!CFG_PARALLEL) {
+          report_update_max_unproc_size
+            (R, dfs_stack_size(red_stack) + dfs_stack_size(blue_stack));
+        }
 	if(blue && (0 == event_set_size(en))) {
 	  R->states_dead[w] ++;
 	}
-
-	/*
-	 *  check if the state property is verified and stop the
-	 *  search if not after setting the trace
-	 */
-#ifdef ACTION_CHECK_SAFETY
-	if(state_check_property(now, en)) {
-	  report_faulty_state(R, now);
-	  dfs_stack_create_trace(blue_stack, red_stack, R);
-	}
-#endif
+        dfs_check_state(now, en, blue_stack, red_stack);
 
 	/*
 	 *  if we check an LTL property, test whether the state
@@ -222,7 +231,7 @@ state_t dfs_main
     }
   }
   if(!blue) {
-    storage_set_red(storage, id_seed, TRUE);
+    storage_set_red(S, id_seed, TRUE);
   }
   return now;
 }
@@ -257,6 +266,7 @@ void dfs
   void * dummy;
 
   R = r;
+  S = R->storage;
 
 #ifdef ALGO_DDFS
   ddfs_comm_start(R);

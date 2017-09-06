@@ -384,12 +384,17 @@ uint64_t do_large_sum
 
 uint32_t worker_global_id
 (worker_id_t w) {
+  return proc_id() * NO_WORKERS + w;
+}
+
+uint32_t proc_id
+() {
   uint32_t result;
   
 #ifdef DISTRIBUTED
-  result = shmem_my_pe() * NO_WORKERS + w;
+  result = shmem_my_pe();
 #else
-  result = w;
+  result = 0;
 #endif
   return result;
 }

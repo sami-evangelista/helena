@@ -17,10 +17,8 @@ typedef struct {
   event_set_t en;
   heap_t heap_pos;
   unsigned int * shuffle;
-#if defined(POR) && defined(PROVISO)
   bool_t prov_ok;
   bool_t fully_expanded;
-#endif
 } dfs_stack_item_t;
 
 typedef struct {

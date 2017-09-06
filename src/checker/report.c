@@ -247,9 +247,9 @@ void report_finalise
 #ifdef HASH_COMPACTION
   fprintf(out, "<hashCompact/>\n");
 #endif
-#ifdef POR
-  fprintf(out, "<partialOrder/>\n");
-#endif
+  if(CFG_POR) {
+    fprintf(out, "<partialOrder/>\n");
+  }
 #if defined(ALGO_PD4)
   fprintf(out, "<candidateSetSize>%d</candidateSetSize>\n",
           PD4_CAND_SET_SIZE);
@@ -292,25 +292,25 @@ void report_finalise
 	  (ssize > r->states_max_stored) ? ssize : r->states_max_stored);
   sum_visited = do_large_sum(r->states_visited, r->no_workers);
   fprintf(out, "<statesExpanded>%llu</statesExpanded>\n", sum_visited);
-#ifdef PARALLEL
-  min_visited = r->states_visited[0];
-  max_visited = r->states_visited[0];
-  avg_visited = sum_visited / NO_WORKERS;
-  dev_visited = 0;
-  for(w = 1; w < NO_WORKERS; w ++) {
-    if(r->states_visited[w] > max_visited) {
-      max_visited = r->states_visited[w];
-    } else if(r->states_visited[w] < min_visited) {
-      min_visited = r->states_visited[w];
+  if(CFG_PARALLEL) {
+    min_visited = r->states_visited[0];
+    max_visited = r->states_visited[0];
+    avg_visited = sum_visited / NO_WORKERS;
+    dev_visited = 0;
+    for(w = 1; w < NO_WORKERS; w ++) {
+      if(r->states_visited[w] > max_visited) {
+        max_visited = r->states_visited[w];
+      } else if(r->states_visited[w] < min_visited) {
+        min_visited = r->states_visited[w];
+      }
+      dev_visited += (r->states_visited[w] - avg_visited)
+        * (r->states_visited[w] - avg_visited);
     }
-    dev_visited += (r->states_visited[w] - avg_visited)
-      * (r->states_visited[w] - avg_visited);
+    dev_visited = sqrt(dev_visited / NO_WORKERS);
+    fprintf(out, "<statesExpandedMin>%llu</statesExpandedMin>\n", min_visited);
+    fprintf(out, "<statesExpandedMax>%llu</statesExpandedMax>\n", max_visited);
+    fprintf(out, "<statesExpandedDev>%llu</statesExpandedDev>\n", dev_visited);
   }
-  dev_visited = sqrt(dev_visited / NO_WORKERS);
-  fprintf(out, "<statesExpandedMin>%llu</statesExpandedMin>\n", min_visited);
-  fprintf(out, "<statesExpandedMax>%llu</statesExpandedMax>\n", max_visited);
-  fprintf(out, "<statesExpandedDev>%llu</statesExpandedDev>\n", dev_visited);
-#endif
 #ifdef ACTION_CHECK_LTL
   fprintf(out, "<statesAccepting>%llu</statesAccepting>\n",
           do_large_sum(r->states_accepting, r->no_workers));
@@ -331,15 +331,15 @@ void report_finalise
   
   /*  others  */
   fprintf(out, "<otherStatistics>\n");
-#ifndef PARALLEL
+  if(!CFG_PARALLEL) {
 #if defined(ALGO_DFS)
-  fprintf(out, "<maxDfsStack>%llu</maxDfsStack>\n",
-          r->max_unproc_size);
+    fprintf(out, "<maxDfsStack>%llu</maxDfsStack>\n",
+            r->max_unproc_size);
 #elif defined(ALGO_BFS) || defined(ALGO_FRONTIER) || defined(ALGO_PD4)
-  fprintf(out, "<maxBfsQueue>%llu</maxBfsQueue>\n",
-          r->max_unproc_size);
+    fprintf(out, "<maxBfsQueue>%llu</maxBfsQueue>\n",
+            r->max_unproc_size);
 #endif
-#endif
+  }
   fprintf(out, "<maxMemoryUsed>%.1f</maxMemoryUsed>\n",
           r->max_mem_used);
   fprintf(out, "<eventsExecuted>%llu</eventsExecuted>\n",
@@ -385,14 +385,14 @@ void report_finalise
    *  in distributed mode the report file must be printed to the
    *  standard output so that it can be sent to the main process
    */
-#if defined(DISTRIBUTED)
-  out = fopen(REPORT_FILE, "r");
-  while(getline(&buf, &n, out) != -1) {
-    printf("[xml-%d] %s", shmem_my_pe(), buf);
+  if(CFG_DISTRIBUTED) {
+    out = fopen(REPORT_FILE, "r");
+    while(getline(&buf, &n, out) != -1) {
+      printf("[xml-%d] %s", proc_id(), buf);
+    }
+    free(buf);
+    fclose(out);
   }
-  free(buf);
-  fclose(out);
-#endif
 }
 
 void report_interruption_handler

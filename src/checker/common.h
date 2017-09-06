@@ -113,6 +113,9 @@ uint64_t do_large_sum
 uint32_t worker_global_id
 (worker_id_t w);
 
+uint32_t proc_id
+();
+
 #define CAS(val, old, new) (__sync_bool_compare_and_swap((val), (old), (new)))
 
 #endif

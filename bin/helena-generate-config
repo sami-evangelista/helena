@@ -255,12 +255,6 @@ class Config:
             W("#define ALGO_PSS\n")
         W("#define PD4_CAND_SET_SIZE " + str(self.candidateSetSize) + "\n")
 
-        #  partial order reduction
-        if self.partialOrder:
-            W("#define POR\n")
-            if self.propertyType is not None and self.propertyType != DEADLOCK:
-                W("#define PROVISO\n")
-
         #  state caching
         if self.stateCaching:
             W("#define STATE_CACHING\n")
@@ -290,7 +284,7 @@ class Config:
             W("#define HASH_COMPACTION\n")
         else:
             W("#define HASH_STANDARD\n")
-        W("#define HASH_COMPACTION_KEYS 10\n")
+        W("#define HASH_COMPACTION_KEYS 1\n")
 
         #  action to perform
         if self.action == EXPLORE:
@@ -353,6 +347,15 @@ class Config:
         if bitw % 8 != 0:
             charw = charw + 1
         W("#define ATTRIBUTES_CHAR_WIDTH " + str(charw) + "\n")
+
+        #  other config parameters that are generated as C constants
+        proviso = self.propertyType is not None and \
+                  self.propertyType != DEADLOCK
+        for (var, val) in [ ("CFG_POR", str(int(self.partialOrder))),
+                            ("CFG_PROVISO", proviso),
+                            ("CFG_PARALLEL", self.workers > 1),
+                            ("CFG_DISTRIBUTED", self.algo == DDFS) ]:
+            W("static const uint8_t " + var + " = " + str(int(val)) + ";\n")
 
         W("\n#endif  /*  LIB_CONFIG  */\n")
         f.close()

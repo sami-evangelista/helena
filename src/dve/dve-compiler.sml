@@ -82,34 +82,6 @@ fun compile (inFile, path, checks, errStream) = let
 		      "" ]);
 	TextIO.closeOut (hFile);
 	TextIO.closeOut (cFile)
-	
-    (*
-     createFile "order.sml"
-		[ "DveStateOrder",
-		  "DveEventOrder" ]
-		[ DveOrderCompiler.genState,
-		  DveOrderCompiler.genEvent ] sys;
-     createFile "hash-function.sml"
-		[ "DveHashFunction",
-		  "DveComponentsHashFunction",
-		  "DveLargeComponentsHashFunction" ]
-		[ DveHashFunctionCompiler.gen,
-		  DveHashFunctionCompiler.genHashComponents,
-		  DveHashFunctionCompiler.genHashLargeComponents ] sys;
-     createFile "components.sml"
-		[ "DveComponents",
-		  "DveLargeComponents" ]
-		[ DveComponentsCompiler.gen ] sys;
-     case System.getProg sys
-      of NONE => ()
-       | SOME _ => createFile "progress.sml"
-			      [ "DveProgress" ]
-			      [ DveProgressCompiler.gen ] (sys, checks);
-     createCM "all-no-ind.cm";
-     createFile "independence-relation.sml"
-		[ "DveIndependenceRelation" ]
-		[ DveIndependenceRelationCompiler.gen ] sys;
-     *)
     end
 in
     let
