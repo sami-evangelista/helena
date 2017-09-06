@@ -23,6 +23,7 @@ configGenerator=helena-generate-config
 propertyGenerator=helena-generate-property
 vectorsGenerator=helena-generate-vectors
 reporter=helena-report
+reportsMerger=helena-merge-reports
 preProc=helena-pp
 
 xmlReportFile=report.xml
@@ -237,6 +238,8 @@ launchChecker () {
     else
         $RUN comp-time $ccTime | tee $xmlReportTmpFile | grep -v "^\[xml"
         collectReportFiles
+        checkExecutable $reportsMerger
+        $reportsMerger report-*.xml
     fi
     if [ -e $xmlReportFile ]
     then

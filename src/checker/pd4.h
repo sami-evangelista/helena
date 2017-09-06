@@ -48,8 +48,6 @@ typedef struct {
 
 typedef struct_pd4_storage_t * pd4_storage_t;
 
-uint32_t pd4_storage_id_char_width;
-
 #include "report.h"
 
 void pd4

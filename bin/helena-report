@@ -12,7 +12,7 @@ import subprocess
 import sys
 
 def exitWithError(errMsg):
-    sys.stderr.write(errMsg + "\n")
+    sys.stderr.write(str(errMsg) + "\n")
     exit(1)
 
 def printDashes(n):
@@ -20,6 +20,10 @@ def printDashes(n):
     for i in range(0, n): str += " "
     for i in range(0, 80 - n): str += "-"
     print str
+
+def formatSearchResult(r):
+    global terminationStates
+    return terminationStates[r.strip()]
 
 def formatNumber(n):
     pos = n.find(".")
@@ -39,11 +43,13 @@ def formatNumber(n):
 def noFormat(val):
     return val
 
-def getBasicNodeValue(n, fmt, space):
+def getBasicNodeValue(n, fmt, space = 0, unit = None):
     result = ""
     l = n.getElementsByTagName("list")
     if len(l) == 0:
         result = fmt(n.childNodes[0].nodeValue)
+        if unit is not None:
+            result += " " + unit
     else:
         l = l[0]
         host = 1
@@ -53,6 +59,8 @@ def getBasicNodeValue(n, fmt, space):
                 result += "\n" + (space * " ")
             result += "[host " + str(host) + "] "
             result += fmt(item.childNodes[0].nodeValue)
+            if unit is not None:
+                result += " " + unit
             host += 1
     return result
             
@@ -101,6 +109,7 @@ statistics = {
     "searchTime"                : "State space search        ",
     "duplicateDetectionTime"    : "   for duplicate detection",
     "barrierTime"               : "   for barrier wait       ",
+    "distributedBarrierTime"    : "   for barrier wait       ",
     "compilationTime"           : "Model compilation         ",
     "places"                    : "Places                    ",
     "transitions"               : "Transitions               ",
@@ -135,6 +144,7 @@ statisticsUnits = {
     "duplicateDetectionTime"    : "s.",
     "compilationTime"           : "s.",
     "barrierTime"               : "s. (sum over all working threads)",
+    "distributedBarrierTime"    : "s. (for the communication thread)",
     "eventExecPerSecond"        : "exec. / s.",
     "maxMemoryUsed"             : "MB",
     "stateVectorSize"           : "bytes" }
@@ -164,24 +174,24 @@ def printInfoReport(r):
             pref = "    Model parameters: "
             for p in P:
                 n = p.getElementsByTagName("modelParameterName")[0]
-                n = getBasicNodeValue(n, noFormat, None)
+                n = getBasicNodeValue(n, noFormat)
                 v = p.getElementsByTagName("modelParameterValue")[0]
-                v = getBasicNodeValue(v, noFormat, None)
+                v = getBasicNodeValue(v, noFormat)
                 print pref + n + " = " + v
                 pref = "                      "
 
 def printSearchReport(r):
     for e in r.childNodes:
         name = e.nodeName
-        if e.childNodes:
-            val = getBasicNodeValue(e, noFormat, None)
-        if name in terminationStates:
-            print "    Termination state: " + terminationStates[name]
-        if name in algorithms:
+        if name == "searchResult":
+            print "    Termination state: " + \
+                getBasicNodeValue(e, formatSearchResult, 23)
+        elif name in algorithms:
             print "    Algorithm used   : " + algorithms[name]
-        if name in searchInfos:
-            print "    " + searchInfos[name] + ": " + val
-        if name == "searchOptions":
+        elif name in searchInfos:
+            print "    " + searchInfos[name] + ": " + \
+                getBasicNodeValue(e, noFormat)
+        elif name == "searchOptions":
             pref = "    Options          : "
             for o in [ o for o in e.childNodes if o.nodeName in options ]:
                 name = o.nodeName
@@ -191,6 +201,7 @@ def printSearchReport(r):
                     line += f(o.childNodes[0].nodeValue)
                 print line
                 pref = "                       "
+                    
 
 def printStatisticsReport(r):
     c = [ c for c in r.childNodes if c.nodeName in statisticsCategories ]
@@ -202,10 +213,12 @@ def printStatisticsReport(r):
         for s in e.childNodes:
             name = s.nodeName
             if name in statistics:
-                val = getBasicNodeValue(s, formatNumber, 35)
-                line = "      " + statistics[name] + " : " + val
                 if name in statisticsUnits:
-                    line += " " + statisticsUnits[name]
+                    unit = statisticsUnits[name]
+                else:
+                    unit = None
+                val = getBasicNodeValue(s, formatNumber, 35, unit)
+                line = "      " + statistics[name] + " : " + val
                 print line
 
 def printTraceReport(r):
@@ -313,6 +326,8 @@ def printDoc(doc):
             printer[name](e)
 
 def findReportFile(m):
+    if not os.path.isdir(modelsDir):
+        raise IOError("error: model directory does not exist")        
     for lang in os.listdir(modelsDir):
         langDir = os.path.join(modelsDir, lang)
         for mod in os.listdir(langDir):

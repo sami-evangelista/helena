@@ -47,6 +47,16 @@ void ddfs_comm_process_explored_state
   }
 }
 
+void ddfs_comm_barrier
+() {
+  lna_timer_t t;
+  lna_timer_init(&t);
+  lna_timer_start(&t);
+  shmem_barrier_all();
+  lna_timer_stop(&t);
+  R->distributed_barrier_time += lna_timer_value(t);
+}
+
 void * ddfs_comm_worker
 (void * arg) {
   const int me = shmem_my_pe();
@@ -72,7 +82,7 @@ void * ddfs_comm_worker
      *  1st step: put every state of the local shared box in the
      *  symmetrical heap
      */
-    shmem_barrier_all();
+    ddfs_comm_barrier();
     pref.size = 0;
     pos = sizeof(heap_prefix_t);
     for(w = 0; w < NO_WORKERS; w ++) {
@@ -136,7 +146,7 @@ void * ddfs_comm_worker
     /**
      *  2nd step: get all the states sent py remote PEs
      */
-    shmem_barrier_all();
+    ddfs_comm_barrier();
     
     /*  first read the heap prefixes of all remote PEs  */
     loop = !pref.terminated;
@@ -221,7 +231,7 @@ void ddfs_comm_end
   void * dummy;
 
   pthread_join(W, &dummy);
-  shmem_barrier_all();
+  ddfs_comm_barrier();
   shmem_free(H);
   shmem_finalize();
 }

@@ -40,6 +40,7 @@ report_t report_new
   result->max_mem_used = 0.0;
   result->states_max_stored = 0;
   result->comp_time = 0.0;
+  result->distributed_barrier_time = 0;
 
   result->no_workers = no_workers;
   result->storage = storage_new();
@@ -191,27 +192,30 @@ void report_finalise
 #ifdef PROPERTY
   fprintf(out, "<property>%s</property>\n", PROPERTY);
 #endif
+  fprintf(out, "<searchResult>");
   switch(r->result) {
   case STATE_LIMIT_REACHED:
-    fprintf(out, "<stateLimitReached/>\n"); break;
+    fprintf(out, "stateLimitReached"); break;
   case MEMORY_EXHAUSTED:
-    fprintf(out, "<memoryExhausted/>\n"); break;
+    fprintf(out, "memoryExhausted"); break;
   case TIME_ELAPSED:
-    fprintf(out, "<timeElapsed/>\n"); break;
+    fprintf(out, "timeElapsed"); break;
   case INTERRUPTION:
-    fprintf(out, "<interruption/>\n"); break;
+    fprintf(out, "interruption"); break;
   case SEARCH_TERMINATED:
-    fprintf(out, "<searchTerminated/>\n"); break;
+    fprintf(out, "searchTerminated"); break;
   case NO_ERROR:
-    fprintf(out, "<noCounterExample/>\n"); break;
+    fprintf(out, "noCounterExample"); break;
   case SUCCESS:
-    fprintf(out, "<propertyHolds/>\n"); break;
+    fprintf(out, "propertyHolds"); break;
   case FAILURE:
-    fprintf(out, "<propertyViolated/>\n"); break;
+    fprintf(out, "propertyViolated"); break;
   case ERROR:
-    fprintf(out, "<error/>\n");
+    fprintf(out, "error"); break;
+  }
+  fprintf(out, "</searchResult>\n");
+  if(r->result == ERROR) {
     fprintf(out, "<errorMessage>%s</errorMessage>\n", r->error_msg);
-    break;
   }
 #if defined(ALGO_DFS)
   fprintf(out, "<depthSearch/>\n");
@@ -272,6 +276,11 @@ void report_finalise
           r->storage->dd_time / 1000000.0);
   fprintf(out, "<barrierTime>%.2f</barrierTime>\n",
           do_large_sum(r->storage->barrier_time, r->no_workers) / 1000000.0);
+#endif
+#if defined(DISTRIBUTED)
+  fprintf(out, "<distributedBarrierTime>");
+  fprintf(out, "%.2f</distributedBarrierTime>\n",
+	  r->distributed_barrier_time / 1000000.0);
 #endif
   fprintf(out, "</timeStatistics>\n");
   

@@ -55,6 +55,7 @@ struct struct_report_t {
   bool_t bfs_levels_ok;
   float max_mem_used;
   float comp_time;
+  uint64_t distributed_barrier_time;
 
   /*
    *  threads
