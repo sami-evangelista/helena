@@ -4,7 +4,7 @@
 #include "includes.h"
 #include "report.h"
 
-#ifndef MODEL_CONFIG
+#ifndef CFG_MODEL_CONFIG
 #error Model configuration missing!
 #endif
 
@@ -57,6 +57,9 @@ void dfs_stack_pop
 (dfs_stack_t stack);
 
 storage_id_t dfs_stack_top
+(dfs_stack_t stack);
+
+event_set_t dfs_stack_top_events
 (dfs_stack_t stack);
 
 event_set_t dfs_stack_compute_events

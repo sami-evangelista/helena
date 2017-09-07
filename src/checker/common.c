@@ -336,7 +336,7 @@ uint32_t random_int
 
 bool_t raise_error
 (char * msg) {
-#ifdef ACTION_SIMULATE
+#ifdef CFG_ACTION_SIMULATE
   if(!glob_error_msg) {
     glob_error_msg = mem_alloc(SYSTEM_HEAP, sizeof(char) * strlen(msg) + 1);
     strcpy(glob_error_msg, msg);
@@ -349,7 +349,7 @@ bool_t raise_error
 
 void flush_error
 () {
-#ifdef ACTION_SIMULATE
+#ifdef CFG_ACTION_SIMULATE
   if(glob_error_msg) {
     mem_free(SYSTEM_HEAP, glob_error_msg);
     glob_error_msg = NULL;
@@ -365,8 +365,8 @@ void stop_search
 FILE * open_graph_file
 () {
   FILE * result = NULL;
-#ifdef ACTION_BUILD_RG
-  result = fopen(GRAPH_FILE, "w");
+#ifdef CFG_ACTION_BUILD_RG
+  result = fopen(CFG_GRAPH_FILE, "w");
 #endif
   return result;
 }
@@ -384,14 +384,14 @@ uint64_t do_large_sum
 
 uint32_t worker_global_id
 (worker_id_t w) {
-  return proc_id() * NO_WORKERS + w;
+  return proc_id() * CFG_NO_WORKERS + w;
 }
 
 uint32_t proc_id
 () {
   uint32_t result;
   
-#ifdef DISTRIBUTED
+#ifdef CFG_DISTRIBUTED
   result = shmem_my_pe();
 #else
   result = 0;

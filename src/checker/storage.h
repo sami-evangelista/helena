@@ -5,7 +5,7 @@
 #include "hash_tbl.h"
 #include "pd4.h"
 
-#ifndef MODEL_CONFIG
+#ifndef CFG_MODEL_CONFIG
 #error Model configuration missing!
 #endif
 
@@ -13,7 +13,7 @@
 /*****
  *  shared hash table used in multi-core algorithms
  *****/
-#if defined (HASH_STORAGE)
+#if defined (CFG_HASH_STORAGE)
 
 typedef shared_hash_tbl_t storage_t;
 typedef shared_hash_tbl_id_t storage_id_t;
@@ -49,7 +49,7 @@ typedef shared_hash_tbl_id_t storage_id_t;
 /*****
  *  storage used by delta-ddd algorithm
  *****/
-#elif defined (PD4_STORAGE)
+#elif defined (CFG_PD4_STORAGE)
 
 typedef pd4_storage_t storage_t;
 typedef pd4_storage_id_t storage_id_t;

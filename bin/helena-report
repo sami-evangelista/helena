@@ -106,7 +106,7 @@ optionsWithVal = {
     "deltaCompression"          : formatNumber,
     "hashTableSlots"            : formatNumber }
 statistics = {
-    "searchTime"                : "State space search        ",
+    "searchTime"                : "Search time               ",
     "duplicateDetectionTime"    : "   for duplicate detection",
     "barrierTime"               : "   for barrier wait       ",
     "distributedBarrierTime"    : "   for barrier wait       ",

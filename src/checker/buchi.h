@@ -5,7 +5,7 @@
 #include "includes.h"
 #include "model.h"
 
-#ifndef MODEL_CONFIG
+#ifndef CFG_MODEL_CONFIG
 #error Model configuration missing!
 #endif
 

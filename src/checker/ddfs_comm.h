@@ -13,6 +13,7 @@ void ddfs_comm_end
 
 void ddfs_comm_process_explored_state
 (worker_id_t w,
- storage_id_t id);
+ storage_id_t id,
+ mevent_set_t en);
 
 #endif

@@ -3,7 +3,7 @@
 
 #include "bfs.h"
 
-#ifndef MODEL_CONFIG
+#ifndef CFG_MODEL_CONFIG
 #error Model configuration missing!
 #endif
 
@@ -11,7 +11,7 @@
 
 typedef struct {
   storage_id_t s;
-#ifdef WITH_TRACE
+#ifdef CFG_WITH_TRACE
   unsigned int l;
   unsigned char * trace;
 #endif
@@ -38,8 +38,8 @@ typedef struct {
 typedef struct_bfs_queue_slot_t * bfs_queue_slot_t;
 
 typedef struct {
-  bfs_queue_slot_t current[NO_WORKERS][NO_WORKERS];
-  bfs_queue_slot_t next[NO_WORKERS][NO_WORKERS];  
+  bfs_queue_slot_t current[CFG_NO_WORKERS][CFG_NO_WORKERS];
+  bfs_queue_slot_t next[CFG_NO_WORKERS][CFG_NO_WORKERS];  
 } struct_bfs_queue_t;
 
 typedef struct_bfs_queue_t * bfs_queue_t;

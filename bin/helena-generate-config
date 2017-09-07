@@ -19,19 +19,26 @@ import xml.dom.minidom
 VERSION = "2.3"
 DATE    = "April 1, 2013"
 
-DFS         = "DFS"
-DDFS        = "DDFS"
-BFS         = "BFS"
-FRONTIER    = "FRONTIER"
-DELTA_DDD   = "DELTA-DDD"
-RWALK       = "RWALK"
-FULL        = "FULL"
-EVENTS      = "EVENTS"
-STATE       = "STATE"
+#  actions
 EXPLORE     = "EXPLORE"
 SIMULATE    = "SIMULATE"
 BUILD_GRAPH = "BUILD-GRAPH"
 CHECK       = "CHECK"
+
+#  search algorithms
+BFS         = "BFS"
+DELTA_DDD   = "DELTA-DDD"
+DFS         = "DFS"
+DDFS        = "DDFS"
+FRONTIER    = "FRONTIER"
+RWALK       = "RWALK"
+
+#  trace types
+FULL        = "FULL"
+EVENTS      = "EVENTS"
+STATE       = "STATE"
+
+#  property types
 LTL         = "LTL"
 STATE       = "STATE"
 DEADLOCK    = "DEADLOCK"
@@ -98,12 +105,11 @@ def printHelp():
     print "  -t   --hash-size=H"
     print "  -W   --workers=WORKERS"
     print "  -cs  --candidate-set-size=N"
+    print "  -dc  --ddfs-comm-strategy={K<N>|M|D<N>} ... {K<N>|M|D<N>}"
     print ""
     print "Reduction techniques"
     print "  -H   --hash-compaction"
     print "  -P   --partial-order[={0|1}]"
-    print "  -D   --delta[={0|1}]"
-    print "  -K   --k-delta=K"
     print "  -S   --state-caching[={0|1}]"
     print "  -s   --cache-size=N"
     print ""
@@ -129,7 +135,6 @@ class Config:
         self.verbose = False
         self.version = False
         self.partialOrder = False
-        self.delta = False
         self.stateCaching = False
         self.hashCompaction = False
         self.workers = 1
@@ -140,7 +145,6 @@ class Config:
         self.timeLimit = 0
         self.stateLimit = 0
         self.hashSize = 22
-        self.kDelta = 20
         self.algo = DFS
         self.traceType = FULL
         self.directory = None
@@ -149,22 +153,23 @@ class Config:
         self.runTimeChecks = True
         self.inFile = None
         self.inFileExt = None
-        self.property = None
-        self.propertyFile = None
-        self.propertyType = None
+        self.prop = None
+        self.propFile = None
+        self.propType = None
         self.propositions = []
         self.parameters = []
+        self.ddfsCommStrat = []
 
     #  correct inconsistencies in received arguments
     def correct(self):
         if self.action == BUILD_GRAPH:
             self.algo = DELTA_DDD
-            self.property = None
+            self.prop = None
             self.stateCaching = False
             self.hashCompaction = False
             self.partialOrder = False
             self.workers = 1
-        elif self.action == CHECK and self.propertyType == LTL:
+        elif self.action == CHECK and self.propType == LTL:
             self.algo = DFS
             self.stateCaching = False
             if self.traceType == STATE:
@@ -175,25 +180,19 @@ class Config:
             self.stateCaching = False
             self.hashCompaction = False
             self.partialOrder = False
-            self.delta = False
         elif self.algo == FRONTIER:
             self.stateCaching = False
             self.hashCompaction = False
-            self.delta = False
             self.workers = 1
         elif self.algo == DELTA_DDD:
             self.hashCompaction = False
             self.partialOrder = False
-            self.delta = False
         elif self.algo == BFS:
             self.hashCompaction = False
             self.stateCaching = False
         elif self.algo == DDFS:
             self.partialOrder = False
-            self.delta = False
             self.stateCaching = False
-        if self.hashCompaction:
-            self.delta = False
 
     def openFile(self, name, mode):
         if self.directory is None:
@@ -208,154 +207,166 @@ class Config:
         W("#ifndef LIB_CONFIG\n")
         W("#define LIB_CONFIG\n")
         W("\n")
-        W("#define MODEL_CONFIG\n")
-        W("#define REPORT_FILE \"report.xml\"\n")
-        W("#define RG_REPORT_FILE \"rg-report.xml\"\n")
-        W("#define GRAPH_FILE \"graph.dat\"\n")
-        W("#define WITH_OBSERVER\n")
-        W("#define DATE \"" + \
+        W("#define CFG_MODEL_CONFIG\n")
+        W("#define CFG_REPORT_FILE \"report.xml\"\n")
+        W("#define CFG_RG_REPORT_FILE \"rg-report.xml\"\n")
+        W("#define CFG_GRAPH_FILE \"graph.dat\"\n")
+        W("#define CFG_WITH_OBSERVER\n")
+        W("#define CFG_DATE \"" + \
                now.strftime("%B, %d, %Y at %H:%M:%S") + "\"\n")
-        W("#define FILE_PATH \"" + os.path.realpath(self.inFile) + "\"\n")
+        W("#define CFG_FILE_PATH \"" + os.path.realpath(self.inFile) + "\"\n")
         if self.inFileExt == ".lna":
-            W("#define LANGUAGE \"helena\"\n")
-            W("#define LANGUAGE_LNA\n")
-            W("#define EVENT_UNDOABLE\n")
-            W("#define MODEL_HAS_GRAPH_ROUTINES\n")
+            W("#define CFG_LANGUAGE \"helena\"\n")
+            W("#define CFG_LANGUAGE_LNA\n")
+            W("#define CFG_EVENT_UNDOABLE\n")
+            W("#define CFG_MODEL_HAS_GRAPH_ROUTINES\n")
         elif self.inFileExt == ".dve":
             (model, _) = os.path.splitext(os.path.basename(self.inFile))
             if model == "": model = "model"
-            W("#define MODEL_NAME \"" + model + "\"\n")
-            W("#define LANGUAGE \"dve\"\n")
-            W("#define LANGUAGE_DVE\n")
+            W("#define CFG_MODEL_NAME \"" + model + "\"\n")
+            W("#define CFG_LANGUAGE \"dve\"\n")
+            W("#define CFG_LANGUAGE_DVE\n")
         if self.inFileExt in [ ".lna", ".dve" ]:
-            W("#define USE_HELENA_HEAPS\n")
+            W("#define CFG_USE_HELENA_HEAPS\n")
         if self.verbose:
-            W("#define VERBOSE\n")
+            W("#define CFG_VERBOSE\n")
 
         #  search algorithm
         if self.algo == FRONTIER:
-            W("#define ALGO_FRONTIER\n")
-            W("#define HASH_STORAGE\n")
+            W("#define CFG_ALGO_FRONTIER\n")
+            W("#define CFG_HASH_STORAGE\n")
         elif self.algo == BFS:
-            W("#define ALGO_BFS\n")
-            W("#define HASH_STORAGE\n")
+            W("#define CFG_ALGO_BFS\n")
+            W("#define CFG_HASH_STORAGE\n")
         elif self.algo == DFS:
-            W("#define ALGO_DFS\n")
-            W("#define HASH_STORAGE\n")
+            W("#define CFG_ALGO_DFS\n")
+            W("#define CFG_HASH_STORAGE\n")
         elif self.algo == DDFS:
-            W("#define ALGO_DDFS\n")
-            W("#define HASH_STORAGE\n")
-            W("#define DISTRIBUTED\n")
+            W("#define CFG_ALGO_DDFS\n")
+            W("#define CFG_HASH_STORAGE\n")
+            W("#define CFG_DISTRIBUTED\n")
+            if len(self.ddfsCommStrat) > 0:
+                W("#define CFG_DDFS_COMM_STRAT\n")
+                
+            K = False
+            D = False
+            M = False
+            for (strat, val) in self.ddfsCommStrat:
+                if strat == "K" and not K:
+                    W("#define CFG_DDFS_COMM_STRAT_K " + str(val) + "\n")
+                    K = True
+                elif strat == "D" and not D:
+                    W("#define CFG_DDFS_COMM_STRAT_DEGREE " + str(val) + "\n")
+                    D = True
+                elif strat == "M" and not M:
+                    W("#define CFG_DDFS_COMM_STRAT_MINE\n")
+                    M = True
         elif self.algo == DELTA_DDD:
-            W("#define ALGO_PD4\n")
-            W("#define PD4_STORAGE\n")
+            W("#define CFG_ALGO_PD4\n")
+            W("#define CFG_PD4_STORAGE\n")
         elif self.algo == RWALK:
-            W("#define ALGO_RWALK\n")
-        elif self.algo == PSS:
-            W("#define ALGO_PSS\n")
-        W("#define PD4_CAND_SET_SIZE " + str(self.candidateSetSize) + "\n")
+            W("#define CFG_ALGO_RWALK\n")
+        W("#define CFG_PD4_CAND_SET_SIZE " + str(self.candidateSetSize) + "\n")
 
         #  state caching
         if self.stateCaching:
-            W("#define STATE_CACHING\n")
-            W("#define STATE_CACHING_PROP 10\n")
-            W("#define STATE_CACHING_CACHE_SIZE " + \
+            W("#define CFG_STATE_CACHING\n")
+            W("#define CFG_STATE_CACHING_PROP 10\n")
+            W("#define CFG_STATE_CACHING_CACHE_SIZE " + \
                    str(self.cacheSize) + "\n")
 
         #  search limits
         if self.memoryLimit != 0:
-            W("#define MEMORY_LIMITED\n")
-            W("#define MAX_MEMORY " + str(self.memoryLimit) + "\n")
+            W("#define CFG_MEMORY_LIMITED\n")
+            W("#define CFG_MAX_MEMORY " + str(self.memoryLimit) + "\n")
         if self.timeLimit != 0:
-            W("#define TIME_LIMITED\n")
-            W("#define MAX_TIME " + str(self.timeLimit) + "\n")
+            W("#define CFG_TIME_LIMITED\n")
+            W("#define CFG_MAX_TIME " + str(self.timeLimit) + "\n")
         if self.stateLimit != 0:
-            W("#define STATE_LIMITED\n")
-            W("#define MAX_STATE " + str(self.stateLimit) + "\n")
+            W("#define CFG_STATE_LIMITED\n")
+            W("#define CFG_MAX_STATE " + str(self.stateLimit) + "\n")
 
         #  hash table
-        W("#define HASH_SIZE " + str(pow(2, self.hashSize)) + "\n")
-        W("#define HASH_SIZE_M " + str(pow(2, self.hashSize) - 1) + "\n")
-        W("#define HASH_SIZE_BITS " + str(self.hashSize) + "\n")
-        if self.delta:
-            W("#define HASH_DELTA\n")
-            W("#define HASH_DELTA_K " + str(self.kDelta) + "\n")
-        elif self.hashCompaction:
-            W("#define HASH_COMPACTION\n")
-        else:
-            W("#define HASH_STANDARD\n")
-        W("#define HASH_COMPACTION_KEYS 1\n")
+        W("#define CFG_HASH_SIZE " + str(pow(2, self.hashSize)) + "\n")
+        W("#define CFG_HASH_SIZE_M " + \
+          str(pow(2, self.hashSize) - 1) + "\n")
+        W("#define CFG_HASH_SIZE_BITS " + str(self.hashSize) + "\n")
+        if self.hashCompaction:
+            W("#define CFG_HASH_COMPACTION\n")
+        W("#define CFG_HASH_COMPACTION_KEYS 1\n")
 
         #  action to perform
         if self.action == EXPLORE:
-            W("#define ACTION_EXPLORE\n")
+            W("#define CFG_ACTION_EXPLORE\n")
         elif self.action == BUILD_GRAPH:
-            W("#define ACTION_BUILD_RG\n")
+            W("#define CFG_ACTION_BUILD_RG\n")
         elif self.action == SIMULATE:
-            W("#define ACTION_SIMULATE\n")
+            W("#define CFG_ACTION_SIMULATE\n")
         elif self.action == CHECK:
-            W("#define PROPERTY \"" + self.property + "\"\n")
-            if self.propertyType == LTL:
-                W("#define ACTION_CHECK_LTL\n")
-            elif self.propertyType == STATE:
-                W("#define ACTION_CHECK_SAFETY\n")
-            elif self.propertyType == DEADLOCK:
-                W("#define ACTION_CHECK_SAFETY\n")
+            W("#define CFG_PROPERTY \"" + self.prop + "\"\n")
+            if self.propType == LTL:
+                W("#define CFG_ACTION_CHECK_LTL\n")
+            elif self.propType == STATE:
+                W("#define CFG_ACTION_CHECK_SAFETY\n")
+            elif self.propType == DEADLOCK:
+                W("#define CFG_ACTION_CHECK_SAFETY\n")
 
-        #  other parameters
-        W("#define TRACE_" + self.traceType + "\n")
+        #  trace mode
+        W("#define CFG_TRACE_" + self.traceType + "\n")
         if self.traceType != STATE:
-            W("#define WITH_TRACE\n")
-        W("#define NO_WORKERS " + str(self.workers) + "\n")
+            W("#define CFG_WITH_TRACE\n")
+
+        #  partial order reduction
+        if self.partialOrder:
+            W("#define CFG_POR\n")
+            if self.propType is not None and \
+               self.propType != DEADLOCK:
+                W("#define CFG_PROVISO\n")
+                
+        #  parallel mode
+        W("#define CFG_NO_WORKERS " + str(self.workers) + "\n")
         if self.workers > 1:
-            W("#define PARALLEL\n")
+            W("#define CFG_PARALLEL\n")
+
+        #  distributed mode
+        if self.algo == DDFS:
+            W("#define CFG_DISTRIBUTED\n")
 
         #  state attributes
         bitw = 0
-        W("#define ATTRIBUTE_CYAN\n")
-        W("#define ATTRIBUTE_CYAN_POS " + str(bitw) + "\n")
-        W("#define ATTRIBUTE_CYAN_WIDTH " + str(self.workers) + "\n")
+        W("#define CFG_ATTRIBUTE_CYAN\n")
+        W("#define CFG_ATTRIBUTE_CYAN_POS " + str(bitw) + "\n")
+        W("#define CFG_ATTRIBUTE_CYAN_WIDTH " + str(self.workers) + "\n")
         bitw = bitw + self.workers
-        W("#define ATTRIBUTE_BLUE\n")
-        W("#define ATTRIBUTE_BLUE_POS " + str(bitw) + "\n")
-        W("#define ATTRIBUTE_BLUE_WIDTH 1\n")
+        W("#define CFG_ATTRIBUTE_BLUE\n")
+        W("#define CFG_ATTRIBUTE_BLUE_POS " + str(bitw) + "\n")
+        W("#define CFG_ATTRIBUTE_BLUE_WIDTH 1\n")
         bitw = bitw + 1
         if not self.hashCompaction:
-            W("#define ATTRIBUTE_CHAR_LEN\n")
-            W("#define ATTRIBUTE_CHAR_LEN_POS " + str(bitw) + "\n")
-            W("#define ATTRIBUTE_CHAR_LEN_WIDTH 16\n")
+            W("#define CFG_ATTRIBUTE_CHAR_LEN\n")
+            W("#define CFG_ATTRIBUTE_CHAR_LEN_POS " + str(bitw) + "\n")
+            W("#define CFG_ATTRIBUTE_CHAR_LEN_WIDTH 16\n")
             bitw = bitw + 16
-        if self.delta:
-            W("#define ATTRIBUTE_PRED\n")
-            W("#define ATTRIBUTE_PRED_POS " + str(bitw) + "\n")
-            W("#define ATTRIBUTE_PRED_WIDTH 40\n")
-            bitw = bitw + 40
-            W("#define ATTRIBUTE_TYPE\n")
-            W("#define ATTRIBUTE_TYPE_POS " + str(bitw) + "\n")
-            W("#define ATTRIBUTE_TYPE_WIDTH 1\n")
-            bitw = bitw + 1
-        if self.action == CHECK and self.propertyType == LTL:
-            W("#define ATTRIBUTE_PINK\n")
-            W("#define ATTRIBUTE_PINK_POS " + str(bitw) + "\n")
-            W("#define ATTRIBUTE_PINK_WIDTH " + str(self.workers) + "\n")
+        if self.action == CHECK and self.propType == LTL:
+            W("#define CFG_ATTRIBUTE_PINK\n")
+            W("#define CFG_ATTRIBUTE_PINK_POS " + str(bitw) + "\n")
+            W("#define CFG_ATTRIBUTE_PINK_WIDTH " + \
+              str(self.workers) + "\n")
             bitw = bitw + self.workers
-            W("#define ATTRIBUTE_RED\n")
-            W("#define ATTRIBUTE_RED_POS " + str(bitw) + "\n")
-            W("#define ATTRIBUTE_RED_WIDTH 1\n")
-            bitw = bitw + 1            
+            W("#define CFG_ATTRIBUTE_RED\n")
+            W("#define CFG_ATTRIBUTE_RED_POS " + str(bitw) + "\n")
+            W("#define CFG_ATTRIBUTE_RED_WIDTH 1\n")
+            bitw = bitw + 1
+        if self.stateCaching:
+            W("#define CFG_ATTRIBUTE_REFS_LEN\n")
+            W("#define CFG_ATTRIBUTE_REFS_LEN_POS " + str(bitw) + "\n")
+            W("#define CFG_ATTRIBUTE_REFS_LEN_WIDTH 8\n")
+            bitw = bitw + 8
+            
         charw = bitw / 8
         if bitw % 8 != 0:
             charw = charw + 1
-        W("#define ATTRIBUTES_CHAR_WIDTH " + str(charw) + "\n")
-
-        #  other config parameters that are generated as C constants
-        proviso = self.propertyType is not None and \
-                  self.propertyType != DEADLOCK
-        for (var, val) in [ ("CFG_POR", str(int(self.partialOrder))),
-                            ("CFG_PROVISO", proviso),
-                            ("CFG_PARALLEL", self.workers > 1),
-                            ("CFG_DISTRIBUTED", self.algo == DDFS) ]:
-            W("static const uint8_t " + var + " = " + str(int(val)) + ";\n")
+        W("#define CFG_ATTRIBUTES_CHAR_WIDTH " + str(charw) + "\n")
 
         W("\n#endif  /*  LIB_CONFIG  */\n")
         f.close()
@@ -406,8 +417,6 @@ class Config:
             #  boolean options
             elif opt in [ "P", "partial-order" ]:
                 self.partialOrder =(val is None) or val == "1"
-            elif opt in [ "D", "delta" ]:
-                self.delta =(val is None) or val == "1"
             elif opt in [ "r", "run-time-checks" ]:
                 self.runTimeChecks =(val is None) or val == "1"
             elif opt in [ "S", "state-caching" ]:
@@ -425,8 +434,6 @@ class Config:
             elif opt in [ "cs", "candidate-set-size" ]:
                 recognized = self.handleNumericalOption("candidateSetSize",
                                                          val)
-            elif opt in [ "K", "k-delta" ]:
-                recognized = self.handleNumericalOption("kDelta", val)
             elif opt in [ "t", "hash-size" ]:
                 recognized = self.handleNumericalOption("hashSize", val)
                 if self.hashSize > 32:
@@ -470,14 +477,28 @@ class Config:
                 recognized = self.handleEnumOption \
                     ("traceType", val, [FULL, EVENTS, STATE])
             elif opt in [ "N", "action" ]:
-                self.property = None
+                self.prop = None
                 recognized = self.handleEnumOption \
                     ("action", val, [SIMULATE, EXPLORE, BUILD_GRAPH])
                 if not recognized:
                     (recognized, p) = parseCheckArgument(val)
                     if recognized:
                         self.action = CHECK
-                        self.property = p
+                        self.prop = p
+
+            #  special case options
+            elif opt in [ "dc", "ddfs-comm-strategy" ]:
+                for s in val.split(","):
+                    recognized = True
+                    if S("^K[0-9]*", s):
+                        self.ddfsCommStrat.append(("K", int(s[1:])))
+                    elif S("^D[0-9]*", s):
+                        self.ddfsCommStrat.append(("D", int(s[1:])))
+                    elif s == "M":
+                        self.ddfsCommStrat.append(("M", None))
+                    else:
+                        recognized = False
+
             else:
                 recognized = False
             if not recognized:
@@ -485,22 +506,22 @@ class Config:
         if len(sys.argv) >= 2:
             self.inFile = sys.argv[len(sys.argv) - 2]
             (f, self.inFileExt) = os.path.splitext(self.inFile)
-            if self.propertyFile is None:
-                self.propertyFile = f + ".prop" + self.inFileExt
+            if self.propFile is None:
+                self.propFile = f + ".prop" + self.inFileExt
         if len(sys.argv) >= 3:
             self.directory = sys.argv[len(sys.argv) - 1]
 
     def generatePropertyCode(self):
         if self.action != CHECK \
-                or self.property is None \
-                or self.propertyFile is None:
+                or self.prop is None \
+                or self.propFile is None:
             f = self.openFile("prop.h", "w")
             f.close()
             f = self.openFile("prop.c", "w")
             f.close()
         else:
             cmd = "helena-generate-property "
-            cmd = cmd + " " + self.property + " " + self.propertyFile
+            cmd = cmd + " " + self.prop + " " + self.propFile
             if self.directory is None:
                 cmd = cmd + " ."
             else:
@@ -508,21 +529,21 @@ class Config:
             if os.system(cmd):
                 exit(1)
             else:
-                f = self.openFile("PROPERTY", "r")
+                f = self.openFile("CFG_PROPERTY", "r")
                 lines = f.readlines()
                 f.close()
                 i = 0
                 for prop in lines:
                     p = prop.replace("\n", "")
                     if i == 0:
-                        self.propertyType = p
+                        self.propType = p
                     else:
                         self.propositions.append(prop)
                     i = i + 1
                 if self.directory is None:
-                    os.remove("PROPERTY")
+                    os.remove("CFG_PROPERTY")
                 else:
-                    os.remove(self.directory + os.sep + "PROPERTY")
+                    os.remove(self.directory + os.sep + "CFG_PROPERTY")
 
     def outputModelOptions(self):
         opts = []

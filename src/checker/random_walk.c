@@ -1,7 +1,7 @@
 #include "random_walk.h"
 #include "prop.h"
 
-#if defined(ALGO_RWALK)
+#if defined(CFG_ALGO_RWALK)
 
 #define RW_MAX_DEPTH 10000
 #define RW_HEAP_SIZE (RW_MAX_DEPTH * 1024)
@@ -33,7 +33,7 @@ void * random_walk_worker
     for (i = 0; i < RW_MAX_DEPTH && R->keep_searching; i ++) {
       en = state_enabled_events_mem (s, heap);
       en_size = event_set_size (en);
-#ifdef ACTION_CHECK_SAFETY
+#ifdef CFG_ACTION_CHECK_SAFETY
       if (state_check_property (s, en)) {
 	report_faulty_state (R, s);
 	tr = mem_alloc (SYSTEM_HEAP, sizeof (event_t) * stack_size);
@@ -81,4 +81,4 @@ void random_walk
     pthread_join (r->workers[w], &dummy);
 }
 
-#endif  /*  defined(ALGO_RWALK)  */
+#endif  /*  defined(CFG_ALGO_RWALK)  */

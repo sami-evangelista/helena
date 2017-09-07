@@ -1,6 +1,6 @@
 #include "ddfs_comm.h"
 
-#if defined(ALGO_DDFS)
+#if defined(CFG_ALGO_DDFS)
 
 #define SYM_HEAP_SIZE     1000000
 #define MAX_BOX_SIZE      100000
@@ -24,9 +24,10 @@ typedef struct {
 } heap_prefix_t;
 
 typedef struct {
-  uint8_t status[NO_WORKERS];
-  uint32_t size[NO_WORKERS];
-  storage_id_t box[NO_WORKERS][MAX_BOX_SIZE];
+  uint8_t status[CFG_NO_WORKERS];
+  uint32_t size[CFG_NO_WORKERS];
+  storage_id_t box[CFG_NO_WORKERS][MAX_BOX_SIZE];
+  uint16_t k[CFG_NO_WORKERS];
 } ddfs_comm_boxes_t;
 
 static ddfs_comm_boxes_t B;
@@ -37,7 +38,37 @@ static pthread_t W;
 
 void ddfs_comm_process_explored_state
 (worker_id_t w,
- storage_id_t id) {
+ storage_id_t id,
+ mevent_set_t en) {
+
+  /**
+   *  if a communication strategy has been set we check if the state
+   *  must be sent
+   */
+#if defined(CFG_DDFS_COMM_STRAT)
+  bool_t process = TRUE;
+#if defined(CFG_DDFS_COMM_STRAT_K)
+  B.k[w] ++;
+  if(B.k[w] < CFG_DDFS_COMM_STRAT_K) {
+    process = FALSE;
+  }
+#endif
+#if defined(CFG_DDFS_COMM_STRAT_MINE)
+  if(storage_get_hash(S, id) % shmem_n_pes() != shmem_my_pe()) {
+    process = FALSE;
+  }
+#endif
+#if defined(CFG_DDFS_COMM_STRAT_DEGREE)
+  if(mevent_set_size(en) < CFG_DDFS_COMM_STRAT_DEGREE) {
+    process = FALSE;
+  }
+#endif
+  if(!process) {
+    return;
+  }
+  B.k[w] = 0;
+#endif
+
   if(CAS(&B.status[w], BUCKET_OK, BUCKET_WRITE)) {
     if(B.size[w] < MAX_BOX_SIZE) {
       B.box[w][B.size[w]] = id;
@@ -62,7 +93,7 @@ void * ddfs_comm_worker
   const int me = shmem_my_pe();
   const int pes = shmem_n_pes();
   int i, pe;
-  worker_id_t w, my_worker_id = NO_WORKERS;
+  worker_id_t w, my_worker_id = CFG_NO_WORKERS;
   bool_t loop = TRUE;
   heap_prefix_t pref,  pref_other[pes];
   uint32_t pos;
@@ -85,7 +116,7 @@ void * ddfs_comm_worker
     ddfs_comm_barrier();
     pref.size = 0;
     pos = sizeof(heap_prefix_t);
-    for(w = 0; w < NO_WORKERS; w ++) {
+    for(w = 0; w < CFG_NO_WORKERS; w ++) {
 
       /*  wait for the bucket of thread w to be ready  */
       while(!CAS(&B.status[w], BUCKET_OK, BUCKET_WRITE)) {
@@ -217,9 +248,10 @@ void ddfs_comm_start
   
   R = r;
   S = R->storage;
-  for(w = 0; w < NO_WORKERS; w ++) {
+  for(w = 0; w < CFG_NO_WORKERS; w ++) {
     B.status[w] = BUCKET_OK;
     B.size[w] = 0;
+    B.k[w] = 0;
   }
 
   /*  launch the communicator thread  */

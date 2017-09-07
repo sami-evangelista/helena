@@ -4,7 +4,7 @@
 #include "includes.h"
 #include "report.h"
 
-#ifndef MODEL_CONFIG
+#ifndef CFG_MODEL_CONFIG
 #error Model configuration missing!
 #endif
 

@@ -1,4 +1,4 @@
-#if defined(ACTION_SIMULATE)
+#if defined(CFG_ACTION_SIMULATE)
 
 #include "simulator.h"
 
@@ -117,4 +117,4 @@ quit\n");
   }
 }
 
-#endif  /*  defined(ACTION_SIMULATE)  */
+#endif  /*  defined(CFG_ACTION_SIMULATE)  */

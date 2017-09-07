@@ -1,10 +1,10 @@
-#ifndef LIB_HASH_COMPACTION
-#define LIB_HASH_COMPACTION
+#ifndef LIB_CFG_HASH_COMPACTION
+#define LIB_CFG_HASH_COMPACTION
 
 #include "state.h"
 
 typedef struct {
-  hash_key_t keys[HASH_COMPACTION_KEYS];
+  hash_key_t keys[CFG_HASH_COMPACTION_KEYS];
 } hash_compact_t;
 
 void hash_compact

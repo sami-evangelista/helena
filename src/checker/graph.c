@@ -1,7 +1,7 @@
 #include "graph.h"
 #include "model.h"
 
-#ifdef MODEL_HAS_GRAPH_ROUTINES
+#ifdef CFG_MODEL_HAS_GRAPH_ROUTINES
 #include "model_graph.h"
 #else
 typedef int model_graph_data_t;
@@ -549,14 +549,14 @@ void graph_make_statistics
   fprintf (f, "<state-space-info>\n\n");
 
   fprintf (f, "<model>%s</model>\n", model_name ());
-#ifdef LANGUAGE
-  fprintf (f, "<language>%s</language>\n", LANGUAGE);
+#ifdef CFG_LANGUAGE
+  fprintf (f, "<language>%s</language>\n", CFG_LANGUAGE);
 #endif
-#ifdef DATE
-  fprintf (f, "<date>%s</date>\n", DATE);
+#ifdef CFG_DATE
+  fprintf (f, "<date>%s</date>\n", CFG_DATE);
 #endif
-#ifdef FILE_PATH
-  fprintf (f, "<filePath>%s</filePath>\n", FILE_PATH);
+#ifdef CFG_FILE_PATH
+  fprintf (f, "<filePath>%s</filePath>\n", CFG_FILE_PATH);
 #endif
   model_xml_parameters (f);
 

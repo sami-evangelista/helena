@@ -2,12 +2,9 @@
 #include "math.h"
 #include "vectors.h"
 
-#ifndef MODEL_CONFIG
+#ifndef CFG_MODEL_CONFIG
 #error Model configuration missing!
 #endif
-
-#define DELTA_STATE    0
-#define EXPLICIT_STATE 1
 
 #define move_to_attribute(bits, pos) {          \
     VECTOR_start (bits);                        \
@@ -24,15 +21,15 @@
     VECTOR_get_size8 ((bits), (id).p);                  \
   }
 
-#ifdef HASH_STANDARD
-#define hash_tbl_copy_encoded_state(src, dest) { (dest) = (src); }
-#else
+#ifdef CFG_HASH_COMPACTION
 #define hash_tbl_copy_encoded_state(src, dest) {                        \
     unsigned int cp_idx = 0;                                            \
     for (cp_idx = 0; cp_idx < sizeof (encoded_state_t); cp_idx ++) {    \
       dest[cp_idx] = src[cp_idx];                                       \
     }                                                                   \
   }
+#else
+#define hash_tbl_copy_encoded_state(src, dest) { (dest) = (src); }
 #endif
 
 
@@ -109,24 +106,24 @@ order_t hash_tbl_id_cmp
 void hash_tbl_cache_state
 (hash_tbl_t tbl,
  hash_tbl_id_t id) {
-#ifdef STATE_CACHING
-  if (tbl->cache_size < STATE_CACHING_CACHE_SIZE) {
+#ifdef CFG_STATE_CACHING
+  if (tbl->cache_size < CFG_STATE_CACHING_CACHE_SIZE) {
     tbl->cache[tbl->cache_size] = id;
     tbl->cache_size ++;
   } else {
     hash_tbl_id_t to_rem;
-#if STATE_CACHING_CACHE_SIZE == 0
+#if CFG_STATE_CACHING_CACHE_SIZE == 0
     to_rem = id;
 #else
     if (0 != tbl->cache_ctr) {
       to_rem = id;
     } else {
       unsigned int rep =
-        random_int (&tbl->seed) % STATE_CACHING_CACHE_SIZE;
+        random_int (&tbl->seed) % CFG_STATE_CACHING_CACHE_SIZE;
       to_rem = tbl->cache[rep];
       tbl->cache[rep] = id;
     }
-    tbl->cache_ctr = (tbl->cache_ctr + 1) % STATE_CACHING_PROP;      
+    tbl->cache_ctr = (tbl->cache_ctr + 1) % CFG_STATE_CACHING_PROP;      
 #endif
     hash_tbl_remove (tbl, to_rem);
   }
@@ -142,7 +139,7 @@ void hash_tbl_cache_state
  *****/
 hash_tbl_t hash_tbl_default_new
 () {
-  return hash_tbl_new (HASH_SIZE);
+  return hash_tbl_new (CFG_HASH_SIZE);
 }
 
 
@@ -166,20 +163,13 @@ hash_tbl_t hash_tbl_new
     result->states[i] = NULL;
   }
   result->seed = random_seed (0);
-#ifdef STATE_CACHING
+#ifdef CFG_STATE_CACHING
   result->cache_size = 0;
   result->cache_ctr = 0;
 #endif
-  for (w = 0; w < NO_WORKERS; w ++) {
+  for (w = 0; w < CFG_NO_WORKERS; w ++) {
     result->state_cmps[w] = 0;
-    result->events_executed[w] = 0;
   }
-#ifdef HASH_DELTA
-  for (w = 0; w < NO_WORKERS; w ++) {
-    sprintf (name, "reconstruction heap of worker %d", w);
-    result->reconstruction_heaps[w] = bounded_heap_new (name, 1024 * 1024);
-  }
-#endif
   return result;
 }
 
@@ -201,27 +191,13 @@ void hash_tbl_free
   for (i = 0; i < tbl->hash_size; i ++) {
     if (tbl->states[i]) {
       for (j = 0; j < tbl->no_states[i]; j ++) {
-#if   defined(HASH_STANDARD)
+#if !defined(CFG_HASH_COMPACTION)
         mem_free (SYSTEM_HEAP, tbl->states[i][j]);
-#elif defined(HASH_DELTA)
-        bits.vector = tbl->states[i][j];
-        move_to_attribute (bits, ATTRIBUTE_TYPE_POS);
-        VECTOR_get_size1 (bits, t);
-        if (EXPLICIT_STATE == t) {
-          memcpy (&v, &bits.vector[ATTRIBUTES_CHAR_WIDTH],
-                  sizeof (bit_vector_t));
-          mem_free (SYSTEM_HEAP, v);
-        }
 #endif
       }
       mem_free (SYSTEM_HEAP, tbl->states[i]);
     }
   }
-#ifdef HASH_DELTA
-  for (w = 0; w < NO_WORKERS; w ++) {
-    heap_free (tbl->reconstruction_heaps[w]);
-  }
-#endif
   mem_free (SYSTEM_HEAP, tbl);
 }
 
@@ -272,98 +248,6 @@ bit_vector_t hash_tbl_get_vector
 
 /*****
  *
- *  Function: hash_tbl_reconstruct_delta_state
- *
- *****/
-#ifdef HASH_DELTA
-
-state_t hash_tbl_reconstruct_delta_state
-(hash_tbl_t tbl,
- hash_tbl_id_t id,
- worker_id_t w,
- heap_t heap);
-
-state_t hash_tbl_reconstruct_delta_state_vec
-(hash_tbl_t tbl,
- bit_vector_t v,
- worker_id_t w,
- heap_t heap) {
-  state_t result;
-  vector bits;
-  bool_t found;
-  unsigned char t;
-  bit_vector_t e;
-  hash_tbl_id_t id_pred;
-  event_id_t exec;
-  event_t ev;
-
-  /*
-   *  decode attributes of the state
-   */
-  bits.vector = v;
-  move_to_attribute (bits, ATTRIBUTE_TYPE_POS);
-  VECTOR_get_size1(bits, t);
-
-  switch (t) {
-
-    /*
-     *  it is an explicit state => simply decode it
-     */
-  case EXPLICIT_STATE:
-    memcpy (&e, v + ATTRIBUTES_CHAR_WIDTH, sizeof (bit_vector_t));
-    result = state_unserialise_mem (e, heap);
-    break;
-
-    /*
-     *  it is a delta state => reconstruct the predecessor and execute
-     *  the event
-     */
-  case DELTA_STATE: {    
-    move_to_attribute (bits, ATTRIBUTE_PRED_POS);
-    hash_tbl_id_unserialise_bits (bits, id_pred);
-
-    /*
-     *  no predecessor => we have reached the initial state.
-     *  otherwise, we reconstruct the predecessor, decode the event
-     *  and execute it
-     */
-    if (hash_tbl_id_is_null (id_pred)) {
-      result = state_initial_mem (heap);
-    } else {
-      memcpy (&exec, v + ATTRIBUTES_CHAR_WIDTH, sizeof (event_id_t));
-      result = hash_tbl_reconstruct_delta_state (tbl, id_pred,
-                                                 w, heap);
-      ev = state_enabled_event_mem (result, exec, heap);
-      event_exec (ev, result);
-      tbl->events_executed[w] ++;
-    }
-    break;
-  }
-  default:
-    fatal_error
-      ("hash_tbl_reconstruct_delta_state_vec: impossible state type");
-    break;
-  }
-  return result;
-}
-
-state_t hash_tbl_reconstruct_delta_state
-(hash_tbl_t tbl,
- hash_tbl_id_t id,
- worker_id_t w,
- heap_t heap) {
-  bit_vector_t v = hash_tbl_get_vector (tbl, id);
-  if (!v) {
-    fatal_error ("hash_tbl_reconstruct_delta_state: could not find state");
-  }
-  return hash_tbl_reconstruct_delta_state_vec (tbl, v, w, heap);
-}
-#endif
-
-
-
-/*****
- *
  *  Function: hash_tbl_check_state
  *
  *  check if state s is the state encoded in vector v
@@ -375,21 +259,12 @@ bool_t hash_tbl_check_state
  state_t s,
  hash_key_t h,
  worker_id_t w) {
-#if   defined(HASH_STANDARD)
-  return state_cmp_vector (s, v + ATTRIBUTES_CHAR_WIDTH);
-#elif defined(HASH_DELTA)
-  state_t t;
-  bool_t result;
-  heap_reset (tbl->reconstruction_heaps[w]);
-  t = hash_tbl_reconstruct_delta_state_vec
-    (tbl, v, w, tbl->reconstruction_heaps[w]);
-  result = state_equal (s, t);
-  state_free (t);
-  return result;
-#elif defined(HASH_COMPACTION)
+#if defined(CFG_HASH_COMPACTION)
   hash_key_t k;
-  memcpy (&k, v + ATTRIBUTES_CHAR_WIDTH, sizeof (hash_key_t));
+  memcpy (&k, v + CFG_ATTRIBUTES_CHAR_WIDTH, sizeof (hash_key_t));
   return (k == h) ? TRUE : FALSE;
+#else
+  return state_cmp_vector (s, v + CFG_ATTRIBUTES_CHAR_WIDTH);
 #endif
 }
 
@@ -403,9 +278,6 @@ bool_t hash_tbl_check_state
 void hash_tbl_insert
 (hash_tbl_t tbl,
  state_t s,
- hash_tbl_id_t * id_pred,
- event_id_t * exec,
- unsigned int depth,
  worker_id_t w,
  bool_t * is_new,
  hash_tbl_id_t * id,
@@ -451,20 +323,11 @@ void hash_tbl_insert
     /*
      *  compute the size of the state vector
      */
-#if   defined(HASH_STANDARD)
-    len = state_char_width (s) + ATTRIBUTES_CHAR_WIDTH;
+#if !defined(CFG_HASH_COMPACTION)
+    len = state_char_width (s) + CFG_ATTRIBUTES_CHAR_WIDTH;
     es = mem_alloc (SYSTEM_HEAP, len);
     for (j = 0; j < len; j ++) {
       es[j] = 0;
-    }
-#elif defined(HASH_DELTA)
-    t = (depth % HASH_DELTA_K == 0) ? EXPLICIT_STATE : DELTA_STATE;
-    if (EXPLICIT_STATE == t) {
-      len = state_char_width (s);
-      v = mem_alloc (SYSTEM_HEAP, len);
-      for (j = 0; j < len; j ++) {
-        v[j] = 0;
-      }
     }
 #endif
 
@@ -475,21 +338,13 @@ void hash_tbl_insert
     id->p = new_pos;
     VECTOR_start (bits);
     VECTOR_set_size8 (bits, new_pos);
-#ifdef ATTRIBUTE_CYAN
-    move_to_attribute (bits, ATTRIBUTE_CYAN_POS);
+#ifdef CFG_ATTRIBUTE_CYAN
+    move_to_attribute (bits, CFG_ATTRIBUTE_CYAN_POS);
     VECTOR_set_size1 (bits, TRUE);
 #endif
-#ifdef ATTRIBUTE_TYPE
-    move_to_attribute (bits, ATTRIBUTE_TYPE_POS);
+#ifdef CFG_ATTRIBUTE_TYPE
+    move_to_attribute (bits, CFG_ATTRIBUTE_TYPE_POS);
     VECTOR_set_size1 (bits, t);
-#endif
-#ifdef ATTRIBUTE_PRED
-    move_to_attribute (bits, ATTRIBUTE_PRED_POS);
-    if (id_pred == NULL) {
-      hash_tbl_id_serialise_bits (null_hash_tbl_id, bits);
-    } else {
-      hash_tbl_id_serialise_bits (*id_pred, bits);
-    }
 #endif
 #ifdef ATTRIBUTE_IS_RED
     move_to_attribute (bits, ATTRIBUTE_IS_RED_POS);
@@ -499,20 +354,11 @@ void hash_tbl_insert
     /*
      *  encode the state
      */
-#if   defined(HASH_STANDARD)
-    state_serialise (s, es + ATTRIBUTES_CHAR_WIDTH);
-#elif defined(HASH_DELTA)
-    if (EXPLICIT_STATE == t) {
-      state_serialise (s, v);
-      memcpy (es + ATTRIBUTES_CHAR_WIDTH, &v, sizeof (bit_vector_t));
-    } else {
-      if (id_pred != NULL) {
-        memcpy (es + ATTRIBUTES_CHAR_WIDTH, exec, sizeof (event_id_t));
-      }
-    }
-#elif defined(HASH_COMPACTION)
-    bits.vector = es + ATTRIBUTES_CHAR_WIDTH;
-    memcpy (es + ATTRIBUTES_CHAR_WIDTH, &id->h, sizeof (hash_key_t));
+#if defined(CFG_HASH_COMPACTION)
+    bits.vector = es + CFG_ATTRIBUTES_CHAR_WIDTH;
+    memcpy (es + CFG_ATTRIBUTES_CHAR_WIDTH, &id->h, sizeof (hash_key_t));
+#else
+    state_serialise (s, es + CFG_ATTRIBUTES_CHAR_WIDTH);
 #endif
 
     /*
@@ -565,16 +411,8 @@ void hash_tbl_remove
     VECTOR_get_size8 (bits, p);
     if (p == id.p) {
       found = TRUE;
-#if defined(HASH_STANDARD)
+#if !defined(CFG_HASH_COMPACTION)
       free (tbl->states[slot][i]);
-#elif defined(HASH_DELTA)
-      move_to_attribute (bits, ATTRIBUTE_TYPE_POS);
-      VECTOR_get_size1 (bits, t);
-      if (EXPLICIT_STATE == t) {
-        memcpy (&v, bits.vector + ATTRIBUTES_CHAR_WIDTH,
-                sizeof (bit_vector_t));
-        free (v);
-      }
 #endif
       tbl->no_states[slot] --;
       if (0 == tbl->no_states[slot]) {
@@ -620,18 +458,16 @@ state_t hash_tbl_get_mem
   state_t result;
   bit_vector_t v;
   
-#if   defined(HASH_COMPACTION)
+#if defined(CFG_HASH_COMPACTION)
   fatal_error ("tbl_get impossible with hash-compaction");
   return NULL;
-#elif defined(HASH_STANDARD)
+#else
   if ((v = hash_tbl_get_vector (tbl, id)) == NULL) {
     fatal_error ("hash_tbl_get_mem: could not find state");
   }
   else {
-    result = state_unserialise_mem (v + ATTRIBUTES_CHAR_WIDTH, heap);
+    result = state_unserialise_mem (v + CFG_ATTRIBUTES_CHAR_WIDTH, heap);
   }
-#elif defined(HASH_DELTA)
-  result = hash_tbl_reconstruct_delta_state (tbl, id, w, heap);
 #endif
   return result;
 }
@@ -655,16 +491,16 @@ void hash_tbl_set_cyan
  hash_tbl_id_t id,
  worker_id_t w,
  bool_t cyan) {
-#ifdef ATTRIBUTE_CYAN
+#ifdef CFG_ATTRIBUTE_CYAN
   bit_vector_t v;
   vector bits;
   if ((v = hash_tbl_get_vector (tbl, id)) == NULL) {
     fatal_error ("hash_tbl_set_cyan could not find state");
   }
   bits.vector = v;
-  move_to_attribute (bits, ATTRIBUTE_CYAN_POS);
+  move_to_attribute (bits, CFG_ATTRIBUTE_CYAN_POS);
   VECTOR_set_size1 (bits, cyan);
-#if defined(STATE_CACHING)
+#if defined(CFG_STATE_CACHING)
   if (!cyan) {
     hash_tbl_cache_state (tbl, id);
   }
@@ -683,7 +519,7 @@ bool_t hash_tbl_get_cyan
 (hash_tbl_t tbl,
  hash_tbl_id_t id,
  worker_id_t w) {
-#ifdef ATTRIBUTE_CYAN
+#ifdef CFG_ATTRIBUTE_CYAN
   bool_t result;
   bit_vector_t v;
   vector bits;
@@ -691,7 +527,7 @@ bool_t hash_tbl_get_cyan
     fatal_error ("hash_tbl_get_cyan: could not find state");
   }
   bits.vector = v;
-  move_to_attribute (bits, ATTRIBUTE_CYAN_POS);
+  move_to_attribute (bits, CFG_ATTRIBUTE_CYAN_POS);
   VECTOR_get_size1 (bits, result);
   result = result ? TRUE : FALSE;
   return result;
@@ -818,11 +654,7 @@ void hash_tbl_output_stats
  FILE * out) {
   fprintf (out, "<hashTableStatistics>\n");
   fprintf (out, "<stateComparisons>%llu</stateComparisons>\n",
-           do_large_sum (tbl->state_cmps, NO_WORKERS));
-#ifdef HASH_DELTA
-  fprintf (out, "<eventsExecutedDelta>%llu</eventsExecutedDelta>\n",
-           do_large_sum (tbl->events_executed, NO_WORKERS));
-#endif
+           do_large_sum (tbl->state_cmps, CFG_NO_WORKERS)); 
   fprintf (out, "</hashTableStatistics>\n");
 }
 

@@ -2,22 +2,22 @@
 #include "prop.h"
 #include "graph.h"
 
-#if defined(ALGO_PD4)
+#if defined(CFG_ALGO_PD4)
 
 static report_t R;
 static pd4_storage_t S;
 static uint32_t next_num;
 
 /*  mail boxes used during expansion  */
-static pd4_candidate_t * BOX[NO_WORKERS][NO_WORKERS];
-static uint32_t BOX_size[NO_WORKERS][NO_WORKERS];
-static uint32_t BOX_tot_size[NO_WORKERS];
+static pd4_candidate_t * BOX[CFG_NO_WORKERS][CFG_NO_WORKERS];
+static uint32_t BOX_size[CFG_NO_WORKERS][CFG_NO_WORKERS];
+static uint32_t BOX_tot_size[CFG_NO_WORKERS];
 static uint32_t BOX_max_size;
 
 /*  candidate set (obtained from boxes after merging)  */
-static pd4_candidate_t * CS[NO_WORKERS];
-static uint32_t CS_size[NO_WORKERS];
-static uint32_t * NCS[NO_WORKERS];
+static pd4_candidate_t * CS[CFG_NO_WORKERS];
+static uint32_t CS_size[CFG_NO_WORKERS];
+static uint32_t * NCS[CFG_NO_WORKERS];
 static uint32_t CS_max_size;
 
 /*  state table  */
@@ -25,20 +25,20 @@ static pd4_state_t * ST;
 
 /*  heaps used to store candidates, to reconstruct states and
  *  perform duplicate detection  */
-static heap_t candidates_heaps[NO_WORKERS];
-static heap_t expand_heaps[NO_WORKERS];
-static heap_t detect_heaps[NO_WORKERS];
-static heap_t expand_evts_heaps[NO_WORKERS];
-static heap_t detect_evts_heaps[NO_WORKERS];
+static heap_t candidates_heaps[CFG_NO_WORKERS];
+static heap_t expand_heaps[CFG_NO_WORKERS];
+static heap_t detect_heaps[CFG_NO_WORKERS];
+static heap_t expand_evts_heaps[CFG_NO_WORKERS];
+static heap_t detect_evts_heaps[CFG_NO_WORKERS];
 
 /*  random seeds  */
-static rseed_t seeds[NO_WORKERS];
+static rseed_t seeds[CFG_NO_WORKERS];
 
 /*  synchronisation variables  */
-static bool_t level_terminated[NO_WORKERS];
+static bool_t level_terminated[CFG_NO_WORKERS];
 static pthread_barrier_t barrier;
 static uint32_t next_lvl;
-static uint32_t next_lvls[NO_WORKERS];
+static uint32_t next_lvls[CFG_NO_WORKERS];
 static pthread_mutex_t report_mutex;
 static bool_t error_reported;
 
@@ -54,9 +54,9 @@ static uint8_t recons_id;
 #define PD4_CAND_DEL  2
 #define PD4_CAND_NONE 3
 
-#define PD4_OWNER(h) (((h) & HASH_SIZE_M) % NO_WORKERS)
+#define PD4_OWNER(h) (((h) & CFG_HASH_SIZE_M) % CFG_NO_WORKERS)
 
-#ifdef EVENT_UNDOABLE
+#ifdef CFG_EVENT_UNDOABLE
 #define PD4_VISIT_PRE_HEAP_PROCESS() {		\
     if(heap_space_left(heap) <= 81920) {	\
       state_t copy = state_copy(s);		\
@@ -75,7 +75,7 @@ static uint8_t recons_id;
     s = func(w, curr, s, depth - 1);				\
     event_undo(e, s);						\
   }
-#else  /*  !defined(EVENT_UNDOABLE)  */
+#else  /*  !defined(CFG_EVENT_UNDOABLE)  */
 #define PD4_VISIT_PRE_HEAP_PROCESS() {		\
     heap_pos = heap_get_position(heap);         \
   }
@@ -113,13 +113,13 @@ void pd4_barrier_wait
 (worker_id_t w) {
   lna_timer_t t;
     
-  if(CFG_PARALLEL) {    
-    lna_timer_init(&t);
-    lna_timer_start(&t);
-    pthread_barrier_wait(&barrier);
-    lna_timer_stop(&t);
-    S->barrier_time[w] += lna_timer_value(t);
-  }
+#if defined(CFG_PARALLEL)   
+  lna_timer_init(&t);
+  lna_timer_start(&t);
+  pthread_barrier_wait(&barrier);
+  lna_timer_stop(&t);
+  S->barrier_time[w] += lna_timer_value(t);
+#endif
 }
 
 
@@ -136,7 +136,7 @@ pd4_storage_t pd4_storage_new
   pd4_storage_t result;
 
   result = mem_alloc(SYSTEM_HEAP, sizeof(struct_pd4_storage_t));
-  for(w = 0; w < NO_WORKERS; w ++) {
+  for(w = 0; w < CFG_NO_WORKERS; w ++) {
     result->size[w] = 0;
     result->barrier_time[w] = 0;
   }
@@ -144,7 +144,7 @@ pd4_storage_t pd4_storage_new
   /*
    *  initialisation of the state table
    */
-  for(i = 0; i < HASH_SIZE; i ++) {
+  for(i = 0; i < CFG_HASH_SIZE; i ++) {
     result->ST[i].fst_child = UINT_MAX;
     result->ST[i].recons[0] = FALSE;
     result->ST[i].recons[1] = FALSE;
@@ -165,7 +165,7 @@ uint64_t pd4_storage_size
 (pd4_storage_t storage) {
   uint64_t result = 0;
   worker_id_t w;
-  for(w = 0; w < NO_WORKERS; w ++) {
+  for(w = 0; w < CFG_NO_WORKERS; w ++) {
     result += storage->size[w];
   }
   return result;
@@ -278,7 +278,7 @@ bool_t pd4_merge_candidate_set
   bool_t loop;
 
   CS_size[w] = 0;
-  for(x = 0; x < NO_WORKERS; x ++) {
+  for(x = 0; x < CFG_NO_WORKERS; x ++) {
     for(i = 0; i < BOX_size[x][w]; i ++) {
       pd4_candidate_t c = BOX[x][w][i];
       fst = pos = c.h % CS_max_size;
@@ -289,7 +289,7 @@ bool_t pd4_merge_candidate_set
 	  C[pos] = c;
 	  NCS[w][CS_size[w] ++] = pos;
 	  loop = FALSE;
-	  slot = C[pos].h & HASH_SIZE_M;
+	  slot = C[pos].h & CFG_HASH_SIZE_M;
 
 	  /*  mark for reconstruction states in conflict with the candidate  */
 	  while(ST[slot].fst_child != UINT_MAX) {
@@ -306,11 +306,11 @@ bool_t pd4_merge_candidate_set
 		ST[id].dd_visit = TRUE;
 	      }
 	    }
-	    slot = (slot + NO_WORKERS) & HASH_SIZE_M;
+	    slot = (slot + CFG_NO_WORKERS) & CFG_HASH_SIZE_M;
 	  }
 	  break;
 	case PD4_CAND_NEW :
-#ifdef ACTION_BUILD_RG
+#ifdef CFG_ACTION_BUILD_RG
 	  pos = (pos + 1) % CS_max_size;
 	  assert (pos != fst);
 #else
@@ -354,7 +354,7 @@ void pd4_storage_delete_candidate
     case PD4_CAND_NEW  :
       if(state_cmp_vector(s, CS[x][i].s)) {
 	CS[x][i].content = PD4_CAND_DEL;
-#ifdef ACTION_BUILD_RG
+#ifdef CFG_ACTION_BUILD_RG
 	CS[x][i].id = id;
 	break;
 #else
@@ -418,7 +418,7 @@ state_t pd4_duplicate_detection_dfs
 }
 
 
-#ifdef ACTION_BUILD_RG
+#ifdef CFG_ACTION_BUILD_RG
 void pd4_remove_duplicates_around
 (pd4_candidate_t * C,
  unsigned int      i) {
@@ -481,12 +481,12 @@ pd4_storage_id_t pd4_insert_new_state
  pd4_state_t      s,
  pd4_storage_id_t pred) {
   uint8_t r = (recons_id + 1) & 1;
-  unsigned int id, fst = h & HASH_SIZE_M, slot = fst;
+  unsigned int id, fst = h & CFG_HASH_SIZE_M, slot = fst;
   while(ST[slot].fst_child != UINT_MAX) {
-    assert((slot = (slot + NO_WORKERS) & HASH_SIZE_M) != fst);
+    assert((slot = (slot + CFG_NO_WORKERS) & CFG_HASH_SIZE_M) != fst);
   }
   s.next = s.fst_child = slot;
-#ifdef ACTION_BUILD_RG
+#ifdef CFG_ACTION_BUILD_RG
   s.num = next_num ++;
 #endif
   ST[slot] = s;
@@ -519,21 +519,21 @@ void pd4_insert_new_states
       ns.e = c.e;
       ns.father = 0;
       C[NCS[w][i]].id = pd4_insert_new_state(w, c.h, ns, c.pred);
-#ifdef ACTION_BUILD_RG
+#ifdef CFG_ACTION_BUILD_RG
       pd4_remove_duplicates_around(C, NCS[w][i]);
 #endif
     }
   }
   S->size[w] += no_new;
   next_lvls[w] += no_new;
-#ifdef ACTION_BUILD_RG
+#ifdef CFG_ACTION_BUILD_RG
   pd4_write_nodes_graph(w);
 #endif
 
   pd4_barrier_wait(w);
 
   if(0 == w) {
-    for(x = 0; x < NO_WORKERS; x ++) {
+    for(x = 0; x < CFG_NO_WORKERS; x ++) {
       for(i = 0; i < CS_size[x]; i ++) {
 	c = CS[x][NCS[x][i]];
 	if(PD4_CAND_NEW == c.content) {
@@ -574,7 +574,7 @@ bool_t pd4_duplicate_detection
   /*
    *  initialize heaps for duplicate detection
    */
-#ifdef EVENT_UNDOABLE
+#ifdef CFG_EVENT_UNDOABLE
   heap_reset(detect_evts_heaps[w]);
 #endif
   heap_reset(detect_heaps[w]);
@@ -584,7 +584,7 @@ bool_t pd4_duplicate_detection
    *  merge the candidate set and mark states to reconstruct
    */
   pd4_barrier_wait(w);
-  if(pd4_storage_size(S) >= 0.9 * HASH_SIZE) {
+  if(pd4_storage_size(S) >= 0.9 * CFG_HASH_SIZE) {
     pthread_mutex_lock(&report_mutex);
     raise_error("state table too small (increase --hash-size and rerun)");
     pthread_mutex_unlock(&report_mutex);
@@ -611,7 +611,7 @@ bool_t pd4_duplicate_detection
    */
   heap_reset(candidates_heaps[w]);
   BOX_tot_size[w] = 0;
-  for(x = 0; x < NO_WORKERS; x ++) {
+  for(x = 0; x < CFG_NO_WORKERS; x ++) {
     BOX_size[w][x] = 0;
     all_terminated = all_terminated && level_terminated[x];
   }
@@ -656,7 +656,7 @@ state_t pd4_expand_dfs
      *  we have reached a leaf => we expand it
      */
     en = state_enabled_events_mem(s, heap);
-#ifdef ACTION_CHECK_SAFETY
+#ifdef CFG_ACTION_CHECK_SAFETY
     if(state_check_property(s, en)) {
       pthread_mutex_lock(&report_mutex);
       if(!error_reported) {
@@ -688,10 +688,10 @@ state_t pd4_expand_dfs
      *  perform duplicate detection if the candidate set is full
      */
     size = 0;
-    for(x = 0; x < NO_WORKERS; x ++) {
+    for(x = 0; x < CFG_NO_WORKERS; x ++) {
       size += BOX_tot_size[x];
     }
-    if(size >= PD4_CAND_SET_SIZE) {
+    if(size >= CFG_PD4_CAND_SET_SIZE) {
       pd4_duplicate_detection(w);
     }
   } else {
@@ -731,7 +731,7 @@ void pd4_expand
  unsigned int depth) {
   state_t s;
 
-#ifdef EVENT_UNDOABLE
+#ifdef CFG_EVENT_UNDOABLE
   heap_reset(expand_evts_heaps[w]);
 #endif
   heap_reset(expand_heaps[w]);
@@ -757,12 +757,12 @@ void * pd4_worker
     pd4_state_t ns;
     state_t s = state_initial();
     hash_key_t h = state_hash(s);
-    pd4_storage_id_t slot = h & HASH_SIZE_M;
+    pd4_storage_id_t slot = h & CFG_HASH_SIZE_M;
     uint8_t t = GT_NODE, succs = 0;
     ns.dd = ns.dd_visit = ns.recons[0] = FALSE;
     ns.recons[1] = ns.father = 1;
     ns.next = ns.fst_child = slot;
-#ifdef ACTION_BUILD_RG
+#ifdef CFG_ACTION_BUILD_RG
     ns.num = next_num ++;
     fwrite(&t, sizeof(uint8_t), 1, R->graph_file);
     fwrite(&ns.num, sizeof(node_t), 1, R->graph_file);
@@ -797,7 +797,7 @@ void * pd4_worker
     pd4_expand(w, depth);
     depth ++;
     if(0 == w) {
-      for(x = 0; x < NO_WORKERS; x ++) {
+      for(x = 0; x < CFG_NO_WORKERS; x ++) {
 	next_lvl += next_lvls[x];
       }
       report_update_max_unproc_size(R, next_lvl);
@@ -824,10 +824,10 @@ void pd4
   R = r;
   S = (pd4_storage_t) r->storage;
   ST = S->ST;
-  pthread_barrier_init(&barrier, NULL, NO_WORKERS);
+  pthread_barrier_init(&barrier, NULL, CFG_NO_WORKERS);
   pthread_mutex_init(&report_mutex, NULL);
   error_reported = FALSE;
-  for(w = 0; w < NO_WORKERS; w ++) {
+  for(w = 0; w < CFG_NO_WORKERS; w ++) {
     seeds[w] = random_seed(w);
   }
   next_num = 0;
@@ -836,14 +836,14 @@ void pd4
   /*
    *  initialisation of the heaps
    */
-  for(w = 0; w < NO_WORKERS; w ++) {
+  for(w = 0; w < CFG_NO_WORKERS; w ++) {
     expand_heaps[w] =
       bounded_heap_new("reconstruction", EXPAND_HEAP_SIZE);
     detect_heaps[w] =
       bounded_heap_new("duplicate detection", DETECT_HEAP_SIZE);
     candidates_heaps[w] =
       evergrowing_heap_new("candidate set", 1024 * 1024);
-#ifdef EVENT_UNDOABLE
+#ifdef CFG_EVENT_UNDOABLE
     expand_evts_heaps[w] =
       bounded_heap_new("reconstruction events", EXPAND_HEAP_SIZE);
     detect_evts_heaps[w] =
@@ -854,9 +854,10 @@ void pd4
   /*
    *  initialisation of the mailboxes of workers
    */
-  BOX_max_size = (PD4_CAND_SET_SIZE / (NO_WORKERS * NO_WORKERS)) << 1;
-  for(w = 0; w < NO_WORKERS; w ++) {
-    for(x = 0; x < NO_WORKERS; x ++) {
+  BOX_max_size = (CFG_PD4_CAND_SET_SIZE /
+                  (CFG_NO_WORKERS * CFG_NO_WORKERS)) << 1;
+  for(w = 0; w < CFG_NO_WORKERS; w ++) {
+    for(x = 0; x < CFG_NO_WORKERS; x ++) {
       s = BOX_max_size * sizeof(pd4_candidate_t);
       BOX[w][x] = mem_alloc(SYSTEM_HEAP, s);
       for(i = 0; i < BOX_max_size; i ++) {
@@ -871,8 +872,8 @@ void pd4
   /*
    *  initialisation of the candidate set
    */
-  CS_max_size = (PD4_CAND_SET_SIZE / NO_WORKERS) << 1;
-  for(w = 0; w < NO_WORKERS; w ++) {
+  CS_max_size = (CFG_PD4_CAND_SET_SIZE / CFG_NO_WORKERS) << 1;
+  for(w = 0; w < CFG_NO_WORKERS; w ++) {
     CS[w] = mem_alloc(SYSTEM_HEAP, CS_max_size * sizeof(pd4_candidate_t));
     NCS[w] = mem_alloc(SYSTEM_HEAP, CS_max_size * sizeof(uint32_t));
     for(i = 0; i < CS_max_size; i ++) {
@@ -894,14 +895,14 @@ void pd4
   /*
    *  free heaps and mailboxes
    */
-  for(w = 0; w < NO_WORKERS; w ++) {
-    for(x = 0; x < NO_WORKERS; x ++) {
+  for(w = 0; w < CFG_NO_WORKERS; w ++) {
+    for(x = 0; x < CFG_NO_WORKERS; x ++) {
       mem_free(SYSTEM_HEAP, BOX[w][x]);
     }
     heap_free(candidates_heaps[w]);
     heap_free(expand_heaps[w]);
     heap_free(detect_heaps[w]);
-#ifdef EVENT_UNDOABLE
+#ifdef CFG_EVENT_UNDOABLE
     heap_free(expand_evts_heaps[w]);
     heap_free(detect_evts_heaps[w]);
 #endif
@@ -912,4 +913,4 @@ void pd4
   }
 }
 
-#endif  /*  defined(ALGO_PD4)  */
+#endif  /*  defined(CFG_ALGO_PD4)  */

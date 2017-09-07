@@ -26,7 +26,7 @@ in
      concatLines [
 	 "char * model_name",
 	 " () {",
-	 "   return MODEL_NAME;",
+	 "   return CFG_MODEL_NAME;",
 	 "}",
 	 "bool_t model_is_state_proposition",
 	 " (char * prop_name) {",

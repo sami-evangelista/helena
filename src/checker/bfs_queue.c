@@ -1,6 +1,6 @@
 #include "bfs_queue.h"
 
-#if defined(ALGO_BFS) || defined(ALGO_FRONTIER)
+#if defined(CFG_ALGO_BFS) || defined(CFG_ALGO_FRONTIER)
 
 bfs_queue_slot_t bfs_queue_slot_new
 () {
@@ -31,8 +31,8 @@ bfs_queue_t bfs_queue_new
   bfs_queue_t result;
   
   MALLOC(result, bfs_queue_t, sizeof (struct_bfs_queue_t));
-  for(w = 0; w < NO_WORKERS; w ++) {
-    for(x = 0; x < NO_WORKERS; x ++) {
+  for(w = 0; w < CFG_NO_WORKERS; w ++) {
+    for(x = 0; x < CFG_NO_WORKERS; x ++) {
       result->current[w][x] = bfs_queue_slot_new();
       result->next[w][x] = bfs_queue_slot_new();
     }
@@ -49,8 +49,8 @@ void bfs_queue_free
 (bfs_queue_t q) {
   worker_id_t w, x;
 
-  for(w = 0; w < NO_WORKERS; w ++) {
-    for(x = 0; x < NO_WORKERS; x ++) {
+  for(w = 0; w < CFG_NO_WORKERS; w ++) {
+    for(x = 0; x < CFG_NO_WORKERS; x ++) {
       bfs_queue_slot_free(q->current[w][x]);
       bfs_queue_slot_free(q->next[w][x]);
     }
@@ -62,8 +62,8 @@ uint64_t bfs_queue_size
   uint64_t result = 0;
   worker_id_t w, x;
 
-  for(w = 0; w < NO_WORKERS; w ++) {
-    for(x = 0; x < NO_WORKERS; x ++) {
+  for(w = 0; w < CFG_NO_WORKERS; w ++) {
+    for(x = 0; x < CFG_NO_WORKERS; x ++) {
       result += q->current[w][x]->size + q->next[w][x]->size;
     }
   }
@@ -130,11 +130,11 @@ void bfs_queue_switch_level
  worker_id_t w) {
   worker_id_t x;
 
-  for(x = 0; x < NO_WORKERS; x ++) {
+  for(x = 0; x < CFG_NO_WORKERS; x ++) {
     bfs_queue_slot_free(q->current[w][x]);
     q->current[w][x] = q->next[w][x];
     q->next[w][x] = bfs_queue_slot_new();
   }
 }
 
-#endif  /*  defined(ALGO_BFS) || defined(ALGO_FRONTIER)  */
+#endif  /*  defined(CFG_ALGO_BFS) || defined(CFG_ALGO_FRONTIER)  */

@@ -40,7 +40,7 @@ void * observer_start
       visited += r->states_visited[i];
     }
     time = ((float) duration(r->start_time, now)) / 1000000.0;
-#if defined(DISTRIBUTED)
+#if defined(CFG_DISTRIBUTED)
     printf("[%d] ", proc_id());    
 #endif
     printf("St.:%11llu stored,", stored);
@@ -50,20 +50,20 @@ void * observer_start
     /*
      *  check for limits
      */
-#if defined(MEMORY_LIMITED) && defined(MAX_MEMORY)
-    if(mem > MAX_MEMORY) {
+#if defined(CFG_MEMORY_LIMITED) && defined(CFG_MAX_MEMORY)
+    if(mem > CFG_MAX_MEMORY) {
       r->keep_searching = FALSE;
       r->result = MEMORY_EXHAUSTED;
     }
 #endif
-#if defined(TIME_LIMITED) && defined(MAX_TIME)
-    if(time > (float) MAX_TIME) {
+#if defined(CFG_TIME_LIMITED) && defined(CFG_MAX_TIME)
+    if(time > (float) CFG_MAX_TIME) {
       r->keep_searching = FALSE;
       r->result = TIME_ELAPSED;
     }
 #endif
-#if defined(STATE_LIMITED) && defined(MAX_STATE)
-    if(visited > MAX_STATE) {
+#if defined(CFG_STATE_LIMITED) && defined(CFG_MAX_STATE)
+    if(visited > CFG_MAX_STATE) {
       r->keep_searching = FALSE;
       r->result = STATE_LIMIT_REACHED;
     }

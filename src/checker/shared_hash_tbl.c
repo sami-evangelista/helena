@@ -49,16 +49,16 @@ shared_hash_tbl_t shared_hash_tbl_new
 
   result = mem_alloc(SYSTEM_HEAP, sizeof(struct_shared_hash_tbl_t));
   result->hash_size = hash_size;
-  for(w = 0; w < NO_WORKERS_STORAGE; w ++) {
+  for(w = 0; w < CFG_NO_WORKERS_STORAGE; w ++) {
     result->size[w] = 0;
     result->state_cmps[w] = 0;
     sprintf(name, "heap of worker %d", w);
-    result->heaps[w] = evergrowing_heap_new(name, 100000);
+    result->heaps[w] = SYSTEM_HEAP;
   }
   for(i = 0; i < result->hash_size; i++) {
     result->update_status[i] = BUCKET_READY;
     result->status[i] = BUCKET_EMPTY;
-#ifndef HASH_COMPACTION
+#ifndef CFG_HASH_COMPACTION
     result->state[i] = NULL;
 #endif
   }
@@ -68,7 +68,7 @@ shared_hash_tbl_t shared_hash_tbl_new
 
 shared_hash_tbl_t shared_hash_tbl_default_new
 () {
-  return shared_hash_tbl_new(HASH_SIZE);
+  return shared_hash_tbl_new(CFG_HASH_SIZE);
 }
 
 void shared_hash_tbl_free
@@ -76,14 +76,14 @@ void shared_hash_tbl_free
   uint64_t i = 0;
   worker_id_t w;
   
-#ifndef HASH_COMPACTION
+#if !defined(CFG_HASH_COMPACTION)
   for(i = 0; i < tbl->hash_size; i++) {
     if(tbl->state[i]) {
-      mem_free(tbl->heaps[w], tbl->state[i]);
+      mem_free(SYSTEM_HEAP, tbl->state[i]);
     }
   }
 #endif
-  for(w = 0; w < NO_WORKERS_STORAGE; w ++) {
+  for(w = 0; w < CFG_NO_WORKERS_STORAGE; w ++) {
     heap_free(tbl->heaps[w]);
   }
   mem_free(SYSTEM_HEAP, tbl);
@@ -94,7 +94,7 @@ uint64_t shared_hash_tbl_size
   uint64_t result = 0;
   worker_id_t w;
   
-  for(w = 0; w < NO_WORKERS_STORAGE; w ++) {
+  for(w = 0; w < CFG_NO_WORKERS_STORAGE; w ++) {
     result += tbl->size[w];
   }
   return result;
@@ -113,23 +113,23 @@ void shared_hash_tbl_insert_serialised
   shared_hash_tbl_id_t pos = h % tbl->hash_size;
   hash_compact_t hc;
 
-#ifdef HASH_COMPACTION
+#ifdef CFG_HASH_COMPACTION
   s_char_len = sizeof(hash_compact_t);
 #endif  
   while(TRUE) {
     if(tbl->status[pos] == BUCKET_EMPTY) {
       if(CAS(&tbl->status[pos], BUCKET_EMPTY, BUCKET_WRITE)) {
-#ifdef HASH_COMPACTION
-        memcpy(tbl->state[pos] + ATTRIBUTES_CHAR_WIDTH, s, s_char_len);
+#ifdef CFG_HASH_COMPACTION
+        memcpy(tbl->state[pos] + CFG_ATTRIBUTES_CHAR_WIDTH, s, s_char_len);
 #else
         tbl->hash[pos] = h;
         tbl->state[pos] = mem_alloc0(tbl->heaps[w],
-                                     s_char_len + ATTRIBUTES_CHAR_WIDTH);
-        memcpy(tbl->state[pos] + ATTRIBUTES_CHAR_WIDTH, s, s_char_len);
+                                     s_char_len + CFG_ATTRIBUTES_CHAR_WIDTH);
+        memcpy(tbl->state[pos] + CFG_ATTRIBUTES_CHAR_WIDTH, s, s_char_len);
         bits.vector = tbl->state[pos];
         VECTOR_start(bits);
-        VECTOR_move(bits, ATTRIBUTE_CHAR_LEN_POS);
-        VECTOR_set(bits, s_char_len, ATTRIBUTE_CHAR_LEN_WIDTH);
+        VECTOR_move(bits, CFG_ATTRIBUTE_CHAR_LEN_POS);
+        VECTOR_set(bits, s_char_len, CFG_ATTRIBUTE_CHAR_LEN_WIDTH);
 #endif
         tbl->status[pos] = BUCKET_READY;
         tbl->size[w] ++;
@@ -144,17 +144,18 @@ void shared_hash_tbl_insert_serialised
     if(tbl->status[pos] == BUCKET_READY) {
       tbl->state_cmps[w] ++;
 
-#ifndef HASH_COMPACTION
+#ifndef CFG_HASH_COMPACTION
       {
         unsigned int len;
         bits.vector = tbl->state[pos];
         VECTOR_start(bits);
-        VECTOR_move(bits, ATTRIBUTE_CHAR_LEN_POS);
-        VECTOR_get(bits, len, ATTRIBUTE_CHAR_LEN_WIDTH);
+        VECTOR_move(bits, CFG_ATTRIBUTE_CHAR_LEN_POS);
+        VECTOR_get(bits, len, CFG_ATTRIBUTE_CHAR_LEN_WIDTH);
       }
 #endif
       
-      if(0 == memcmp(s, tbl->state[pos] + ATTRIBUTES_CHAR_WIDTH, s_char_len)) {
+      if(0 == memcmp(s, tbl->state[pos] + CFG_ATTRIBUTES_CHAR_WIDTH,
+                     s_char_len)) {
         (*is_new) = FALSE;
         (*id) = pos;
         return;
@@ -172,9 +173,6 @@ void shared_hash_tbl_insert_serialised
 void shared_hash_tbl_insert
 (shared_hash_tbl_t tbl,
  state_t s,
- shared_hash_tbl_id_t * pred,
- event_id_t * exec,
- unsigned int depth,
  worker_id_t w,
  bool_t * is_new,
  shared_hash_tbl_id_t * id,
@@ -186,7 +184,7 @@ void shared_hash_tbl_insert
   hash_compact_t hc;
   uint16_t s_char_len;
 
-#ifdef HASH_COMPACTION
+#ifdef CFG_HASH_COMPACTION
   hash_compact(s, &hc);
   (*h) = hc.keys[0];
 #else
@@ -201,19 +199,19 @@ void shared_hash_tbl_insert
         /*
          *  encode the state
          */
-#ifdef HASH_COMPACTION
-        memcpy(&(tbl->state[pos][ATTRIBUTES_CHAR_WIDTH]), &hc,
+#ifdef CFG_HASH_COMPACTION
+        memcpy(&(tbl->state[pos][CFG_ATTRIBUTES_CHAR_WIDTH]), &hc,
                sizeof(hash_compact_t));
 #else
         s_char_len = state_char_width(s);
         tbl->state[pos] = mem_alloc0(tbl->heaps[w],
-                                     s_char_len + ATTRIBUTES_CHAR_WIDTH);
+                                     s_char_len + CFG_ATTRIBUTES_CHAR_WIDTH);
         tbl->hash[pos] = (*h);
-        state_serialise(s, tbl->state[pos] + ATTRIBUTES_CHAR_WIDTH);
+        state_serialise(s, tbl->state[pos] + CFG_ATTRIBUTES_CHAR_WIDTH);
         bits.vector = tbl->state[pos];
         VECTOR_start(bits);
-        VECTOR_move(bits, ATTRIBUTE_CHAR_LEN_POS);
-        VECTOR_set(bits, s_char_len, ATTRIBUTE_CHAR_LEN_WIDTH);        
+        VECTOR_move(bits, CFG_ATTRIBUTE_CHAR_LEN_POS);
+        VECTOR_set(bits, s_char_len, CFG_ATTRIBUTE_CHAR_LEN_WIDTH);        
 #endif
         tbl->status[pos] = BUCKET_READY;
         tbl->size[w] ++;
@@ -227,8 +225,8 @@ void shared_hash_tbl_insert
     }
     if(tbl->status[pos] == BUCKET_READY) {
       tbl->state_cmps[w] ++;
-      es = tbl->state[pos] + ATTRIBUTES_CHAR_WIDTH;
-#ifdef HASH_COMPACTION
+      es = tbl->state[pos] + CFG_ATTRIBUTES_CHAR_WIDTH;
+#ifdef CFG_HASH_COMPACTION
       (*is_new) = (0 != memcmp(s, es, sizeof(hash_compact_t))) ?
         FALSE : TRUE;
 #else
@@ -277,10 +275,11 @@ state_t shared_hash_tbl_get_mem
  worker_id_t w,
  heap_t heap) {
   state_t result;
-#ifdef HASH_COMPACTION
+#ifdef CFG_HASH_COMPACTION
   fatal_error("shared_hash_tbl_get_mem disabled by hash compaction");
 #else
-  result = state_unserialise_mem(tbl->state[id] + ATTRIBUTES_CHAR_WIDTH, heap);
+  result = state_unserialise_mem(tbl->state[id] + CFG_ATTRIBUTES_CHAR_WIDTH,
+                                 heap);
 #endif
   return result;
 }
@@ -290,9 +289,10 @@ hash_key_t shared_hash_tbl_get_hash
  shared_hash_tbl_id_t id) {
   hash_key_t result;
   
-#ifdef HASH_COMPACTION
+#ifdef CFG_HASH_COMPACTION
   hash_compact_t h;
-  memcpy(&h, &(tbl->state[id][ATTRIBUTES_CHAR_WIDTH]), sizeof(hash_compact_t));
+  memcpy(&h, &(tbl->state[id][CFG_ATTRIBUTES_CHAR_WIDTH]),
+         sizeof(hash_compact_t));
   result = h.keys[0];
 #else
   result = tbl->hash[id];
@@ -311,7 +311,9 @@ void shared_hash_tbl_set_attribute
   bits.vector = tbl->state[id];
   VECTOR_start(bits);
   VECTOR_move(bits, pos);
+#if defined(PARALLEL)
   while(!CAS(&tbl->update_status[id], BUCKET_READY, BUCKET_WRITE)) {}
+#endif
   VECTOR_set(bits, val, size);
   tbl->update_status[id] = BUCKET_READY;
 }
@@ -335,8 +337,8 @@ bool_t shared_hash_tbl_get_cyan
  shared_hash_tbl_id_t id,
  worker_id_t w) {
   return (bool_t)
-#ifdef ATTRIBUTE_CYAN
-    shared_hash_tbl_get_attribute(tbl, id, ATTRIBUTE_CYAN_POS + w, 1)
+#ifdef CFG_ATTRIBUTE_CYAN
+    shared_hash_tbl_get_attribute(tbl, id, CFG_ATTRIBUTE_CYAN_POS + w, 1)
 #else
     FALSE
 #endif
@@ -347,8 +349,8 @@ bool_t shared_hash_tbl_get_blue
 (shared_hash_tbl_t tbl,
  shared_hash_tbl_id_t id) {
   return (bool_t)
-#ifdef ATTRIBUTE_BLUE
-    shared_hash_tbl_get_attribute(tbl, id, ATTRIBUTE_BLUE_POS, 1)
+#ifdef CFG_ATTRIBUTE_BLUE
+    shared_hash_tbl_get_attribute(tbl, id, CFG_ATTRIBUTE_BLUE_POS, 1)
 #else
     FALSE
 #endif
@@ -360,8 +362,8 @@ bool_t shared_hash_tbl_get_pink
  shared_hash_tbl_id_t id,
  worker_id_t w) {
   return (bool_t)
-#ifdef ATTRIBUTE_PINK
-    shared_hash_tbl_get_attribute(tbl, id, ATTRIBUTE_PINK_POS + w, 1)
+#ifdef CFG_ATTRIBUTE_PINK
+    shared_hash_tbl_get_attribute(tbl, id, CFG_ATTRIBUTE_PINK_POS + w, 1)
 #else
     FALSE
 #endif
@@ -372,8 +374,8 @@ bool_t shared_hash_tbl_get_red
 (shared_hash_tbl_t tbl,
  shared_hash_tbl_id_t id) {
   return (bool_t)
-#ifdef ATTRIBUTE_RED
-    shared_hash_tbl_get_attribute(tbl, id, ATTRIBUTE_RED_POS, 1)
+#ifdef CFG_ATTRIBUTE_RED
+    shared_hash_tbl_get_attribute(tbl, id, CFG_ATTRIBUTE_RED_POS, 1)
 #else
     FALSE
 #endif
@@ -385,8 +387,8 @@ void shared_hash_tbl_set_cyan
  shared_hash_tbl_id_t id,
  worker_id_t w,
  bool_t cyan) {
-#ifdef ATTRIBUTE_CYAN
-  shared_hash_tbl_set_attribute(tbl, id, ATTRIBUTE_CYAN_POS + w,
+#ifdef CFG_ATTRIBUTE_CYAN
+  shared_hash_tbl_set_attribute(tbl, id, CFG_ATTRIBUTE_CYAN_POS + w,
                                 1, (uint64_t) cyan);
 #endif
 }
@@ -395,8 +397,8 @@ void shared_hash_tbl_set_blue
 (shared_hash_tbl_t tbl,
  shared_hash_tbl_id_t id,
  bool_t blue) {
-#ifdef ATTRIBUTE_BLUE
-  shared_hash_tbl_set_attribute(tbl, id, ATTRIBUTE_BLUE_POS,
+#ifdef CFG_ATTRIBUTE_BLUE
+  shared_hash_tbl_set_attribute(tbl, id, CFG_ATTRIBUTE_BLUE_POS,
                                 1, (uint64_t) blue);
 #endif
 }
@@ -406,8 +408,8 @@ void shared_hash_tbl_set_pink
  shared_hash_tbl_id_t id,
  worker_id_t w,
  bool_t pink) {
-#ifdef ATTRIBUTE_PINK
-  shared_hash_tbl_set_attribute(tbl, id, ATTRIBUTE_PINK_POS + w,
+#ifdef CFG_ATTRIBUTE_PINK
+  shared_hash_tbl_set_attribute(tbl, id, CFG_ATTRIBUTE_PINK_POS + w,
                                 1, (uint64_t) pink);
 #endif
 }
@@ -416,8 +418,8 @@ void shared_hash_tbl_set_red
 (shared_hash_tbl_t tbl,
  shared_hash_tbl_id_t id,
  bool_t red) {
-#ifdef ATTRIBUTE_RED
-  shared_hash_tbl_set_attribute(tbl, id, ATTRIBUTE_RED_POS,
+#ifdef CFG_ATTRIBUTE_RED
+  shared_hash_tbl_set_attribute(tbl, id, CFG_ATTRIBUTE_RED_POS,
                                 1, (uint64_t) red);
 #endif
 }
@@ -427,14 +429,32 @@ void shared_hash_tbl_get_serialised
  shared_hash_tbl_id_t id,
  bit_vector_t * s,
  uint16_t * size) {
-#ifdef HASH_COMPACTION
-  (*s) = &(tbl->state[id][ATTRIBUTES_CHAR_WIDTH]);
+#ifdef CFG_HASH_COMPACTION
+  (*s) = &(tbl->state[id][CFG_ATTRIBUTES_CHAR_WIDTH]);
   (*size) = sizeof(hash_compact_t);
 #else
-  (*s) = tbl->state[id] + ATTRIBUTES_CHAR_WIDTH;
-  (*size) = (uint16_t) shared_hash_tbl_get_attribute(tbl, id,
-                                                     ATTRIBUTE_CHAR_LEN_POS,
-                                                     ATTRIBUTE_CHAR_LEN_WIDTH);
+  (*s) = tbl->state[id] + CFG_ATTRIBUTES_CHAR_WIDTH;
+  (*size) = (uint16_t)
+    shared_hash_tbl_get_attribute(tbl, id,
+                                  CFG_ATTRIBUTE_CHAR_LEN_POS,
+                                  CFG_ATTRIBUTE_CHAR_LEN_WIDTH);
+#endif
+}
+
+void shared_hash_tbl_unref
+(shared_hash_tbl_t tbl,
+ shared_hash_tbl_id_t id) {
+#ifdef CFG_ATTRIBUTE_RED
+  vector bits;
+  
+  bits.vector = tbl->state[id];
+  VECTOR_start(bits);
+  VECTOR_move(bits, pos);
+#if defined(PARALLEL)
+  while(!CAS(&tbl->update_status[id], BUCKET_READY, BUCKET_WRITE)) {}
+#endif
+  VECTOR_set(bits, val, size);
+  tbl->update_status[id] = BUCKET_READY;
 #endif
 }
 
@@ -443,7 +463,7 @@ void shared_hash_tbl_output_stats
  FILE * out) {
   fprintf(out, "<hashTableStatistics>\n");
   fprintf(out, "<stateComparisons>%llu</stateComparisons>\n",
-          do_large_sum(tbl->state_cmps, NO_WORKERS_STORAGE));
+          do_large_sum(tbl->state_cmps, CFG_NO_WORKERS_STORAGE));
   fprintf(out, "</hashTableStatistics>\n");
 }
 

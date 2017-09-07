@@ -39,7 +39,7 @@ package body Pn.Stats.Prints is
       E: Expr;
       C: Cls;
    begin
-      Plc(Lib, "#ifdef ACTION_SIMULATE");
+      Plc(Lib, "#if defined(CFG_ACTION_SIMULATE)");
       if S.With_Str then
 	 Pc(Lib, 2, "printf(""" & S.Str & """");
 	 for I in 1..Length(S.E) loop

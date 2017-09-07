@@ -6,7 +6,7 @@
 #include "state.h"
 #include "event.h"
 
-#ifndef MODEL_CONFIG
+#ifndef CFG_MODEL_CONFIG
 #error Model configuration missing!
 #endif
 
@@ -23,7 +23,7 @@ typedef struct {
   bool_t dd_visit;
   bool_t recons[2];
   event_id_t e;
-#ifdef ACTION_BUILD_RG
+#ifdef CFG_ACTION_BUILD_RG
   uint32_t num;
 #endif
 } pd4_state_t;
@@ -40,10 +40,10 @@ typedef struct {
 
 typedef struct {
   pd4_storage_id_t root;
-  pd4_state_t ST[HASH_SIZE];
-  int32_t size[NO_WORKERS];
+  pd4_state_t ST[CFG_HASH_SIZE];
+  int32_t size[CFG_NO_WORKERS];
   uint64_t dd_time;
-  uint64_t barrier_time[NO_WORKERS];
+  uint64_t barrier_time[CFG_NO_WORKERS];
 } struct_pd4_storage_t;
 
 typedef struct_pd4_storage_t * pd4_storage_t;

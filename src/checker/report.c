@@ -52,8 +52,8 @@ report_t report_new
   result->keep_searching = TRUE;
   gettimeofday(&result->start_time, NULL);
   result->graph_file = NULL;
-#ifdef PROPERTY
-#ifdef HASH_COMPACTION
+#ifdef CFG_PROPERTY
+#ifdef CFG_HASH_COMPACTION
   result->result = NO_ERROR;
 #else
   result->result = SUCCESS;
@@ -65,7 +65,7 @@ report_t report_new
   /*
    *  launch the observer thread
    */
-#ifdef WITH_OBSERVER
+#ifdef CFG_WITH_OBSERVER
   pthread_create(&result->observer, NULL, &observer_start,
 		 (void *) result);
 #else
@@ -119,12 +119,12 @@ void report_output_trace
     if(!event_is_dummy(r->trace[i])) {
       event_to_xml(r->trace[i], out);
       event_exec(r->trace[i], s);
-#ifdef TRACE_FULL
+#ifdef CFG_TRACE_FULL
       state_to_xml(s, out);
 #endif
     }
   }
-#ifdef TRACE_EVENTS
+#ifdef CFG_TRACE_EVENTS
   if(r->trace_len > 0) {
     state_to_xml(s, out);
   }
@@ -160,10 +160,10 @@ void report_finalise
   r->keep_searching = FALSE;
   gettimeofday(&r->end_time, NULL);
   r->exec_time = duration(r->start_time, r->end_time);
-#ifdef WITH_OBSERVER
+#ifdef CFG_WITH_OBSERVER
   pthread_join(r->observer, &dummy);
 #endif
-  out = fopen(REPORT_FILE, "w");
+  out = fopen(CFG_REPORT_FILE, "w");
   fprintf(out, "<helenaReport>\n");
 
   /**
@@ -172,14 +172,14 @@ void report_finalise
   fprintf(out, "<infoReport>\n");
   fprintf(out, "<model>%s</model>\n", model_name());
   model_xml_parameters(out);
-#ifdef LANGUAGE
-  fprintf(out, "<language>%s</language>\n", LANGUAGE);
+#ifdef CFG_LANGUAGE
+  fprintf(out, "<language>%s</language>\n", CFG_LANGUAGE);
 #endif
-#ifdef DATE
-  fprintf(out, "<date>%s</date>\n", DATE);
+#ifdef CFG_DATE
+  fprintf(out, "<date>%s</date>\n", CFG_DATE);
 #endif
-#ifdef FILE_PATH
-  fprintf(out, "<filePath>%s</filePath>\n", FILE_PATH);
+#ifdef CFG_FILE_PATH
+  fprintf(out, "<filePath>%s</filePath>\n", CFG_FILE_PATH);
 #endif
   gethostname(name, 1024);
   fprintf(out, "<host>%s</host>\n", name);
@@ -189,8 +189,8 @@ void report_finalise
    *  search report
    ***/
   fprintf(out, "<searchReport>\n");
-#ifdef PROPERTY
-  fprintf(out, "<property>%s</property>\n", PROPERTY);
+#ifdef CFG_PROPERTY
+  fprintf(out, "<property>%s</property>\n", CFG_PROPERTY);
 #endif
   fprintf(out, "<searchResult>");
   switch(r->result) {
@@ -217,42 +217,43 @@ void report_finalise
   if(r->result == ERROR) {
     fprintf(out, "<errorMessage>%s</errorMessage>\n", r->error_msg);
   }
-#if defined(ALGO_DFS)
+#if defined(CFG_ALGO_DFS)
   fprintf(out, "<depthSearch/>\n");
-#elif defined(ALGO_DDFS)
+#elif defined(CFG_ALGO_DDFS)
   fprintf(out, "<distributedDepthSearch/>\n");
-#elif defined(ALGO_BFS)
+#elif defined(CFG_ALGO_BFS)
   fprintf(out, "<breadthSearch/>\n");
-#elif defined(ALGO_FRONTIER)
+#elif defined(CFG_ALGO_FRONTIER)
   fprintf(out, "<frontierSearch/>\n");
-#elif defined(ALGO_RWALK)
+#elif defined(CFG_ALGO_RWALK)
   fprintf(out, "<randomWalk/>\n");
-#elif defined(ALGO_PD4)
+#elif defined(CFG_ALGO_PD4)
   fprintf(out, "<parallelDDDD/>\n");
 #endif
-#if defined(NO_WORKERS)
-  fprintf(out, "<workers>%d</workers>\n", NO_WORKERS);
+#if defined(CFG_NO_WORKERS)
+  fprintf(out, "<workers>%d</workers>\n", CFG_NO_WORKERS);
 #endif
   fprintf(out, "<searchOptions>\n");
-#if defined(HASH_STORAGE) || defined(PD4_STORAGE)
-  fprintf(out, "<hashTableSlots>%d</hashTableSlots>\n", HASH_SIZE);
+#if defined(CFG_HASH_STORAGE) || defined(CFG_PD4_STORAGE)
+  fprintf(out, "<hashTableSlots>%d</hashTableSlots>\n", CFG_HASH_SIZE);
 #endif
-#ifdef HASH_DELTA
-  fprintf(out, "<deltaCompression>%d</deltaCompression>\n", HASH_DELTA_K);
+#ifdef CFG_HASH_DELTA
+  fprintf(out, "<deltaCompression>%d</deltaCompression>\n",
+          CFG_HASH_DELTA_K);
 #endif
-#ifdef STATE_CACHING
+#ifdef CFG_STATE_CACHING
   fprintf(out, "<stateCaching>%d</stateCaching>\n",
-          STATE_CACHING_CACHE_SIZE);
+          CFG_STATE_CACHING_CACHE_SIZE);
 #endif
-#ifdef HASH_COMPACTION
+#ifdef CFG_HASH_COMPACTION
   fprintf(out, "<hashCompact/>\n");
 #endif
-  if(CFG_POR) {
-    fprintf(out, "<partialOrder/>\n");
-  }
-#if defined(ALGO_PD4)
+#if defined(CFG_POR)
+  fprintf(out, "<partialOrder/>\n");
+#endif
+#if defined(CFG_ALGO_PD4)
   fprintf(out, "<candidateSetSize>%d</candidateSetSize>\n",
-          PD4_CAND_SET_SIZE);
+          CFG_PD4_CAND_SET_SIZE);
 #endif
   fprintf(out, "</searchOptions>\n");
   fprintf(out, "</searchReport>\n");
@@ -271,13 +272,13 @@ void report_finalise
     fprintf(out, "<compilationTime>%.2f</compilationTime>\n", r->comp_time);
   }
   fprintf(out, "<searchTime>%.2f</searchTime>\n", r->exec_time / 1000000.0);
-#if defined(ALGO_PD4)
+#if defined(CFG_ALGO_PD4)
   fprintf(out, "<duplicateDetectionTime>%.2f</duplicateDetectionTime>\n",
           r->storage->dd_time / 1000000.0);
   fprintf(out, "<barrierTime>%.2f</barrierTime>\n",
           do_large_sum(r->storage->barrier_time, r->no_workers) / 1000000.0);
 #endif
-#if defined(DISTRIBUTED)
+#if defined(CFG_DISTRIBUTED)
   fprintf(out, "<distributedBarrierTime>");
   fprintf(out, "%.2f</distributedBarrierTime>\n",
 	  r->distributed_barrier_time / 1000000.0);
@@ -292,26 +293,26 @@ void report_finalise
 	  (ssize > r->states_max_stored) ? ssize : r->states_max_stored);
   sum_visited = do_large_sum(r->states_visited, r->no_workers);
   fprintf(out, "<statesExpanded>%llu</statesExpanded>\n", sum_visited);
-  if(CFG_PARALLEL) {
-    min_visited = r->states_visited[0];
-    max_visited = r->states_visited[0];
-    avg_visited = sum_visited / NO_WORKERS;
-    dev_visited = 0;
-    for(w = 1; w < NO_WORKERS; w ++) {
-      if(r->states_visited[w] > max_visited) {
-        max_visited = r->states_visited[w];
-      } else if(r->states_visited[w] < min_visited) {
-        min_visited = r->states_visited[w];
-      }
-      dev_visited += (r->states_visited[w] - avg_visited)
-        * (r->states_visited[w] - avg_visited);
+#if defined(CFG_PARALLEL)
+  min_visited = r->states_visited[0];
+  max_visited = r->states_visited[0];
+  avg_visited = sum_visited / CFG_NO_WORKERS;
+  dev_visited = 0;
+  for(w = 1; w < CFG_NO_WORKERS; w ++) {
+    if(r->states_visited[w] > max_visited) {
+      max_visited = r->states_visited[w];
+    } else if(r->states_visited[w] < min_visited) {
+      min_visited = r->states_visited[w];
     }
-    dev_visited = sqrt(dev_visited / NO_WORKERS);
-    fprintf(out, "<statesExpandedMin>%llu</statesExpandedMin>\n", min_visited);
-    fprintf(out, "<statesExpandedMax>%llu</statesExpandedMax>\n", max_visited);
-    fprintf(out, "<statesExpandedDev>%llu</statesExpandedDev>\n", dev_visited);
+    dev_visited += (r->states_visited[w] - avg_visited)
+      * (r->states_visited[w] - avg_visited);
   }
-#ifdef ACTION_CHECK_LTL
+  dev_visited = sqrt(dev_visited / CFG_NO_WORKERS);
+  fprintf(out, "<statesExpandedMin>%llu</statesExpandedMin>\n", min_visited);
+  fprintf(out, "<statesExpandedMax>%llu</statesExpandedMax>\n", max_visited);
+  fprintf(out, "<statesExpandedDev>%llu</statesExpandedDev>\n", dev_visited);
+#endif
+#ifdef CFG_ACTION_CHECK_LTL
   fprintf(out, "<statesAccepting>%llu</statesAccepting>\n",
           do_large_sum(r->states_accepting, r->no_workers));
 #endif
@@ -325,33 +326,34 @@ void report_finalise
   fprintf(out, "</graphStatistics>\n");
   
   /*  storage statistics  */
-#if defined(HASH_STORAGE) || defined(PD4_STORAGE)
+#if defined(CFG_HASH_STORAGE) || defined(CFG_PD4_STORAGE)
   storage_output_stats(r->storage, out);
 #endif
   
   /*  others  */
   fprintf(out, "<otherStatistics>\n");
-  if(!CFG_PARALLEL) {
-#if defined(ALGO_DFS)
-    fprintf(out, "<maxDfsStack>%llu</maxDfsStack>\n",
-            r->max_unproc_size);
-#elif defined(ALGO_BFS) || defined(ALGO_FRONTIER) || defined(ALGO_PD4)
-    fprintf(out, "<maxBfsQueue>%llu</maxBfsQueue>\n",
-            r->max_unproc_size);
+#if !defined(CFG_PARALLEL)
+#if defined(CFG_ALGO_DFS)
+  fprintf(out, "<maxDfsStack>%llu</maxDfsStack>\n",
+          r->max_unproc_size);
+#elif defined(CFG_ALGO_BFS) || defined(CFG_ALGO_FRONTIER) || \
+  defined(CFG_ALGO_PD4)
+  fprintf(out, "<maxBfsQueue>%llu</maxBfsQueue>\n",
+          r->max_unproc_size);
 #endif
-  }
+#endif
   fprintf(out, "<maxMemoryUsed>%.1f</maxMemoryUsed>\n",
           r->max_mem_used);
   fprintf(out, "<eventsExecuted>%llu</eventsExecuted>\n",
           do_large_sum(r->events_executed, r->no_workers));
-#ifdef ALGO_PD4
+#ifdef CFG_ALGO_PD4
   fprintf(out, "<eventsExecutedDDD>%llu</eventsExecutedDDD>\n",
           do_large_sum(r->events_executed_dd, r->no_workers));
   fprintf(out, "<eventsExecutedExpansion>%llu</eventsExecutedExpansion>\n",
           do_large_sum(r->events_executed, r->no_workers) -
           do_large_sum(r->events_executed_dd, r->no_workers));
 #endif
-#ifdef ALGO_RWALK
+#ifdef CFG_ALGO_RWALK
   fprintf(out, "<eventExecPerSecond>%d</eventExecPerSecond>\n",
 	  (unsigned int)(1.0 * visited /(r->exec_time / 1000000.0)));
 #endif
@@ -363,15 +365,15 @@ void report_finalise
    ***/
   if(r->result == FAILURE) {
     fprintf(out, "<traceReport>\n");
-#if    defined(TRACE_STATE)
+#if    defined(CFG_TRACE_STATE)
     fprintf(out, "<traceState>\n");
     state_to_xml(r->faulty_state, out);
     fprintf(out, "</traceState>\n");
-#elif defined(TRACE_FULL)
+#elif defined(CFG_TRACE_FULL)
     fprintf(out, "<traceFull>\n");
     report_output_trace(r, out);
     fprintf(out, "</traceFull>\n");
-#elif defined(TRACE_EVENTS)
+#elif defined(CFG_TRACE_EVENTS)
     fprintf(out, "<traceEvents>\n");
     report_output_trace(r, out);
     fprintf(out, "</traceEvents>\n");
@@ -385,14 +387,14 @@ void report_finalise
    *  in distributed mode the report file must be printed to the
    *  standard output so that it can be sent to the main process
    */
-  if(CFG_DISTRIBUTED) {
-    out = fopen(REPORT_FILE, "r");
-    while(getline(&buf, &n, out) != -1) {
-      printf("[xml-%d] %s", proc_id(), buf);
-    }
-    free(buf);
-    fclose(out);
+#if defined(CFG_DISTRIBUTED)
+  out = fopen(CFG_REPORT_FILE, "r");
+  while(getline(&buf, &n, out) != -1) {
+    printf("[xml-%d] %s", proc_id(), buf);
   }
+  free(buf);
+  fclose(out);
+#endif
 }
 
 void report_interruption_handler

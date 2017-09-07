@@ -24,7 +24,7 @@ int main
   /*
    *  simulation mode
    */
-#if defined(ACTION_SIMULATE)
+#if defined(CFG_ACTION_SIMULATE)
   
   simulator();
 
@@ -43,7 +43,7 @@ int main
   /*
    *  initialisation of the report
    */
-  glob_report = report_new(NO_WORKERS);
+  glob_report = report_new(CFG_NO_WORKERS);
   for(i = 1; i < argc; i += 2) {
     if(0 == strcmp(argv[i], "comp-time")) {
       float comp_time;
@@ -55,13 +55,13 @@ int main
   /*
    *  launch the search and create the report
    */
-#if defined(ALGO_BFS) || defined(ALGO_FRONTIER)
+#if defined(CFG_ALGO_BFS) || defined(CFG_ALGO_FRONTIER)
   bfs(glob_report);
-#elif defined(ALGO_DFS) || defined(ALGO_DDFS)
+#elif defined(CFG_ALGO_DFS) || defined(CFG_ALGO_DDFS)
   dfs(glob_report);
-#elif defined(ALGO_PD4)
+#elif defined(CFG_ALGO_PD4)
   pd4(glob_report);
-#elif defined(ALGO_RWALK)
+#elif defined(CFG_ALGO_RWALK)
   random_walk(glob_report);
 #endif
   report_finalise(glob_report);
@@ -77,8 +77,8 @@ int main
 
   report_free(glob_report);
 
-#ifdef ACTION_BUILD_RG
-  graph_make_report(GRAPH_FILE, RG_REPORT_FILE, NULL);
+#ifdef CFG_ACTION_BUILD_RG
+  graph_make_report(CFG_GRAPH_FILE, CFG_RG_REPORT_FILE, NULL);
 #endif
 
 #endif

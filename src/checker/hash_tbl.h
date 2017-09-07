@@ -5,7 +5,7 @@
 #include "event.h"
 #include "heap.h"
 
-#ifndef MODEL_CONFIG
+#ifndef CFG_MODEL_CONFIG
 #error Model configuration missing!
 #endif
 
@@ -19,16 +19,12 @@ typedef struct {
   pos_t p;
 } hash_tbl_id_t;
 
-#ifdef HASH_STANDARD
-typedef bit_vector_t encoded_state_t;
-#elif defined (HASH_DELTA)
-#define ENCODED_STATE_CHAR_WIDTH                        \
-  (ATTRIBUTES_CHAR_WIDTH + sizeof (bit_vector_t))
-typedef char encoded_state_t[ENCODED_STATE_CHAR_WIDTH];
-#elif defined (HASH_COMPACTION)
+#if defined (CFG_HASH_COMPACTION)
 #define ENCODED_STATE_CHAR_WIDTH                \
   (ATTRIBUTES_CHAR_WIDTH + sizeof (hash_key_t))
 typedef char encoded_state_t[ENCODED_STATE_CHAR_WIDTH];
+#else
+typedef bit_vector_t encoded_state_t;
 #endif
 
 typedef void (* hash_tbl_fold_func_t) (state_t, hash_tbl_id_t, void *);
@@ -53,16 +49,12 @@ order_t hash_tbl_id_cmp
 
 typedef struct {
   uint64_t hash_size;
-  uint64_t events_executed[NO_WORKERS];
-  uint64_t state_cmps[NO_WORKERS];
-  unsigned short no_states[HASH_SIZE];
-  encoded_state_t * states[HASH_SIZE];
+  uint64_t state_cmps[CFG_NO_WORKERS];
+  unsigned short no_states[CFG_HASH_SIZE];
+  encoded_state_t * states[CFG_HASH_SIZE];
   unsigned int seed;
-#ifdef HASH_DELTA
-  heap_t reconstruction_heaps[NO_WORKERS];
-#endif
-#ifdef STATE_CACHING
-  hash_tbl_id_t cache[STATE_CACHING_CACHE_SIZE];
+#ifdef CFG_STATE_CACHING
+  hash_tbl_id_t cache[CFG_STATE_CACHING_CACHE_SIZE];
   unsigned int cache_size;
   unsigned int cache_ctr;
 #endif
@@ -82,9 +74,6 @@ void hash_tbl_free
 void hash_tbl_insert
 (hash_tbl_t storage,
  state_t s,
- hash_tbl_id_t * pred,
- event_id_t * exec,
- unsigned int depth,
  worker_id_t w,
  bool_t * is_new,
  hash_tbl_id_t * id,

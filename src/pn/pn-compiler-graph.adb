@@ -100,7 +100,7 @@ package body Pn.Compiler.Graph is
 	   "   uint32_t             no_states)");
       Plh(L, Prototype & ";");
       Plc(L, Prototype & " {");
-      Plc(L, "#ifdef ACTION_BUILD_RG");
+      Plc(L, "#ifdef CFG_ACTION_BUILD_RG");
       Plc(L, 1, "(*data) = mem_alloc (SYSTEM_HEAP, " &
 	    "sizeof (struct_model_graph_data_t));");
       Plc(L, 1, "(*data)->stack = mem_alloc (SYSTEM_HEAP, " &
@@ -129,7 +129,7 @@ package body Pn.Compiler.Graph is
 	   "(model_graph_data_t * data)");
       Plh(L, Prototype & ";");
       Plc(L, Prototype & " {");
-      Plc(L, "#ifdef ACTION_BUILD_RG");
+      Plc(L, "#ifdef CFG_ACTION_BUILD_RG");
       Plc(L, 1, "unsigned int i;");
       Plc(L, 1, "mstate_free ((*data)->all);");
       Plc(L, 1, "hash_tbl_free ((*data)->storage);");
@@ -150,7 +150,7 @@ package body Pn.Compiler.Graph is
 	   " FILE *             out)");
       Plh(L, Prototype & ";");
       Plc(L, Prototype & " {");
-      Plc(L, "#ifdef ACTION_BUILD_RG");
+      Plc(L, "#ifdef CFG_ACTION_BUILD_RG");
       Plc(L, 1, "unsigned int i;");
       Plc(L, 1, "data->out = out;");
       Plc(L, 1, "fprintf(out, ""<model-info>"");");
@@ -215,7 +215,7 @@ package body Pn.Compiler.Graph is
 	   "(model_graph_data_t data)");
       Plh(L, Prototype & ";");
       Plc(L, Prototype & " {");
-      Plc(L, "#ifdef ACTION_BUILD_RG");
+      Plc(L, "#ifdef CFG_ACTION_BUILD_RG");
       Plc(L, 1, "data->now = mstate_initial ();");
       Plc(L, 1, "data->top = -1;");
       Plc(L, 1, "mstate_init (data->proj, SYSTEM_HEAP);");
@@ -230,7 +230,7 @@ package body Pn.Compiler.Graph is
 	   " void *            data)");
       Plh(L, Prototype & ";");
       Plc(L, Prototype & " {");
-      Plc(L, "#ifdef ACTION_BUILD_RG");
+      Plc(L, "#ifdef CFG_ACTION_BUILD_RG");
       Plc(L, 1, "model_graph_data_t dfs_data = (model_graph_data_t) data;");
       Plc(L, 1, "mstate_union (dfs_data->all, s);");
       Plc(L, "#endif");
@@ -240,7 +240,7 @@ package body Pn.Compiler.Graph is
 	   "(model_graph_data_t data)");
       Plh(L, Prototype & ";");
       Plc(L, Prototype & " {");
-      Plc(L, "#ifdef ACTION_BUILD_RG");
+      Plc(L, "#ifdef CFG_ACTION_BUILD_RG");
       Plc(L, 1, "mstate_free (data->now);");
       Plc(L, 1, "mstate_free (data->proj);");
       Plc(L, 1, "hash_tbl_fold (data->storage, 0, " &
@@ -255,7 +255,7 @@ package body Pn.Compiler.Graph is
 	   " bool_t             new_succ)");
       Plh(L, Prototype & ";");
       Plc(L, Prototype & " {");
-      Plc(L, "#ifdef ACTION_BUILD_RG");
+      Plc(L, "#ifdef CFG_ACTION_BUILD_RG");
       Plc(L, 1, "ptr_mevent_t pe;");
       Plc(L, 1, "mevent_t e = mstate_enabled_event (data->now, num);");
       Plc(L, 1, "pe = mem_alloc (SYSTEM_HEAP, sizeof (struct_ptr_mevent_t));");
@@ -278,7 +278,7 @@ package body Pn.Compiler.Graph is
 	   "(model_graph_data_t data)");
       Plh(L, Prototype & ";");
       Plc(L, Prototype & " {");
-      Plc(L, "#ifdef ACTION_BUILD_RG");
+      Plc(L, "#ifdef CFG_ACTION_BUILD_RG");
       Plc(L, 1, "mevent_t e = data->stack[data->top];");
       Plc(L, 1, "mevent_undo (e, data->now);");
       Plc(L, 1, "mevent_free (e);");
@@ -292,7 +292,7 @@ package body Pn.Compiler.Graph is
 	   " mstate_t           s)");
       Plh(L, Prototype & ";");
       Plc(L, Prototype & " {");
-      Plc(L, "#ifdef ACTION_BUILD_RG");
+      Plc(L, "#ifdef CFG_ACTION_BUILD_RG");
       Plc(L, 1, "hash_key_t h;");
       Plc(L, 1, "bool_t b;");
       Plc(L, 1, "hash_tbl_id_t id;");
@@ -312,7 +312,7 @@ package body Pn.Compiler.Graph is
          Plc(L, 1, "data->proj->" & C & ".mult = s->" & C & ".mult;");
          Plc(L, 1, "data->proj->" & C & ".heap = s->" & C & ".heap;");
 	 Plc(L, 1, "hash_tbl_insert(data->storage, data->proj, " &
-	       "NULL, NULL, 0, 0, &b, &id, &h);");
+	       "0, &b, &id, &h);");
 	 Plc(L, 1, Local_State_Init_Func(P) &
 	       "(data->proj->" & C & ", SYSTEM_HEAP);");
 	 Plc(L, 1, "if (s->" & C &
@@ -340,7 +340,7 @@ package body Pn.Compiler.Graph is
 	   "(model_graph_data_t data)");
       Plh(L, Prototype & ";");
       Plc(L, Prototype & " {");
-      Plc(L, "#ifdef ACTION_BUILD_RG");
+      Plc(L, "#ifdef CFG_ACTION_BUILD_RG");
       Plc(L, 1, "data->in_terminal = FALSE;");
       Plc(L, 1, "data->terminals = 0;");
       Plc(L, 1, "data->now = mstate_initial ();");
@@ -354,7 +354,7 @@ package body Pn.Compiler.Graph is
 	   "(model_graph_data_t data)");
       Plh(L, Prototype & ";");
       Plc(L, Prototype & " {");
-      Plc(L, "#ifdef ACTION_BUILD_RG");
+      Plc(L, "#ifdef CFG_ACTION_BUILD_RG");
       Plc(L, 1, "mstate_free (data->now);");
       Plc(L, "#endif");
       Plc(L, "}");
@@ -365,7 +365,7 @@ package body Pn.Compiler.Graph is
 	   " bool_t terminal)");
       Plh(L, Prototype & ";");
       Plc(L, Prototype & " {");
-      Plc(L, "#ifdef ACTION_BUILD_RG");
+      Plc(L, "#ifdef CFG_ACTION_BUILD_RG");
       Plc(L, 1, "assert (!data->in_terminal);");
       Plc(L, 1, "if (data->in_terminal = terminal) {");
       Plc(L, 2, "data->terminals ++;");
@@ -379,7 +379,7 @@ package body Pn.Compiler.Graph is
 	   "(model_graph_data_t data)");
       Plh(L, Prototype & ";");
       Plc(L, Prototype & " {");
-      Plc(L, "#ifdef ACTION_BUILD_RG");
+      Plc(L, "#ifdef CFG_ACTION_BUILD_RG");
       Plc(L, 1, "if (data->in_terminal) {");
       Plc(L, 2, "harray_filter" &
 	    " (data->live_events, ptr_mevent_pred, (void *) data);");
@@ -394,7 +394,7 @@ package body Pn.Compiler.Graph is
 	   " edge_num_t         num)");
       Plh(L, Prototype & ";");
       Plc(L, Prototype & " {");
-      Plc(L, "#ifdef ACTION_BUILD_RG");
+      Plc(L, "#ifdef CFG_ACTION_BUILD_RG");
       Plc(L, 1, "ptr_mevent_t pe, prev;");
       Plc(L, 1, "mevent_t e = mstate_enabled_event (data->now, num);");
       Plc(L, 1, "data->top ++;");
@@ -424,7 +424,7 @@ package body Pn.Compiler.Graph is
 	   "(model_graph_data_t data)");
       Plh(L, Prototype & ";");
       Plc(L, Prototype & " {");
-      Plc(L, "#ifdef ACTION_BUILD_RG");
+      Plc(L, "#ifdef CFG_ACTION_BUILD_RG");
       Plc(L, 1, "mevent_t e = data->stack[data->top];");
       Plc(L, 1, "mevent_undo (e, data->now);");
       Plc(L, 1, "mevent_free (e);");

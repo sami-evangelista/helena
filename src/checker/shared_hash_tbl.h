@@ -6,7 +6,7 @@
 #include "heap.h"
 #include "hash_compaction.h"
 
-#ifndef MODEL_CONFIG
+#ifndef CFG_MODEL_CONFIG
 #error Model configuration missing!
 #endif
 
@@ -18,24 +18,24 @@ void free_shared_hash_tbl
 
 typedef uint8_t bucket_status_t;
 
-#if defined(DISTRIBUTED)
-#define NO_WORKERS_STORAGE (NO_WORKERS + 1)
+#if defined(CFG_DISTRIBUTED)
+#define CFG_NO_WORKERS_STORAGE (CFG_NO_WORKERS + 1)
 #else
-#define NO_WORKERS_STORAGE (NO_WORKERS)
+#define CFG_NO_WORKERS_STORAGE (CFG_NO_WORKERS)
 #endif
 
 typedef struct {
   uint64_t hash_size;
-  heap_t heaps[NO_WORKERS_STORAGE];
-  uint64_t size[NO_WORKERS_STORAGE];
-  uint64_t state_cmps[NO_WORKERS_STORAGE];
-  bucket_status_t update_status[HASH_SIZE];
-  bucket_status_t status[HASH_SIZE];
-#ifdef HASH_COMPACTION
-  char state[HASH_SIZE][ATTRIBUTES_CHAR_WIDTH + sizeof(hash_compact_t)];
+  heap_t heaps[CFG_NO_WORKERS_STORAGE];
+  uint64_t size[CFG_NO_WORKERS_STORAGE];
+  uint64_t state_cmps[CFG_NO_WORKERS_STORAGE];
+  bucket_status_t update_status[CFG_HASH_SIZE];
+  bucket_status_t status[CFG_HASH_SIZE];
+#ifdef CFG_HASH_COMPACTION
+  char state[CFG_HASH_SIZE][ATTRIBUTES_CHAR_WIDTH + sizeof(hash_compact_t)];
 #else
-  bit_vector_t state[HASH_SIZE];
-  hash_key_t hash[HASH_SIZE];
+  bit_vector_t state[CFG_HASH_SIZE];
+  hash_key_t hash[CFG_HASH_SIZE];
 #endif
 } struct_shared_hash_tbl_t;
 
@@ -80,9 +80,6 @@ void shared_hash_tbl_insert_serialised
 void shared_hash_tbl_insert
 (shared_hash_tbl_t tbl,
  state_t s,
- shared_hash_tbl_id_t * pred,
- event_id_t * exec,
- unsigned int depth,
  worker_id_t w,
  bool_t * is_new,
  shared_hash_tbl_id_t * id,

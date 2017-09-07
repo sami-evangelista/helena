@@ -5,7 +5,7 @@
 #include "ddfs_comm.h"
 #include "prop.h"
 
-#if defined(ALGO_DDFS) || defined(ALGO_DFS)
+#if defined(CFG_ALGO_DDFS) || defined(CFG_ALGO_DFS)
 
 static report_t R;
 static storage_t S;
@@ -16,7 +16,7 @@ state_t dfs_recover_state
  worker_id_t w,
  heap_t heap) {
   storage_id_t id;
-#ifdef EVENT_UNDOABLE
+#ifdef CFG_EVENT_UNDOABLE
   dfs_stack_event_undo(stack, now);
 #else
   state_free(now);
@@ -31,7 +31,7 @@ state_t dfs_check_state
  event_set_t en,
  dfs_stack_t blue_stack,
  dfs_stack_t red_stack) { 
-#ifdef ACTION_CHECK_SAFETY
+#ifdef CFG_ACTION_CHECK_SAFETY
   if(state_check_property(now, en)) {
     report_faulty_state(R, now);
     dfs_stack_create_trace(blue_stack, red_stack, R);
@@ -96,17 +96,19 @@ state_t dfs_main
       /*
        *  check if proviso is verified.  if not we reexpand the state
        */
-      if(CFG_POR && CFG_PROVISO && !dfs_stack_proviso(stack)) {
+#if defined(CFG_POR) && defined(CFG_PROVISO)
+      if(!dfs_stack_proviso(stack)) {
         dfs_stack_compute_events(stack, now, FALSE);
         goto loop_start;
       }
+#endif
 
       /*
        *  we check an ltl property => launch the red search if the
        *  state is accepting and halt after if an accepting cycle has
        *  been found
        */
-#ifdef ACTION_CHECK_LTL
+#ifdef CFG_ACTION_CHECK_LTL
       if(blue && state_accepting(now)) {
 	R->states_accepting[w] ++;
 	dfs_main(w, now, dfs_stack_top(stack), heap,
@@ -131,8 +133,9 @@ state_t dfs_main
       /*
        *  in distributed DFS we process the state to be later sent
        */
-#ifdef ALGO_DDFS
-      ddfs_comm_process_explored_state(w, id_top);
+#ifdef CFG_ALGO_DDFS
+      en = dfs_stack_top_events(stack);
+      ddfs_comm_process_explored_state(w, id_top, en);
 #endif
 
       /*
@@ -162,8 +165,7 @@ state_t dfs_main
        *  try to insert the successor
        */
       id_top = dfs_stack_top(stack);
-      storage_insert(S, now, &id_top, &eid,
-                     dfs_stack_size(stack), w, &is_new, &id, &h);
+      storage_insert(S, now, w, &is_new, &id, &h);
 
       /*
        *  see if it must be pushed on the stack to be processed
@@ -187,9 +189,11 @@ state_t dfs_main
        */
       if(!push) {
         now = dfs_recover_state(stack, now, w, heap);
-        if(CFG_POR && CFG_PROVISO && storage_get_cyan(S, id, w)) {
+#if defined(CFG_POR) && defined(CFG_PROVISO)
+        if(storage_get_cyan(S, id, w)) {
           dfs_stack_unset_proviso(stack);
         }
+#endif
       } else {
 
         /*
@@ -207,10 +211,10 @@ state_t dfs_main
         /*
          *  update some statistics and check the state
          */
-        if(!CFG_PARALLEL) {
-          report_update_max_unproc_size
-            (R, dfs_stack_size(red_stack) + dfs_stack_size(blue_stack));
-        }
+#if !defined(CFG_PARALLEL)
+        report_update_max_unproc_size
+          (R, dfs_stack_size(red_stack) + dfs_stack_size(blue_stack));
+#endif
 	if(blue && (0 == event_set_size(en))) {
 	  R->states_dead[w] ++;
 	}
@@ -220,7 +224,7 @@ state_t dfs_main
 	 *  if we check an LTL property, test whether the state
 	 *  reached is the seed
 	 */
-#ifdef ACTION_CHECK_LTL
+#ifdef CFG_ACTION_CHECK_LTL
 	if(!blue && (EQUAL == storage_id_cmp(id, id_seed))) {
 	  R->keep_searching = FALSE;
 	  R->result = FAILURE;
@@ -246,13 +250,13 @@ void * dfs_worker
   bounded_heap_t heap = bounded_heap_new("state heap", 1024 * 100);
   state_t now = state_initial_mem(heap);
   dfs_stack_t blue_stack = dfs_stack_new(wid * 2);
-#ifdef ACTION_CHECK_LTL
+#ifdef CFG_ACTION_CHECK_LTL
   dfs_stack_t red_stack = dfs_stack_new(wid * 2 + 1);
 #else
   dfs_stack_t red_stack = NULL;
 #endif
 
-  storage_insert(R->storage, now, NULL, NULL, 0, w, &dummy, &id, &h);
+  storage_insert(R->storage, now, w, &dummy, &id, &h);
   now = dfs_main(w, now, id, heap, TRUE, blue_stack, red_stack);
   dfs_stack_free(blue_stack);
   dfs_stack_free(red_stack);
@@ -268,7 +272,7 @@ void dfs
   R = r;
   S = R->storage;
 
-#ifdef ALGO_DDFS
+#ifdef CFG_ALGO_DDFS
   ddfs_comm_start(R);
 #endif
 
@@ -283,9 +287,9 @@ void dfs
   }
   R->keep_searching = FALSE;
 
-#ifdef ALGO_DDFS
+#ifdef CFG_ALGO_DDFS
   ddfs_comm_end();
 #endif
 }
 
-#endif  /*  defined(ALGO_DDFS) || defined(ALGO_DFS)  */
+#endif  /*  defined(CFG_ALGO_DDFS) || defined(CFG_ALGO_DFS)  */
