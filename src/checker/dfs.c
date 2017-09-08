@@ -9,6 +9,19 @@
 
 static report_t R;
 static storage_t S;
+static bool_t DONE[CFG_NO_WORKERS];
+
+bool_t dfs_all_done
+() {
+  worker_id_t w;
+  
+  for(w = 0; w < CFG_NO_WORKERS; w ++) {
+    if(!DONE[w]) {
+      return FALSE;
+    }
+  }
+  return TRUE;
+}
 
 state_t dfs_recover_state
 (dfs_stack_t stack,
@@ -76,6 +89,13 @@ state_t dfs_main
    */
   while(dfs_stack_size(stack) && R->keep_searching) {
   loop_start:
+
+    /*
+     *
+     */
+    if(storage_do_gc(S, w)) {
+      storage_gc(S, w);
+    }
     
     /*
      *  reinitialise the heap if we do not have enough space
@@ -146,6 +166,12 @@ state_t dfs_main
       if(dfs_stack_size(stack)) {
         now = dfs_recover_state(stack, now, w, heap);
       }
+
+      /*
+       *  the state enters the stack => we decrease its reference
+       *  counter
+       */
+      storage_unref(S, id_top);
     }
 
     /**
@@ -195,6 +221,12 @@ state_t dfs_main
         }
 #endif
       } else {
+
+        /*
+         *  the state enters the stack => we increase its reference
+         *  counter
+         */
+        storage_ref(S, id);
 
         /*
          *  push the successor state on the stack and then set some
@@ -257,7 +289,18 @@ void * dfs_worker
 #endif
 
   storage_insert(R->storage, now, w, &dummy, &id, &h);
+  storage_set_cyan(S, id, w, TRUE);
+  storage_ref(S, id);
   now = dfs_main(w, now, id, heap, TRUE, blue_stack, red_stack);
+
+#if defined(CFG_PARALLEL) && defined(CFG_STATE_CACHING)
+  DONE[w] = TRUE;
+  do {
+    storage_wait_barrier(S);
+  }
+  while(!dfs_all_done());
+#endif
+  
   dfs_stack_free(blue_stack);
   dfs_stack_free(red_stack);
   state_free(now);
@@ -272,9 +315,13 @@ void dfs
   R = r;
   S = R->storage;
 
-#ifdef CFG_ALGO_DDFS
+#if defined(CFG_ALGO_DDFS)
   ddfs_comm_start(R);
 #endif
+  
+  for(w = 0; w < r->no_workers; w ++) {
+    DONE[w] = FALSE;
+  }
 
   /*
    *  start the threads and wait for their termination
@@ -287,7 +334,7 @@ void dfs
   }
   R->keep_searching = FALSE;
 
-#ifdef CFG_ALGO_DDFS
+#if defined(CFG_ALGO_DDFS)
   ddfs_comm_end();
 #endif
 }

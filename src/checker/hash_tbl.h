@@ -54,7 +54,7 @@ typedef struct {
   encoded_state_t * states[CFG_HASH_SIZE];
   unsigned int seed;
 #ifdef CFG_STATE_CACHING
-  hash_tbl_id_t cache[CFG_STATE_CACHING_CACHE_SIZE];
+  hash_tbl_id_t cache[10];
   unsigned int cache_size;
   unsigned int cache_ctr;
 #endif

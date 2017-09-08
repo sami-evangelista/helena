@@ -2,6 +2,9 @@
 #include "math.h"
 #include "vectors.h"
 
+#define CFG_STATE_CACHING_CACHE_SIZE 10
+#define CFG_STATE_CACHING_PROP 10
+
 #ifndef CFG_MODEL_CONFIG
 #error Model configuration missing!
 #endif

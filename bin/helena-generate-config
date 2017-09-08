@@ -98,7 +98,6 @@ def printHelp():
     print "  -N   --action={EXPLORE|SIMULATE|BUILD-GRAPH|CHECK-prop}"
     print "  -p   --property-file=FILE"
     print "  -md  --model-directory=DIRECTORY"
-    print "  -mf  --machine-file=FILE"
     print ""
     print "Search and storage options"
     print "  -A   --algo={DFS|DDFS|BFS|FRONTIER|DELTA-DDD|RWALK}"
@@ -106,6 +105,7 @@ def printHelp():
     print "  -W   --workers=WORKERS"
     print "  -cs  --candidate-set-size=N"
     print "  -dc  --ddfs-comm-strategy={K<N>|M|D<N>} ... {K<N>|M|D<N>}"
+    print "  -mf  --machine-file=FILE"
     print ""
     print "Reduction techniques"
     print "  -H   --hash-compaction"
@@ -139,7 +139,6 @@ class Config:
         self.hashCompaction = False
         self.workers = 1
         self.capacity = 1
-        self.cacheSize = 100000
         self.candidateSetSize = 100000
         self.memoryLimit = 0
         self.timeLimit = 0
@@ -171,7 +170,6 @@ class Config:
             self.workers = 1
         elif self.action == CHECK and self.propType == LTL:
             self.algo = DFS
-            self.stateCaching = False
             if self.traceType == STATE:
                 self.traceType = FULL
         elif self.action == SIMULATE:
@@ -185,6 +183,7 @@ class Config:
             self.hashCompaction = False
             self.workers = 1
         elif self.algo == DELTA_DDD:
+            self.stateCaching = False
             self.hashCompaction = False
             self.partialOrder = False
         elif self.algo == BFS:
@@ -192,7 +191,6 @@ class Config:
             self.stateCaching = False
         elif self.algo == DDFS:
             self.partialOrder = False
-            self.stateCaching = False
 
     def openFile(self, name, mode):
         if self.directory is None:
@@ -271,9 +269,8 @@ class Config:
         #  state caching
         if self.stateCaching:
             W("#define CFG_STATE_CACHING\n")
-            W("#define CFG_STATE_CACHING_PROP 10\n")
-            W("#define CFG_STATE_CACHING_CACHE_SIZE " + \
-                   str(self.cacheSize) + "\n")
+            W("#define CFG_STATE_CACHING_GC_THRESHOLD 80\n")
+            W("#define CFG_STATE_CACHING_GC_RATIO 10\n")
 
         #  search limits
         if self.memoryLimit != 0:
@@ -358,9 +355,13 @@ class Config:
             W("#define CFG_ATTRIBUTE_RED_WIDTH 1\n")
             bitw = bitw + 1
         if self.stateCaching:
-            W("#define CFG_ATTRIBUTE_REFS_LEN\n")
-            W("#define CFG_ATTRIBUTE_REFS_LEN_POS " + str(bitw) + "\n")
-            W("#define CFG_ATTRIBUTE_REFS_LEN_WIDTH 8\n")
+            W("#define CFG_ATTRIBUTE_GARBAGE\n")
+            W("#define CFG_ATTRIBUTE_GARBAGE_POS " + str(bitw) + "\n")
+            W("#define CFG_ATTRIBUTE_GARBAGE_WIDTH 1\n")
+            bitw = bitw + 1
+            W("#define CFG_ATTRIBUTE_REFS\n")
+            W("#define CFG_ATTRIBUTE_REFS_POS " + str(bitw) + "\n")
+            W("#define CFG_ATTRIBUTE_REFS_WIDTH 8\n")
             bitw = bitw + 8
             
         charw = bitw / 8
@@ -429,8 +430,6 @@ class Config:
                 recognized = self.handleNumericalOption("workers", val)
             elif opt in [ "a", "capacity" ]:
                 recognized = self.handleNumericalOption("capacity", val)
-            elif opt in [ "s", "cache-size" ]:
-                recognized = self.handleNumericalOption("cacheSize", val)
             elif opt in [ "cs", "candidate-set-size" ]:
                 recognized = self.handleNumericalOption("candidateSetSize",
                                                          val)

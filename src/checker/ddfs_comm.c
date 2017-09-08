@@ -69,10 +69,15 @@ void ddfs_comm_process_explored_state
   B.k[w] = 0;
 #endif
 
+  /*
+   *  put the state of worker w in its box and increase its reference
+   *  counter
+   */
   if(CAS(&B.status[w], BUCKET_OK, BUCKET_WRITE)) {
     if(B.size[w] < MAX_BOX_SIZE) {
       B.box[w][B.size[w]] = id;
       B.size[w] ++;
+      storage_ref(S, id);
     }
     B.status[w] = BUCKET_OK;
   }
@@ -158,6 +163,9 @@ void * ddfs_comm_worker
         /*  put the state  */
         shmem_putmem(H + pos, s, s_char_len, me);
         pos += s_char_len;
+
+        /*  and decrease its reference counter  */
+        storage_ref(S, sid);        
       }
 
       /*  reinitialise the queue of worker w and make it available  */

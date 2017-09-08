@@ -237,14 +237,6 @@ void report_finalise
 #if defined(CFG_HASH_STORAGE) || defined(CFG_PD4_STORAGE)
   fprintf(out, "<hashTableSlots>%d</hashTableSlots>\n", CFG_HASH_SIZE);
 #endif
-#ifdef CFG_HASH_DELTA
-  fprintf(out, "<deltaCompression>%d</deltaCompression>\n",
-          CFG_HASH_DELTA_K);
-#endif
-#ifdef CFG_STATE_CACHING
-  fprintf(out, "<stateCaching>%d</stateCaching>\n",
-          CFG_STATE_CACHING_CACHE_SIZE);
-#endif
 #ifdef CFG_HASH_COMPACTION
   fprintf(out, "<hashCompact/>\n");
 #endif

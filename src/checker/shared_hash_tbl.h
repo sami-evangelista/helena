@@ -19,16 +19,16 @@ void free_shared_hash_tbl
 typedef uint8_t bucket_status_t;
 
 #if defined(CFG_DISTRIBUTED)
-#define CFG_NO_WORKERS_STORAGE (CFG_NO_WORKERS + 1)
+#define NO_WORKERS_STORAGE (CFG_NO_WORKERS + 1)
 #else
-#define CFG_NO_WORKERS_STORAGE (CFG_NO_WORKERS)
+#define NO_WORKERS_STORAGE (CFG_NO_WORKERS)
 #endif
 
 typedef struct {
   uint64_t hash_size;
-  heap_t heaps[CFG_NO_WORKERS_STORAGE];
-  uint64_t size[CFG_NO_WORKERS_STORAGE];
-  uint64_t state_cmps[CFG_NO_WORKERS_STORAGE];
+  heap_t heaps[NO_WORKERS_STORAGE];
+  uint64_t size[NO_WORKERS_STORAGE];
+  uint64_t state_cmps[NO_WORKERS_STORAGE];
   bucket_status_t update_status[CFG_HASH_SIZE];
   bucket_status_t status[CFG_HASH_SIZE];
 #ifdef CFG_HASH_COMPACTION
@@ -37,6 +37,7 @@ typedef struct {
   bit_vector_t state[CFG_HASH_SIZE];
   hash_key_t hash[CFG_HASH_SIZE];
 #endif
+  pthread_barrier_t barrier;
 } struct_shared_hash_tbl_t;
 
 typedef struct_shared_hash_tbl_t * shared_hash_tbl_t;
@@ -156,6 +157,25 @@ void shared_hash_tbl_set_red
 bool_t shared_hash_tbl_get_red
 (shared_hash_tbl_t tbl,
  shared_hash_tbl_id_t id);
+
+void shared_hash_tbl_ref
+(shared_hash_tbl_t tbl,
+ shared_hash_tbl_id_t id);
+
+void shared_hash_tbl_unref
+(shared_hash_tbl_t tbl,
+ shared_hash_tbl_id_t id);
+
+bool_t shared_hash_tbl_do_gc
+(shared_hash_tbl_t tbl,
+ worker_id_t w);
+
+void shared_hash_tbl_gc
+(shared_hash_tbl_t tbl,
+ worker_id_t w);
+
+void shared_hash_tbl_wait_barrier
+(shared_hash_tbl_t tbl);
 
 void shared_hash_tbl_output_stats
 (shared_hash_tbl_t tbl,

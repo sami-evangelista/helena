@@ -43,6 +43,11 @@ typedef shared_hash_tbl_id_t storage_id_t;
 #define storage_get_pink          shared_hash_tbl_get_pink
 #define storage_set_red           shared_hash_tbl_set_red
 #define storage_get_red           shared_hash_tbl_get_red
+#define storage_ref               shared_hash_tbl_ref
+#define storage_unref             shared_hash_tbl_unref
+#define storage_do_gc             shared_hash_tbl_do_gc
+#define storage_gc                shared_hash_tbl_gc
+#define storage_wait_barrier      shared_hash_tbl_wait_barrier
 #define storage_output_stats      shared_hash_tbl_output_stats
 
 
@@ -92,6 +97,8 @@ typedef hash_tbl_id_t storage_id_t;
 #define storage_get_pink       hash_tbl_get_pink
 #define storage_set_red        hash_tbl_set_red
 #define storage_get_red        hash_tbl_get_red
+#define storage_ref            hash_tbl_ref
+#define storage_unref          hash_tbl_unref
 #define storage_update_refs    hash_tbl_update_refs
 #define storage_output_stats   hash_tbl_output_stats
 
