@@ -20,7 +20,6 @@ observer
 pd4
 random_walk
 report
-shared_hash_tbl
 simulator
 state
 storage"

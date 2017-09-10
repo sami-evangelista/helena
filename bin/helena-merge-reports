@@ -33,6 +33,7 @@ def mergeReports(refDoc, docs):
                   "eventsExecuted",
                   "eventsExecutedDDD",
                   "eventsExecutedExpansion",
+                  "garbageCollectionTime",
                   "host",
                   "maxBfsQueue",
                   "maxDfsStack",

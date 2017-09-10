@@ -111,7 +111,6 @@ def printHelp():
     print "  -H   --hash-compaction"
     print "  -P   --partial-order[={0|1}]"
     print "  -S   --state-caching[={0|1}]"
-    print "  -s   --cache-size=N"
     print ""
     print "Search limits"
     print "  -ml  --memory-limit=N"
@@ -269,8 +268,8 @@ class Config:
         #  state caching
         if self.stateCaching:
             W("#define CFG_STATE_CACHING\n")
-            W("#define CFG_STATE_CACHING_GC_THRESHOLD 80\n")
-            W("#define CFG_STATE_CACHING_GC_RATIO 10\n")
+            W("#define CFG_STATE_CACHING_GC_THRESHOLD 50\n")
+            W("#define CFG_STATE_CACHING_GC_PERCENT   0.01\n")
 
         #  search limits
         if self.memoryLimit != 0:

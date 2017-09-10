@@ -93,7 +93,6 @@ algorithms = {
     "parallelDDDD"              : "Delta-DDD" }
 options = {
     "staticReductions"          : "Static reductions",
-    "deltaCompression"          : "Delta compression with --k-delta=",
     "partialOrder"              : "Partial order reduction",
     "hashCompact"               : "Hash compaction",
     "stateCaching"              : "State caching with --cache-size=",
@@ -103,11 +102,11 @@ options = {
 optionsWithVal = {
     "stateCaching"              : noFormat,
     "candidateSetSize"          : noFormat,
-    "deltaCompression"          : formatNumber,
     "hashTableSlots"            : formatNumber }
 statistics = {
     "searchTime"                : "Search time               ",
     "duplicateDetectionTime"    : "   for duplicate detection",
+    "garbageCollectionTime"     : "   for garbage collection ",
     "barrierTime"               : "   for barrier wait       ",
     "distributedBarrierTime"    : "   for barrier wait       ",
     "compilationTime"           : "Model compilation         ",
@@ -122,8 +121,8 @@ statistics = {
     "statesStored"              : "States stored (at the end)",
     "statesMaxStored"           : "States stored (peak)      ",
     "statesExpanded"            : "States visited            ",
-    "statesExpandedMax"         : "   max over threads       ",
-    "statesExpandedMin"         : "   min over threads       ",
+    "statesExpandedMax"         : "   max. over threads      ",
+    "statesExpandedMin"         : "   min. over threads      ",
     "statesExpandedDev"         : "   std. dev. over threads ",
     "statesAccepting"           : "Accepting states          ",
     "statesTerminal"            : "Deadlock states           ",
@@ -133,8 +132,6 @@ statistics = {
     "      search algorithm          ",
     "eventsExecutedDDD"         : "   for duplicate detection",
     "eventsExecutedExpansion"   : "   for state expansion    ",
-    "eventsExecutedDelta"       : "Events executed for delta\n" + 
-    "      states reconstruction     ",
     "eventExecPerSecond"        : "Event execution rate      ",
     "maxDfsStack"               : "Max. search stack size    ",
     "maxBfsQueue"               : "Max. search queue size    ",
@@ -142,6 +139,7 @@ statistics = {
 statisticsUnits = {
     "searchTime"                : "s.",
     "duplicateDetectionTime"    : "s.",
+    "garbageCollectionTime"     : "s.",
     "compilationTime"           : "s.",
     "barrierTime"               : "s. (sum over all working threads)",
     "distributedBarrierTime"    : "s. (for the communication thread)",

@@ -275,6 +275,11 @@ void report_finalise
   fprintf(out, "%.2f</distributedBarrierTime>\n",
 	  r->distributed_barrier_time / 1000000.0);
 #endif
+#if defined(CFG_STATE_CACHING)
+  fprintf(out, "<garbageCollectionTime>");
+  fprintf(out, "%.2f</garbageCollectionTime>\n",
+	  r->storage->gc_time / 1000000.0);
+#endif
   fprintf(out, "</timeStatistics>\n");
   
   /*  reachability graph  */
