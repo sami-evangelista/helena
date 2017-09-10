@@ -55,7 +55,8 @@ int main
   /*
    *  launch the search and create the report
    */
-#if defined(CFG_ALGO_BFS) || defined(CFG_ALGO_FRONTIER)
+#if defined(CFG_ALGO_BFS) || defined(CFG_ALGO_DBFS) || \
+  defined(CFG_ALGO_FRONTIER)
   bfs(glob_report);
 #elif defined(CFG_ALGO_DFS) || defined(CFG_ALGO_DDFS)
   dfs(glob_report);

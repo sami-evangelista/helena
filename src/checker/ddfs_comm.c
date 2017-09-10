@@ -201,7 +201,7 @@ void * ddfs_comm_worker
     /*  at least one process has not finished and neither have I =>
         get states put by remote PEs in their heap and put these in my
         local storage */
-    if(TRUE || loop && R->keep_searching) {
+    if(loop && R->keep_searching) {
       for(pe = 0; pe < pes ; pe ++) {
         if(me != pe) {
           shmem_getmem(buffer, H + sizeof(heap_prefix_t),
@@ -276,4 +276,4 @@ void ddfs_comm_end
   shmem_finalize();
 }
 
-#endif
+#endif  /*  defined(CFG_ALGO_DDFS)  */

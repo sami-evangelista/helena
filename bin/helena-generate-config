@@ -27,11 +27,12 @@ CHECK       = "CHECK"
 
 #  search algorithms
 BFS         = "BFS"
-DELTA_DDD   = "DELTA-DDD"
 DFS         = "DFS"
+DBFS        = "DBFS"
 DDFS        = "DDFS"
 FRONTIER    = "FRONTIER"
 RWALK       = "RWALK"
+DELTA_DDD   = "DELTA-DDD"
 
 #  trace types
 FULL        = "FULL"
@@ -100,7 +101,7 @@ def printHelp():
     print "  -md  --model-directory=DIRECTORY"
     print ""
     print "Search and storage options"
-    print "  -A   --algo={DFS|DDFS|BFS|FRONTIER|DELTA-DDD|RWALK}"
+    print "  -A   --algo={BFS|DBFS|DFS|DDFS|FRONTIER|DELTA-DDD|RWALK}"
     print "  -t   --hash-size=H"
     print "  -W   --workers=WORKERS"
     print "  -cs  --candidate-set-size=N"
@@ -190,6 +191,8 @@ class Config:
             self.stateCaching = False
         elif self.algo == DDFS:
             self.partialOrder = False
+        elif self.algo == DBFS:
+            self.partialOrder = False
 
     def openFile(self, name, mode):
         if self.directory is None:
@@ -241,9 +244,12 @@ class Config:
         elif self.algo == DDFS:
             W("#define CFG_ALGO_DDFS\n")
             W("#define CFG_HASH_STORAGE\n")
-            W("#define CFG_DISTRIBUTED\n")
             if len(self.ddfsCommStrat) > 0:
                 W("#define CFG_DDFS_COMM_STRAT\n")
+        elif self.algo == DBFS:
+            W("#define CFG_ALGO_DBFS\n")
+            W("#define CFG_HASH_STORAGE\n")
+            W("#define CFG_DISTRIBUTED\n")
                 
             K = False
             D = False
@@ -325,7 +331,7 @@ class Config:
             W("#define CFG_PARALLEL\n")
 
         #  distributed mode
-        if self.algo == DDFS:
+        if self.algo in [ DBFS, DDFS ]:
             W("#define CFG_DISTRIBUTED\n")
 
         #  state attributes
@@ -469,7 +475,7 @@ class Config:
             #  enum options
             elif opt in [ "A", "algo" ]:
                 recognized = self.handleEnumOption \
-                    ("algo", val, [DDFS, DFS, BFS, FRONTIER, \
+                    ("algo", val, [BFS, DBFS, DFS, DDFS, FRONTIER, \
                                    DELTA_DDD, RWALK])
             elif opt in [ "tr", "trace-type" ]:
                 recognized = self.handleEnumOption \

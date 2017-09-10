@@ -1,21 +1,55 @@
 #include "bfs.h"
 #include "bfs_queue.h"
 #include "report.h"
+#include "dbfs_comm.h"
 #include "prop.h"
 
-#if defined(CFG_ALGO_BFS) || defined(CFG_ALGO_FRONTIER)
+#if defined(CFG_ALGO_BFS) || defined(CFG_ALGO_DBFS) || \
+  defined(CFG_ALGO_FRONTIER)
 
 static report_t R;
+static storage_t S;
 static bfs_queue_t Q;
 static pthread_barrier_t B;
 static bool_t TERM;
 
-void set_bfs_report_trace
+void bfs_wait_barrier
+() {
+#if defined(CFG_PARALLEL)
+  pthread_barrier_wait(&B);
+#endif
+}
+
+void bfs_terminate_level
+(worker_id_t w) {
+  /**
+   *  all states of the current BFS level have been processed => move
+   *  to the next level of the queue and check if the queue is empty
+   *  in order to terminate.  this must be made by all threads
+   *  simultaneously.  hence the barriers
+   */
+#if defined(CFG_ALGO_DBFS)
+  dbfs_comm_send_all_pending_states(w);
+  fatal_error("bfs_terminate_level: not implemented in distributed mode");
+#else
+  bfs_wait_barrier();
+  bfs_queue_switch_level(Q, w);
+  bfs_wait_barrier();
+  if(0 == w) {
+    TERM = (!R->keep_searching || bfs_queue_is_empty(Q)) ? TRUE : FALSE;
+  }
+  bfs_wait_barrier();
+#endif
+}
+
+void bfs_set_report_trace
 (report_t report,
  unsigned int len,
  unsigned char * trace,
  state_t f) {
-#ifdef CFG_WITH_TRACE
+#if !defined(CFG_WITH_TRACE)
+  report_faulty_state(R, f);
+#else
   event_t * tr;
   state_t s = state_initial();
   unsigned int i, num;
@@ -32,15 +66,12 @@ void set_bfs_report_trace
   report->trace = tr;
   report->trace_len = len;
   state_free(s);
-#else
-  report_faulty_state(R, f);
 #endif
 }
 
 void * bfs_worker
 (void * arg) {
   uint32_t levels;
-  storage_t storage = R->storage;
   char t;
   unsigned int l, en_size;
   state_t s, succ;
@@ -75,7 +106,7 @@ void * bfs_worker
 #endif
         id = el.s;
         heap_reset(heap);
-        s = storage_get_mem(storage, id, w, heap);
+        s = storage_get_mem(S, id, w, heap);
         en = state_enabled_events_mem(s, heap);
         en_size = event_set_size(en);
         if(0 == en_size) {
@@ -92,7 +123,7 @@ void * bfs_worker
          */
 #ifdef CFG_ACTION_CHECK_SAFETY
         if(state_check_property(s, en)) {
-          set_bfs_report_trace(R, l, tr, s);
+          bfs_set_report_trace(R, l, tr, s);
         }
 #endif
     
@@ -112,13 +143,14 @@ void * bfs_worker
           arcs ++;
           R->events_executed[w] ++;
           event_exec(e, s);
-          storage_insert(storage, s, w, &is_new, &id_new, &h);
+          storage_insert(S, s, w, &is_new, &id_new, &h);
 
           /*
            *  if new, enqueue the successor after setting its trace and
            *  level
            */
           if(is_new) {
+	    storage_set_cyan(S, id_new, w, TRUE);
 #ifdef CFG_WITH_TRACE
             el.l = l + 1;
             el.trace = mem_alloc(SYSTEM_HEAP, sizeof(unsigned char) * el.l);
@@ -136,7 +168,7 @@ void * bfs_worker
              *  queue for the proviso to be satisfied
              */
 #if defined(CFG_POR) && defined(CFG_PROVISO)
-            if(!fully_expanded && !storage_get_cyan(storage, id_new, w)) {
+            if(!fully_expanded && !storage_get_cyan(S, id_new, w)) {
               fully_expanded = TRUE;
               event_undo(e, s);
               event_set_free(en);
@@ -160,33 +192,19 @@ void * bfs_worker
          */
         R->arcs[w] += arcs;
         R->states_visited[w] ++;
-        storage_set_cyan(storage, id, w, FALSE);
+        storage_set_cyan(S, id, w, FALSE);
 #ifdef CFG_ALGO_FRONTIER
-        storage_remove(storage, id);
+        storage_remove(S, id);
 #endif
       }
     }
 
     /*
-     *  all states of the current BFS level have been processed =>
-     *  move to the next level of the queue and check if the queue is
-     *  empty in order to terminate.  this must be made by all threads
-     *  simultaneously.  hence the barriers
+     *  all states in the current queue has been processed => initiate
+     *  level termination processing
      */
-#if defined(CFG_PARALLEL)
-    pthread_barrier_wait (&B);
-#endif
-    bfs_queue_switch_level(Q, w);
+    bfs_terminate_level(w);
     levels ++;
-#if defined(CFG_PARALLEL)
-    pthread_barrier_wait (&B);
-#endif
-    if(0 == w) {
-      TERM = (!R->keep_searching || bfs_queue_is_empty(Q)) ? TRUE : FALSE;
-    }
-#if defined(CFG_PARALLEL)
-    pthread_barrier_wait (&B);
-#endif
   }
   heap_free(heap);
   report_update_bfs_levels(R, levels);
@@ -201,11 +219,17 @@ void bfs
   void * dummy;
   bfs_queue_item_t el;
   hash_key_t h;
+  
+  R = r;
+  S = R->storage;
+
+#if defined(CFG_ALGO_DBFS)
+  dbfs_comm_start(R);
+#endif
 
   Q = bfs_queue_new();
-  R = r;
   TERM = FALSE;
-  pthread_barrier_init (&B, NULL, CFG_NO_WORKERS);
+  pthread_barrier_init(&B, NULL, CFG_NO_WORKERS);
   storage_insert(R->storage, s, 0, &is_new, &id, &h);
   el.s = id;
   state_free(s);
@@ -228,6 +252,11 @@ void bfs
   }
 
   bfs_queue_free(Q);
+
+#if defined(CFG_ALGO_DBFS)
+  dbfs_comm_end();
+#endif
 }
 
-#endif  /*  defined(CFG_ALGO_BFS) || defined(CFG_ALGO_FRONTIER)  */
+#endif  /*  defined(CFG_ALGO_BFS)  || defined(CFG_ALGO_DBFS) ||
+	    defined(CFG_ALGO_FRONTIER)  */

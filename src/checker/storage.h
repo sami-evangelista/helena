@@ -28,7 +28,6 @@ typedef hash_tbl_id_t storage_id_t;
 #define storage_insert            hash_tbl_insert
 #define storage_insert_serialised hash_tbl_insert_serialised
 #define storage_remove            hash_tbl_remove
-#define storage_lookup            hash_tbl_lookup
 #define storage_id_cmp            hash_tbl_id_cmp
 #define storage_get_serialised    hash_tbl_get_serialised
 #define storage_get               hash_tbl_get

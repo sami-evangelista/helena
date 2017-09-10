@@ -37,9 +37,9 @@ versionFile=VERSION
 CCopt="-pthread -lm"
 
 commonFiles="vectors"
-checkerSrcFiles="bfs bfs_queue buchi common config ddfs_comm dfs dfs_stack
-event graph heap hash_array hash_compaction hash_tbl observer pd4 prop
-random_walk report state simulator storage vectors"
+checkerSrcFiles="bfs bfs_queue buchi common config ddfs_comm dbfs_comm dfs
+dfs_stack event graph heap hash_array hash_compaction hash_tbl observer pd4
+prop random_walk report state simulator storage vectors"
 
 exitWithError () {
     rm -rf $tmpDir &> /dev/null
@@ -260,6 +260,7 @@ verbose=0
 distributed=0
 reportFile=""
 machineFile=""
+algo=""
 
 for arg in $*
 do
@@ -274,7 +275,7 @@ do
 	-A=*|--algo=*)
 	    idx=$(expr index $arg =)
 	    algo=$(echo ${arg:$idx} | tr [a-z] [A-Z])
-	    if [ "$algo" = DDFS ]
+	    if [ "$algo" = DDFS -o "$algo" = DBFS ]
 	    then
 		CC=$shcc
 		distributed=1
@@ -301,7 +302,7 @@ then
         esac
     done
     [ z"$machineFile" = z ] && \
-        error "algorithm DDFS needs a machine file (option \
+        error "algorithm $algo needs a machine file (option \
                 --machine-file=FILE)"
 fi
 

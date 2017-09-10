@@ -1,6 +1,7 @@
 #include "bfs_queue.h"
 
-#if defined(CFG_ALGO_BFS) || defined(CFG_ALGO_FRONTIER)
+#if defined(CFG_ALGO_BFS) || defined(CFG_ALGO_DBFS) || \
+  defined(CFG_ALGO_FRONTIER)
 
 bfs_queue_slot_t bfs_queue_slot_new
 () {

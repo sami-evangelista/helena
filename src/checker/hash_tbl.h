@@ -92,13 +92,6 @@ void hash_tbl_remove
 (hash_tbl_t tbl,
  hash_tbl_id_t id);
 
-void hash_tbl_lookup
-(hash_tbl_t tbl,
- state_t s,
- worker_id_t w,
- bool_t * found,
- hash_tbl_id_t * id);
-
 state_t hash_tbl_get
 (hash_tbl_t tbl,
  hash_tbl_id_t id,
