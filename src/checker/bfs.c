@@ -30,7 +30,14 @@ void bfs_terminate_level
    */
 #if defined(CFG_ALGO_DBFS)
   dbfs_comm_send_all_pending_states(w);
-  fatal_error("bfs_terminate_level: not implemented in distributed mode");
+  bfs_wait_barrier();
+  if(0 == w) {
+    dbfs_comm_notify_level_termination();
+  }
+  dbfs_comm_local_barrier();
+  bfs_queue_switch_level(Q, w);
+  bfs_wait_barrier();
+  TERM = dbfs_comm_global_termination();
 #else
   bfs_wait_barrier();
   bfs_queue_switch_level(Q, w);
@@ -71,7 +78,7 @@ void bfs_set_report_trace
 
 void * bfs_worker
 (void * arg) {
-  uint32_t levels;
+  uint32_t levels = 0;
   char t;
   unsigned int l, en_size;
   state_t s, succ;
@@ -90,9 +97,10 @@ void * bfs_worker
   
   sprintf(heap_name, "bfs heap of worker %d", w);
   heap = bounded_heap_new(heap_name, 10 * 1024 * 1024);
-  levels = 0;
   while(!TERM) {
-    for(x = 0; x < CFG_NO_WORKERS && R->keep_searching; x ++) {
+    printf("lvl %d: %d has %d states to process\n", levels, proc_id(),
+           bfs_queue_size(Q));
+    for(x = 0; x < NO_WORKERS_QUEUE && R->keep_searching; x ++) {
       while(!bfs_queue_slot_is_empty(Q, x, w) && R->keep_searching) {
         
         /*
@@ -136,13 +144,19 @@ void * bfs_worker
         en_size = event_set_size(en);
         for(i = 0; i < en_size; i ++) {
           event_t e = event_set_nth(en, i);
-          event_id_t e_id = event_set_nth_id(en, i);
           bool_t is_new;
-          uint64_t queue_size;
 
           arcs ++;
           R->events_executed[w] ++;
           event_exec(e, s);
+#if defined(CFG_ALGO_DBFS)
+          h = state_hash(s);
+          if(!dbfs_comm_state_owned(h)) {
+            dbfs_comm_process_state(w, s);
+            event_undo(e, s);
+            continue;
+          }
+#endif
           storage_insert(S, s, w, &is_new, &id_new, &h);
 
           /*
@@ -219,28 +233,37 @@ void bfs
   void * dummy;
   bfs_queue_item_t el;
   hash_key_t h;
+  bool_t enqueue = TRUE;
   
   R = r;
   S = R->storage;
+  Q = bfs_queue_new();
 
 #if defined(CFG_ALGO_DBFS)
-  dbfs_comm_start(R);
+  dbfs_comm_start(R, Q);
 #endif
 
-  Q = bfs_queue_new();
   TERM = FALSE;
   pthread_barrier_init(&B, NULL, CFG_NO_WORKERS);
-  storage_insert(R->storage, s, 0, &is_new, &id, &h);
-  el.s = id;
-  state_free(s);
-#ifdef CFG_WITH_TRACE
-  el.l = 0;
-  el.trace = NULL;
-#endif
-  bfs_queue_enqueue(Q, el, 0, 0);
-  bfs_queue_switch_level(Q, w);
-
   
+#if defined(CFG_ALGO_DBFS)
+  h = state_hash(s);
+  enqueue = dbfs_comm_state_owned(h);
+#endif
+  
+  if(enqueue) {
+    storage_insert(R->storage, s, 0, &is_new, &id, &h);
+    w = h % CFG_NO_WORKERS;
+    el.s = id;
+    state_free(s);
+#ifdef CFG_WITH_TRACE
+    el.l = 0;
+    el.trace = NULL;
+#endif
+    bfs_queue_enqueue(Q, el, w, w);
+    bfs_queue_switch_level(Q, w);
+  }
+
   /*
    *  start the threads and wait for their termination
    */

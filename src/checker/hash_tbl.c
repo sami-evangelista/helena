@@ -146,17 +146,6 @@ void hash_tbl_insert_serialised
     }
     if(tbl->status[pos] == BUCKET_READY) {
       tbl->state_cmps[w] ++;
-
-#if !defined(CFG_HASH_COMPACTION)
-      {
-        unsigned int len;
-        bits.vector = tbl->state[pos];
-        VECTOR_start(bits);
-        VECTOR_move(bits, CFG_ATTRIBUTE_CHAR_LEN_POS);
-        VECTOR_get(bits, len, CFG_ATTRIBUTE_CHAR_LEN_WIDTH);
-      }
-#endif
-      
       if(0 == memcmp(s, tbl->state[pos] + CFG_ATTRIBUTES_CHAR_WIDTH,
                      s_char_len)) {
         (*is_new) = FALSE;
@@ -605,4 +594,18 @@ void init_hash_tbl
 
 void free_hash_tbl
 () {
+}
+
+
+uint64_t hash_tbl_real_size
+(hash_tbl_t tbl) {
+  uint64_t result = 0;
+  uint32_t i = 0;
+
+  for(i = 0; i < tbl->hash_size; i++) {
+    if(tbl->status[i] == BUCKET_READY) {
+      result ++;
+    }
+  }
+  return result;
 }

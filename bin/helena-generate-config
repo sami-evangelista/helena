@@ -244,12 +244,13 @@ class Config:
         elif self.algo == DDFS:
             W("#define CFG_ALGO_DDFS\n")
             W("#define CFG_HASH_STORAGE\n")
+            W("#define CFG_SYM_HEAP_SIZE 1000000\n")
             if len(self.ddfsCommStrat) > 0:
                 W("#define CFG_DDFS_COMM_STRAT\n")
         elif self.algo == DBFS:
             W("#define CFG_ALGO_DBFS\n")
             W("#define CFG_HASH_STORAGE\n")
-            W("#define CFG_DISTRIBUTED\n")
+            W("#define CFG_SYM_HEAP_SIZE 1000000\n")
                 
             K = False
             D = False

@@ -9,47 +9,54 @@ from xml.dom.minidom import parse, parseString
 import os
 import sys
 
-def mergeNode(nodeName, refDoc, docs):
+def mergeNode(nodeName, doSum, refDoc, docs):
     n = refDoc.getElementsByTagName(nodeName)
     if len(n) == 0:
         return
     n = n[0]
     l = refDoc.createElement("list")
+    s = 0
     for doc in docs:
         val = doc.getElementsByTagName(nodeName)[0].childNodes[0].nodeValue
         item = refDoc.createElement("item")
         item.appendChild(doc.createTextNode(val))
         l.appendChild(item)
+        if doSum:
+            s += int(val)
     c = n.childNodes[0]
+    if doSum:
+        item = refDoc.createElement("sum")
+        item.appendChild(doc.createTextNode(str(s)))
+        l.appendChild(item)
     n.replaceChild(l, c)
 
 def mergeReports(refDoc, docs):
-    for node in [ "arcs",
-                  "barrierTime",
-                  "bfsLevels",
-                  "distributedBarrierTime",
-                  "duplicateDetectionTime",
-                  "eventExecPerSecond",
-                  "eventsExecuted",
-                  "eventsExecutedDDD",
-                  "eventsExecutedExpansion",
-                  "garbageCollectionTime",
-                  "host",
-                  "maxBfsQueue",
-                  "maxDfsStack",
-                  "maxMemoryUsed",
-                  "searchResult",
-                  "searchTime",
-                  "statesAccepting",
-                  "stateComparisons",
-                  "statesExpanded",
-                  "statesExpandedDev",
-                  "statesExpandedMax",
-                  "statesExpandedMin",
-                  "statesMaxStored",
-                  "statesStored",
-                  "statesTerminal" ]:        
-        mergeNode(node, refDoc, docs)
+    for (node, doSum) in [ ("arcs", False),
+                           ("barrierTime", False),
+                           ("bfsLevels", False),
+                           ("distributedBarrierTime", False),
+                           ("duplicateDetectionTime", False),
+                           ("eventExecPerSecond", False),
+                           ("eventsExecuted", False),
+                           ("eventsExecutedDDD", False),
+                           ("eventsExecutedExpansion", False),
+                           ("garbageCollectionTime", False),
+                           ("host", False),
+                           ("maxBfsQueue", False),
+                           ("maxDfsStack", False),
+                           ("maxMemoryUsed", False),
+                           ("searchResult", False),
+                           ("searchTime", False),
+                           ("statesAccepting", False),
+                           ("stateComparisons", False),
+                           ("statesExpanded", True),
+                           ("statesExpandedDev", False),
+                           ("statesExpandedMax", False),
+                           ("statesExpandedMin", False),
+                           ("statesMaxStored", True),
+                           ("statesStored", True),
+                           ("statesTerminal", False) ]:
+        mergeNode(node, doSum, refDoc, docs)
 
 def exitWithError(errMsg):
     sys.stderr.write(errMsg + "\n")
@@ -61,10 +68,10 @@ if len(sys.argv) == 1:
 else:
     docs = list()
     for xml in sys.argv[1:]:
-        try:
-            docs.append(parse(xml))
-        except:
-            exitWithError("error: could not parse file " + xml)
+        #try:
+        docs.append(parse(xml))
+        #except:
+        #    exitWithError("error: could not parse file " + xml)
     docRef = docs[0]
     mergeReports(docRef, docs)
     out = open("report.xml", "w")

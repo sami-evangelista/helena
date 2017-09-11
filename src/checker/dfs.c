@@ -91,7 +91,7 @@ state_t dfs_main
   loop_start:
 
     /*
-     *
+     *  launch garbage collection on the storage, if necessary
      */
     if(storage_do_gc(S, w)) {
       storage_gc(S, w);

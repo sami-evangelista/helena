@@ -2,11 +2,10 @@
 
 #if defined(CFG_ALGO_DDFS)
 
-#define SYM_HEAP_SIZE     1000000
 #define MAX_BOX_SIZE      100000
 #define PUBLISH_PERIOD_MS 10
 
-#define BUFFER_SIZE       (SYM_HEAP_SIZE - sizeof(heap_prefix_t))
+#define BUFFER_SIZE       (CFG_SYM_HEAP_SIZE - sizeof(heap_prefix_t))
 #define BUCKET_OK         1
 #define BUCKET_WRITE      2
 
@@ -106,7 +105,7 @@ void * ddfs_comm_worker
   storage_id_t sid;
   bit_vector_t s;
   bool_t red, blue, is_new;
-  char buffer[SYM_HEAP_SIZE];
+  char buffer[CFG_SYM_HEAP_SIZE];
   hash_key_t h;
   
   pref.terminated = FALSE;
@@ -252,7 +251,7 @@ void ddfs_comm_start
 
   /*  shmem and symmetrical heap initialisation  */
   shmem_init();
-  H = shmem_malloc(SYM_HEAP_SIZE * shmem_n_pes());
+  H = shmem_malloc(CFG_SYM_HEAP_SIZE * shmem_n_pes());
   
   R = r;
   S = R->storage;

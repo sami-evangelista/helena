@@ -47,6 +47,7 @@ void * observer_start
     printf("%10llu processed. ", visited);
     printf("Mem.:%8.1f MB. ", mem);
     printf("Time:%8.2f s.\n", time);
+    
     /*
      *  check for limits
      */

@@ -7,7 +7,13 @@
 #error Model configuration missing!
 #endif
 
-#define BFS_QUEUE_NODE_SIZE 10000  
+#define BFS_QUEUE_NODE_SIZE 10000
+
+#if defined(CFG_ALGO_DBFS)
+#define NO_WORKERS_QUEUE (CFG_NO_WORKERS + 1)
+#else
+#define NO_WORKERS_QUEUE CFG_NO_WORKERS
+#endif
 
 typedef struct {
   storage_id_t s;
@@ -38,8 +44,8 @@ typedef struct {
 typedef struct_bfs_queue_slot_t * bfs_queue_slot_t;
 
 typedef struct {
-  bfs_queue_slot_t current[CFG_NO_WORKERS][CFG_NO_WORKERS];
-  bfs_queue_slot_t next[CFG_NO_WORKERS][CFG_NO_WORKERS];  
+  bfs_queue_slot_t current[NO_WORKERS_QUEUE][NO_WORKERS_QUEUE];
+  bfs_queue_slot_t next[NO_WORKERS_QUEUE][NO_WORKERS_QUEUE];  
 } struct_bfs_queue_t;
 
 typedef struct_bfs_queue_t * bfs_queue_t;

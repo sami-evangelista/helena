@@ -150,7 +150,7 @@ void report_finalise
   uint64_t avg_visited;
   uint64_t dev_visited;
   worker_id_t w;
-  char name[1024];
+  char name[1024], file_name[1024];
   char * buf = NULL;
   size_t n = 0;
   
@@ -163,7 +163,12 @@ void report_finalise
 #ifdef CFG_WITH_OBSERVER
   pthread_join(r->observer, &dummy);
 #endif
+#if defined(CFG_DISTRIBUTED)
+  sprintf(file_name, "%s.%d", CFG_REPORT_FILE, proc_id());
+  out = fopen(file_name, "w");
+#else
   out = fopen(CFG_REPORT_FILE, "w");
+#endif
   fprintf(out, "<helenaReport>\n");
 
   /**
@@ -182,7 +187,7 @@ void report_finalise
   fprintf(out, "<filePath>%s</filePath>\n", CFG_FILE_PATH);
 #endif
   gethostname(name, 1024);
-  fprintf(out, "<host>%s</host>\n", name);
+  fprintf(out, "<host>%s (pid = %d)</host>\n", name, getpid());
   fprintf(out, "</infoReport>\n");
 
   /**
@@ -385,7 +390,7 @@ void report_finalise
    *  standard output so that it can be sent to the main process
    */
 #if defined(CFG_DISTRIBUTED)
-  out = fopen(CFG_REPORT_FILE, "r");
+  out = fopen(file_name, "r");
   while(getline(&buf, &n, out) != -1) {
     printf("[xml-%d] %s", proc_id(), buf);
   }

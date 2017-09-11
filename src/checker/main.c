@@ -81,6 +81,7 @@ int main
 #ifdef CFG_ACTION_BUILD_RG
   graph_make_report(CFG_GRAPH_FILE, CFG_RG_REPORT_FILE, NULL);
 #endif
+  printf("done.\n");
 
 #endif
 

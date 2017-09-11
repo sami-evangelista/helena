@@ -62,6 +62,11 @@ def getBasicNodeValue(n, fmt, space = 0, unit = None):
             if unit is not None:
                 result += " " + unit
             host += 1
+        sumItem = l.getElementsByTagName("sum")
+        if len(sumItem) > 0:
+            if result != "":
+                result += "\n" + (space * " ")
+            result += "[sum   ] " + fmt(sumItem[0].childNodes[0].nodeValue)
     return result
             
             
