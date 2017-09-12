@@ -243,10 +243,6 @@ state_t dfs_main
         /*
          *  update some statistics and check the state
          */
-#if !defined(CFG_PARALLEL)
-        report_update_max_unproc_size
-          (R, dfs_stack_size(red_stack) + dfs_stack_size(blue_stack));
-#endif
 	if(blue && (0 == event_set_size(en))) {
 	  R->states_dead[w] ++;
 	}

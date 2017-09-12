@@ -23,7 +23,9 @@ void * observer_start
   int i;
   uint64_t visited;
   uint64_t stored;
+  char name[100];
 
+  gethostname(name, 1024);
   while(r->keep_searching) {
     sleep(1);
     gettimeofday(&now, NULL);
@@ -41,13 +43,13 @@ void * observer_start
     }
     time = ((float) duration(r->start_time, now)) / 1000000.0;
 #if defined(CFG_DISTRIBUTED)
-    printf("[%d] ", proc_id());    
+    printf("[%s:%d] ", name, getpid());    
 #endif
     printf("St.:%11llu stored,", stored);
     printf("%10llu processed. ", visited);
     printf("Mem.:%8.1f MB. ", mem);
     printf("Time:%8.2f s.\n", time);
-    
+        
     /*
      *  check for limits
      */

@@ -3,8 +3,8 @@
 #if defined(CFG_ALGO_DBFS)
 
 #define SYM_HEAP_PREFIX_SIZE (sizeof(bool_t) + sizeof(uint64_t))
-#define COMM_WAIT_TIME_MS    1
-#define WORKER_WAIT_TIME_MS  10
+#define COMM_WAIT_TIME_MS    0
+#define WORKER_WAIT_TIME_MS  0
 
 typedef struct {
   uint32_t no_states;
@@ -69,28 +69,25 @@ void dbfs_comm_send_buffer
 (worker_id_t w,
  int pe) {
   buffer_prefix_t pref;
-
+  
   /*  periodically poll the remote PE to see if I can send my states  */
   do {
-    shmem_getmem(&pref, H + BUF.remote_pos[w][pe],
-                 sizeof(buffer_prefix_t), pe);
+    shmem_getmem(&pref, H + BUF.remote_pos[w][pe], sizeof(buffer_prefix_t), pe);
     if(pref.no_states > 0) {
       nanosleep(&WORKER_WAIT_TIME, NULL);
     }
   } while(pref.no_states > 0);
 
-  /*  send my states to the remote PE  */
+  /*  send my states to the remote PE.  1st send the states then the prefix  */
   pref.no_states = BUF.states[w][pe];
-  pref.char_len = BUF.pos[w][pe] - sizeof(buffer_prefix_t);
-  memcpy(BUF.buffers[w][pe], &pref, sizeof(buffer_prefix_t));
-  shmem_putmem(H + BUF.remote_pos[w][pe],
-               BUF.buffers[w][pe],
-               BUF.pos[w][pe],
-               pe);
+  pref.char_len = BUF.pos[w][pe];
+  shmem_putmem(H + BUF.remote_pos[w][pe] + sizeof(buffer_prefix_t),
+               BUF.buffers[w][pe], BUF.pos[w][pe], pe);
+  shmem_putmem(H + BUF.remote_pos[w][pe], &pref, sizeof(buffer_prefix_t), pe);
 
   /*  reinitialise the buffer  */
   BUF.states[w][pe] = 0;
-  BUF.pos[w][pe] = sizeof(buffer_prefix_t);
+  BUF.pos[w][pe] = 0;
 }
 
 void dbfs_comm_send_all_pending_states
@@ -106,10 +103,9 @@ void dbfs_comm_send_all_pending_states
 
 void dbfs_comm_process_state
 (worker_id_t w,
- state_t s) {
+ state_t s,
+ hash_key_t h) {
   uint16_t s_char_len = state_char_width(s);
-  hash_key_t h = state_hash(s);
-  uint32_t rnd = h;
   const int pe = dbfs_comm_state_owner(h);
 
   /**
@@ -117,8 +113,7 @@ void dbfs_comm_process_state
    *  the buffer content to the remote pe
    */
   if(BUF.pos[w][pe] + sizeof(hash_key_t) + sizeof(uint16_t) + s_char_len >
-     SYM_HEAP_SIZE_WORKER) {
-    printf("%d\n", BUF.pos[w][pe]);
+     SYM_HEAP_SIZE_WORKER - sizeof(buffer_prefix_t)) {
     dbfs_comm_send_buffer(w, pe);
   }
 
@@ -136,6 +131,7 @@ void dbfs_comm_process_state
   BUF.pos[w][pe] += sizeof(uint16_t);
   
   /*  put the state serialisation  */
+  memset(BUF.buffers[w][pe] + BUF.pos[w][pe], 0, s_char_len);
   state_serialise(s, BUF.buffers[w][pe] + BUF.pos[w][pe]);
   BUF.pos[w][pe] += s_char_len;
 }
@@ -163,8 +159,8 @@ void * dbfs_comm_worker
   hash_key_t h;
   storage_id_t sid;
   char buffer[SYM_HEAP_SIZE_WORKER];
-  bfs_queue_item_t item;
   
+  memset(buffer, 0, SYM_HEAP_SIZE_WORKER);
   for(pe = 0; pe < PES; pe ++) {
     remote_term[pe] = FALSE;
   }    
@@ -174,54 +170,47 @@ void * dbfs_comm_worker
     /**
      *  receive states
      */
-    states_received = FALSE;
-    for(pos = SYM_HEAP_PREFIX_SIZE;
-        pos < SYM_HEAP_SIZE;
-        pos += SYM_HEAP_SIZE_WORKER) {
-      shmem_getmem(&pref, H + pos, sizeof(buffer_prefix_t), ME);
-      if(pref.no_states > 0) {
-        states_received = TRUE;
-        shmem_getmem(buffer, H + pos + sizeof(buffer_prefix_t),
-                     pref.char_len, ME);
-        no_states = pref.no_states;
-        pref.no_states = 0;
-        pref.char_len = 0;
-        shmem_putmem(H + pos, &pref, sizeof(buffer_prefix_t), ME);
-        tmp_pos = 0;
-        while(no_states > 0) {
+    states_received = TRUE;
+    while(states_received) {
+      states_received = FALSE;
+      for(pos = SYM_HEAP_PREFIX_SIZE;
+          pos < SYM_HEAP_SIZE;
+          pos += SYM_HEAP_SIZE_WORKER) {
+        shmem_getmem(&pref, H + pos, sizeof(buffer_prefix_t), ME);
+        if(pref.no_states > 0) {
+          states_received = TRUE;
+          shmem_getmem(buffer, H + pos + sizeof(buffer_prefix_t),
+                       pref.char_len, ME);
+          no_states = pref.no_states;
+          pref.no_states = 0;
+          pref.char_len = 0;
+          shmem_putmem(H + pos, &pref, sizeof(buffer_prefix_t), ME);
+          tmp_pos = 0;
+          for(; no_states > 0; no_states --) {
 
-          /*  get hash value  */
-          memcpy(&h, buffer + tmp_pos, sizeof(hash_key_t));
-          tmp_pos += sizeof(hash_key_t);
+            /*  get hash value  */
+            memcpy(&h, buffer + tmp_pos, sizeof(hash_key_t));
+            tmp_pos += sizeof(hash_key_t);
           
-          /*  get length  */
-          memcpy(&s_char_len, buffer + tmp_pos, sizeof(uint16_t));
-          tmp_pos += sizeof(uint16_t);
+            /*  get length  */
+            memcpy(&s_char_len, buffer + tmp_pos, sizeof(uint16_t));
+            tmp_pos += sizeof(uint16_t);
           
-          /*  get the state  */
-          /*
-          storage_insert_serialised(S, buffer + tmp_pos, s_char_len,
-                                    h, my_worker_id, &is_new, &sid);
-          */
-          state_t s = state_unserialise(buffer + tmp_pos);
-          storage_insert(S, s, my_worker_id, &is_new, &sid, &h);
-          state_free(s);
-          tmp_pos += s_char_len;
+            /*  get the encoded state  */
+            storage_insert_serialised(S, buffer + tmp_pos, s_char_len,
+                                      h, my_worker_id, &is_new, &sid);
+            tmp_pos += s_char_len;
 
-          if(is_new) {
-            item.s = sid;
-            bfs_queue_enqueue(Q, item, my_worker_id, h % CFG_NO_WORKERS);
+            if(is_new) {
+              bfs_queue_enqueue(Q, sid, my_worker_id, h % CFG_NO_WORKERS);
+            }
           }
-          no_states --;
         }
       }
     }
-    if(states_received) {
-      continue;
-    }
     
     /**
-     *  check for termination
+     *  check for termination if I haven't received any state
      */
     if(LOCAL_TERM) {
       if(!term_set) {
@@ -238,8 +227,12 @@ void * dbfs_comm_worker
           }
         }
       }
+
+      /*  all PEs have terminated the current level  */
       if(term == PES) {
-        dbfs_comm_barrier();
+
+        /*  every PE puts in its heap its queue size and read others's
+            to check for termination  */
         queue_size = bfs_queue_size(Q);
         shmem_putmem(H + sizeof(bool_t), &queue_size, sizeof(uint64_t), ME);
         dbfs_comm_barrier();
@@ -256,12 +249,19 @@ void * dbfs_comm_worker
           }
         }
         dbfs_comm_barrier();
+
+        /*  reinitialise everything for termination detection at next level  */
         for(pe = 0; pe < PES; pe ++) {
           remote_term[pe] = FALSE;
         }
         LOCAL_TERM = FALSE;
         term_set = FALSE;
         term = 0;
+        queue_size = 0;
+        shmem_putmem(H, &remote_term[ME], sizeof(bool_t), ME);
+        shmem_putmem(H, &queue_size, sizeof(uint64_t), ME);
+
+        /*  synchronise with the working threads  */
         dbfs_comm_local_barrier();
       }
     }
@@ -308,8 +308,10 @@ void dbfs_comm_start
         BUF.remote_pos[w][pe] = 0;          
       } else {
         BUF.states[w][pe] = 0;
-        BUF.pos[w][pe] = sizeof(buffer_prefix_t);
-        BUF.buffers[w][pe] = mem_alloc(SYSTEM_HEAP, SYM_HEAP_SIZE_WORKER);
+        BUF.pos[w][pe] = 0;
+        BUF.buffers[w][pe] = mem_alloc(SYSTEM_HEAP,
+                                       SYM_HEAP_SIZE_WORKER -
+                                       sizeof(buffer_prefix_t));
         BUF.remote_pos[w][pe] = remote_pos;
         remote_pos += SYM_HEAP_SIZE_WORKER;
       }

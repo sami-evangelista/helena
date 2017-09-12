@@ -1,12 +1,12 @@
 with
-  Pn.Compiler.Vectors,
+  Pn.Compiler.Bit_Stream,
   Pn.Classes,
   Pn.Compiler,
   Pn.Exprs,
   Pn.Exprs.Enum_Consts;
 
 use
-  Pn.Compiler.Vectors,
+  Pn.Compiler.Bit_Stream,
   Pn.Classes,
   Pn.Compiler,
   Pn.Exprs,

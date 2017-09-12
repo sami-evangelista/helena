@@ -5,7 +5,7 @@
 #include "simulator.h"
 #include "random_walk.h"
 #include "graph.h"
-#include "vectors.h"
+#include "bit_stream.h"
 
 int main
 (int argc,
@@ -16,7 +16,7 @@ int main
    *  initialisation of all libraries
    */
   init_heap();
-  init_vectors();
+  init_bit_stream();
   init_common();
   init_storage();
   init_model();
@@ -71,7 +71,7 @@ int main
    *  termination of all libraries
    */
   free_heap();
-  free_vectors();
+  init_bit_stream();
   free_common();
   free_storage();
   free_model();

@@ -138,8 +138,6 @@ statistics = {
     "eventsExecutedDDD"         : "   for duplicate detection",
     "eventsExecutedExpansion"   : "   for state expansion    ",
     "eventExecPerSecond"        : "Event execution rate      ",
-    "maxDfsStack"               : "Max. search stack size    ",
-    "maxBfsQueue"               : "Max. search queue size    ",
     "maxMemoryUsed"             : "Max. memory used          " }
 statisticsUnits = {
     "searchTime"                : "s.",

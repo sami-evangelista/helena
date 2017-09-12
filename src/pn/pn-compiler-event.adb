@@ -1,23 +1,23 @@
 with
   Pn.Classes,
+  Pn.Compiler.Bit_Stream,
   Pn.Compiler.Domains,
   Pn.Compiler.Mappings,
   Pn.Compiler.State,
   Pn.Compiler.Util,
   Pn.Compiler.Names,
-  Pn.Compiler.Vectors,
   Pn.Guards,
   Pn.Nodes,
   Pn.Vars;
 
 use
   Pn.Classes,
+  Pn.Compiler.Bit_Stream,
   Pn.Compiler.Domains,
   Pn.Compiler.Mappings,
   Pn.Compiler.State,
   Pn.Compiler.Util,
   Pn.Compiler.Names,
-  Pn.Compiler.Vectors,
   Pn.Guards,
   Pn.Nodes,
   Pn.Vars;
@@ -368,9 +368,8 @@ package body Pn.Compiler.Event is
 	   "   bit_vector_t v)");
       Plh(L, Prototype & ";");
       Plc(L, Prototype & " {");
-      Plc(L, 1, "vector bits;");
-      Plc(L, 1, "bits.vector = v;");
-      Plc(L, 1, "VECTOR_start (bits);");
+      Plc(L, 1, "bit_stream_t bits;");
+      Plc(L, 1, "bit_stream_init(bits, v);");
       Plc(L, 1, "TRANS_ID_encode (e.tid, bits);");
       Plc(L, 1, "switch (e.tid) {");
       for I in 1..T_Size(N) loop
@@ -393,9 +392,8 @@ package body Pn.Compiler.Event is
       Plh(L, Prototype & ";");
       Plc(L, Prototype & " {");
       Plc(L, 1, "mevent_t result;");
-      Plc(L, 1, "vector bits;");
-      Plc(L, 1, "bits.vector = v;");
-      Plc(L, 1, "VECTOR_start (bits);");
+      Plc(L, 1, "bit_stream_t bits;");
+      Plc(L, 1, "bit_stream_init(bits, v);");
       Plc(L, 1, "TRANS_ID_decode (bits, result.tid);");
       Plc(L, 1, "switch (result.tid) {");
       for I in 1..T_Size(N) loop

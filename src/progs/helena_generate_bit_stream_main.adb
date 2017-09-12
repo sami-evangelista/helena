@@ -1,6 +1,6 @@
 --=============================================================================
 --
---  Program: helena-generate-vectors
+--  Program: helena-generate-bit_stream
 --
 --=============================================================================
 
@@ -9,21 +9,21 @@ with
   Ada.Command_Line,
   Ada.Text_Io,
   Helena.Exceptions,
-  Pn.Compiler.Vectors;
+  Pn.Compiler.Bit_Stream;
 
 use
   Ada.Command_Line,
   Ada.Text_Io,
   Helena.Exceptions,
-  Pn.Compiler.Vectors;
+  Pn.Compiler.Bit_Stream;
 
-procedure Helena_Generate_Vectors_Main is
+procedure Helena_Generate_Bit_Stream_Main is
 begin
    if Argument_Count /= 1 then
-      Put_Line("usage: helena-generate-vectors out-dir");
+      Put_Line("usage: helena-generate-bit-stream out-dir");
       Set_Exit_Status(Ada.Command_Line.Failure);
    else
-      Pn.Compiler.Vectors.Gen("vectors", Argument(1));
+      Pn.Compiler.Bit_Stream.Gen("bit_stream", Argument(1));
       Set_Exit_Status(Ada.Command_Line.Success);
    end if;
 exception

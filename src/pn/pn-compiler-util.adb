@@ -2,17 +2,17 @@ with
   Pn.Nodes,
   Pn.Nodes.Places,
   Pn.Nodes.Transitions,
+  Pn.Compiler.Bit_Stream,
   Pn.Compiler.Config,
-  Pn.Compiler.Names,
-  Pn.Compiler.Vectors;
+  Pn.Compiler.Names;
 
 use
   Pn.Nodes,
   Pn.Nodes.Places,
   Pn.Nodes.Transitions,
+  Pn.Compiler.Bit_Stream,
   Pn.Compiler.Config,
-  Pn.Compiler.Names,
-  Pn.Compiler.Vectors;
+  Pn.Compiler.Names;
 
 package body Pn.Compiler.Util is
 
@@ -55,7 +55,7 @@ package body Pn.Compiler.Util is
       B: constant Natural := Bit_To_Encode_Pid(N);
    begin
       Plh(Lib, "#define PLACE_ID_encode(pid, bits) { \");
-      Plh(Lib, 1, Vector_Set_Func(B) & "(bits, pid); \");
+      Plh(Lib, 1, Bit_Stream_Set_Func(B) & "(bits, pid); \");
       Plh(Lib, "}");
    end;
 
@@ -66,7 +66,7 @@ package body Pn.Compiler.Util is
       B: constant Natural := Bit_To_Encode_Tid(N);
    begin
       Plh(Lib, "#define TRANS_ID_encode(tid, bits) { \");
-      Plh(Lib, 1, Vector_Set_Func(B) & "(bits, tid); \");
+      Plh(Lib, 1, Bit_Stream_Set_Func(B) & "(bits, tid); \");
       Plh(Lib, "}");
    end;
 
@@ -77,7 +77,7 @@ package body Pn.Compiler.Util is
       B: constant Natural := Bit_To_Encode_Pid(N);
    begin
       Plh(Lib, "#define PLACE_ID_decode(bits, pid) \");
-      Plh(Lib, "{ " & Vector_Get_Func(B) & "(bits, pid); }");
+      Plh(Lib, "{ " & Bit_Stream_Get_Func(B) & "(bits, pid); }");
    end;
 
    --  decodes a transition identifier
@@ -87,27 +87,7 @@ package body Pn.Compiler.Util is
       B: constant Natural := Bit_To_Encode_Tid(N);
    begin
       Plh(Lib, "#define TRANS_ID_decode(bits, tid) \");
-      Plh(Lib, "{ " & Vector_Get_Func(B) & "(bits, tid); }");
-   end;
-
-   --  decodes back a place identifier
-   procedure Gen_Pid_Decode_Back_Func
-     (N  : in Net;
-      Lib: in Library) is
-      B: constant Natural := Bit_To_Encode_Tid(N);
-   begin
-      Plh(Lib, "#define PLACE_ID_decode_back(bits, pid) \");
-      Plh(Lib, "{ " & Vector_Get_Back_Func(B) & "(bits, pid); }");
-   end;
-
-   --  decodes back a transition identifier
-   procedure Gen_Tid_Decode_Back_Func
-     (N  : in Net;
-      Lib: in Library) is
-      B: constant Natural := Bit_To_Encode_Tid(N);
-   begin
-      Plh(Lib, "#define TRANS_ID_decode_back(bits, tid) \");
-      Plh(Lib, "{ " & Vector_Get_Back_Func(B) & "(bits, tid); }");
+      Plh(Lib, "{ " & Bit_Stream_Get_Func(B) & "(bits, tid); }");
    end;
 
    --  generic test function on a transition id
@@ -183,7 +163,6 @@ package body Pn.Compiler.Util is
       Gen_Pid_Decode_Func(N, Lib);
       Gen_Tid_Encode_Func(N, Lib);
       Gen_Tid_Decode_Func(N, Lib);
-      Gen_Tid_Decode_Back_Func(N, Lib);
       Gen_Tid_Is_Safe_Func(N, Lib);
       Gen_Tid_Is_Visible_Func(N, Lib);
       Prototype := To_Ustring

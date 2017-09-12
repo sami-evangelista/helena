@@ -28,12 +28,11 @@ then
     then
 	(rm \
             ../bin/helena-generate \
+            ../bin/helena-generate-bit_stream \
             ../bin/helena-generate-checker \
             ../bin/helena-generate-dve \
             ../bin/helena-generate-interface \
             ../bin/helena-generate-property \
-            ../bin/helena-generate-xml \
-            ../bin/helena-generate-vectors \
             ../bin/helena-ltl2ba
 	    cd ../doc
 	    make clean-all

@@ -32,7 +32,7 @@ typedef struct {
   bucket_status_t update_status[CFG_HASH_SIZE];
   bucket_status_t status[CFG_HASH_SIZE];
 #ifdef CFG_HASH_COMPACTION
-  char state[CFG_HASH_SIZE][ATTRIBUTES_CHAR_WIDTH + sizeof(hash_compact_t)];
+  char state[CFG_HASH_SIZE][ATTRS_CHAR_SIZE + sizeof(hash_compact_t)];
 #else
   bit_vector_t state[CFG_HASH_SIZE];
   hash_key_t hash[CFG_HASH_SIZE];
@@ -71,6 +71,22 @@ void hash_tbl_free
 uint64_t hash_tbl_size
 (hash_tbl_t tbl);
 
+void hash_tbl_insert
+(hash_tbl_t tbl,
+ state_t s,
+ worker_id_t w,
+ bool_t * is_new,
+ hash_tbl_id_t * id,
+ hash_key_t * h);
+
+void hash_tbl_insert_hashed
+(hash_tbl_t tbl,
+ state_t s,
+ worker_id_t w,
+ hash_key_t h,
+ bool_t * is_new,
+ hash_tbl_id_t * id);
+
 void hash_tbl_insert_serialised
 (hash_tbl_t tbl,
  bit_vector_t s,
@@ -79,14 +95,6 @@ void hash_tbl_insert_serialised
  worker_id_t w,
  bool_t * is_new,
  hash_tbl_id_t * id);
-
-void hash_tbl_insert
-(hash_tbl_t tbl,
- state_t s,
- worker_id_t w,
- bool_t * is_new,
- hash_tbl_id_t * id,
- hash_key_t * h);
 
 void hash_tbl_remove
 (hash_tbl_t tbl,
@@ -166,6 +174,10 @@ bool_t hash_tbl_do_gc
  worker_id_t w);
 
 void hash_tbl_gc
+(hash_tbl_t tbl,
+ worker_id_t w);
+    
+void hash_tbl_gc_all
 (hash_tbl_t tbl,
  worker_id_t w);
 

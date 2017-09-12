@@ -34,7 +34,6 @@ report_t report_new
     result->events_executed_dd[i] = 0;
     result->state_cmps[i] = 0;
   }
-  result->max_unproc_size = 0;
   result->bfs_levels = 0;
   result->bfs_levels_ok = FALSE;
   result->max_mem_used = 0.0;
@@ -334,16 +333,6 @@ void report_finalise
   
   /*  others  */
   fprintf(out, "<otherStatistics>\n");
-#if !defined(CFG_PARALLEL)
-#if defined(CFG_ALGO_DFS)
-  fprintf(out, "<maxDfsStack>%llu</maxDfsStack>\n",
-          r->max_unproc_size);
-#elif defined(CFG_ALGO_BFS) || defined(CFG_ALGO_FRONTIER) || \
-  defined(CFG_ALGO_PD4)
-  fprintf(out, "<maxBfsQueue>%llu</maxBfsQueue>\n",
-          r->max_unproc_size);
-#endif
-#endif
   fprintf(out, "<maxMemoryUsed>%.1f</maxMemoryUsed>\n",
           r->max_mem_used);
   fprintf(out, "<eventsExecuted>%llu</eventsExecuted>\n",
@@ -439,13 +428,6 @@ void report_update_bfs_levels
   if(bfs_levels > r->bfs_levels) {
     r->bfs_levels = bfs_levels;
   }
-}
-
-void report_update_max_unproc_size
-(report_t r,
- uint64_t max_unproc_size) {
-  if(max_unproc_size > r->max_unproc_size) 
-    r->max_unproc_size = max_unproc_size;
 }
 
 void report_faulty_state

@@ -1,19 +1,19 @@
 with
   Pn.Compiler,
+  Pn.Compiler.Bit_Stream,
   Pn.Compiler.Names,
   Pn.Compiler.Config,
   Pn.Compiler.Util,
-  Pn.Compiler.Vectors,
   Pn.Exprs.Enum_Consts,
   Pn.Exprs.Bin_Ops,
   Utils.Math;
 
 use
   Pn.Compiler,
+  Pn.Compiler.Bit_Stream,
   Pn.Compiler.Names,
   Pn.Compiler.Config,
   Pn.Compiler.Util,
-  Pn.Compiler.Vectors,
   Pn.Exprs.Enum_Consts,
   Pn.Exprs.Bin_Ops,
   Utils.Math;
@@ -232,9 +232,9 @@ package body Pn.Classes.Discretes is
          Plh(Lib, 1, "unsigned long long int " &
 	       Var & " = (unsigned long long int) e - " &
 	       Cls_First_Const_Name(C.Me) & "; \");
-         Plh(Lib, 1, Vector_Set_Func(B) & "(bits, " & Var & "); \");
+         Plh(Lib, 1, Bit_Stream_Set_Func(B) & "(bits, " & Var & "); \");
       else
-         Plh(Lib, 1, Vector_Set_Func(B) & "(bits, e); \");
+         Plh(Lib, 1, Bit_Stream_Set_Func(B) & "(bits, e); \");
       end if;
       Plh(Lib, "}");
 
@@ -242,7 +242,7 @@ package body Pn.Classes.Discretes is
       -- decoding functions
       --===
       Plh(Lib, "#define " & Cls_Decode_Func(C.Me) & "(bits, e) { \");
-      Plh(Lib, 1, Vector_Get_Func(B) & "(bits, e); \");
+      Plh(Lib, 1, Bit_Stream_Get_Func(B) & "(bits, e); \");
       if Low /= 0 then
          Plh(Lib, 1, "e += " & Cls_First_Const_Name(C.Me) & "; \");
       end if;

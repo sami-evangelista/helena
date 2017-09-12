@@ -1,23 +1,23 @@
 with
   Pn.Classes,
+  Pn.Compiler.Bit_Stream,
   Pn.Compiler.Config,
   Pn.Compiler.Domains,
   Pn.Compiler.Mappings,
   Pn.Compiler.Util,
   Pn.Compiler.Names,
-  Pn.Compiler.Vectors,
   Pn.Mappings,
   Pn.Nodes,
   Utils.Math;
 
 use
   Pn.Classes,
+  Pn.Compiler.Bit_Stream,
   Pn.Compiler.Config,
   Pn.Compiler.Domains,
   Pn.Compiler.Mappings,
   Pn.Compiler.Util,
   Pn.Compiler.Names,
-  Pn.Compiler.Vectors,
   Pn.Mappings,
   Pn.Nodes,
   Utils.Math;
@@ -301,14 +301,14 @@ package body Pn.Compiler.State is
       Plh(L, 1, T & " tmp_list = s.list; \");
       Plh(L, 1, "for(; tmp_list; tmp_list=tmp_list->next)  { \");
       if Mult_Size > 0 then
-         Plh(L, 2, Vector_Set_Func(Mult_Size) &
+         Plh(L, 2, Bit_Stream_Set_Func(Mult_Size) &
                "(bits, tmp_list->mult - 1); \");
       end if;
       Plh(L, 2, Place_Dom_Encode_Func(P) & "(tmp_list->c, bits); \");
       Plh(L, 2, "if(tmp_list->next) { " &
-            Vector_Set_Func(1) & "(bits, FALSE); } \");
+            Bit_Stream_Set_Func(1) & "(bits, FALSE); } \");
       Plh(L, 2, "else { " &
-            Vector_Set_Func(1) & "(bits, TRUE);  } \");
+            Bit_Stream_Set_Func(1) & "(bits, TRUE);  } \");
       Plh(L, 1, "} \");
       Plh(L, "}");
       --=======================================================================
@@ -329,7 +329,7 @@ package body Pn.Compiler.State is
       Plh(L, 3, "new = new->next; \");
       Plh(L, 2, "} \");
       if Mult_Size > 0 then
-         Plh(L, 2, Vector_Get_Func(Mult_Size) & "(bits, new->mult); \");
+         Plh(L, 2, Bit_Stream_Get_Func(Mult_Size) & "(bits, new->mult); \");
          Plh(L, 2, "new->mult ++; \");
          Plh(L, 2, "s.mult += new->mult; \");
       else
@@ -340,14 +340,14 @@ package body Pn.Compiler.State is
       Plh(L, 2, Place_Dom_Decode_Func(P) & "(bits, new->c); \");
       Plh(L, 2, "new->next = NULL; \");
       Plh(L, 2, "s.card ++; \");
-      Plh(L, 2, Vector_Get_Func(1) & "(bits, last); \");
+      Plh(L, 2, Bit_Stream_Get_Func(1) & "(bits, last); \");
       Plh(L, 1, "} \");
       Plh(L, "}");
       --=======================================================================
       Prototype :=
         "bool_t " & Local_State_Cmp_Vector_Func(P) & "_func (" & Nl &
         "   " & T & " list," & Nl &
-        "   vector * bits)";
+        "   bit_stream_t * bits)";
       Plh(L, Prototype & ";");
       Plc(L, Prototype & " {");
       Plc(L, 1, "bool_t last = FALSE;");
@@ -358,7 +358,7 @@ package body Pn.Compiler.State is
       Plc(L, 1, Place_Dom_Type(P) & " cp;");
       Plc(L, 1, "while((!last) && tmp) {");
       if Mult_Size > 0 then
-         Plc(L, 2, Vector_Get_Func(Mult_Size) & "((*bits), mult);");
+         Plc(L, 2, Bit_Stream_Get_Func(Mult_Size) & "((*bits), mult);");
          Plc(L, 2, "mult ++;");
       end if;
       Plc(L, 2, Place_Dom_Decode_Func(P) & "((*bits), cp);");
@@ -369,7 +369,7 @@ package body Pn.Compiler.State is
          Test := Test & " || (tmp->mult != 1)";
       end if;
       Plc(L, 2, "if(" & Test & ") return FALSE;");
-      Plc(L, 2, Vector_Get_Func(1) & "((*bits), last);");
+      Plc(L, 2, Bit_Stream_Get_Func(1) & "((*bits), last);");
       Plc(L, 2, "tmp = tmp->next;");
       Plc(L, 1, "}");
       Plc(L, 1, "return last && !tmp;");
@@ -660,12 +660,11 @@ package body Pn.Compiler.State is
            "   bit_vector_t v)");
       Plh(L, Prototype & ";");
       Plc(L, Prototype & " {");
-      Plc(L, 1, "vector vec;");
+      Plc(L, 1, "bit_stream_t vec;");
       Plc(L, 1, "unsigned int idx;");
-      Plc(L, 1, "vec.vector = v;");
-      Plc(L, 1, "VECTOR_start (vec);");
+      Plc(L, 1, "bit_stream_init(vec, v);");
       Plc(L, 1, "unsigned int ne = mstate_non_empty_places (s);");
-      Plc(L, 1, Vector_Set_Func(Non_Empty_Size) & "(vec, ne);");
+      Plc(L, 1, Bit_Stream_Set_Func(Non_Empty_Size) & "(vec, ne);");
       for I in 1..P_Size(N) loop
          P := Ith_Place(N, I);
          Plc(L, 1, "if(!(" & Local_State_Is_Empty_Func(P) &
@@ -680,17 +679,16 @@ package body Pn.Compiler.State is
       Prototype := To_Ustring
         ("mstate_t mstate_unserialise_mem (" & Nl &
            "   bit_vector_t v," & Nl &
-           "   heap_t       heap)");
+           "   heap_t heap)");
       Plh(L, Prototype & ";");
       Plc(L, Prototype & " {");
       Plc(L, 1, "mstate_t result;");
       Plc(L, 1, "unsigned int ne;");
       Plc(L, 1, "unsigned int idx;");
       Plc(L, 1, "pl_id_t pid;");
-      Plc(L, 1, "vector vec, lvec;");
-      Plc(L, 1, "vec.vector = v;");
-      Plc(L, 1, "VECTOR_start (vec);");
-      Plc(L, 1, Vector_Get_Func(Non_Empty_Size) & "(vec, ne);");
+      Plc(L, 1, "bit_stream_t vec, lvec;");
+      Plc(L, 1, "bit_stream_init(vec, v);");
+      Plc(L, 1, Bit_Stream_Get_Func(Non_Empty_Size) & "(vec, ne);");
       Plc(L, 1, "mstate_init (result, heap);");
       Plc(L, 1, "for(; ne; ne--) {");
       Plc(L, 2, "PLACE_ID_decode(vec, pid);");
@@ -726,10 +724,9 @@ package body Pn.Compiler.State is
       Plc(L, Prototype & " {");
       Plc(L, 1, "unsigned int ne, i = 0, idx;");
       Plc(L, 1, "pl_id_t pid;");
-      Plc(L, 1, "vector bits, lbits;");
-      Plc(L, 1, "bits.vector = v;");
-      Plc(L, 1, "VECTOR_start(bits);");
-      Plc(L, 1, Vector_Get_Func(Non_Empty_Size) & " (bits, ne);");
+      Plc(L, 1, "bit_stream_t bits, lbits;");
+      Plc(L, 1, "bit_stream_init(bits, v);");
+      Plc(L, 1, Bit_Stream_Get_Func(Non_Empty_Size) & " (bits, ne);");
       Plc(L, 1, "if (mstate_non_empty_places (s) != ne) return FALSE;");
       Plc(L, 1, "for (; i<ne; i++) {");
       Plc(L, 2, "PLACE_ID_decode (bits, pid);");

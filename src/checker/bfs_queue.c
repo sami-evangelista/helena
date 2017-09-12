@@ -56,6 +56,7 @@ void bfs_queue_free
       bfs_queue_slot_free(q->next[w][x]);
     }
   }
+  mem_free(SYSTEM_HEAP, q);
 }
 
 uint64_t bfs_queue_size
@@ -80,7 +81,7 @@ bool_t bfs_queue_slot_is_empty
 
 void bfs_queue_enqueue
 (bfs_queue_t  q,
- bfs_queue_item_t s,
+ storage_id_t s,
  worker_id_t from,
  worker_id_t to) {
   bfs_queue_slot_t slot = q->next[to][from];
@@ -104,12 +105,12 @@ void bfs_queue_enqueue
   slot->size ++;
 }
 
-bfs_queue_item_t bfs_queue_dequeue
+storage_id_t bfs_queue_dequeue
 (bfs_queue_t q,
  worker_id_t from,
  worker_id_t to) {
+  storage_id_t result;
   bfs_queue_node_t tmp;
-  bfs_queue_item_t result;
   bfs_queue_slot_t slot = q->current[to][from];
 
   if(BFS_QUEUE_NODE_SIZE == slot->first_index) {

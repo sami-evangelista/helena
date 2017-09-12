@@ -15,7 +15,8 @@ void dbfs_comm_end
 
 void dbfs_comm_process_state
 (worker_id_t w,
- state_t s);
+ state_t s,
+ hash_key_t h);
 
 void dbfs_comm_send_all_pending_states
 (worker_id_t w);

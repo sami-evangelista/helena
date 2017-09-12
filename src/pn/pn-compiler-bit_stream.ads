@@ -1,28 +1,27 @@
 --=============================================================================
 --
---  Package: Pn.Compiler.Vectors
+--  Package: Pn.Compiler.Bit_Stream
 --
---  This package implements the bit vector type.  A bit vector is represented
---  as an array of slots.  The type of slot is given by constant
---  Checker.Slot_Type.  Four additional fields are used:
---  o pos: slot number of the current position
---  o shift: shift (in bits) in the slot number of the current position
---  o bit_size: size in bits of the vector
---  o slot_size: size in slots of the vector
+--  This package implements the bit stream type.  A bit stream is
+--  represented as an array of slots.  The type of slot is given by
+--  constant Checker.Slot_Type.  Four additional fields are used: o
+--  pos: slot number of the current position o shift: shift (in bits)
+--  in the slot number of the current position o bit_size: size in
+--  bits of the stream o slot_size: size in slots of the stream
 --
---  Two main macros are provided to manipulate bit vector:
+--  Two main macros are provided to manipulate bit stream:
 --    - get(v, val, N):
 --      put in val (any unsigned long long int) the value encoded at the
---      current position in vector v of N bits. Also update the pos and shift
---      fields of the vector
+--      current position in stream v of N bits. Also update the pos and shift
+--      fields of the stream
 --    - set(v, val, N):
---      set in vector V the value of val on the N next bits of v. Also update
---      the pos and shift fields of the vector
+--      set in stream V the value of val on the N next bits of v. Also update
+--      the pos and shift fields of the stream
 --
 --=============================================================================
 
 
-package Pn.Compiler.Vectors is
+package Pn.Compiler.Bit_Stream is
 
    --==========================================================================
    --  Group: Constants
@@ -30,7 +29,7 @@ package Pn.Compiler.Vectors is
 
    --=====
    --  Constant: Slot_Type
-   --  Name of the type of the slots in a bit vector.
+   --  Name of the type of the slots in a bit stream.
    --=====
    Slot_Type: constant String := "char";
 
@@ -42,20 +41,20 @@ package Pn.Compiler.Vectors is
 
    --=====
    --  Constant: Bits_Per_Slot
-   --  Number of bits in a slot of a bit vector.
+   --  Number of bits in a slot of a bit stream.
    --=====
    Bits_Per_Slot: constant Natural := Bits_Per_Char;
 
    --=====
    --  Constant: Max_Width
    --  Maximal size in bits of a basic object that can be encoded in a bit
-   --  vector.
+   --  stream.
    --=====
    Max_Width: constant Natural := 64;
 
    --=====
    --  Subtype: Item_Width
-   --  width of an item that can be encoded in a bit vector
+   --  width of an item that can be encoded in a bit stream
    --=====
    subtype Item_Width is Natural range 0 .. Max_Width;
 
@@ -115,22 +114,17 @@ package Pn.Compiler.Vectors is
 
 
    --==========================================================================
-   --  vector of bits
+   --  stream of bits
    --==========================================================================
 
-   function Vector_Get_Func
+   function Bit_Stream_Get_Func
      (Size: in Item_Width) return Unbounded_String;
-   --  return the name of the function which gets the bits from a vector. The
+   --  return the name of the function which gets the bits from a stream. The
    --  size is known by the caller
 
-   function Vector_Get_Back_Func
+   function Bit_Stream_Set_Func
      (Size: in Item_Width) return Unbounded_String;
-   --  return the name of the function which gets the bits of a vector
-   --  backwardly. The size is known by the caller
-
-   function Vector_Set_Func
-     (Size: in Item_Width) return Unbounded_String;
-   --  return the name of the function which set the bits of a vector. The
+   --  return the name of the function which set the bits of a stream. The
    --  size is known by the caller
 
-end Pn.Compiler.Vectors;
+end Pn.Compiler.Bit_Stream;

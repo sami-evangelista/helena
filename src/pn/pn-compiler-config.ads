@@ -9,10 +9,10 @@
 
 
 with
-  Pn.Compiler.Vectors;
+  Pn.Compiler.Bit_Stream;
 
 use
-  Pn.Compiler.Vectors;
+  Pn.Compiler.Bit_Stream;
 
 package Pn.Compiler.Config is
 

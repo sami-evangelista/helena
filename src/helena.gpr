@@ -50,7 +50,7 @@ project Helena is
    for Main use ("helena_generate_main.adb",
                  "helena_generate_interface_main.adb",
                  "helena_generate_prop_main.adb",
-                 "helena_generate_vectors_main.adb");
+                 "helena_generate_bit_stream_main.adb");
 
    --  compilation parameters
    package Compiler is
@@ -93,8 +93,8 @@ project Helena is
       	  use "helena-generate-interface";
       for Executable ("helena_generate_prop_main.adb")
       	  use "helena-generate-property";
-      for Executable ("helena_generate_vectors_main.adb")
-      	  use "helena-generate-vectors";
+      for Executable ("helena_generate_bit_stream_main.adb")
+      	  use "helena-generate-bit-stream";
    end Builder;
 
 end Helena;

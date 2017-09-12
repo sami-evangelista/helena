@@ -1,15 +1,15 @@
 with
-  Pn.Compiler.Vectors,
-  Pn.Compiler.Names,
+  Pn.Compiler.Bit_Stream,
   Pn.Compiler.Config,
+  Pn.Compiler.Names,
   Pn.Compiler.Util,
   Pn.Nodes,
   Pn.Vars;
 
 use
-  Pn.Compiler.Vectors,
-  Pn.Compiler.Names,
+  Pn.Compiler.Bit_Stream,
   Pn.Compiler.Config,
+  Pn.Compiler.Names,
   Pn.Compiler.Util,
   Pn.Nodes,
   Pn.Vars;

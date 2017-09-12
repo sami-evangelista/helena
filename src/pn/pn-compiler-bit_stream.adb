@@ -4,10 +4,10 @@ with
 use
   Utils.Math;
 
-package body Pn.Compiler.Vectors is
+package body Pn.Compiler.Bit_Stream is
 
-   subtype Vector_Shift is Natural range 0 .. Bits_Per_Slot - 1;
-   --  possible shift in a slot of a vector
+   subtype Bit_Stream_Shift is Natural range 0 .. Bits_Per_Slot - 1;
+   --  possible shift in a slot of a stream
 
 
    --==========================================================================
@@ -158,42 +158,20 @@ package body Pn.Compiler.Vectors is
 
 
    --==========================================================================
-   --  vector of bits
+   --  stream of bits
    --==========================================================================
 
-   --  constructs a vector
-   procedure Gen_Vector_New_Func
-     (Lib: in Library) is
-   begin
-      Plh(Lib, "#define VECTOR_new(bits, size) { \");
-      Plh(Lib, 1, "int i = 0; \");
-      Plh(Lib, 1, "bits.slot_size = " & Slots_For_Bits_Func & "(size); \");
-      Plh(Lib, 1, "MALLOC(bits.vector, " & Slot_Type & " *, " &
-	    " sizeof(" & Slot_Type & ") * bits.slot_size); \");
-      Plh(Lib, 1, "for(; i < bits.slot_size; i++) bits.vector[i] = 0; \");
-      Plh(Lib, 1, "bits.pos = bits.shift = 0; \");
-      Plh(Lib, 1, "bits.bit_size = size; \");
-      Plh(Lib, "}");
-   end;
-
-   --  start a vector
-   procedure Gen_Vector_Start_Func
-     (Lib: in Library) is
-   begin
-      Plh(Lib, "#define VECTOR_start(_v) { _v.pos = _v.shift = 0; }");
-   end;
-
-   --  set bits of a vector. size and shift are known
-   function Vector_Set_Func
+   --  set bits of a stream. size and shift are known
+   function Bit_Stream_Set_Func
      (Size : in Item_Width;
-      Shift: in Vector_Shift) return Unbounded_String is
+      Shift: in Bit_Stream_Shift) return Unbounded_String is
    begin
-      return "VECTOR_set_size" & Size & "_shift" & Shift;
+      return "bit_stream_set_size" & Size & "_shift" & Shift;
    end;
 
-   procedure Gen_Vector_Set_Func
+   procedure Gen_Bit_Stream_Set_Func
      (Size : in Item_Width;
-      Shift: in Vector_Shift;
+      Shift: in Bit_Stream_Shift;
       Lib  : in Library) is
       New_Shift: Natural;
       I        : Natural;
@@ -211,8 +189,8 @@ package body Pn.Compiler.Vectors is
          return Result;
       end;
    begin
-      Prototype := "void " & Vector_Set_Func(Size, Shift) & Nl &
-        "(vector *v," & Nl &
+      Prototype := "void " & Bit_Stream_Set_Func(Size, Shift) & Nl &
+        "(bit_stream_t *v," & Nl &
         " unsigned long val)";
       Plh(Lib, Prototype & ";");
       Plc(Lib, Prototype);
@@ -230,7 +208,7 @@ package body Pn.Compiler.Vectors is
             Mask := Get_Mask(((0, Shift - 1),
                               (Shift + Size, Bits_Per_Slot - 1)));
          end if;
-         Plc(Lib, 1, "v->vector[v->pos] = (v->vector[v->pos] & " &
+         Plc(Lib, 1, "v->stream[v->pos] = (v->stream[v->pos] & " &
              Mask & ") | ((val & " &
              Get_Mask(0, Natural'Min(Size - 1, Bits_Per_Slot - Shift - 1)) &
              ") << " & Shift & ");");
@@ -239,14 +217,14 @@ package body Pn.Compiler.Vectors is
          J := 0;
       end if;
       while I < Size loop
-         Pc(Lib, 1, "v->vector[v->pos" & Pj & "] =  (val");
+         Pc(Lib, 1, "v->stream[v->pos" & Pj & "] =  (val");
          if I > 0 then
             Pc(Lib, " >> " & I);
          end if;
          Pc(Lib, ")");
          I := I + Bits_Per_Slot;
          if I > Size then
-            Pc(Lib, " | (v->vector[v->pos" & Pj & "] & " &
+            Pc(Lib, " | (v->stream[v->pos" & Pj & "] & " &
                Get_Mask(Bits_Per_Slot-I+Size, Bits_Per_Slot-1) & ")");
          end if;
          Plc(Lib, ";");
@@ -263,47 +241,47 @@ package body Pn.Compiler.Vectors is
       Plc(Lib, "}");
    end;
 
-   --  set bits of a vector. size is known
-   function Vector_Set_Func
+   --  set bits of a bit_stream. size is known
+   function Bit_Stream_Set_Func
      (Size: in Item_Width) return Unbounded_String is
    begin
-      return "VECTOR_set_size" & Size;
+      return "bit_stream_set_size" & Size;
    end;
 
-   procedure Gen_Vector_Set_Func
+   procedure Gen_Bit_Stream_Set_Func
      (Size: in Item_Width;
       Lib : in Library) is
-      Table: constant Unbounded_String := Vector_Set_Func(Size) & "_table";
+      Table: constant Unbounded_String := Bit_Stream_Set_Func(Size) & "_table";
    begin
       --===
       --  the macro simply calls the appropriate function of the table
       --===
-      Plh(Lib, "#define " & Vector_Set_Func(Size) &
+      Plh(Lib, "#define " & Bit_Stream_Set_Func(Size) &
           "(_v, _val) { (* " & Table & "[_v.shift])(&_v, _val); }");
    end;
 
-   --  set bits of a vector
-   procedure Gen_Vector_Set_Func
+   --  set bits of a bit_stream
+   procedure Gen_Bit_Stream_Set_Func
      (Lib: in Library) is
    begin
       --===
       --  the macro simply calls the appropriate function of the table
       --===
-      Plh(Lib, "#define VECTOR_set(_v, _val, _size) { " &
-          "(* VECTOR_set_table[_size][_v.shift])(&_v, _val); }");
+      Plh(Lib, "#define bit_stream_set(_v, _val, _size) { " &
+          "(* bit_stream_set_table[_size][_v.shift])(&_v, _val); }");
    end;
 
-   --  get bits of a vector. size and shift are known
-   function Vector_Get_Func
+   --  get bits of a bit_stream. size and shift are known
+   function Bit_Stream_Get_Func
      (Size : in Item_Width;
-      Shift: in Vector_Shift) return Unbounded_String is
+      Shift: in Bit_Stream_Shift) return Unbounded_String is
    begin
-      return "VECTOR_get_size" & Size & "_shift" & Shift;
+      return "bit_stream_get_size" & Size & "_shift" & Shift;
    end;
 
-   procedure Gen_Vector_Get_Func
+   procedure Gen_Bit_Stream_Get_Func
      (Size : in Item_Width;
-      Shift: in Vector_Shift;
+      Shift: in Bit_Stream_Shift;
       Lib  : in Library) is
       New_Shift: Natural;
       I        : Natural;
@@ -312,8 +290,8 @@ package body Pn.Compiler.Vectors is
       Prototype: Unbounded_String;
    begin
       Prototype :=
-        "unsigned long " & Vector_Get_Func(Size, Shift) & Nl &
-        "(vector *v)";
+        "unsigned long " & Bit_Stream_Get_Func(Size, Shift) & Nl &
+        "(bit_stream_t *v)";
       Plh(Lib, Prototype & ";");
       Plc(Lib, Prototype);
       Plc(Lib, "{");
@@ -324,7 +302,7 @@ package body Pn.Compiler.Vectors is
       end if;
       Pc(Lib, 1, "unsigned long result = ");
       if Shift > 0 then
-         Pc(Lib, "((v->vector[v->pos] >> " & Shift & ") & " &
+         Pc(Lib, "((v->stream[v->pos] >> " & Shift & ") & " &
             Get_Mask(0, Natural'Min(Size - 1, Bits_Per_Slot - Shift - 1)) &
             ")");
          I := Bits_Per_Slot - Shift;
@@ -341,7 +319,7 @@ package body Pn.Compiler.Vectors is
          else
             Pipe := True;
          end if;
-         Pc(Lib, "((v->vector[v->pos");
+         Pc(Lib, "((v->stream[v->pos");
          if J > 0 then
             Pc(Lib, " + " & J);
          end if;
@@ -367,156 +345,49 @@ package body Pn.Compiler.Vectors is
       Plc(Lib, "}");
    end;
 
-   --  get bits of a vector. size is known
-   function Vector_Get_Func
+   --  get bits of a bit_stream. size is known
+   function Bit_Stream_Get_Func
      (Size: in Item_Width) return Unbounded_String is
    begin
-      return "VECTOR_get_size" & Size;
+      return "bit_stream_get_size" & Size;
    end;
 
-   procedure Gen_Vector_Get_Func
+   procedure Gen_Bit_Stream_Get_Func
      (Size: in Item_Width;
       Lib : in Library) is
-      Table: constant Unbounded_String := Vector_Get_Func(Size) & "_table";
+      Table: constant Unbounded_String := Bit_Stream_Get_Func(Size) & "_table";
    begin
       --===
       --  the macro simply calls the appropriate function of the table
       --===
-      Plh(Lib, "#define " & Vector_Get_Func(Size) &
+      Plh(Lib, "#define " & Bit_Stream_Get_Func(Size) &
           "(_v, _val) { _val = (* " & Table & "[_v.shift])(&_v); }");
    end;
 
-   --  get bits from vector
-   procedure Gen_Vector_Get_Func
+   --  get bits from bit_stream
+   procedure Gen_Bit_Stream_Get_Func
      (Lib: in Library) is
    begin
       --===
       --  the macro simply calls the appropriate function of the table
       --===
-      Plh(Lib, "#define VECTOR_get(_v, _val, _size) { _val = " &
-          "(* VECTOR_get_table[_size][_v.shift])(&_v); }");
+      Plh(Lib, "#define bit_stream_get(_v, _val, _size) { _val = " &
+          "(* bit_stream_get_table[_size][_v.shift])(&_v); }");
    end;
 
-   --  get bits of a vector backwardly. size and shift are known
-   function Vector_Get_Back_Func
-     (Size : in Item_Width;
-      Shift: in Vector_Shift) return Unbounded_String is
-   begin
-      return "VECTOR_get_back_size" & Size & "_shift" & Shift;
-   end;
-
-   procedure Gen_Vector_Get_Back_Func
-     (Size : in Item_Width;
-      Shift: in Vector_Shift;
-      Lib  : in Library) is
-      New_Shift: Natural;
-      I        : Natural;
-      J        : Natural;
-      Move     : Natural;
-      Pipe     : Boolean;
-      Prototype: Unbounded_String;
-   begin
-      Prototype :=
-        "unsigned long " & Vector_Get_Back_Func(Size, Shift) & Nl &
-        "(vector *v)";
-      Plh(Lib, Prototype & ";");
-      Plc(Lib, Prototype);
-      Plc(Lib, "{");
-      if Size = 0 then
-         Plc(Lib, 1, "return 0;");
-         Plc(Lib, "}");
-         return;
-      end if;
-      Plc(Lib, 1, "unsigned long result;");
-      Move := (Size + (Bits_Per_Slot - 1 - Shift)) / Bits_Per_Slot;
-      if Move > 0 then
-         Plc(Lib, 1, "v->pos -= " & Move & ";");
-      end if;
-      New_Shift := (Shift - Size) mod Bits_Per_Slot;
-      Plc(Lib, 1, "v->shift = " & New_Shift & ";");
-      Pc(Lib, 1, "result = ");
-      if New_Shift > 0 then
-         Pc(Lib, "((v->vector[v->pos] >> " & New_Shift & ") & " &
-            Get_Mask(0, Natural'Min(Size - 1,
-                                    Bits_Per_Slot - New_Shift - 1)) & ")");
-         I := Bits_Per_Slot - New_Shift;
-         J := 1;
-         Pipe := True;
-      else
-         I := 0;
-         J := 0;
-         Pipe := False;
-      end if;
-      while I < Size loop
-         if Pipe then
-            Pc(Lib, " | ");
-         else
-            Pipe := True;
-         end if;
-         Pc(Lib, "((v->vector[v->pos");
-         if J > 0 then
-            Pc(Lib, " + " & J);
-         end if;
-         Pc(Lib, "]");
-         if I > 0 then
-            Pc(Lib, " << " & I & ")");
-         else
-            Pc(Lib, ")");
-         end if;
-         Pc(Lib, " & " &
-            Get_Mask(I, Natural'Min(I + Bits_Per_Slot - 1, Size - 1)) & ")");
-         I := I + Bits_Per_Slot;
-         J := J + 1;
-      end loop;
-      Plc(Lib, ";");
-      Plc(Lib, 1, "return result;");
-      Plc(Lib, "}");
-   end;
-
-   --  get bits of a vector backwardly. size is known
-   function Vector_Get_Back_Func
-     (Size: in Item_Width) return Unbounded_String is
-   begin
-      return "VECTOR_get_back_size" & Size;
-   end;
-
-   procedure Gen_Vector_Get_Back_Func
-     (Size: in Item_Width;
-      Lib: in Library) is
-      Table: constant Unbounded_String :=
-	Vector_Get_Back_Func(Size) & "_table";
-   begin
-      --===
-      --  the macro simply calls the appropriate function of the table
-      --===
-      Plh(Lib, "#define " & Vector_Get_Back_Func(Size) &
-          "(_v, _val) { _val = (* " & Table & "[_v.shift])(&_v); }");
-   end;
-
-   --  get bits of a vector backward
-   procedure Gen_Vector_Get_Back_Func
+   --  free a bit_stream
+   procedure Gen_Bit_Stream_Free_Func
      (Lib: in Library) is
    begin
-      --===
-      --  the macro simply calls the appropriate function of the table
-      --===
-      Plh(Lib, "#define VECTOR_get_back(_v, _val, _size) { _val = " &
-          "(* VECTOR_get_back_table[_size][_v.shift])(&_v); }");
+      Plh(Lib, "#define bit_stream_free(_v) { free(_v.stream); }");
    end;
 
-   --  free a vector
-   procedure Gen_Vector_Free_Func
-     (Lib: in Library) is
-   begin
-      Plh(Lib, "#define VECTOR_free(_v) { free(_v.vector); }");
-   end;
-
-   --  key function of a vector
-   procedure Gen_Vector_Key_Func
+   --  key function of a bit_stream
+   procedure Gen_Bit_Stream_Key_Func
      (Lib: in Library) is
       Prototype: constant String :=
-        "uint32_t VECTOR_key (" & Nl &
-        "   vector v)";
+        "uint32_t bit_stream_key (" & Nl &
+        "   bit_stream_t v)";
       function Compute_No_Chars return Natural is
       begin
 	 return Bits_Per_Slot / Bits_Per_Char;
@@ -588,11 +459,11 @@ package body Pn.Compiler.Vectors is
       for I in 1..No_Chars loop
          if I > 1 then
             Plc(Lib, 2,
-                "result = crc32_tab[(result ^ (v.vector[i] >> " &
+                "result = crc32_tab[(result ^ (v.stream[i] >> " &
                 (I-1) * 8 & ")) & 0xff] ^ (result >> " & Bits_Per_Char & ");");
          else
             Plc(Lib, 2,
-                "result = crc32_tab[(result ^ (v.vector[i])) & 0xff] ^" &
+                "result = crc32_tab[(result ^ (v.stream[i])) & 0xff] ^" &
                 " (result >> " & Bits_Per_Char & ");");
          end if;
       end loop;
@@ -601,8 +472,8 @@ package body Pn.Compiler.Vectors is
       Plc(Lib, "}");
    end;
 
-   --  move into a bit vector
-   procedure Gen_Vector_Move_Func
+   --  move into a bit bit_stream
+   procedure Gen_Bit_Stream_Move_Func
      (Lib: in Library) is
       Div_Expr: constant Unbounded_String :=
         Get_Division_Expr
@@ -611,94 +482,84 @@ package body Pn.Compiler.Vectors is
         Get_Modulo_Expr
         (To_Unbounded_String("(_v.shift + _move)"), Bits_Per_Slot);
    begin
-      Plh(Lib, "#define VECTOR_move(_v, _move) \");
+      Plh(Lib, "#define bit_stream_move(_v, _move) \");
       Plh(Lib, "{ \");
       Plh(Lib, 1, "_v.pos  += " & Div_Expr & "; \");
       Plh(Lib, 1, "_v.shift = " & Mod_Expr & "; \");
       Plh(Lib, "}");
    end;
 
-   --  move backward into a bit vector
-   procedure Gen_Vector_Move_Back_Func
+   --  init a stream
+   procedure Gen_Bit_Stream_Init_Func
      (Lib: in Library) is
-      Div_Expr: constant Unbounded_String :=
-        Get_Division_Expr
-        ("(_move + " & (Bits_Per_Slot - 1) & " - _v.shift)", Bits_Per_Slot);
-      Mod_Expr: constant Unbounded_String :=
-        Get_Modulo_Expr(To_Unbounded_String("_move"), Bits_Per_Slot);
    begin
-      Plh(Lib, "#define VECTOR_move_back(_v, _move) \");
-      Plh(Lib, "{ \");
-      Plh(Lib, 1, "_v.pos -= " & Div_Expr & "; \");
-      Plh(Lib, 1, "_v.shift -= " & Mod_Expr & "; \");
-      Plh(Lib, 1, "if(_v.shift < 0) \");
-      Plh(Lib, 2, "_v.shift += " & Bits_Per_Slot & "; \");
-      Plh(Lib, "}");
+      Plh(Lib, "#define bit_stream_init(_v, _bits) \");
+      Plh(Lib, "   { _v.stream = _bits; _v.pos = _v.shift = 0; }");
+   end;
+
+   --  start a stream
+   procedure Gen_Bit_Stream_Start_Func
+     (Lib: in Library) is
+   begin
+      Plh(Lib, "#define bit_stream_start(_v) { _v.pos = _v.shift = 0; }");
    end;
 
    --  check if the current position is the start position
-   procedure Gen_Vector_At_Start_Func
+   procedure Gen_Bit_Stream_At_Start_Func
      (Lib: in Library) is
    begin
-      Plh(Lib, "#define VECTOR_at_start(_v) ((_v.pos==0) && (_v.shift==0))");
+      Plh(Lib, "#define bit_stream_at_start(_v) \");
+      Plh(Lib, "((_v.pos==0) && (_v.shift==0))");
    end;
 
-   procedure Gen_Vector_Type
+   procedure Gen_Bit_Stream_Type
      (Lib: in Library) is
       Shift_Card: constant Natural :=
-        1 + Vector_Shift'Last - Vector_Shift'First;
+        1 + Bit_Stream_Shift'Last - Bit_Stream_Shift'First;
       Size_Card: constant Natural :=
         1 + Item_Width'Last - Item_Width'First;
    begin
       Plh(Lib, "typedef struct {");
-      Plh(Lib, 1, Slot_Type & " *vector;");
+      Plh(Lib, 1, Slot_Type & " * stream;");
       Plh(Lib, 1, "unsigned int pos;");
       Plh(Lib, 1, "int shift;");
       Plh(Lib, 1, "unsigned int slot_size;");
       Plh(Lib, 1, "unsigned int bit_size;");
-      Plh(Lib, "} vector;");
-      Plh(Lib, "typedef void (* vector_set_func) (vector *, unsigned long);");
-      Plh(Lib, "typedef unsigned long (* vector_get_func) (vector *);");
+      Plh(Lib, "} bit_stream_t;");
+      Ph(Lib, "typedef void (* bit_stream_set_func) ");
+      Plh(Lib, "(bit_stream_t *, unsigned long);");
+      Ph(Lib, "typedef unsigned long (* bit_stream_get_func) ");
+      Plh(Lib, "(bit_stream_t *);");
       Gen_Slots_For_Bits_Func(Lib);
-      Gen_Vector_New_Func(Lib);
-      Gen_Vector_Free_Func(Lib);
-      Gen_Vector_Start_Func(Lib);
-      Gen_Vector_At_Start_Func(Lib);
-      Gen_Vector_Key_Func(Lib);
-      Gen_Vector_Move_Func(Lib);
-      Gen_Vector_Move_Back_Func(Lib);
+      Gen_Bit_Stream_Free_Func(Lib);
+      Gen_Bit_Stream_Init_Func(Lib);
+      Gen_Bit_Stream_Start_Func(Lib);
+      Gen_Bit_Stream_At_Start_Func(Lib);
+      Gen_Bit_Stream_Key_Func(Lib);
+      Gen_Bit_Stream_Move_Func(Lib);
       for Size in Item_Width loop
-         for Shift in Vector_Shift loop
-            Gen_Vector_Set_Func(Size, Shift, Lib);
-            Gen_Vector_Get_Func(Size, Shift, Lib);
-            Gen_Vector_Get_Back_Func(Size, Shift, Lib);
+         for Shift in Bit_Stream_Shift loop
+            Gen_Bit_Stream_Set_Func(Size, Shift, Lib);
+            Gen_Bit_Stream_Get_Func(Size, Shift, Lib);
          end loop;
-         Gen_Vector_Set_Func(Size, Lib);
-         Gen_Vector_Get_Func(Size, Lib);
-         Gen_Vector_Get_Back_Func(Size, Lib);
+         Gen_Bit_Stream_Set_Func(Size, Lib);
+         Gen_Bit_Stream_Get_Func(Size, Lib);
       end loop;
-      Gen_Vector_Set_Func(Lib);
-      Gen_Vector_Get_Func(Lib);
-      Gen_Vector_Get_Back_Func(Lib);
+      Gen_Bit_Stream_Set_Func(Lib);
+      Gen_Bit_Stream_Get_Func(Lib);
       for Size in Item_Width loop
          Plh(Lib,
-             "vector_set_func " & Vector_Set_Func(Size) &
+             "bit_stream_set_func " & Bit_Stream_Set_Func(Size) &
              "_table[" & Shift_Card & "];");
          Plh(Lib,
-             "vector_get_func " & Vector_Get_Func(Size) &
-             "_table[" & Shift_Card & "];");
-         Plh(Lib,
-             "vector_get_func " & Vector_Get_Back_Func(Size) &
+             "bit_stream_get_func " & Bit_Stream_Get_Func(Size) &
              "_table[" & Shift_Card & "];");
       end loop;
       Plh(Lib,
-          "vector_set_func VECTOR_set_table" &
+          "bit_stream_set_func bit_stream_set_table" &
           "[" & Size_Card & "][" & Shift_Card & "];");
       Plh(Lib,
-          "vector_get_func VECTOR_get_table" &
-          "[" & Size_Card & "][" & Shift_Card & "];");
-      Plh(Lib,
-          "vector_get_func VECTOR_get_back_table" &
+          "bit_stream_get_func bit_stream_get_table" &
           "[" & Size_Card & "][" & Shift_Card & "];");
    end;
 
@@ -711,7 +572,7 @@ package body Pn.Compiler.Vectors is
       procedure Gen_Lib_Init_Func is
 	 Prototype : constant String := "void init_" & Lib & " ()";
 	 Shift_Card: constant Natural :=
-	   1 + Vector_Shift'Last - Vector_Shift'First;
+	   1 + Bit_Stream_Shift'Last - Bit_Stream_Shift'First;
       begin
 	 Plh(L, Prototype & ";");
 	 Plc(L, Prototype & " {");
@@ -720,25 +581,19 @@ package body Pn.Compiler.Vectors is
 	 --  initialize the arrays which contain the function pointers
 	 --===
 	 for Size in Item_Width loop
-	    for Shift in Vector_Shift loop
+	    for Shift in Bit_Stream_Shift loop
 	       Plc(L, 1,
-		   Vector_Set_Func(Size) & "_table[" & Shift & "] = " &
-		     "&" & Vector_Set_Func(Size, Shift) & ";");
+		   Bit_Stream_Set_Func(Size) & "_table[" & Shift & "] = " &
+		     "&" & Bit_Stream_Set_Func(Size, Shift) & ";");
 	       Plc(L, 1,
-		   "VECTOR_set_table[" & Size & "][" & Shift &
-		     "] = &" & Vector_Set_Func(Size, Shift) & ";");
+		   "bit_stream_set_table[" & Size & "][" & Shift &
+		     "] = &" & Bit_Stream_Set_Func(Size, Shift) & ";");
 	       Plc(L, 1,
-		   Vector_Get_Func(Size) & "_table[" & Shift & "] = " &
-		     "&" & Vector_Get_Func(Size, Shift) & ";");
+		   Bit_Stream_Get_Func(Size) & "_table[" & Shift & "] = " &
+		     "&" & Bit_Stream_Get_Func(Size, Shift) & ";");
 	       Plc(L, 1,
-		   "VECTOR_get_table[" & Size & "][" & Shift &
-		     "] = &" & Vector_Get_Func(Size, Shift) & ";");
-	       Plc(L, 1,
-		   Vector_Get_Back_Func(Size) & "_table[" & Shift & "] = " &
-		     "&" & Vector_Get_Back_Func(Size, Shift) & ";");
-	       Plc(L, 1,
-		   "VECTOR_get_back_table[" & Size & "][" & Shift &
-		     "] = &" & Vector_Get_Back_Func(Size, Shift) & ";");
+		   "bit_stream_get_table[" & Size & "][" & Shift &
+		     "] = &" & Bit_Stream_Get_Func(Size, Shift) & ";");
 	    end loop;
 	 end loop;
 	 Plc(L, "}");
@@ -750,15 +605,15 @@ package body Pn.Compiler.Vectors is
 	 Plc(L, Prototype & " {}");
       end;
       Comment: constant String :=
-        "This library contains bit vector type description as well as " &
+        "This library contains bit stream type description as well as " &
         "functions to manipulate these.";
    begin
       Init_Library(Lib, Comment, Path, L);
       Plh(L, "#include ""stdint.h""");
-      Gen_Vector_Type(L);
+      Gen_Bit_Stream_Type(L);
       Gen_Lib_Init_Func;
       Gen_Lib_Free_Func;
       End_Library(L);
    end;
 
-end Pn.Compiler.Vectors;
+end Pn.Compiler.Bit_Stream;

@@ -21,7 +21,7 @@ dveGenerator=helena-generate-dve
 checkerGenerator=helena-generate-checker
 configGenerator=helena-generate-config
 propertyGenerator=helena-generate-property
-vectorsGenerator=helena-generate-vectors
+bitStreamGenerator=helena-generate-bit-stream
 reporter=helena-report
 reportsMerger=helena-merge-reports
 preProc=helena-pp
@@ -36,10 +36,10 @@ versionFile=VERSION
 #  options to pass for basic compilation
 CCopt="-pthread -lm"
 
-commonFiles="vectors"
-checkerSrcFiles="bfs bfs_queue buchi common config ddfs_comm dbfs_comm dfs
-dfs_stack event graph heap hash_array hash_compaction hash_tbl observer pd4
-prop random_walk report state simulator storage vectors"
+commonFiles="bit_stream"
+checkerSrcFiles="bfs bfs_queue bit_stream buchi common config ddfs_comm
+dbfs_comm dfs dfs_stack event graph heap hash_array hash_compaction hash_tbl
+observer pd4 prop random_walk report state simulator storage"
 
 exitWithError () {
     rm -rf $tmpDir &> /dev/null
@@ -199,9 +199,9 @@ generateConfig () {
     $configGenerator $* $tmpDir || exitWithError
 }
 
-generateVectorsLib () {
-    checkExecutable $vectorsGenerator
-    $vectorsGenerator $tmpDir || exitWithError
+generateBitStreamLib () {
+    checkExecutable $bitStreamGenerator
+    $bitStreamGenerator $tmpDir || exitWithError
 }
 
 generateLNA () {
@@ -320,7 +320,7 @@ createEnvironment
 mkdir $tmpDir
 msg "Generating model source files ..."
 generateConfig $*
-generateVectorsLib
+generateBitStreamLib
 generateChecker
 if [ -f model-options ]
 then

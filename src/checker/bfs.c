@@ -13,6 +13,18 @@ static bfs_queue_t Q;
 static pthread_barrier_t B;
 static bool_t TERM;
 
+worker_id_t bfs_thread_owner
+(hash_key_t h) {
+  uint8_t result = 0;
+  int i;
+  uint16_t move = 0;
+  
+  for(i = 0; i < sizeof(hash_key_t); i++) {
+    result += (h >> (i * 8)) & 0xff;
+  }
+  return result % CFG_NO_WORKERS;
+}
+
 void bfs_wait_barrier
 () {
 #if defined(CFG_PARALLEL)
@@ -22,13 +34,19 @@ void bfs_wait_barrier
 
 void bfs_terminate_level
 (worker_id_t w) {
-  /**
-   *  all states of the current BFS level have been processed => move
-   *  to the next level of the queue and check if the queue is empty
-   *  in order to terminate.  this must be made by all threads
-   *  simultaneously.  hence the barriers
-   */
 #if defined(CFG_ALGO_DBFS)
+  
+  /**
+   *  level termination in distributed mode
+   *
+   *  first send pending states then wait that all threads have done
+   *  so.  then wait that other threads have done so.  worker 0
+   *  notifies the communicator thread that the level has been
+   *  processed.  then all wait that the communicator thread has
+   *  exchanged termination information with remote processes.
+   *  finally move to the next level.  this is the communicator thread
+   *  that tells us whether the search is finished or not.
+   */
   dbfs_comm_send_all_pending_states(w);
   bfs_wait_barrier();
   if(0 == w) {
@@ -39,6 +57,14 @@ void bfs_terminate_level
   bfs_wait_barrier();
   TERM = dbfs_comm_global_termination();
 #else
+  
+  /**
+   *  level termination in non distributed mode
+   *
+   *  move to the next level of the queue and check if the queue is
+   *  empty in order to terminate.  this must be made by all threads
+   *  simultaneously.  hence the barriers
+   */
   bfs_wait_barrier();
   bfs_queue_switch_level(Q, w);
   bfs_wait_barrier();
@@ -47,32 +73,13 @@ void bfs_terminate_level
   }
   bfs_wait_barrier();
 #endif
-}
 
-void bfs_set_report_trace
-(report_t report,
- unsigned int len,
- unsigned char * trace,
- state_t f) {
-#if !defined(CFG_WITH_TRACE)
-  report_faulty_state(R, f);
-#else
-  event_t * tr;
-  state_t s = state_initial();
-  unsigned int i, num;
-
-  report_faulty_state(R, f);
-  tr = mem_alloc(SYSTEM_HEAP, sizeof(event_t) * len);
-  for(i = 0; i < len; i ++) {
-    event_set_t en = state_enabled_events(s);
-    event_t e = event_set_nth(en, trace[i]);
-    event_exec(e, s);
-    tr[i] = event_copy(e);
-    event_set_free(en);
-  }
-  report->trace = tr;
-  report->trace_len = len;
-  state_free(s);
+  /**
+   *  with FRONTIER algorithm we delete all states of the previous
+   *  level that were marked as garbage by the storage_remove calls
+   */
+#if defined(CFG_ALGO_FRONTIER)
+  hash_tbl_gc_all(S, w);
 #endif
 }
 
@@ -85,7 +92,6 @@ void * bfs_worker
   storage_id_t id, id_new;
   event_set_t en;
   worker_id_t x;
-  bfs_queue_item_t el;
   int i, k, no;
   unsigned char * tr;
   worker_id_t w = (worker_id_t) (unsigned long int) arg;
@@ -98,21 +104,14 @@ void * bfs_worker
   sprintf(heap_name, "bfs heap of worker %d", w);
   heap = bounded_heap_new(heap_name, 10 * 1024 * 1024);
   while(!TERM) {
-    printf("lvl %d: %d has %d states to process\n", levels, proc_id(),
-           bfs_queue_size(Q));
     for(x = 0; x < NO_WORKERS_QUEUE && R->keep_searching; x ++) {
       while(!bfs_queue_slot_is_empty(Q, x, w) && R->keep_searching) {
         
-        /*
+        /**
          *  dequeue a state sent by thread x, get its successors and a
          *  valid stubborn set
          */
-        el = bfs_queue_dequeue(Q, x, w);
-#ifdef CFG_WITH_TRACE
-        l = el.l;
-        tr = el.trace;
-#endif
-        id = el.s;
+        id = bfs_queue_dequeue(Q, x, w);
         heap_reset(heap);
         s = storage_get_mem(S, id, w, heap);
         en = state_enabled_events_mem(s, heap);
@@ -126,16 +125,16 @@ void * bfs_worker
         fully_expanded = (en_size == event_set_size(en)) ? TRUE : FALSE;
 #endif
 
-        /*
+        /**
          *  check the state property
          */
 #ifdef CFG_ACTION_CHECK_SAFETY
         if(state_check_property(s, en)) {
-          bfs_set_report_trace(R, l, tr, s);
+          report_faulty_state(R, s);
         }
 #endif
     
-        /*
+        /**
          *  expand the current state and put its unprocessed
          *  successors in the queue
          */
@@ -152,12 +151,14 @@ void * bfs_worker
 #if defined(CFG_ALGO_DBFS)
           h = state_hash(s);
           if(!dbfs_comm_state_owned(h)) {
-            dbfs_comm_process_state(w, s);
+            dbfs_comm_process_state(w, s, h);
             event_undo(e, s);
             continue;
           }
-#endif
+          storage_insert_hashed(S, s, w, h, &is_new, &id_new);
+#else
           storage_insert(S, s, w, &is_new, &id_new, &h);
+#endif
 
           /*
            *  if new, enqueue the successor after setting its trace and
@@ -165,16 +166,7 @@ void * bfs_worker
            */
           if(is_new) {
 	    storage_set_cyan(S, id_new, w, TRUE);
-#ifdef CFG_WITH_TRACE
-            el.l = l + 1;
-            el.trace = mem_alloc(SYSTEM_HEAP, sizeof(unsigned char) * el.l);
-            for(k = 0; k < el.l - 1; k ++) {
-              el.trace[k] = tr[k];
-            }
-            el.trace[k] = i;
-#endif
-            el.s = id_new;
-            bfs_queue_enqueue(Q, el, w, h % CFG_NO_WORKERS);
+            bfs_queue_enqueue(Q, id_new, w, bfs_thread_owner(h));
           } else {
 
             /*
@@ -195,11 +187,6 @@ void * bfs_worker
         }
         state_free(s);
         event_set_free(en);
-#ifdef CFG_WITH_TRACE
-        if(tr) {
-          free(tr);
-        }
-#endif
 
         /*
          *  the state leaves the queue
@@ -231,7 +218,6 @@ void bfs
   storage_id_t id;
   worker_id_t w;
   void * dummy;
-  bfs_queue_item_t el;
   hash_key_t h;
   bool_t enqueue = TRUE;
   
@@ -254,15 +240,10 @@ void bfs
   if(enqueue) {
     storage_insert(R->storage, s, 0, &is_new, &id, &h);
     w = h % CFG_NO_WORKERS;
-    el.s = id;
-    state_free(s);
-#ifdef CFG_WITH_TRACE
-    el.l = 0;
-    el.trace = NULL;
-#endif
-    bfs_queue_enqueue(Q, el, w, w);
+    bfs_queue_enqueue(Q, id, w, w);
     bfs_queue_switch_level(Q, w);
   }
+  state_free(s);
 
   /*
    *  start the threads and wait for their termination

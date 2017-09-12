@@ -15,16 +15,8 @@
 #define NO_WORKERS_QUEUE CFG_NO_WORKERS
 #endif
 
-typedef struct {
-  storage_id_t s;
-#ifdef CFG_WITH_TRACE
-  unsigned int l;
-  unsigned char * trace;
-#endif
-} bfs_queue_item_t;      
-
 struct struct_bfs_queue_node_t {
-  bfs_queue_item_t  elements [BFS_QUEUE_NODE_SIZE];
+  storage_id_t  elements [BFS_QUEUE_NODE_SIZE];
   struct struct_bfs_queue_node_t * prev;
   struct struct_bfs_queue_node_t * next;
 };
@@ -69,11 +61,11 @@ bool_t bfs_queue_slot_is_empty
 
 void bfs_queue_enqueue
 (bfs_queue_t  q,
- bfs_queue_item_t s,
+ storage_id_t s,
  worker_id_t from,
  worker_id_t to);
 
-bfs_queue_item_t bfs_queue_dequeue
+storage_id_t bfs_queue_dequeue
 (bfs_queue_t q,
  worker_id_t from,
  worker_id_t to);

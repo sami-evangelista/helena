@@ -49,7 +49,6 @@ struct struct_report_t {
   uint64_t * events_executed_dd;
   uint64_t * state_cmps;
   uint64_t exec_time;
-  uint64_t max_unproc_size;
   uint64_t states_max_stored;
   unsigned int bfs_levels;
   bool_t bfs_levels_ok;
@@ -91,10 +90,6 @@ void report_set_comp_time
 void report_update_bfs_levels
 (report_t r,
  unsigned int bfs_levels);
-
-void report_update_max_unproc_size
-(report_t r,
- uint64_t max_unproc_size);
 
 void report_faulty_state
 (report_t r,

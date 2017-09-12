@@ -1,13 +1,13 @@
 with
+  Pn.Compiler.Bit_Stream,
   Pn.Compiler.Names,
-  Pn.Compiler.Vectors,
   Pn.Exprs,
   Pn.Exprs.Containers,
   Pn.Exprs.Num_Consts;
 
 use
+  Pn.Compiler.Bit_Stream,
   Pn.Compiler.Names,
-  Pn.Compiler.Vectors,
   Pn.Exprs,
   Pn.Exprs.Containers,
   Pn.Exprs.Num_Consts;

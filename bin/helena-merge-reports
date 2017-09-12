@@ -42,8 +42,6 @@ def mergeReports(refDoc, docs):
                            ("eventsExecutedExpansion", False),
                            ("garbageCollectionTime", False),
                            ("host", False),
-                           ("maxBfsQueue", False),
-                           ("maxDfsStack", False),
                            ("maxMemoryUsed", False),
                            ("searchResult", False),
                            ("searchTime", False),

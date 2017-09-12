@@ -1,7 +1,7 @@
 with
   Pn.Compiler,
+  Pn.Compiler.Bit_Stream,
   Pn.Compiler.Names,
-  Pn.Compiler.Vectors,
   Pn.Exprs,
   Pn.Exprs.Num_Consts,
   Pn.Exprs.Containers,
@@ -9,8 +9,8 @@ with
 
 use
   Pn.Compiler,
+  Pn.Compiler.Bit_Stream,
   Pn.Compiler.Names,
-  Pn.Compiler.Vectors,
   Pn.Exprs,
   Pn.Exprs.Num_Consts,
   Pn.Exprs.Containers,
@@ -318,13 +318,13 @@ package body Pn.Classes.Containers is
       Plh(Lib, "#define " & Cls_Encode_Func(C.Me) & "(_item, _v) \");
       Plh(Lib, "{ \");
       Plh(Lib, 1, "unsigned int " & Var & "; \");
-      Plh(Lib, 1, Vector_Set_Func(Cap_Size) & "(_v, _item.length); \");
+      Plh(Lib, 1, Bit_Stream_Set_Func(Cap_Size) & "(_v, _item.length); \");
       Plh(Lib, 1, "for(" & Var & " = 0; " & Var & " < _item.length; " & Var &
           " ++) { \");
       Plh(Lib, 2,
           Cls_Encode_Func(C.Elements) & "(_item.items[" & Var & "], _v); \");
       Plh(Lib, 1, "} \");
-      Plh(Lib, 1, Vector_Set_Func(Cap_Size) & "(_v, _item.length); \");
+      Plh(Lib, 1, Bit_Stream_Set_Func(Cap_Size) & "(_v, _item.length); \");
       Plh(Lib, "}");
 
       --===
@@ -334,7 +334,7 @@ package body Pn.Classes.Containers is
       Plh(Lib, "#define " & Cls_Decode_Func(C.Me) & "(_v, _item) \");
       Plh(Lib, "{ \");
       Plh(Lib, 1, "int " & Var & "; \");
-      Plh(Lib, 1, Vector_Get_Func(Cap_Size) &
+      Plh(Lib, 1, Bit_Stream_Get_Func(Cap_Size) &
 	    "(_v, _item.length); \");
       Plh(Lib, 1, "for(" & Var & " = 0; " & Var &
 	    " < _item.length; " & Var & "++) \");
@@ -342,7 +342,7 @@ package body Pn.Classes.Containers is
       Plh(Lib, 2, Cls_Decode_Func(C.Elements) &
 	    "(_v, _item.items[" & Var & "]); \");
       Plh(Lib, 1, "} \");
-      Plh(Lib, 1, "VECTOR_move(_v, " & Cap_Size & "); \");
+      Plh(Lib, 1, "bit_stream_move(_v, " & Cap_Size & "); \");
       Plh(Lib, "}");
    end;
 

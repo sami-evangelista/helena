@@ -4,6 +4,7 @@ with
   Gnat.Io_Aux,
   Gnat.Os_Lib,
   Pn.Struct_Analysis,
+  Pn.Compiler.Bit_Stream,
   Pn.Compiler.Classes,
   Pn.Compiler.Config,
   Pn.Compiler.Constants,
@@ -18,8 +19,7 @@ with
   Pn.Compiler.Model,
   Pn.Compiler.Por,
   Pn.Compiler.Util,
-  Pn.Compiler.State,
-  Pn.Compiler.Vectors;
+  Pn.Compiler.State;
 
 use
   Ada.Directories,
@@ -27,6 +27,7 @@ use
   Gnat.Io_Aux,
   Gnat.Os_Lib,
   Pn.Struct_Analysis,
+  Pn.Compiler.Bit_Stream,
   Pn.Compiler.Classes,
   Pn.Compiler.Config,
   Pn.Compiler.Constants,
@@ -41,8 +42,7 @@ use
   Pn.Compiler.Model,
   Pn.Compiler.Por,
   Pn.Compiler.Util,
-  Pn.Compiler.State,
-  Pn.Compiler.Vectors;
+  Pn.Compiler.State;
 
 package body Pn.Compiler is
 
@@ -81,7 +81,7 @@ package body Pn.Compiler is
       --===
       --  generate all libraries
       --===
-      Vectors.Gen("vectors", To_String(Path));
+      Bit_Stream.Gen("bit_stream", To_String(Path));
       Interfaces.Gen(N, Path);
       Util.Gen(N, Path);
       Classes.Gen(N, Path);
@@ -124,9 +124,7 @@ package body Pn.Compiler is
    begin
       Interfaces.Gen(N, To_Ustring("."));
       Rename_File(To_String(H_File), To_String(File_Path), Success);
-      if not Success then null; end if;
       Delete_File(To_String(C_File), Success);
-      if not Success then null; end if;
    end;
 
 
@@ -184,7 +182,7 @@ package body Pn.Compiler is
 					  3 => To_Ustring("heap"),
 					  4 => Util_Lib,
 					  5 => To_Ustring("common"),
-					  6 => To_Ustring("vectors")));
+					  6 => To_Ustring("bit_stream")));
    end;
 
    procedure Init_Library

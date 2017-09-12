@@ -774,7 +774,6 @@ void * pd4_worker
     state_free(s);
     recons_id = 0;
     next_lvl = 1;
-    report_update_max_unproc_size(R, 1);
   }
   pd4_barrier_wait(w);
   while(next_lvl != 0) {
@@ -800,7 +799,6 @@ void * pd4_worker
       for(x = 0; x < CFG_NO_WORKERS; x ++) {
 	next_lvl += next_lvls[x];
       }
-      report_update_max_unproc_size(R, next_lvl);
       report_update_bfs_levels(R, depth);
     }
     pd4_barrier_wait(w);

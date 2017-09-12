@@ -1,6 +1,6 @@
 with
-  Pn.Compiler.Vectors,
   Pn.Classes,
+  Pn.Compiler.Bit_Stream,
   Pn.Compiler.Domains,
   Pn.Compiler.Event,
   Pn.Compiler.Mappings,
@@ -12,8 +12,8 @@ with
   Pn.Vars;
 
 use
-  Pn.Compiler.Vectors,
   Pn.Classes,
+  Pn.Compiler.Bit_Stream,
   Pn.Compiler.Domains,
   Pn.Compiler.Event,
   Pn.Compiler.Mappings,
