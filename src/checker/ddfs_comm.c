@@ -119,7 +119,7 @@ void * ddfs_comm_worker
      */
     ddfs_comm_barrier();
     pref.size = 0;
-    pos = sizeof(heap_prefix_t);
+    pref.char_len = sizeof(heap_prefix_t);
     for(w = 0; w < CFG_NO_WORKERS; w ++) {
 
       /*  wait for the bucket of thread w to be ready  */
@@ -128,7 +128,6 @@ void * ddfs_comm_worker
       }
 
       /*  put all states of the queue of worker w in the local heap  */
-      pref.size += B.size[w];
       for(i = 0; i < B.size[w]; i ++) {
 
         /*  get the serialised state and check whether there enough
@@ -136,42 +135,44 @@ void * ddfs_comm_worker
         sid = B.box[w][i];
         storage_get_serialised(S, sid, &s, &s_char_len);
         len = sizeof(hash_key_t) + 2 + sizeof(uint16_t) + s_char_len;
-        if(pos + len > BUFFER_SIZE) {
+        if(pref.char_len + len > BUFFER_SIZE) {
           break;
         }
 
         /*  put its hash value  */
         h = storage_get_hash(S, sid);
-        shmem_putmem(H + pos, &h, sizeof(hash_key_t), me);
-        pos += sizeof(hash_key_t);
+        shmem_putmem(H + pref.char_len, &h, sizeof(hash_key_t), me);
+        pref.char_len += sizeof(hash_key_t);
           
         /*  put its blue attribute  */
         blue = storage_get_blue(S, sid);
-        shmem_putmem(H + pos, &blue, 1, me);
-        pos ++;
+        shmem_putmem(H + pref.char_len, &blue, 1, me);
+        pref.char_len ++;
           
         /*  put its red attribute  */
         red = storage_get_red(S, sid);
-        shmem_putmem(H + pos, &red, 1, me);
-        pos ++;
+        shmem_putmem(H + pref.char_len, &red, 1, me);
+        pref.char_len ++;
           
         /*  put its char length  */
-        shmem_putmem(H + pos, &s_char_len, sizeof(uint16_t), me);
-        pos += sizeof(uint16_t);
+        shmem_putmem(H + pref.char_len, &s_char_len, sizeof(uint16_t), me);
+        pref.char_len += sizeof(uint16_t);
           
         /*  put the state  */
-        shmem_putmem(H + pos, s, s_char_len, me);
-        pos += s_char_len;
+        shmem_putmem(H + pref.char_len, s, s_char_len, me);
+        pref.char_len += s_char_len;
 
         /*  and decrease its reference counter  */
-        storage_ref(S, sid);        
+        storage_unref(S, sid);
+        
+        pref.size ++;
       }
 
       /*  reinitialise the queue of worker w and make it available  */
       B.size[w] = 0;
       B.status[w] = BUCKET_OK;
     }
-    pref.char_len = pos - sizeof(heap_prefix_t);
+    pref.char_len -= sizeof(heap_prefix_t);
 
     /*  notify others if the search has terminated  */
     if(!R->keep_searching) {

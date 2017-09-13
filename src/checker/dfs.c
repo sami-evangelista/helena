@@ -29,12 +29,17 @@ state_t dfs_recover_state
  worker_id_t w,
  heap_t heap) {
   storage_id_t id;
-#ifdef CFG_EVENT_UNDOABLE
+#if defined(CFG_EVENT_UNDOABLE)
   dfs_stack_event_undo(stack, now);
 #else
+#if defined(STORAGE_STATE_RECOVERABLE)
   state_free(now);
   id = dfs_stack_top(stack);
   now = storage_get_mem(S, id, w, heap);
+#else
+  state_free(now);
+  now = dfs_stack_top_state(stack, heap);
+#endif
 #endif
   return now;
 }
@@ -44,7 +49,7 @@ state_t dfs_check_state
  event_set_t en,
  dfs_stack_t blue_stack,
  dfs_stack_t red_stack) { 
-#ifdef CFG_ACTION_CHECK_SAFETY
+#if defined(CFG_ACTION_CHECK_SAFETY)
   if(state_check_property(now, en)) {
     report_faulty_state(R, now);
     dfs_stack_create_trace(blue_stack, red_stack, R);
@@ -74,7 +79,7 @@ state_t dfs_main
   /*
    *  push the root state on the stack
    */
-  dfs_stack_push(stack, id);
+  dfs_stack_push(stack, id, now);
   en = dfs_stack_compute_events(stack, now, TRUE);
   if(blue) {
     storage_set_cyan(S, id, w, TRUE);
@@ -128,7 +133,7 @@ state_t dfs_main
        *  state is accepting and halt after if an accepting cycle has
        *  been found
        */
-#ifdef CFG_ACTION_CHECK_LTL
+#if defined(CFG_ACTION_CHECK_LTL)
       if(blue && state_accepting(now)) {
 	R->states_accepting[w] ++;
 	dfs_main(w, now, dfs_stack_top(stack), heap,
@@ -153,7 +158,7 @@ state_t dfs_main
       /*
        *  in distributed DFS we process the state to be later sent
        */
-#ifdef CFG_ALGO_DDFS
+#if defined(CFG_ALGO_DDFS)
       en = dfs_stack_top_events(stack);
       ddfs_comm_process_explored_state(w, id_top, en);
 #endif
@@ -208,10 +213,10 @@ state_t dfs_main
       }
 
       /*
-       *  if the successor state must not be explored we undo the
-       *  event used to reach it.  otherwise we push it on the stack.
-       *  if the successor is on the stack the proviso is not verified
-       *  for the current state.
+       *  if the successor state must not be explored we recover the
+       *  state on top of the stack.  otherwise we push it on the
+       *  stack.  if the successor is on the stack the proviso is not
+       *  verified for the current state.
        */
       if(!push) {
         now = dfs_recover_state(stack, now, w, heap);
@@ -232,7 +237,7 @@ state_t dfs_main
          *  push the successor state on the stack and then set some
          *  color on it
          */
-	dfs_stack_push(stack, id);
+	dfs_stack_push(stack, id, now);
     	en = dfs_stack_compute_events(stack, now, TRUE);
         if(blue) {
           storage_set_cyan(S, id, w, TRUE);
@@ -252,7 +257,7 @@ state_t dfs_main
 	 *  if we check an LTL property, test whether the state
 	 *  reached is the seed
 	 */
-#ifdef CFG_ACTION_CHECK_LTL
+#if defined(CFG_ACTION_CHECK_LTL)
 	if(!blue && (EQUAL == storage_id_cmp(id, id_seed))) {
 	  R->keep_searching = FALSE;
 	  R->result = FAILURE;
@@ -278,7 +283,7 @@ void * dfs_worker
   bounded_heap_t heap = bounded_heap_new("state heap", 1024 * 100);
   state_t now = state_initial_mem(heap);
   dfs_stack_t blue_stack = dfs_stack_new(wid * 2);
-#ifdef CFG_ACTION_CHECK_LTL
+#if defined(CFG_ACTION_CHECK_LTL)
   dfs_stack_t red_stack = dfs_stack_new(wid * 2 + 1);
 #else
   dfs_stack_t red_stack = NULL;

@@ -180,13 +180,11 @@ class Config:
             self.partialOrder = False
         elif self.algo == FRONTIER:
             self.stateCaching = False
-            self.hashCompaction = False
         elif self.algo == DELTA_DDD:
             self.stateCaching = False
             self.hashCompaction = False
             self.partialOrder = False
         elif self.algo == BFS:
-            self.hashCompaction = False
             self.stateCaching = False
             self.traceType = STATE
         elif self.algo == DDFS:
@@ -321,6 +319,7 @@ class Config:
         #  partial order reduction
         if self.partialOrder:
             W("#define CFG_POR\n")
+            W("#define CFG_PROVISO\n")
             if self.propType is not None and \
                self.propType != DEADLOCK:
                 W("#define CFG_PROVISO\n")
@@ -423,13 +422,13 @@ class Config:
                 
             #  boolean options
             elif opt in [ "P", "partial-order" ]:
-                self.partialOrder =(val is None) or val == "1"
+                self.partialOrder = (val is None) or val == "1"
             elif opt in [ "r", "run-time-checks" ]:
-                self.runTimeChecks =(val is None) or val == "1"
+                self.runTimeChecks = (val is None) or val == "1"
             elif opt in [ "S", "state-caching" ]:
-                self.stateCaching =(val is None) or val == "1"
+                self.stateCaching = (val is None) or val == "1"
             elif opt in [ "H", "hash-compaction" ]:
-                self.hashCompaction =(val is None) or val == "1"
+                self.hashCompaction = (val is None) or val == "1"
 
             #  numerical options
             elif opt in [ "W", "workers" ]:

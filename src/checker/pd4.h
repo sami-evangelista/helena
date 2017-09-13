@@ -23,7 +23,7 @@ typedef struct {
   bool_t dd_visit;
   bool_t recons[2];
   event_id_t e;
-#ifdef CFG_ACTION_BUILD_RG
+#if defined(CFG_ACTION_BUILD_RG)
   uint32_t num;
 #endif
 } pd4_state_t;

@@ -11,7 +11,7 @@
 ******************************************************************************/
 
 
-load_balancer (C := 6,    /*  number of clients  */
+load_balancer (C := 4,    /*  number of clients  */
                S := 2) {  /*  number of servers  */
 
    /*  clients  */

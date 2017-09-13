@@ -1,6 +1,6 @@
 #include "state.h"
 
-#ifdef CFG_ACTION_CHECK_LTL
+#if defined(CFG_ACTION_CHECK_LTL)
 
 state_t state_initial_mem
 (heap_t heap) {

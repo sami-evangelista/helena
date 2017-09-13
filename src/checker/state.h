@@ -9,7 +9,7 @@
 #error Model configuration missing!
 #endif
 
-#ifdef CFG_ACTION_CHECK_LTL
+#if defined(CFG_ACTION_CHECK_LTL)
 
 
 
@@ -99,7 +99,7 @@ typedef mstate_t state_t;
 #define state_char_width mstate_char_width
 #define state_cmp_vector mstate_cmp_vector
 
-#ifdef CFG_USE_HELENA_HEAPS
+#if defined(CFG_USE_HELENA_HEAPS)
 #define state_initial_mem mstate_initial_mem
 #define state_copy_mem mstate_copy_mem
 #define state_unserialise_mem mstate_unserialise_mem

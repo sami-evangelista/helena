@@ -3,6 +3,27 @@
 #if defined(CFG_ALGO_BFS) || defined(CFG_ALGO_DBFS) || \
   defined(CFG_ALGO_FRONTIER)
 
+bfs_queue_node_t bfs_queue_node_new
+() {
+  bfs_queue_node_t result;
+  result = mem_alloc(SYSTEM_HEAP, sizeof(struct_bfs_queue_node_t));
+#if defined(BFS_QUEUE_STATE_IN_QUEUE)
+  result->heap = evergrowing_heap_new("", 10000);
+#endif
+  return result;
+}
+
+void bfs_queue_node_free
+(bfs_queue_node_t n) {  
+  if(n) {
+    if(n->next) {
+      bfs_queue_node_free(n->next);
+    }
+    heap_free(n->heap);
+    mem_free(SYSTEM_HEAP, n);
+  }
+}
+
 bfs_queue_slot_t bfs_queue_slot_new
 () {
   bfs_queue_slot_t result;
@@ -17,12 +38,7 @@ bfs_queue_slot_t bfs_queue_slot_new
 
 void bfs_queue_slot_free
 (bfs_queue_slot_t q) {
-  bfs_queue_node_t tmp = q->first, next;
-  while(tmp) {
-    next = tmp->next;
-    mem_free(SYSTEM_HEAP, tmp);
-    tmp = next;
-  }
+  bfs_queue_node_free(q->first);
   mem_free(SYSTEM_HEAP, q);
 }
 
@@ -41,11 +57,6 @@ bfs_queue_t bfs_queue_new
   return result;
 }
 
-bool_t bfs_queue_is_empty
-(bfs_queue_t q) {
-  return (bfs_queue_size(q) == 0) ? TRUE : FALSE;
-}
-
 void bfs_queue_free
 (bfs_queue_t q) {
   worker_id_t w, x;
@@ -57,6 +68,11 @@ void bfs_queue_free
     }
   }
   mem_free(SYSTEM_HEAP, q);
+}
+
+bool_t bfs_queue_is_empty
+(bfs_queue_t q) {
+  return (bfs_queue_size(q) == 0) ? TRUE : FALSE;
 }
 
 uint64_t bfs_queue_size
@@ -81,7 +97,7 @@ bool_t bfs_queue_slot_is_empty
 
 void bfs_queue_enqueue
 (bfs_queue_t  q,
- storage_id_t s,
+ bfs_queue_item_t item,
  worker_id_t from,
  worker_id_t to) {
   bfs_queue_slot_t slot = q->next[to][from];
@@ -100,16 +116,19 @@ void bfs_queue_enqueue
     slot->last->next->prev = slot->last;
     slot->last = slot->last->next;
   }
-  slot->last->elements[slot->last_index] = s;
+#if defined(BFS_QUEUE_STATE_IN_QUEUE)
+  item.s = state_copy_mem(item.s, slot->last->heap);
+#endif
+  slot->last->items[slot->last_index] = item;
   slot->last_index ++;
   slot->size ++;
 }
 
-storage_id_t bfs_queue_dequeue
+bfs_queue_item_t bfs_queue_dequeue
 (bfs_queue_t q,
  worker_id_t from,
  worker_id_t to) {
-  storage_id_t result;
+  bfs_queue_item_t result;
   bfs_queue_node_t tmp;
   bfs_queue_slot_t slot = q->current[to][from];
 
@@ -119,7 +138,7 @@ storage_id_t bfs_queue_dequeue
     slot->first = tmp;
     slot->first_index = 0;
   }
-  result = slot->first->elements[slot->first_index];
+  result = slot->first->items[slot->first_index];
   slot->first_index ++;
   slot->size --;
   return result;

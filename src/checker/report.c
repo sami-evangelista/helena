@@ -51,8 +51,8 @@ report_t report_new
   result->keep_searching = TRUE;
   gettimeofday(&result->start_time, NULL);
   result->graph_file = NULL;
-#ifdef CFG_PROPERTY
-#ifdef CFG_HASH_COMPACTION
+#if defined(CFG_PROPERTY)
+#if defined(CFG_HASH_COMPACTION)
   result->result = NO_ERROR;
 #else
   result->result = SUCCESS;
@@ -64,7 +64,7 @@ report_t report_new
   /*
    *  launch the observer thread
    */
-#ifdef CFG_WITH_OBSERVER
+#if defined(CFG_WITH_OBSERVER)
   pthread_create(&result->observer, NULL, &observer_start,
 		 (void *) result);
 #else
@@ -118,12 +118,12 @@ void report_output_trace
     if(!event_is_dummy(r->trace[i])) {
       event_to_xml(r->trace[i], out);
       event_exec(r->trace[i], s);
-#ifdef CFG_TRACE_FULL
+#if defined(CFG_TRACE_FULL)
       state_to_xml(s, out);
 #endif
     }
   }
-#ifdef CFG_TRACE_EVENTS
+#if defined(CFG_TRACE_EVENTS)
   if(r->trace_len > 0) {
     state_to_xml(s, out);
   }
@@ -159,7 +159,7 @@ void report_finalise
   r->keep_searching = FALSE;
   gettimeofday(&r->end_time, NULL);
   r->exec_time = duration(r->start_time, r->end_time);
-#ifdef CFG_WITH_OBSERVER
+#if defined(CFG_WITH_OBSERVER)
   pthread_join(r->observer, &dummy);
 #endif
 #if defined(CFG_DISTRIBUTED)
@@ -176,13 +176,13 @@ void report_finalise
   fprintf(out, "<infoReport>\n");
   fprintf(out, "<model>%s</model>\n", model_name());
   model_xml_parameters(out);
-#ifdef CFG_LANGUAGE
+#if defined(CFG_LANGUAGE)
   fprintf(out, "<language>%s</language>\n", CFG_LANGUAGE);
 #endif
-#ifdef CFG_DATE
+#if defined(CFG_DATE)
   fprintf(out, "<date>%s</date>\n", CFG_DATE);
 #endif
-#ifdef CFG_FILE_PATH
+#if defined(CFG_FILE_PATH)
   fprintf(out, "<filePath>%s</filePath>\n", CFG_FILE_PATH);
 #endif
   gethostname(name, 1024);
@@ -193,7 +193,7 @@ void report_finalise
    *  search report
    ***/
   fprintf(out, "<searchReport>\n");
-#ifdef CFG_PROPERTY
+#if defined(CFG_PROPERTY)
   fprintf(out, "<property>%s</property>\n", CFG_PROPERTY);
 #endif
   fprintf(out, "<searchResult>");
@@ -241,7 +241,7 @@ void report_finalise
 #if defined(CFG_HASH_STORAGE) || defined(CFG_PD4_STORAGE)
   fprintf(out, "<hashTableSlots>%d</hashTableSlots>\n", CFG_HASH_SIZE);
 #endif
-#ifdef CFG_HASH_COMPACTION
+#if defined(CFG_HASH_COMPACTION)
   fprintf(out, "<hashCompact/>\n");
 #endif
 #if defined(CFG_POR)
@@ -313,7 +313,7 @@ void report_finalise
   fprintf(out, "<statesExpandedMax>%llu</statesExpandedMax>\n", max_visited);
   fprintf(out, "<statesExpandedDev>%llu</statesExpandedDev>\n", dev_visited);
 #endif
-#ifdef CFG_ACTION_CHECK_LTL
+#if defined(CFG_ACTION_CHECK_LTL)
   fprintf(out, "<statesAccepting>%llu</statesAccepting>\n",
           do_large_sum(r->states_accepting, r->no_workers));
 #endif
@@ -337,14 +337,14 @@ void report_finalise
           r->max_mem_used);
   fprintf(out, "<eventsExecuted>%llu</eventsExecuted>\n",
           do_large_sum(r->events_executed, r->no_workers));
-#ifdef CFG_ALGO_PD4
+#if defined(CFG_ALGO_PD4)
   fprintf(out, "<eventsExecutedDDD>%llu</eventsExecutedDDD>\n",
           do_large_sum(r->events_executed_dd, r->no_workers));
   fprintf(out, "<eventsExecutedExpansion>%llu</eventsExecutedExpansion>\n",
           do_large_sum(r->events_executed, r->no_workers) -
           do_large_sum(r->events_executed_dd, r->no_workers));
 #endif
-#ifdef CFG_ALGO_RWALK
+#if defined(CFG_ALGO_RWALK)
   fprintf(out, "<eventExecPerSecond>%d</eventExecPerSecond>\n",
 	  (unsigned int)(1.0 * visited /(r->exec_time / 1000000.0)));
 #endif

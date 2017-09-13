@@ -150,6 +150,7 @@ void * dbfs_comm_worker
 (void * arg) {
   const worker_id_t my_worker_id = CFG_NO_WORKERS;
   int pe, term = 0;
+  bfs_queue_item_t item;
   uint64_t queue_size;
   uint32_t pos, tmp_pos, no_states;
   uint16_t s_char_len;
@@ -202,7 +203,8 @@ void * dbfs_comm_worker
             tmp_pos += s_char_len;
 
             if(is_new) {
-              bfs_queue_enqueue(Q, sid, my_worker_id, h % CFG_NO_WORKERS);
+              item.id = sid;
+              bfs_queue_enqueue(Q, item, my_worker_id, h % CFG_NO_WORKERS);
             }
           }
         }

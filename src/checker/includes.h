@@ -24,7 +24,7 @@
 
 #include "config.h"
 
-#ifdef CFG_DISTRIBUTED
+#if defined(CFG_DISTRIBUTED)
 #include "shmem.h"
 #endif
 

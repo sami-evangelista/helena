@@ -6,7 +6,7 @@
 void * bounded_heap_new
 (char * name,
  mem_size_t size) {
-#ifdef CFG_USE_HELENA_HEAPS
+#if defined(CFG_USE_HELENA_HEAPS)
   bounded_heap_t result;
   MALLOC(result, bounded_heap_t, sizeof(struct_bounded_heap_t));
   MALLOC(result->name, char *, strlen(name) + 1);
@@ -82,7 +82,7 @@ bool_t bounded_heap_has_mem_free
 void * evergrowing_heap_new
 (char * name,
  mem_size_t block_size) {
-#ifdef CFG_USE_HELENA_HEAPS
+#if defined(CFG_USE_HELENA_HEAPS)
   evergrowing_heap_t result;
   MALLOC(result, evergrowing_heap_t, sizeof(struct_evergrowing_heap_t));
   MALLOC(result->name, char *, strlen(name) + 1);

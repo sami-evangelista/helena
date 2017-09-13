@@ -118,16 +118,18 @@ void hash_tbl_insert_real
   /**
    *  compute the hash value
    */
-#ifdef CFG_HASH_COMPACTION
-  hash_compact(*s, &hc);
-#endif
-  if(!h_set) {
-#ifdef CFG_HASH_COMPACTION
-    (*h) = hc.keys[0];
-#else
-    (*h) = state_hash(*s);
-#endif
+#if defined(CFG_HASH_COMPACTION)
+  if(NULL == se) {
+    hash_compact(*s, &hc);
+  } else {
+    memcpy(&hc, se, sizeof(hash_compact_t));
   }
+  (*h) = hc.keys[0];
+#else
+  if(!h_set) {
+    (*h) = state_hash(*s);
+  }
+#endif
   pos = (*h) % tbl->hash_size;
   
   while(TRUE) {
@@ -155,7 +157,7 @@ void hash_tbl_insert_real
 	  }
         }
 #if defined(CFG_HASH_COMPACTION)
-        memcpy(&(tbl->state[pos][CFG_ATTRS_CHAR_SIZE]), &hc,
+        memcpy(tbl->state[pos] + CFG_ATTRS_CHAR_SIZE, &hc,
                sizeof(hash_compact_t));
 #else
         if(NULL == se) {
@@ -198,7 +200,7 @@ void hash_tbl_insert_real
       tbl->state_cmps[w] ++;
       se_other = tbl->state[pos] + CFG_ATTRS_CHAR_SIZE;
 #if defined(CFG_HASH_COMPACTION)
-      found = (0 == memcmp(s, se_other, sizeof(hash_compact_t)));
+      found = (0 == memcmp(&hc, se_other, sizeof(hash_compact_t)));
 #else
       found = (tbl->hash[pos] == (*h));
       if(found) {
@@ -283,8 +285,7 @@ hash_key_t hash_tbl_get_hash
   
 #if defined(CFG_HASH_COMPACTION)
   hash_compact_t h;
-  memcpy(&h, &(tbl->state[id][CFG_ATTRS_CHAR_SIZE]),
-         sizeof(hash_compact_t));
+  memcpy(&h, tbl->state[id] + CFG_ATTRS_CHAR_SIZE, sizeof(hash_compact_t));
   result = h.keys[0];
 #else
   result = tbl->hash[id];
@@ -433,11 +434,10 @@ void hash_tbl_get_serialised
  hash_tbl_id_t id,
  bit_vector_t * s,
  uint16_t * size) {
+  (*s) = tbl->state[id] + CFG_ATTRS_CHAR_SIZE;
 #if defined(CFG_HASH_COMPACTION)
-  (*s) = &(tbl->state[id][CFG_ATTRS_CHAR_SIZE]);
   (*size) = sizeof(hash_compact_t);
 #else
-  (*s) = tbl->state[id] + CFG_ATTRS_CHAR_SIZE;
   (*size) = (uint16_t) hash_tbl_get_attribute(tbl, id,
                                               CFG_ATTR_CHAR_LEN_POS,
                                               CFG_ATTR_CHAR_LEN_SIZE);
@@ -511,6 +511,7 @@ void hash_tbl_empty_slot
 (hash_tbl_t tbl,
  worker_id_t w,
  hash_tbl_id_t id) {
+  
   tbl->size[w] --;
   tbl->status[id] = BUCKET_DEL;
 #if !defined(CFG_HASH_COMPACTION)

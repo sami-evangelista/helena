@@ -43,12 +43,7 @@ class Model:
         f = self.next [ self.appendStateCaching ]
         f(l + ["-S=0"])
         if self.compress:
-            f(l + ["-S=1", "-s=1000"])
-    def appendDelta(self, l):
-        f = self.next [ self.appendDelta ]
-        f(l + ["-D=0"])
-        if self.compress:
-            f(l + ["-D=1"])
+            f(l + ["-S=1" ])
     def appendHashCompaction(self, l):
         f = self.next [ self.appendHashCompaction ]
         f(l + ["-H=0"])
@@ -116,8 +111,7 @@ class Model:
         self.next = { self.appendAction          : self.appendAlgo,
                       self.appendAlgo            : self.appendPartialOrder,
                       self.appendPartialOrder    : self.appendHashCompaction,
-                      self.appendHashCompaction  : self.appendDelta,
-                      self.appendDelta           : self.appendStateCaching,
+                      self.appendHashCompaction  : self.appendStateCaching,
                       self.appendStateCaching    : self.launchHelena }
         self.testNum = 0
         os.mkdir(self.outDir)

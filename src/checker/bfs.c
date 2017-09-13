@@ -83,13 +83,20 @@ void bfs_terminate_level
 #endif
 }
 
+
+#if defined(CFG_EVENT_UNDOABLE)
+#define bfs_back_to_s() {event_undo(e, s);}
+#else
+#define bfs_back_to_s() {state_free(succ);}
+#endif
+
 void * bfs_worker
 (void * arg) {
   uint32_t levels = 0;
   char t;
   unsigned int l, en_size;
   state_t s, succ;
-  storage_id_t id, id_new;
+  storage_id_t id_succ;
   event_set_t en;
   worker_id_t x;
   int i, k, no;
@@ -100,6 +107,7 @@ void * bfs_worker
   unsigned int arcs;
   heap_t heap;
   hash_key_t h;
+  bfs_queue_item_t item, succ_item;
   
   sprintf(heap_name, "bfs heap of worker %d", w);
   heap = bounded_heap_new(heap_name, 10 * 1024 * 1024);
@@ -109,11 +117,16 @@ void * bfs_worker
         
         /**
          *  dequeue a state sent by thread x, get its successors and a
-         *  valid stubborn set
+         *  valid stubborn set.  if the states are not stored in the
+         *  queue we get it from the storage
          */
-        id = bfs_queue_dequeue(Q, x, w);
+        item = bfs_queue_dequeue(Q, x, w);
         heap_reset(heap);
-        s = storage_get_mem(S, id, w, heap);
+#if defined(BFS_QUEUE_STATE_IN_QUEUE)
+        s = item.s;
+#else
+        s = storage_get_mem(S, item.id, w, heap);
+#endif
         en = state_enabled_events_mem(s, heap);
         en_size = event_set_size(en);
         if(0 == en_size) {
@@ -128,7 +141,7 @@ void * bfs_worker
         /**
          *  check the state property
          */
-#ifdef CFG_ACTION_CHECK_SAFETY
+#if defined(CFG_ACTION_CHECK_SAFETY)
         if(state_check_property(s, en)) {
           report_faulty_state(R, s);
         }
@@ -147,17 +160,22 @@ void * bfs_worker
 
           arcs ++;
           R->events_executed[w] ++;
+#if defined(CFG_EVENT_UNDOABLE)
           event_exec(e, s);
+          succ = s;
+#else
+          succ = state_succ_mem(s, e, heap);
+#endif
 #if defined(CFG_ALGO_DBFS)
-          h = state_hash(s);
+          h = state_hash(succ);
           if(!dbfs_comm_state_owned(h)) {
-            dbfs_comm_process_state(w, s, h);
-            event_undo(e, s);
+            dbfs_comm_process_state(w, succ, h);
+            bfs_back_to_s();
             continue;
           }
-          storage_insert_hashed(S, s, w, h, &is_new, &id_new);
+          storage_insert_hashed(S, succ, w, h, &is_new, &id_succ);
 #else
-          storage_insert(S, s, w, &is_new, &id_new, &h);
+          storage_insert(S, succ, w, &is_new, &id_succ, &h);
 #endif
 
           /*
@@ -165,8 +183,10 @@ void * bfs_worker
            *  level
            */
           if(is_new) {
-	    storage_set_cyan(S, id_new, w, TRUE);
-            bfs_queue_enqueue(Q, id_new, w, bfs_thread_owner(h));
+	    storage_set_cyan(S, id_succ, w, TRUE);
+            succ_item.id = id_succ;
+            succ_item.s = succ;
+            bfs_queue_enqueue(Q, succ_item, w, bfs_thread_owner(h));
           } else {
 
             /*
@@ -174,16 +194,16 @@ void * bfs_worker
              *  queue for the proviso to be satisfied
              */
 #if defined(CFG_POR) && defined(CFG_PROVISO)
-            if(!fully_expanded && !storage_get_cyan(S, id_new, w)) {
+            if(!fully_expanded && !storage_get_cyan(S, id_succ, w)) {
               fully_expanded = TRUE;
-              event_undo(e, s);
               event_set_free(en);
+              bfs_back_to_s();
               en = state_enabled_events_mem(s, heap);
               goto state_expansion;
             }
 #endif
           }
-          event_undo(e, s);
+          bfs_back_to_s();
         }
         state_free(s);
         event_set_free(en);
@@ -193,9 +213,9 @@ void * bfs_worker
          */
         R->arcs[w] += arcs;
         R->states_visited[w] ++;
-        storage_set_cyan(S, id, w, FALSE);
-#ifdef CFG_ALGO_FRONTIER
-        storage_remove(S, id);
+        storage_set_cyan(S, item.id, w, FALSE);
+#if defined(CFG_ALGO_FRONTIER)
+        storage_remove(S, item.id);
 #endif
       }
     }
@@ -220,6 +240,7 @@ void bfs
   void * dummy;
   hash_key_t h;
   bool_t enqueue = TRUE;
+  bfs_queue_item_t item;
   
   R = r;
   S = R->storage;
@@ -240,7 +261,9 @@ void bfs
   if(enqueue) {
     storage_insert(R->storage, s, 0, &is_new, &id, &h);
     w = h % CFG_NO_WORKERS;
-    bfs_queue_enqueue(Q, id, w, w);
+    item.id = id;
+    item.s = s;
+    bfs_queue_enqueue(Q, item, w, w);
     bfs_queue_switch_level(Q, w);
   }
   state_free(s);

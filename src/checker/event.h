@@ -10,7 +10,7 @@
 #error Model configuration missing!
 #endif
 
-#ifdef CFG_ACTION_CHECK_LTL
+#if defined(CFG_ACTION_CHECK_LTL)
 
 
 
@@ -182,7 +182,7 @@ typedef mevent_set_t event_set_t;
 #define state_succ mstate_succ
 #define state_pred mstate_pred
 
-#ifdef CFG_USE_HELENA_HEAPS
+#if defined(CFG_USE_HELENA_HEAPS)
 #define event_unserialise_mem mevent_unserialise_mem
 #define event_set_unserialise_mem mevent_set_unserialise_mem
 #define state_enabled_events_mem mstate_enabled_events_mem

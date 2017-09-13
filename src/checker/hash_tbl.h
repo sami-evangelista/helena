@@ -24,6 +24,10 @@ typedef uint8_t bucket_status_t;
 #define NO_WORKERS_STORAGE (CFG_NO_WORKERS)
 #endif
 
+#if !defined(CFG_HASH_COMPACTION)
+#define STORAGE_STATE_RECOVERABLE
+#endif
+
 typedef struct {
   uint64_t hash_size;
   heap_t heaps[NO_WORKERS_STORAGE];
@@ -31,8 +35,8 @@ typedef struct {
   uint64_t state_cmps[NO_WORKERS_STORAGE];
   bucket_status_t update_status[CFG_HASH_SIZE];
   bucket_status_t status[CFG_HASH_SIZE];
-#ifdef CFG_HASH_COMPACTION
-  char state[CFG_HASH_SIZE][ATTRS_CHAR_SIZE + sizeof(hash_compact_t)];
+#if defined(CFG_HASH_COMPACTION)
+  char state[CFG_HASH_SIZE][CFG_ATTRS_CHAR_SIZE + sizeof(hash_compact_t)];
 #else
   bit_vector_t state[CFG_HASH_SIZE];
   hash_key_t hash[CFG_HASH_SIZE];
