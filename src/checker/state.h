@@ -1,3 +1,10 @@
+/**
+ * @file state.h
+ * @author Sami Evangelista
+ * @date 12 sep 2017
+ * @brief State definition.
+ */
+
 #ifndef LIB_STATE
 #define LIB_STATE
 

@@ -1,7 +1,7 @@
 #include "report.h"
 #include "dfs.h"
 #include "bfs.h"
-#include "pd4.h"
+#include "delta_ddd.h"
 #include "simulator.h"
 #include "random_walk.h"
 #include "graph.h"
@@ -60,8 +60,8 @@ int main
   bfs(glob_report);
 #elif defined(CFG_ALGO_DFS) || defined(CFG_ALGO_DDFS)
   dfs(glob_report);
-#elif defined(CFG_ALGO_PD4)
-  pd4(glob_report);
+#elif defined(CFG_ALGO_DELTA_DDD)
+  delta_ddd(glob_report);
 #elif defined(CFG_ALGO_RWALK)
   random_walk(glob_report);
 #endif

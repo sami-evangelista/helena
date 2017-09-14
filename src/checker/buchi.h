@@ -1,3 +1,10 @@
+/**
+ * @file buchi.h
+ * @author Sami Evangelista
+ * @date 12 sep 2017
+ * @brief Description of Buchi automata for LTL verification algorithms.
+ */
+
 #ifndef LIB_BUCHI
 #define LIB_BUCHI
 

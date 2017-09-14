@@ -1,3 +1,10 @@
+/**
+ * @file dbfs_comm.h
+ * @author Sami Evangelista
+ * @date 12 sep 2017
+ * @brief Communication library used by the DBFS algorithm
+ */
+
 #ifndef LIB_DBFS_COMM
 #define LIB_DBFS_COMM
 

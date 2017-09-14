@@ -264,11 +264,12 @@ class Config:
                     W("#define CFG_DDFS_COMM_STRAT_MINE\n")
                     M = True
         elif self.algo == DELTA_DDD:
-            W("#define CFG_ALGO_PD4\n")
-            W("#define CFG_PD4_STORAGE\n")
+            W("#define CFG_ALGO_DELTA_DDD\n")
+            W("#define CFG_DELTA_DDD_STORAGE\n")
         elif self.algo == RWALK:
             W("#define CFG_ALGO_RWALK\n")
-        W("#define CFG_PD4_CAND_SET_SIZE " + str(self.candidateSetSize) + "\n")
+        W("#define CFG_DELTA_DDD_CAND_SET_SIZE " + \
+          str(self.candidateSetSize) + "\n")
 
         #  state caching
         if self.stateCaching:

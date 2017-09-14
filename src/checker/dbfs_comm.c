@@ -39,32 +39,68 @@ static uint32_t SYM_HEAP_SIZE_PE;
 static int PES;
 static int ME;
 
+
+/**
+ *
+ *  Function: dbfs_comm_state_owner
+ *
+ */
 bool_t dbfs_comm_state_owner
 (hash_key_t h) {
   h = (h >> 24) + (h >> 16 && 0xff) + (h >> 8 & 0xff) + h & 0xff;
   return h % PES;
 }
 
+
+/**
+ *
+ *  Function: dbfs_comm_state_owned
+ *
+ */
 bool_t dbfs_comm_state_owned
 (hash_key_t h) {
   return dbfs_comm_state_owner(h) == ME;
 }
 
+
+/**
+ *
+ *  Function: dbfs_comm_global_termination
+ *
+ */
 bool_t dbfs_comm_global_termination
 () {
   return GLOB_TERM;
 }
 
+
+/**
+ *
+ *  Function: dbfs_comm_notify_level_termination
+ *
+ */
 void dbfs_comm_notify_level_termination
 () {
   LOCAL_TERM = TRUE;
 }
 
+
+/**
+ *
+ *  Function: dbfs_comm_local_barrier
+ *
+ */
 void dbfs_comm_local_barrier
 () {
   pthread_barrier_wait(&B);
 }
 
+
+/**
+ *
+ *  Function: dbfs_comm_send_buffer
+ *
+ */
 void dbfs_comm_send_buffer
 (worker_id_t w,
  int pe) {
@@ -75,7 +111,8 @@ void dbfs_comm_send_buffer
    *  states
    */
   do {
-    shmem_getmem(&pref, H + BUF.remote_pos[w][pe], sizeof(buffer_prefix_t), pe);
+    shmem_getmem(&pref, H + BUF.remote_pos[w][pe],
+                 sizeof(buffer_prefix_t), pe);
     if(pref.no_states > 0) {
       nanosleep(&WORKER_WAIT_TIME, NULL);
     }
@@ -98,6 +135,12 @@ void dbfs_comm_send_buffer
   BUF.pos[w][pe] = 0;
 }
 
+
+/**
+ *
+ *  Function: dbfs_comm_send_all_pending_states
+ *
+ */
 void dbfs_comm_send_all_pending_states
 (worker_id_t w) {
   int pe;
@@ -109,6 +152,12 @@ void dbfs_comm_send_all_pending_states
   }
 }
 
+
+/**
+ *
+ *  Function: dbfs_comm_process_state
+ *
+ */
 void dbfs_comm_process_state
 (worker_id_t w,
  state_t s,
@@ -144,6 +193,12 @@ void dbfs_comm_process_state
   BUF.pos[w][pe] += s_char_len;
 }
 
+
+/**
+ *
+ *  Function: dbfs_comm_barrier
+ *
+ */
 void dbfs_comm_barrier
 () {
   lna_timer_t t;
@@ -154,6 +209,12 @@ void dbfs_comm_barrier
   R->distributed_barrier_time += lna_timer_value(t);
 }
 
+
+/**
+ *
+ *  Function: dbfs_comm_worker_process_incoming_states
+ *
+ */
 void dbfs_comm_worker_process_incoming_states
 () {
   const worker_id_t my_worker_id = CFG_NO_WORKERS;
@@ -227,6 +288,12 @@ void dbfs_comm_worker_process_incoming_states
   heap_free(heap);
 }
 
+
+/**
+ *
+ *  Function: dbfs_comm_worker
+ *
+ */
 void * dbfs_comm_worker
 (void * arg) {
   int pe, term = 0;
@@ -314,6 +381,12 @@ void * dbfs_comm_worker
   }
 }
 
+
+/**
+ *
+ *  Function: dbfs_comm_start
+ *
+ */
 void dbfs_comm_start
 (report_t r,
  bfs_queue_t q) {
@@ -368,6 +441,12 @@ void dbfs_comm_start
   pthread_create(&W, NULL, &dbfs_comm_worker, NULL);
 }
 
+
+/**
+ *
+ *  Function: dbfs_comm_end
+ *
+ */
 void dbfs_comm_end
 () {
   void * dummy;

@@ -1,3 +1,10 @@
+/**
+ * @file bfs_queue.h
+ * @author Sami Evangelista
+ * @date 12 sep 2017
+ * @brief Implementation of the queue used by BFS based algorithm.
+ */
+
 #ifndef LIB_BFS_QUEUE
 #define LIB_BFS_QUEUE
 

@@ -226,7 +226,8 @@ state_t dfs_stack_top_state
   if(stack->size == 0) {
     fatal_error("dfs_stack_top_state: empty stack");
   }
-  result = state_copy_mem(stack->slots[stack->current]->items[stack->top].s, h);
+  result = stack->slots[stack->current]->items[stack->top].s;
+  result = state_copy_mem(result, h);
 #else
   fatal_error("dfs_stack_top_state: state cannot be recovered from stack");
 #endif

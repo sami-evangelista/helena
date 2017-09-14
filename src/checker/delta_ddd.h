@@ -1,5 +1,12 @@
-#ifndef LIB_PD4
-#define LIB_PD4
+/**
+ * @file delta_ddd.h
+ * @author Sami Evangelista
+ * @date 12 sep 2017
+ * @brief Implementation of the delta DDD algorithm.
+ */
+
+#ifndef LIB_DELTA_DDD
+#define LIB_DELTA_DDD
 
 #include "includes.h"
 #include "common.h"
@@ -10,14 +17,14 @@
 #error Model configuration missing!
 #endif
 
-void init_pd4_storage ();
-void free_pd4_storage ();
+void init_delta_ddd_storage ();
+void free_delta_ddd_storage ();
 
-typedef uint32_t pd4_storage_id_t;
+typedef uint32_t delta_ddd_storage_id_t;
 
 typedef struct {
-  pd4_storage_id_t fst_child;
-  pd4_storage_id_t next;
+  delta_ddd_storage_id_t fst_child;
+  delta_ddd_storage_id_t next;
   bool_t father;
   bool_t dd;
   bool_t dd_visit;
@@ -26,44 +33,44 @@ typedef struct {
 #if defined(CFG_ACTION_BUILD_RG)
   uint32_t num;
 #endif
-} pd4_state_t;
+} delta_ddd_state_t;
 
 typedef struct {
   unsigned char content;
-  pd4_storage_id_t id;
-  pd4_storage_id_t pred;
+  delta_ddd_storage_id_t id;
+  delta_ddd_storage_id_t pred;
   event_id_t e;
   bit_vector_t s;
   hash_key_t h;
   uint16_t width;
-} pd4_candidate_t;
+} delta_ddd_candidate_t;
 
 typedef struct {
-  pd4_storage_id_t root;
-  pd4_state_t ST[CFG_HASH_SIZE];
+  delta_ddd_storage_id_t root;
+  delta_ddd_state_t ST[CFG_HASH_SIZE];
   int32_t size[CFG_NO_WORKERS];
   uint64_t dd_time;
   uint64_t barrier_time[CFG_NO_WORKERS];
-} struct_pd4_storage_t;
+} struct_delta_ddd_storage_t;
 
-typedef struct_pd4_storage_t * pd4_storage_t;
+typedef struct_delta_ddd_storage_t * delta_ddd_storage_t;
 
 #include "report.h"
 
-void pd4
+void delta_ddd
 (report_t r);
 
-pd4_storage_t pd4_storage_new
+delta_ddd_storage_t delta_ddd_storage_new
 ();
 
-void pd4_storage_free
-(pd4_storage_t storage);
+void delta_ddd_storage_free
+(delta_ddd_storage_t storage);
 
-uint64_t pd4_storage_size
-(pd4_storage_t storage);
+uint64_t delta_ddd_storage_size
+(delta_ddd_storage_t storage);
 
-void pd4_storage_output_stats
-(pd4_storage_t storage,
+void delta_ddd_storage_output_stats
+(delta_ddd_storage_t storage,
  FILE * out);
 
 #endif

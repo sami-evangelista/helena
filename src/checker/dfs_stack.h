@@ -1,3 +1,10 @@
+/**
+ * @file dfs_stack.h
+ * @author Sami Evangelista
+ * @date 12 sep 2017
+ * @brief Implementation of the DFS stack used by DFS based algorithms.
+ */
+
 #ifndef LIB_DFS_STACK
 #define LIB_DFS_STACK
 

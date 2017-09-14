@@ -1,8 +1,15 @@
+/**
+ * @file storage.h
+ * @author Sami Evangelista
+ * @date 12 sep 2017
+ * @brief Storage definition.
+ */
+
 #ifndef LIB_STORAGE
 #define LIB_STORAGE
 
 #include "hash_tbl.h"
-#include "pd4.h"
+#include "delta_ddd.h"
 
 #ifndef CFG_MODEL_CONFIG
 #error Model configuration missing!
@@ -53,17 +60,17 @@ typedef hash_tbl_id_t storage_id_t;
 /*****
  *  storage used by delta-ddd algorithm
  *****/
-#elif defined (CFG_PD4_STORAGE)
+#elif defined (CFG_DELTA_DDD_STORAGE)
 
-typedef pd4_storage_t storage_t;
-typedef pd4_storage_id_t storage_id_t;
+typedef delta_ddd_storage_t storage_t;
+typedef delta_ddd_storage_id_t storage_id_t;
 
-#define init_storage           init_pd4_storage
-#define free_storage           free_pd4_storage
-#define storage_new            pd4_storage_new
-#define storage_free           pd4_storage_free
-#define storage_size           pd4_storage_size
-#define storage_output_stats   pd4_storage_output_stats
+#define init_storage           init_delta_ddd_storage
+#define free_storage           free_delta_ddd_storage
+#define storage_new            delta_ddd_storage_new
+#define storage_free           delta_ddd_storage_free
+#define storage_size           delta_ddd_storage_size
+#define storage_output_stats   delta_ddd_storage_output_stats
 
 #endif
 

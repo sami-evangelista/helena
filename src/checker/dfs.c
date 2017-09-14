@@ -1,3 +1,11 @@
+/**
+ * @file dfs.h
+ * @author Sami Evangelista
+ * @date 12 sep 2017
+ * @brief Implementation of DFS based algorithms: DFS, DDFS (distributed DFS).
+ *        Nested DFS (NDFS) and muti-core NDFS are also implemented here.
+ */
+
 #include "dfs.h"
 #include "model.h"
 #include "storage.h"

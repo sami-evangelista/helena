@@ -1,3 +1,10 @@
+/**
+ * @file ddfs_comm.h
+ * @author Sami Evangelista
+ * @date 12 sep 2017
+ * @brief Communication library used by the DDFS algorithm
+ */
+
 #ifndef LIB_DDFS_COMM
 #define LIB_DDFS_COMM
 

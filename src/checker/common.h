@@ -1,3 +1,10 @@
+/**
+ * @file common.h
+ * @author Sami Evangelista
+ * @date 12 sep 2017
+ * @brief Some common declarations.
+ */
+
 #ifndef LIB_COMMON
 #define LIB_COMMON
 

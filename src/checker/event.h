@@ -1,3 +1,10 @@
+/**
+ * @file event.h
+ * @author Sami Evangelista
+ * @date 12 sep 2017
+ * @brief Event definition.
+ */
+
 #ifndef LIB_EVENT
 #define LIB_EVENT
 

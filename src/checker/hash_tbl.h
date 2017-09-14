@@ -1,3 +1,10 @@
+/**
+ * @file hash_tbl.h
+ * @author Sami Evangelista
+ * @date 12 sep 2017
+ * @brief Implementation of an hash table supporting concurrent accesses.
+ */
+
 #ifndef LIB_HASH_TBL
 #define LIB_HASH_TBL
 

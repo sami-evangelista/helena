@@ -1,3 +1,10 @@
+/**
+ * @file report.h
+ * @author Sami Evangelista
+ * @date 12 sep 2017
+ * @brief Implementation of the report produced after a search.
+ */
+
 #ifndef LIB_REPORT
 #define LIB_REPORT
 

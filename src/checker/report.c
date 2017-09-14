@@ -231,14 +231,14 @@ void report_finalise
   fprintf(out, "<frontierSearch/>\n");
 #elif defined(CFG_ALGO_RWALK)
   fprintf(out, "<randomWalk/>\n");
-#elif defined(CFG_ALGO_PD4)
+#elif defined(CFG_ALGO_DELTA_DDD)
   fprintf(out, "<parallelDDDD/>\n");
 #endif
 #if defined(CFG_NO_WORKERS)
   fprintf(out, "<workers>%d</workers>\n", CFG_NO_WORKERS);
 #endif
   fprintf(out, "<searchOptions>\n");
-#if defined(CFG_HASH_STORAGE) || defined(CFG_PD4_STORAGE)
+#if defined(CFG_HASH_STORAGE) || defined(CFG_DELTA_DDD_STORAGE)
   fprintf(out, "<hashTableSlots>%d</hashTableSlots>\n", CFG_HASH_SIZE);
 #endif
 #if defined(CFG_HASH_COMPACTION)
@@ -247,9 +247,9 @@ void report_finalise
 #if defined(CFG_POR)
   fprintf(out, "<partialOrder/>\n");
 #endif
-#if defined(CFG_ALGO_PD4)
+#if defined(CFG_ALGO_DELTA_DDD)
   fprintf(out, "<candidateSetSize>%d</candidateSetSize>\n",
-          CFG_PD4_CAND_SET_SIZE);
+          CFG_DELTA_DDD_CAND_SET_SIZE);
 #endif
   fprintf(out, "</searchOptions>\n");
   fprintf(out, "</searchReport>\n");
@@ -268,7 +268,7 @@ void report_finalise
     fprintf(out, "<compilationTime>%.2f</compilationTime>\n", r->comp_time);
   }
   fprintf(out, "<searchTime>%.2f</searchTime>\n", r->exec_time / 1000000.0);
-#if defined(CFG_ALGO_PD4)
+#if defined(CFG_ALGO_DELTA_DDD)
   fprintf(out, "<duplicateDetectionTime>%.2f</duplicateDetectionTime>\n",
           r->storage->dd_time / 1000000.0);
   fprintf(out, "<barrierTime>%.2f</barrierTime>\n",
@@ -327,7 +327,7 @@ void report_finalise
   fprintf(out, "</graphStatistics>\n");
   
   /*  storage statistics  */
-#if defined(CFG_HASH_STORAGE) || defined(CFG_PD4_STORAGE)
+#if defined(CFG_HASH_STORAGE) || defined(CFG_DELTA_DDD_STORAGE)
   storage_output_stats(r->storage, out);
 #endif
   
@@ -337,7 +337,7 @@ void report_finalise
           r->max_mem_used);
   fprintf(out, "<eventsExecuted>%llu</eventsExecuted>\n",
           do_large_sum(r->events_executed, r->no_workers));
-#if defined(CFG_ALGO_PD4)
+#if defined(CFG_ALGO_DELTA_DDD)
   fprintf(out, "<eventsExecutedDDD>%llu</eventsExecutedDDD>\n",
           do_large_sum(r->events_executed_dd, r->no_workers));
   fprintf(out, "<eventsExecutedExpansion>%llu</eventsExecutedExpansion>\n",

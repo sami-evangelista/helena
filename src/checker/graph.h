@@ -1,3 +1,11 @@
+/**
+ * @file graph.h
+ * @author Sami Evangelista
+ * @date 12 sep 2017
+ * @brief Implementation of graph routines to generate a graph report in a CPN
+ *        Tools style.
+ */
+
 #ifndef LIB_GRAPH
 #define LIB_GRAPH
 

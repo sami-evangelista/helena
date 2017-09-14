@@ -1,3 +1,10 @@
+/**
+ * @file hash_array.h
+ * @author Sami Evangelista
+ * @date 12 sep 2017
+ * @brief Implementation of an hash array.
+ */
+
 #ifndef LIB_HASH_ARRAY
 #define LIB_HASH_ARRAY
 
@@ -56,24 +63,24 @@ harray_size_t harray_num_items
 (harray_t harray);
 
 bool_t harray_insert
-(harray_t       harray,
+(harray_t harray,
  harray_value_t val);
 
 void harray_delete
-(harray_t       harray,
+(harray_t harray,
  harray_value_t val);
 
 harray_value_t harray_lookup
-(harray_t       harray,
+(harray_t harray,
  harray_value_t val);
 
 void harray_app
-(harray_t           harray,
+(harray_t harray,
  harray_iter_func_t f,
  harray_iter_data_t data);
 
 void harray_filter
-(harray_t           harray,
+(harray_t harray,
  harray_pred_func_t f,
  harray_iter_data_t data);
 

@@ -1,3 +1,10 @@
+/**
+ * @file simulator.h
+ * @author Sami Evangelista
+ * @date 12 sep 2017
+ * @brief Implementation of the simulation mode.
+ */
+
 #ifndef LIB_SIMULATOR
 #define LIB_SIMULATOR
 
