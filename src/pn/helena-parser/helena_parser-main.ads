@@ -20,7 +20,8 @@ private package Helena_Parser.Main is
    type Arc_Type is
      (Input_Arc,
       Output_Arc,
-      Inhibit_Arc);
+      Inhibit_Arc,
+      Reset_Arc);
 
    procedure Parse_Net
      (E : in     Element;

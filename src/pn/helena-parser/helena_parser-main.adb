@@ -653,6 +653,7 @@ package body Helena_Parser.Main is
          when Input_Arc   => A_T := Pre;
          when Output_Arc  => A_T := Post;
          when Inhibit_Arc => A_T := Inhibit;
+	 when Reset_Arc   => A_T := Reset;
       end case;
       Parse_Place_Ref(E.Arc_Place, P, Ok);
       if Ok then
@@ -668,6 +669,7 @@ package body Helena_Parser.Main is
 	       when Input_Arc   => Msg := To_Ustring("in");
 	       when Output_Arc  => Msg := To_Ustring("out");
 	       when Inhibit_Arc => Msg := To_Ustring("inhibit");
+	       when Reset_Arc   => Msg := To_Ustring("reset");
             end case;
             Redefinition(E, Msg & "(" & Get_Name(P) & "," & Get_Name(T) & ")",
                          Null_String);
@@ -866,6 +868,7 @@ package body Helena_Parser.Main is
                Parse_Arcs(E.Transition_Inputs,   T, Input_Arc);
                Parse_Arcs(E.Transition_Outputs,  T, Output_Arc);
                Parse_Arcs(E.Transition_Inhibits, T, Inhibit_Arc);
+               Parse_Arcs(E.Transition_Resets,   T, Reset_Arc, Uscore => True);
                if not Is_Evaluable(T, N) then
                   Add_Error(E.Transition_Name,
                             "Transition " & Name &

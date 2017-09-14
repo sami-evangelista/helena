@@ -46,6 +46,7 @@ package body Pn.Compiler.Mappings is
       case A is
          when Pre     => Result := "pre_" & Result;
          when Post    => Result := "post_" & Result;
+         when Reset   => Result := "reset_" & Result;
 	 when Inhibit => pragma Assert(False); null;
       end case;
       case M is

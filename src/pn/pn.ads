@@ -48,9 +48,9 @@ package Pn is
    --  Group: Basic types
    --==========================================================================
 
-   type Arc_Type is (Pre, Post, Inhibit);
+   type Arc_Type is (Pre, Post, Reset, Inhibit);
 
-   subtype Update_Arc_Type is Arc_Type range Pre .. Post;
+   subtype Update_Arc_Type is Arc_Type range Pre .. Reset;
 
    type Num_Type is range Interfaces.C.Int'First .. Interfaces.C.Int'Last;
 
