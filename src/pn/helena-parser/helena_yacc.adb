@@ -332,7 +332,7 @@ begin
                 case yy.rule_id is
 
 when  1 =>
---#line  489
+--#line  484
 
 yyval := new Element_Record(Net);
 
@@ -351,7 +351,7 @@ parser_result :=
 yyval;
 
 when  2 =>
---#line  498
+--#line  493
 
 yyval := 
 yy.value_stack(yy.tos-1);
@@ -363,7 +363,7 @@ yyval);
 
 
 when  3 =>
---#line  502
+--#line  497
 
 yyval := new element_record(list);
 
@@ -372,43 +372,43 @@ set_pos(
 yyval);
 
 when  4 =>
---#line  508
+--#line  503
 
 yyval := 
 yy.value_stack(yy.tos);
 
 when  5 =>
---#line  510
+--#line  505
 
 yyval := 
 yy.value_stack(yy.tos);
 
 when  6 =>
---#line  512
+--#line  507
 
 yyval := 
 yy.value_stack(yy.tos);
 
 when  7 =>
---#line  514
+--#line  509
 
 yyval := 
 yy.value_stack(yy.tos);
 
 when  8 =>
---#line  516
+--#line  511
 
 yyval := 
 yy.value_stack(yy.tos);
 
 when  9 =>
---#line  518
+--#line  513
 
 yyval := 
 yy.value_stack(yy.tos);
 
 when  10 =>
---#line  528
+--#line  523
 
 yyval := new element_record(list);
 
@@ -417,13 +417,13 @@ set_pos(
 yyval);
 
 when  11 =>
---#line  533
+--#line  528
 
 yyval := 
 yy.value_stack(yy.tos-1);
 
 when  12 =>
---#line  537
+--#line  532
 
 yyval := new element_record(List);
 
@@ -435,7 +435,7 @@ set_pos(
 yyval);
 
 when  13 =>
---#line  543
+--#line  538
 
 yyval := 
 yy.value_stack(yy.tos-2);
@@ -446,7 +446,7 @@ set_pos(
 yyval);
 
 when  14 =>
---#line  549
+--#line  544
 
 yyval := new element_record(Net_Param);
 
@@ -460,25 +460,25 @@ yyval,
 yy.value_stack(yy.tos-2));
 
 when  15 =>
---#line  562
+--#line  557
 
 yyval := 
 yy.value_stack(yy.tos);
 
 when  16 =>
---#line  573
+--#line  568
 
 yyval := 
 yy.value_stack(yy.tos);
 
 when  17 =>
---#line  575
+--#line  570
 
 yyval := 
 yy.value_stack(yy.tos);
 
 when  18 =>
---#line  579
+--#line  574
 
 yyval := new element_record(color);
 
@@ -493,49 +493,49 @@ yy.value_stack(yy.tos-3));
 
 
 when  19 =>
---#line  587
+--#line  582
 
 yyval := 
 yy.value_stack(yy.tos);
 
 when  20 =>
---#line  589
+--#line  584
 
 yyval := 
 yy.value_stack(yy.tos);
 
 when  21 =>
---#line  591
+--#line  586
 
 yyval := 
 yy.value_stack(yy.tos);
 
 when  22 =>
---#line  593
+--#line  588
 
 yyval := 
 yy.value_stack(yy.tos);
 
 when  23 =>
---#line  595
+--#line  590
 
 yyval := 
 yy.value_stack(yy.tos);
 
 when  24 =>
---#line  597
+--#line  592
 
 yyval := 
 yy.value_stack(yy.tos);
 
 when  25 =>
---#line  599
+--#line  594
 
 yyval := 
 yy.value_stack(yy.tos);
 
 when  26 =>
---#line  603
+--#line  598
 
 yyval := new element_record(range_color);
 
@@ -545,7 +545,7 @@ set_pos(
 yyval);
 
 when  27 =>
---#line  609
+--#line  604
 
 yyval := new element_record(mod_color);
 
@@ -555,7 +555,7 @@ set_pos(
 yyval);
 
 when  28 =>
---#line  615
+--#line  610
 
 yyval := new element_record(Enum_Color);
 
@@ -565,7 +565,7 @@ set_pos(
 yyval);
 
 when  29 =>
---#line  621
+--#line  616
 
 yyval := new element_record(List);
 
@@ -578,7 +578,7 @@ yyval);
 
 
 when  30 =>
---#line  627
+--#line  622
 
 yyval := 
 yy.value_stack(yy.tos-2);
@@ -589,7 +589,7 @@ set_pos(
 yyval);
 
 when  31 =>
---#line  633
+--#line  628
 
 yyval := new element_record(vector_color);
 
@@ -602,7 +602,7 @@ set_pos(
 yyval);
 
 when  32 =>
---#line  640
+--#line  635
 
 yyval := new element_record(List);
 
@@ -615,7 +615,7 @@ yyval);
 
 
 when  33 =>
---#line  646
+--#line  641
 
 yyval := 
 yy.value_stack(yy.tos-2);
@@ -626,7 +626,7 @@ set_pos(
 yyval);
 
 when  34 =>
---#line  652
+--#line  647
 
 yyval := new element_record(struct_color);
 
@@ -636,7 +636,7 @@ set_pos(
 yyval);
 
 when  35 =>
---#line  658
+--#line  653
 
 yyval := new element_record(List);
 
@@ -649,7 +649,7 @@ yyval);
 
 
 when  36 =>
---#line  664
+--#line  659
 
 yyval := 
 yy.value_stack(yy.tos-1);
@@ -660,7 +660,7 @@ set_pos(
 yyval);
 
 when  37 =>
---#line  670
+--#line  665
 
 yyval := new element_record(Helena_Yacc_tokens.component);
 
@@ -674,7 +674,7 @@ yyval,
 yy.value_stack(yy.tos-1));
 
 when  38 =>
---#line  678
+--#line  673
 
 yyval := new element_record(list_color);
 
@@ -690,7 +690,7 @@ set_pos(
 yyval);
 
 when  39 =>
---#line  686
+--#line  681
 
 yyval := new element_record(set_color);
 
@@ -703,7 +703,7 @@ set_pos(
 yyval);
 
 when  40 =>
---#line  694
+--#line  689
 
 yyval := new element_record(Helena_Yacc_tokens.sub_color);
 
@@ -720,30 +720,30 @@ yyval,
 yy.value_stack(yy.tos-4));
 
 when  41 =>
---#line  702
+--#line  697
 
 yyval := 
 yy.value_stack(yy.tos);
 
 when  42 =>
---#line  703
+--#line  698
 
 yyval := null;
 
 when  43 =>
---#line  715
+--#line  710
 
 yyval := 
 yy.value_stack(yy.tos);
 
 when  44 =>
---#line  717
+--#line  712
 
 yyval := 
 yy.value_stack(yy.tos);
 
 when  45 =>
---#line  722
+--#line  717
 
 yyval := new element_record(func_prot);
 
@@ -760,7 +760,7 @@ yyval,
 yy.value_stack(yy.tos-6));
 
 when  46 =>
---#line  732
+--#line  727
 
 yyval := new element_record(func);
 
@@ -783,7 +783,7 @@ yy.value_stack(yy.tos-6));
 
 
 when  47 =>
---#line  743
+--#line  738
 
 yyval := new element_record(func);
 
@@ -804,7 +804,7 @@ yyval,
 yy.value_stack(yy.tos-6));
 
 when  48 =>
---#line  752
+--#line  747
 
 yyval := new element_record(List);
 
@@ -814,13 +814,13 @@ yyval);
 
 
 when  49 =>
---#line  757
+--#line  752
 
 yyval := 
 yy.value_stack(yy.tos);
 
 when  50 =>
---#line  761
+--#line  756
 
 yyval := new element_record(List);
 
@@ -833,7 +833,7 @@ yyval);
 
 
 when  51 =>
---#line  767
+--#line  762
 
 yyval := 
 yy.value_stack(yy.tos-2);
@@ -844,7 +844,7 @@ set_pos(
 yyval);
 
 when  52 =>
---#line  773
+--#line  768
 
 yyval := new element_record(param);
 
@@ -858,139 +858,139 @@ yyval,
 yy.value_stack(yy.tos));
 
 when  53 =>
---#line  780
+--#line  775
 
 yyval := 
 yy.value_stack(yy.tos);
 
 when  54 =>
---#line  784
+--#line  779
 
 yyval := 
 yy.value_stack(yy.tos);
 
 when  55 =>
---#line  795
+--#line  790
 
 yyval := 
 yy.value_stack(yy.tos);
 
 when  56 =>
---#line  796
+--#line  791
 
 yyval := 
 yy.value_stack(yy.tos);
 
 when  57 =>
---#line  797
+--#line  792
 
 yyval := 
 yy.value_stack(yy.tos);
 
 when  58 =>
---#line  798
+--#line  793
 
 yyval := 
 yy.value_stack(yy.tos);
 
 when  59 =>
---#line  799
+--#line  794
 
 yyval := 
 yy.value_stack(yy.tos);
 
 when  60 =>
---#line  800
+--#line  795
 
 yyval := 
 yy.value_stack(yy.tos);
 
 when  61 =>
---#line  801
+--#line  796
 
 yyval := 
 yy.value_stack(yy.tos);
 
 when  62 =>
---#line  802
+--#line  797
 
 yyval := 
 yy.value_stack(yy.tos);
 
 when  63 =>
---#line  803
+--#line  798
 
 yyval := 
 yy.value_stack(yy.tos);
 
 when  64 =>
---#line  804
+--#line  799
 
 yyval := 
 yy.value_stack(yy.tos);
 
 when  65 =>
---#line  805
+--#line  800
 
 yyval := 
 yy.value_stack(yy.tos);
 
 when  66 =>
---#line  806
+--#line  801
 
 yyval := 
 yy.value_stack(yy.tos);
 
 when  67 =>
---#line  807
+--#line  802
 
 yyval := 
 yy.value_stack(yy.tos);
 
 when  68 =>
---#line  808
+--#line  803
 
 yyval := 
 yy.value_stack(yy.tos);
 
 when  69 =>
---#line  809
+--#line  804
 
 yyval := 
 yy.value_stack(yy.tos);
 
 when  70 =>
---#line  810
+--#line  805
 
 yyval := 
 yy.value_stack(yy.tos);
 
 when  71 =>
---#line  811
+--#line  806
 
 yyval := 
 yy.value_stack(yy.tos);
 
 when  72 =>
---#line  812
+--#line  807
 
 yyval := 
 yy.value_stack(yy.tos);
 
 when  73 =>
---#line  813
+--#line  808
 
 yyval := 
 yy.value_stack(yy.tos);
 
 when  74 =>
---#line  817
+--#line  812
 
 yyval := 
 yy.value_stack(yy.tos-1);
 
 when  75 =>
---#line  821
+--#line  816
 
 yyval := new element_record(Num_Const);
 
@@ -1000,25 +1000,25 @@ set_pos(
 yyval);
 
 when  76 =>
---#line  826
+--#line  821
 
 yyval := 
 yy.value_stack(yy.tos);
 
 when  77 =>
---#line  827
+--#line  822
 
 yyval := 
 yy.value_stack(yy.tos);
 
 when  78 =>
---#line  828
+--#line  823
 
 yyval := 
 yy.value_stack(yy.tos);
 
 when  79 =>
---#line  832
+--#line  827
 
 yyval := new element_record(Vector_Access);
 
@@ -1031,7 +1031,7 @@ set_pos(
 yyval);
 
 when  80 =>
---#line  839
+--#line  834
 
 yyval := new element_record(Struct_Access);
 
@@ -1044,7 +1044,7 @@ set_pos(
 yyval);
 
 when  81 =>
---#line  846
+--#line  841
 
 yyval := new element_record(Vector_Access);
 
@@ -1057,7 +1057,7 @@ set_pos(
 yyval);
 
 when  82 =>
---#line  853
+--#line  848
 
 yyval := new element_record(Struct_Access);
 
@@ -1070,7 +1070,7 @@ set_pos(
 yyval);
 
 when  83 =>
---#line  860
+--#line  855
 
 yyval := new element_record(func_call);
 
@@ -1083,7 +1083,7 @@ set_pos(
 yyval);
 
 when  84 =>
---#line  866
+--#line  861
 
 yyval := new element_record(List);
 
@@ -1093,13 +1093,13 @@ yyval);
 
 
 when  85 =>
---#line  871
+--#line  866
 
 yyval := 
 yy.value_stack(yy.tos);
 
 when  86 =>
---#line  875
+--#line  870
 
 yyval := 
 yy.value_stack(yy.tos-2);
@@ -1111,7 +1111,7 @@ yyval);
 
 
 when  87 =>
---#line  880
+--#line  875
 
 yyval := new element_record(List);
 
@@ -1123,45 +1123,7 @@ set_pos(
 yyval);
 
 when  88 =>
---#line  887
-
-yyval := 
-yy.value_stack(yy.tos-2);
-append(
-yyval.list_elements, 
-yy.value_stack(yy.tos));
-set_pos(
-yyval);
-
-
-when  89 =>
---#line  892
-
-yyval := new element_record(List);
-
-yyval.list_elements := Empty_Element_list;
-append(
-yyval.list_elements, 
-yy.value_stack(yy.tos));
-set_pos(
-yyval);
-
-when  90 =>
---#line  898
-
-yyval := 
-yy.value_stack(yy.tos);
-
-when  91 =>
---#line  899
-
- 
-yyval := new element_record(Underscore);
- set_pos(
-yyval);
-
-when  92 =>
---#line  905
+--#line  882
 
 yyval := new element_record(bin_op);
 
@@ -1176,8 +1138,8 @@ set_pos(
 yyval);
 
 
-when  93 =>
---#line  912
+when  89 =>
+--#line  889
 
 yyval := new element_record(bin_op);
 
@@ -1192,8 +1154,8 @@ set_pos(
 yyval);
 
 
-when  94 =>
---#line  919
+when  90 =>
+--#line  896
 
 yyval := new element_record(bin_op);
 
@@ -1208,8 +1170,8 @@ set_pos(
 yyval);
 
 
-when  95 =>
---#line  926
+when  91 =>
+--#line  903
 
 yyval := new element_record(bin_op);
 
@@ -1224,8 +1186,8 @@ set_pos(
 yyval);
 
 
-when  96 =>
---#line  933
+when  92 =>
+--#line  910
 
 yyval := new element_record(bin_op);
 
@@ -1240,8 +1202,8 @@ set_pos(
 yyval);
 
 
-when  97 =>
---#line  940
+when  93 =>
+--#line  917
 
 yyval := new element_record(bin_op);
 
@@ -1256,8 +1218,8 @@ set_pos(
 yyval);
 
 
-when  98 =>
---#line  947
+when  94 =>
+--#line  924
 
 yyval := new element_record(bin_op);
 
@@ -1272,8 +1234,8 @@ set_pos(
 yyval);
 
 
-when  99 =>
---#line  954
+when  95 =>
+--#line  931
 
 yyval := new element_record(bin_op);
 
@@ -1288,8 +1250,8 @@ set_pos(
 yyval);
 
 
-when  100 =>
---#line  961
+when  96 =>
+--#line  938
 
 yyval := new element_record(bin_op);
 
@@ -1304,8 +1266,8 @@ set_pos(
 yyval);
 
 
-when  101 =>
---#line  968
+when  97 =>
+--#line  945
 
 yyval := new element_record(bin_op);
 
@@ -1320,8 +1282,8 @@ set_pos(
 yyval);
 
 
-when  102 =>
---#line  975
+when  98 =>
+--#line  952
 
 yyval := new element_record(bin_op);
 
@@ -1336,8 +1298,8 @@ set_pos(
 yyval);
 
 
-when  103 =>
---#line  982
+when  99 =>
+--#line  959
 
 yyval := new element_record(bin_op);
 
@@ -1352,8 +1314,8 @@ set_pos(
 yyval);
 
 
-when  104 =>
---#line  989
+when  100 =>
+--#line  966
 
 yyval := new element_record(bin_op);
 
@@ -1368,8 +1330,8 @@ set_pos(
 yyval);
 
 
-when  105 =>
---#line  996
+when  101 =>
+--#line  973
 
 yyval := new element_record(bin_op);
 
@@ -1384,8 +1346,8 @@ set_pos(
 yyval);
 
 
-when  106 =>
---#line  1003
+when  102 =>
+--#line  980
 
 yyval := new element_record(bin_op);
 
@@ -1399,8 +1361,8 @@ yy.value_stack(yy.tos);
 set_pos(
 yyval);
 
-when  107 =>
---#line  1011
+when  103 =>
+--#line  988
 
 yyval := new element_record(un_op);
 
@@ -1412,8 +1374,8 @@ set_pos(
 yyval);
 
 
-when  108 =>
---#line  1017
+when  104 =>
+--#line  994
 
 yyval := new element_record(un_op);
 
@@ -1425,8 +1387,8 @@ set_pos(
 yyval);
 
 
-when  109 =>
---#line  1023
+when  105 =>
+--#line  1000
 
 yyval := new element_record(un_op);
 
@@ -1438,8 +1400,8 @@ set_pos(
 yyval);
 
 
-when  110 =>
---#line  1029
+when  106 =>
+--#line  1006
 
 yyval := new element_record(un_op);
 
@@ -1451,8 +1413,8 @@ set_pos(
 yyval);
 
 
-when  111 =>
---#line  1035
+when  107 =>
+--#line  1012
 
 yyval := new element_record(un_op);
 
@@ -1463,8 +1425,8 @@ yy.value_stack(yy.tos);
 set_pos(
 yyval);
 
-when  112 =>
---#line  1042
+when  108 =>
+--#line  1019
 
 yyval := new element_record(Vector_Aggregate);
 
@@ -1473,8 +1435,8 @@ yy.value_stack(yy.tos-1);
 set_pos(
 yyval);
 
-when  113 =>
---#line  1049
+when  109 =>
+--#line  1026
 
 yyval := new element_record(vector_assign);
 
@@ -1489,8 +1451,8 @@ yy.value_stack(yy.tos-1);
 set_pos(
 yyval);
 
-when  114 =>
---#line  1057
+when  110 =>
+--#line  1034
 
 yyval := new element_record(Struct_Aggregate);
 
@@ -1499,8 +1461,8 @@ yy.value_stack(yy.tos-1);
 set_pos(
 yyval);
 
-when  115 =>
---#line  1064
+when  111 =>
+--#line  1041
 
 yyval := new element_record(Struct_assign);
 
@@ -1515,8 +1477,8 @@ yy.value_stack(yy.tos-1);
 set_pos(
 yyval);
 
-when  116 =>
---#line  1072
+when  112 =>
+--#line  1049
 
 yyval := new element_record(if_then_else);
 
@@ -1531,8 +1493,8 @@ yy.value_stack(yy.tos);
 set_pos(
 yyval);
 
-when  117 =>
---#line  1080
+when  113 =>
+--#line  1057
 
 yyval := new element_record(Tuple_Access);
 
@@ -1544,8 +1506,8 @@ yy.value_stack(yy.tos);
 set_pos(
 yyval);
 
-when  118 =>
---#line  1087
+when  114 =>
+--#line  1064
 
 yyval := new element_record(attribute);
 
@@ -1558,8 +1520,8 @@ set_pos(
 yyval);
 
 
-when  119 =>
---#line  1093
+when  115 =>
+--#line  1070
 
 yyval := new element_record(attribute);
 
@@ -1575,8 +1537,8 @@ set_pos(
 yyval);
 
 
-when  120 =>
---#line  1101
+when  116 =>
+--#line  1078
 
 yyval := new element_record(attribute);
 
@@ -1592,8 +1554,8 @@ set_pos(
 yyval);
 
 
-when  121 =>
---#line  1109
+when  117 =>
+--#line  1086
 
 yyval := new element_record(attribute);
 
@@ -1608,8 +1570,8 @@ yyval.attribute_attribute);
 set_pos(
 yyval);
 
-when  122 =>
---#line  1119
+when  118 =>
+--#line  1096
 
 yyval := new element_record(iterator);
 
@@ -1628,8 +1590,8 @@ set_pos(
 yyval);
 
 
-when  123 =>
---#line  1128
+when  119 =>
+--#line  1105
 
 yyval := new element_record(iterator);
 
@@ -1646,87 +1608,87 @@ yyval.iterator_expression := null;
 set_pos(
 yyval);
 
-when  124 =>
---#line  1137
+when  120 =>
+--#line  1114
 
 yyval := 
 yy.value_stack(yy.tos);
 
-when  125 =>
---#line  1138
+when  121 =>
+--#line  1115
 
 yyval := null;
 
-when  126 =>
---#line  1142
+when  122 =>
+--#line  1119
 
 yyval := 
 yy.value_stack(yy.tos);
 
-when  127 =>
---#line  1146
+when  123 =>
+--#line  1123
 
 yyval := new element_record(forall_iterator);
 set_pos(
 yyval);
 
 
-when  128 =>
---#line  1150
+when  124 =>
+--#line  1127
 
 yyval := new element_record(max_iterator);
 set_pos(
 yyval);
 
 
-when  129 =>
---#line  1154
+when  125 =>
+--#line  1131
 
 yyval := new element_record(min_iterator);
 set_pos(
 yyval);
 
 
-when  130 =>
---#line  1158
+when  126 =>
+--#line  1135
 
 yyval := new element_record(sum_iterator);
 set_pos(
 yyval);
 
 
-when  131 =>
---#line  1162
+when  127 =>
+--#line  1139
 
 yyval := new element_record(product_iterator);
 set_pos(
 yyval);
 
-when  132 =>
---#line  1167
+when  128 =>
+--#line  1144
 
 yyval := new element_record(Card_iterator);
 set_pos(
 yyval);
 
 
-when  133 =>
---#line  1171
+when  129 =>
+--#line  1148
 
 yyval := new element_record(Mult_iterator);
 set_pos(
 yyval);
 
 
-when  134 =>
---#line  1175
+when  130 =>
+--#line  1152
 
 yyval := new element_record(Exists_iterator);
 set_pos(
 yyval);
 
-when  135 =>
---#line  1180
+when  131 =>
+--#line  1157
 
 yyval := new element_record(Container_Aggregate);
 
@@ -1735,15 +1697,15 @@ yy.value_stack(yy.tos-1);
 set_pos(
 yyval);
 
-when  136 =>
---#line  1186
+when  132 =>
+--#line  1163
 
 yyval := new element_record(empty);
 set_pos(
 yyval);
 
-when  137 =>
---#line  1191
+when  133 =>
+--#line  1168
 
 yyval := new element_record(List_Slice);
 
@@ -1758,62 +1720,62 @@ yy.value_stack(yy.tos-1);
 set_pos(
 yyval);
 
+when  134 =>
+--#line  1183
+
+yyval := 
+yy.value_stack(yy.tos);
+
+when  135 =>
+--#line  1184
+
+yyval := 
+yy.value_stack(yy.tos);
+
+when  136 =>
+--#line  1185
+
+yyval := 
+yy.value_stack(yy.tos);
+
+when  137 =>
+--#line  1186
+
+yyval := 
+yy.value_stack(yy.tos);
+
 when  138 =>
---#line  1206
+--#line  1187
 
 yyval := 
 yy.value_stack(yy.tos);
 
 when  139 =>
---#line  1207
+--#line  1188
 
 yyval := 
 yy.value_stack(yy.tos);
 
 when  140 =>
---#line  1208
+--#line  1189
 
 yyval := 
 yy.value_stack(yy.tos);
 
 when  141 =>
---#line  1209
+--#line  1190
 
 yyval := 
 yy.value_stack(yy.tos);
 
 when  142 =>
---#line  1210
+--#line  1191
 
 yyval := 
 yy.value_stack(yy.tos);
 
 when  143 =>
---#line  1211
-
-yyval := 
-yy.value_stack(yy.tos);
-
-when  144 =>
---#line  1212
-
-yyval := 
-yy.value_stack(yy.tos);
-
-when  145 =>
---#line  1213
-
-yyval := 
-yy.value_stack(yy.tos);
-
-when  146 =>
---#line  1214
-
-yyval := 
-yy.value_stack(yy.tos);
-
-when  147 =>
---#line  1218
+--#line  1195
 
 yyval := new element_record(assign);
 
@@ -1825,8 +1787,8 @@ yy.value_stack(yy.tos-1);
 set_pos(
 yyval);
 
-when  148 =>
---#line  1225
+when  144 =>
+--#line  1202
 
 yyval := new element_record(if_then_else);
 
@@ -1842,8 +1804,8 @@ set_pos(
 yyval);
 
 
-when  149 =>
---#line  1232
+when  145 =>
+--#line  1209
 
 yyval := new element_record(if_then_else);
 
@@ -1857,8 +1819,8 @@ yyval.If_Then_Else_False := null;
 set_pos(
 yyval);
 
-when  150 =>
---#line  1241
+when  146 =>
+--#line  1218
 
 yyval := new element_record(case_stat);
 
@@ -1873,8 +1835,8 @@ yy.value_stack(yy.tos-1);
 set_pos(
 yyval);
 
-when  151 =>
---#line  1249
+when  147 =>
+--#line  1226
 
 yyval := 
 yy.value_stack(yy.tos-1);
@@ -1885,8 +1847,8 @@ set_pos(
 yyval);
 
 
-when  152 =>
---#line  1253
+when  148 =>
+--#line  1230
 
 yyval := new element_record(List);
 
@@ -1894,8 +1856,8 @@ yyval.list_elements := Empty_Element_list;
 set_pos(
 yyval);
 
-when  153 =>
---#line  1259
+when  149 =>
+--#line  1236
 
 yyval := new element_record(Case_Alternative);
 
@@ -1907,19 +1869,19 @@ yy.value_stack(yy.tos);
 set_pos(
 yyval);
 
-when  154 =>
---#line  1266
+when  150 =>
+--#line  1243
 
 yyval := 
 yy.value_stack(yy.tos);
 
-when  155 =>
---#line  1267
+when  151 =>
+--#line  1244
 
 yyval := null;
 
-when  156 =>
---#line  1271
+when  152 =>
+--#line  1248
 
 yyval := new element_record(while_stat);
 
@@ -1931,8 +1893,8 @@ yy.value_stack(yy.tos);
 set_pos(
 yyval);
 
-when  157 =>
---#line  1278
+when  153 =>
+--#line  1255
 
 yyval := new element_record(return_stat);
 
@@ -1941,8 +1903,8 @@ yy.value_stack(yy.tos-1);
 set_pos(
 yyval);
 
-when  158 =>
---#line  1284
+when  154 =>
+--#line  1261
 
 yyval := new element_record(for_stat);
 
@@ -1954,8 +1916,8 @@ yy.value_stack(yy.tos);
 set_pos(
 yyval);
 
-when  159 =>
---#line  1291
+when  155 =>
+--#line  1268
 
 yyval := new element_record(print_stat);
  
@@ -1969,8 +1931,8 @@ yy.value_stack(yy.tos-1);
 yyval);
 
 
-when  160 =>
---#line  1298
+when  156 =>
+--#line  1275
 
 yyval := new element_record(print_stat);
  
@@ -1985,8 +1947,8 @@ yy.value_stack(yy.tos-1);
 yyval);
 
 
-when  161 =>
---#line  1305
+when  157 =>
+--#line  1282
 
 yyval := new element_record(print_stat);
  
@@ -2002,8 +1964,8 @@ yyval.Print_Stat_Exprs.list_elements := Empty_Element_list;
 yyval);
 
 
-when  162 =>
---#line  1315
+when  158 =>
+--#line  1292
 
 yyval := new element_record(assert);
 
@@ -2012,8 +1974,8 @@ yy.value_stack(yy.tos-1);
 set_pos(
 yyval);
 
-when  163 =>
---#line  1321
+when  159 =>
+--#line  1298
 
 yyval := new element_record(block_stat);
 
@@ -2025,8 +1987,8 @@ yy.value_stack(yy.tos-1);
 set_pos(
 yyval);
 
-when  164 =>
---#line  1328
+when  160 =>
+--#line  1305
 
 yyval := 
 yy.value_stack(yy.tos-1);
@@ -2037,8 +1999,8 @@ set_pos(
 yyval);
 
 
-when  165 =>
---#line  1333
+when  161 =>
+--#line  1310
 
 yyval := 
 yy.value_stack(yy.tos-1);
@@ -2049,8 +2011,8 @@ set_pos(
 yyval);
 
 
-when  166 =>
---#line  1337
+when  162 =>
+--#line  1314
 
 yyval := new element_record(List);
 
@@ -2058,20 +2020,20 @@ yyval.list_elements := Empty_Element_list;
 set_pos(
 yyval);
 
-when  167 =>
---#line  1342
+when  163 =>
+--#line  1319
 
 yyval := 
 yy.value_stack(yy.tos);
 
-when  168 =>
---#line  1343
+when  164 =>
+--#line  1320
 
 yyval := 
 yy.value_stack(yy.tos);
 
-when  169 =>
---#line  1347
+when  165 =>
+--#line  1324
 
 yyval := new element_record(var_decl);
 
@@ -2088,8 +2050,8 @@ set_pos(
 yyval, 
 yy.value_stack(yy.tos-1)); 
 
-when  170 =>
---#line  1356
+when  166 =>
+--#line  1333
 
 yyval := new element_record(var_decl);
 
@@ -2107,16 +2069,16 @@ set_pos(
 yyval, 
 yy.value_stack(yy.tos-3)); 
 
-when  171 =>
---#line  1365
+when  167 =>
+--#line  1342
 
 yyval := 
 yy.value_stack(yy.tos);
  
 yyval.var_decl_const := true; 
 
-when  172 =>
---#line  1370
+when  168 =>
+--#line  1347
 
 yyval := 
 yy.value_stack(yy.tos-1);
@@ -2127,8 +2089,8 @@ set_pos(
 yyval);
 
 
-when  173 =>
---#line  1375
+when  169 =>
+--#line  1352
 
 yyval := new element_record(List);
 
@@ -2139,8 +2101,8 @@ yy.value_stack(yy.tos));
 set_pos(
 yyval);
 
-when  174 =>
---#line  1391
+when  170 =>
+--#line  1368
 
 yyval := new element_record(place);
 
@@ -2156,20 +2118,20 @@ set_pos(
 yyval, 
 yy.value_stack(yy.tos-4));
 
-when  175 =>
---#line  1399
+when  171 =>
+--#line  1376
 
 yyval := 
 yy.value_stack(yy.tos-1);
 
-when  176 =>
---#line  1403
+when  172 =>
+--#line  1380
 
 yyval := 
 yy.value_stack(yy.tos);
 
-when  177 =>
---#line  1405
+when  173 =>
+--#line  1382
 
 yyval := new element_record(list);
 
@@ -2177,8 +2139,8 @@ yyval.list_elements := Empty_Element_list;
 set_pos(
 yyval);
 
-when  178 =>
---#line  1411
+when  174 =>
+--#line  1388
 
 yyval := new element_record(List);
 
@@ -2190,8 +2152,8 @@ set_pos(
 yyval);
 
 
-when  179 =>
---#line  1417
+when  175 =>
+--#line  1394
 
 yyval := 
 yy.value_stack(yy.tos-2);
@@ -2201,8 +2163,8 @@ yy.value_stack(yy.tos));
 set_pos(
 yyval);
 
-when  180 =>
---#line  1422
+when  176 =>
+--#line  1399
 
 yyval := new element_record(list);
 
@@ -2211,8 +2173,8 @@ set_pos(
 yyval);
 
 
-when  181 =>
---#line  1427
+when  177 =>
+--#line  1404
 
 yyval := 
 yy.value_stack(yy.tos-1);
@@ -2222,26 +2184,26 @@ yy.value_stack(yy.tos));
 set_pos(
 yyval);
 
-when  182 =>
---#line  1433
+when  178 =>
+--#line  1410
 
 yyval := 
 yy.value_stack(yy.tos);
 
-when  183 =>
---#line  1435
+when  179 =>
+--#line  1412
 
 yyval := 
 yy.value_stack(yy.tos);
 
-when  184 =>
---#line  1437
+when  180 =>
+--#line  1414
 
 yyval := 
 yy.value_stack(yy.tos);
 
-when  185 =>
---#line  1441
+when  181 =>
+--#line  1418
 
 yyval := new element_record(place_init);
 
@@ -2250,8 +2212,8 @@ yy.value_stack(yy.tos-1);
 set_pos(
 yyval);
 
-when  186 =>
---#line  1447
+when  182 =>
+--#line  1424
 
 yyval := new element_record(place_capacity);
 
@@ -2260,8 +2222,8 @@ yy.value_stack(yy.tos-1);
 set_pos(
 yyval);
 
-when  187 =>
---#line  1453
+when  183 =>
+--#line  1430
 
 yyval := new element_record(place_type);
 
@@ -2270,24 +2232,21 @@ yy.value_stack(yy.tos-1);
 set_pos(
 yyval);
 
-when  188 =>
---#line  1474
+when  184 =>
+--#line  1450
 
 yyval := new element_record(transition);
 
 yyval.transition_name := 
-yy.value_stack(yy.tos-9);
+yy.value_stack(yy.tos-8);
 
 yyval.transition_inputs := 
-yy.value_stack(yy.tos-7);
-
-yyval.transition_outputs := 
 yy.value_stack(yy.tos-6);
 
-yyval.transition_inhibits := 
+yyval.transition_outputs := 
 yy.value_stack(yy.tos-5);
 
-yyval.transition_resets := 
+yyval.transition_inhibits := 
 yy.value_stack(yy.tos-4);
 
 yyval.transition_pick_vars := 
@@ -2300,52 +2259,37 @@ yyval.transition_attributes :=
 yy.value_stack(yy.tos-1);
 set_pos(
 yyval, 
-yy.value_stack(yy.tos-9));
+yy.value_stack(yy.tos-8));
+
+when  185 =>
+--#line  1462
+
+yyval := 
+yy.value_stack(yy.tos-1);
+
+when  186 =>
+--#line  1466
+
+yyval := 
+yy.value_stack(yy.tos-1);
+
+when  187 =>
+--#line  1470
+
+yyval := 
+yy.value_stack(yy.tos-1);
+
+when  188 =>
+--#line  1471
+
+yyval := new element_record(list);
+
+yyval.list_elements := Empty_Element_list;
+set_pos(
+yyval);
 
 when  189 =>
---#line  1487
-
-yyval := 
-yy.value_stack(yy.tos-1);
-
-when  190 =>
---#line  1491
-
-yyval := 
-yy.value_stack(yy.tos-1);
-
-when  191 =>
---#line  1495
-
-yyval := 
-yy.value_stack(yy.tos-1);
-
-when  192 =>
---#line  1496
-
-yyval := new element_record(list);
-
-yyval.list_elements := Empty_Element_list;
-set_pos(
-yyval);
-
-when  193 =>
---#line  1502
-
-yyval := 
-yy.value_stack(yy.tos-1);
-
-when  194 =>
---#line  1503
-
-yyval := new element_record(list);
-
-yyval.list_elements := Empty_Element_list;
-set_pos(
-yyval);
-
-when  195 =>
---#line  1509
+--#line  1477
 
 yyval := 
 yy.value_stack(yy.tos-1);
@@ -2356,8 +2300,8 @@ set_pos(
 yyval);
 
 
-when  196 =>
---#line  1513
+when  190 =>
+--#line  1481
 
 yyval := new element_record(list);
 
@@ -2365,8 +2309,8 @@ yyval.list_elements := Empty_Element_list;
 set_pos(
 yyval);
 
-when  197 =>
---#line  1519
+when  191 =>
+--#line  1487
 
 yyval := new element_record(arc);
 
@@ -2378,8 +2322,8 @@ yy.value_stack(yy.tos-1);
 set_pos(
 yyval);
 
-when  198 =>
---#line  1526
+when  192 =>
+--#line  1494
 
 yyval := new element_record(mapping);
 
@@ -2388,8 +2332,8 @@ yy.value_stack(yy.tos);
 set_pos(
 yyval);
 
-when  199 =>
---#line  1532
+when  193 =>
+--#line  1500
 
 yyval := new element_record(list);
 
@@ -2401,8 +2345,8 @@ set_pos(
 yyval);
 
 
-when  200 =>
---#line  1538
+when  194 =>
+--#line  1506
 
 yyval := 
 yy.value_stack(yy.tos-2);
@@ -2412,8 +2356,8 @@ yy.value_stack(yy.tos));
 set_pos(
 yyval);
 
-when  201 =>
---#line  1544
+when  195 =>
+--#line  1512
 
 yyval := new element_record(tuple);
 
@@ -2428,30 +2372,30 @@ yy.value_stack(yy.tos);
 set_pos(
 yyval);
 
-when  202 =>
---#line  1552
+when  196 =>
+--#line  1520
 
 yyval := 
 yy.value_stack(yy.tos-1);
 
-when  203 =>
---#line  1553
+when  197 =>
+--#line  1521
 
 yyval := null;
 
-when  204 =>
---#line  1557
+when  198 =>
+--#line  1525
 
 yyval := 
 yy.value_stack(yy.tos-1);
 
-when  205 =>
---#line  1558
+when  199 =>
+--#line  1526
 
 yyval := null;
 
-when  206 =>
---#line  1562
+when  200 =>
+--#line  1530
 
 yyval := new element_record(simple_tuple);
 
@@ -2463,25 +2407,25 @@ yy.value_stack(yy.tos);
 set_pos(
 yyval);
 
-when  207 =>
---#line  1569
+when  201 =>
+--#line  1537
 
 yyval := 
 yy.value_stack(yy.tos-1);
 
-when  208 =>
---#line  1570
+when  202 =>
+--#line  1538
 
 yyval := null;
 
-when  209 =>
---#line  1574
+when  203 =>
+--#line  1542
 
 yyval := 
 yy.value_stack(yy.tos-1);
 
-when  210 =>
---#line  1576
+when  204 =>
+--#line  1544
 
 yyval := new element_record(List);
 
@@ -2489,8 +2433,8 @@ yyval.list_elements := Empty_Element_list;
 set_pos(
 yyval);
 
-when  211 =>
---#line  1581
+when  205 =>
+--#line  1549
 
 yyval := new element_record(list);
 
@@ -2499,14 +2443,14 @@ set_pos(
 yyval);
 
 
-when  212 =>
---#line  1586
+when  206 =>
+--#line  1554
 
 yyval := 
 yy.value_stack(yy.tos-1);
 
-when  213 =>
---#line  1589
+when  207 =>
+--#line  1557
 
 yyval := new element_record(list);
 
@@ -2515,8 +2459,8 @@ set_pos(
 yyval);
 
 
-when  214 =>
---#line  1594
+when  208 =>
+--#line  1562
 
 yyval := 
 yy.value_stack(yy.tos-1);
@@ -2526,8 +2470,8 @@ yy.value_stack(yy.tos));
 set_pos(
 yyval);
 
-when  215 =>
---#line  1600
+when  209 =>
+--#line  1568
 
 yyval := new element_record(iter_variable);
 
@@ -2543,8 +2487,8 @@ set_pos(
 yyval, 
 yy.value_stack(yy.tos-4)); 
 
-when  216 =>
---#line  1607
+when  210 =>
+--#line  1575
 
 yyval := new element_record(list);
 
@@ -2553,14 +2497,14 @@ set_pos(
 yyval);
 
 
-when  217 =>
---#line  1612
+when  211 =>
+--#line  1580
 
 yyval := 
 yy.value_stack(yy.tos-1);
 
-when  218 =>
---#line  1615
+when  212 =>
+--#line  1583
 
 yyval := new element_record(list);
 
@@ -2569,8 +2513,52 @@ set_pos(
 yyval);
 
 
+when  213 =>
+--#line  1588
+
+yyval := 
+yy.value_stack(yy.tos-1);
+append(
+yyval.list_elements, 
+yy.value_stack(yy.tos));
+set_pos(
+yyval);
+
+when  214 =>
+--#line  1594
+
+yyval := 
+yy.value_stack(yy.tos);
+
+when  215 =>
+--#line  1596
+
+yyval := 
+yy.value_stack(yy.tos);
+
+when  216 =>
+--#line  1598
+
+yyval := 
+yy.value_stack(yy.tos);
+
+when  217 =>
+--#line  1600
+
+yyval := 
+yy.value_stack(yy.tos);
+
+when  218 =>
+--#line  1603
+
+yyval := new element_record(list);
+
+yyval.list_elements := Empty_Element_list;
+set_pos(
+yyval);
+
 when  219 =>
---#line  1620
+--#line  1607
 
 yyval := 
 yy.value_stack(yy.tos-1);
@@ -2581,51 +2569,7 @@ set_pos(
 yyval);
 
 when  220 =>
---#line  1626
-
-yyval := 
-yy.value_stack(yy.tos);
-
-when  221 =>
---#line  1628
-
-yyval := 
-yy.value_stack(yy.tos);
-
-when  222 =>
---#line  1630
-
-yyval := 
-yy.value_stack(yy.tos);
-
-when  223 =>
---#line  1632
-
-yyval := 
-yy.value_stack(yy.tos);
-
-when  224 =>
---#line  1635
-
-yyval := new element_record(list);
-
-yyval.list_elements := Empty_Element_list;
-set_pos(
-yyval);
-
-when  225 =>
---#line  1639
-
-yyval := 
-yy.value_stack(yy.tos-1);
-append(
-yyval.list_elements, 
-yy.value_stack(yy.tos));
-set_pos(
-yyval);
-
-when  226 =>
---#line  1645
+--#line  1613
 
 yyval := new element_record(transition_guard);
 
@@ -2634,15 +2578,15 @@ yy.value_stack(yy.tos-1);
 set_pos(
 yyval);
 
-when  227 =>
---#line  1651
+when  221 =>
+--#line  1619
 
 yyval := new element_record(transition_safe);
 set_pos(
 yyval);
 
-when  228 =>
---#line  1656
+when  222 =>
+--#line  1624
 
 yyval := new element_record(transition_priority);
 
@@ -2651,8 +2595,8 @@ yy.value_stack(yy.tos-1);
 set_pos(
 yyval);
 
-when  229 =>
---#line  1663
+when  223 =>
+--#line  1631
 
 yyval := new element_record(transition_description);
 
@@ -2664,8 +2608,8 @@ yy.value_stack(yy.tos-1);
 set_pos(
 yyval);
 
-when  230 =>
---#line  1669
+when  224 =>
+--#line  1637
 
 yyval := new element_record(list);
 
@@ -2673,14 +2617,14 @@ yyval.list_elements := Empty_Element_list;
 set_pos(
 yyval);
 
-when  231 =>
---#line  1673
+when  225 =>
+--#line  1641
 
 yyval := 
 yy.value_stack(yy.tos);
 
-when  232 =>
---#line  1684
+when  226 =>
+--#line  1652
 
 yyval := new element_record(proposition);
  
@@ -2693,8 +2637,8 @@ yy.value_stack(yy.tos-1);
 yyval, 
 yy.value_stack(yy.tos-3)); 
 
-when  233 =>
---#line  1699
+when  227 =>
+--#line  1667
 
 yyval := new element_record(name);
 
@@ -2702,8 +2646,8 @@ yyval.name_name := Helena_Lex.get_token_value;
 set_pos(
 yyval);
 
-when  234 =>
---#line  1705
+when  228 =>
+--#line  1673
 
 yyval := new element_record(a_string);
 
@@ -2716,80 +2660,80 @@ yyval.string_string) - 1));
 set_pos(
 yyval);
 
+when  229 =>
+--#line  1681
+
+yyval := 
+yy.value_stack(yy.tos);
+
+when  230 =>
+--#line  1685
+
+yyval := 
+yy.value_stack(yy.tos);
+
+when  231 =>
+--#line  1689
+
+yyval := 
+yy.value_stack(yy.tos);
+
+when  232 =>
+--#line  1693
+
+yyval := 
+yy.value_stack(yy.tos);
+
+when  233 =>
+--#line  1697
+
+yyval := 
+yy.value_stack(yy.tos);
+
+when  234 =>
+--#line  1701
+
+yyval := 
+yy.value_stack(yy.tos);
+
 when  235 =>
---#line  1713
+--#line  1705
 
 yyval := 
 yy.value_stack(yy.tos);
 
 when  236 =>
---#line  1717
+--#line  1709
 
 yyval := 
 yy.value_stack(yy.tos);
 
 when  237 =>
---#line  1721
+--#line  1713
 
 yyval := 
 yy.value_stack(yy.tos);
 
 when  238 =>
---#line  1725
+--#line  1717
 
 yyval := 
 yy.value_stack(yy.tos);
 
 when  239 =>
---#line  1729
+--#line  1721
 
 yyval := 
 yy.value_stack(yy.tos);
 
 when  240 =>
---#line  1733
+--#line  1725
 
 yyval := 
 yy.value_stack(yy.tos);
 
 when  241 =>
---#line  1737
-
-yyval := 
-yy.value_stack(yy.tos);
-
-when  242 =>
---#line  1741
-
-yyval := 
-yy.value_stack(yy.tos);
-
-when  243 =>
---#line  1745
-
-yyval := 
-yy.value_stack(yy.tos);
-
-when  244 =>
---#line  1749
-
-yyval := 
-yy.value_stack(yy.tos);
-
-when  245 =>
---#line  1753
-
-yyval := 
-yy.value_stack(yy.tos);
-
-when  246 =>
---#line  1757
-
-yyval := 
-yy.value_stack(yy.tos);
-
-when  247 =>
---#line  1761
+--#line  1729
 
 yyval := new element_record(number);
 
@@ -2797,14 +2741,14 @@ yyval.number_number := Helena_Lex.get_token_value;
 set_pos(
 yyval);
 
-when  248 =>
---#line  1767
+when  242 =>
+--#line  1735
 
 yyval := 
 yy.value_stack(yy.tos);
 
-when  249 =>
---#line  1771
+when  243 =>
+--#line  1739
 
 yyval := new element_record(symbol);
 
@@ -2813,8 +2757,8 @@ yy.value_stack(yy.tos);
 set_pos(
 yyval);
 
-when  250 =>
---#line  1777
+when  244 =>
+--#line  1745
 
 yyval := new element_record(list);
 
@@ -2826,8 +2770,8 @@ set_pos(
 yyval);
 
 
-when  251 =>
---#line  1783
+when  245 =>
+--#line  1751
 
 yyval := 
 yy.value_stack(yy.tos-2);
@@ -2837,8 +2781,8 @@ yy.value_stack(yy.tos));
 set_pos(
 yyval);
 
-when  252 =>
---#line  1789
+when  246 =>
+--#line  1757
 
 yyval := new element_record(iter_variable);
 
@@ -2853,19 +2797,19 @@ yy.value_stack(yy.tos);
 set_pos(
 yyval);
 
-when  253 =>
---#line  1796
+when  247 =>
+--#line  1764
 
 yyval := null;
 
-when  254 =>
---#line  1798
+when  248 =>
+--#line  1766
 
 yyval := 
 yy.value_stack(yy.tos);
 
-when  255 =>
---#line  1802
+when  249 =>
+--#line  1770
 
 yyval := new element_record(Low_High_Range);
 

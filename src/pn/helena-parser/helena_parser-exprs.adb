@@ -4,7 +4,6 @@ with
   Pn.Classes.Containers.Lists,
   Pn.Classes.Products,
   Pn.Classes.Vectors,
-  Pn.Exprs.Anys,
   Pn.Exprs.Bin_Ops,
   Pn.Exprs.Casts,
   Pn.Exprs.Attributes,
@@ -43,7 +42,6 @@ use
   Pn.Classes.Containers.Lists,
   Pn.Classes.Products,
   Pn.Classes.Vectors,
-  Pn.Exprs.Anys,
   Pn.Exprs.Bin_Ops,
   Pn.Exprs.Casts,
   Pn.Exprs.Attributes,
@@ -1543,8 +1541,7 @@ package body Helena_Parser.Exprs is
       D     : in     Dom;
       Check : in     Boolean;
       El    :    out Expr_List;
-      Ok    :    out Boolean;
-      Uscore: in     Boolean := False) is
+      Ok    :    out Boolean) is
       Ith_Expr: Element;
       Ex      : Expr;
    begin
@@ -1559,33 +1556,23 @@ package body Helena_Parser.Exprs is
       Ok := True;
       for I in 1..Length(E.List_Elements) loop
          Ith_Expr := Ith(E.List_Elements, I);
-	 if Ith_Expr.T = HYT.Underscore then
-	    Ok := Uscore;
-	    if Uscore then
-	       Ex := New_Any(Ith(D, I));
-	    else
-	       Add_Error(Ith_Expr, "'_' not allowed here");
-	    end if;
-	    Append(El, Ex);
-	 else
-	    Parse_Expr(Ith_Expr, Vars, Ex, Ok);
-	    if Ok then
-	       if not Check then
-		  Append(El, Ex);
-	       else
-		  Color_Expr(Ith_Expr, Ex, Ith(D, I), Ok);
-		  if Ok then
-		     Append(El, Ex);
-		  else
-		     Free(Ex);
-		     Free_All(El);
-		     exit;
-		  end if;
-	       end if;
-	    else
-	       Free_All(El);
-	       exit;
-	    end if;
+         Parse_Expr(Ith_Expr, Vars, Ex, Ok);
+         if Ok then
+            if not Check then
+               Append(El, Ex);
+            else
+               Color_Expr(Ith_Expr, Ex, Ith(D, I), Ok);
+               if Ok then
+                  Append(El, Ex);
+               else
+                  Free(Ex);
+                  Free_All(El);
+                  exit;
+               end if;
+            end if;
+         else
+            Free_All(El);
+            exit;
 	 end if;
       end loop;
    end;
@@ -1639,11 +1626,10 @@ package body Helena_Parser.Exprs is
       D     : in     Dom;
       Check : in     Boolean;
       El    :    out Expr_List;
-      Ok    :    out Boolean;
-      Uscore: in     Boolean := False) is
+      Ok    :    out Boolean) is
       Ith_Expr: Expr;
    begin
-      Parse_Expr_List(E, Vars, D, Check, El, Ok, Uscore);
+      Parse_Expr_List(E, Vars, D, Check, El, Ok);
       if Ok then
          for I in 1..Length(El) loop
             Ith_Expr := Ith(El, I);

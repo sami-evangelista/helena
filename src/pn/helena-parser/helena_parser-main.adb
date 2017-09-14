@@ -147,13 +147,12 @@ package body Helena_Parser.Main is
    end;
 
    procedure Parse_Simple_Tuple
-     (E     : in     Element;
-      Cd    : in     Dom;
-      Vars  : in out Var_List_List;
-      F     :    out Mult_Type;
-      El    :    out Expr_List;
-      Ok    :    out Boolean;
-      Uscore: in     Boolean := False) is
+     (E   : in     Element;
+      Cd  : in     Dom;
+      Vars: in out Var_List_List;
+      F   :    out Mult_Type;
+      El  :    out Expr_List;
+      Ok  :    out Boolean) is
       Vll   : Var_List_List := VLLP.Empty_Array;
       N     : Num_Type;
       Factor: Expr;
@@ -183,8 +182,7 @@ package body Helena_Parser.Main is
                          " elements expected)");
             else
                Parse_Basic_Expr_List
-                 (E.Simple_Tuple_Tuple, Vars, Cd, True, El, Ok,
-		  Uscore => Uscore);
+                 (E.Simple_Tuple_Tuple, Vars, Cd, True, El, Ok);
             end if;
          end if;
       end if;
@@ -195,8 +193,7 @@ package body Helena_Parser.Main is
       Cd    : in     Dom;
       Vars  : in out Var_List_List;
       Tup   :    out Pn.Mappings.Tuple;
-      Ok    :    out Boolean;
-      Uscore: in     Boolean := False) is
+      Ok    :    out Boolean) is
       Factor  : Mult_Type;
       Tup_Vars: Var_List;
       El      : Expr_List;
@@ -217,8 +214,7 @@ package body Helena_Parser.Main is
       end if;
       if Ok then
          VLLP.Append(Vars, Tup_Vars);
-         Parse_Simple_Tuple(E.Tuple_Tuple, Cd, Vars, Factor, El, Ok,
-			    Uscore => Uscore);
+         Parse_Simple_Tuple(E.Tuple_Tuple, Cd, Vars, Factor, El, Ok);
          if Ok then
             Parse_Tuple_Guard(E.Tuple_Guard, Vars, G, Ok);
             if Ok then
@@ -234,8 +230,7 @@ package body Helena_Parser.Main is
       Vars  : in out Var_List_List;
       Cd    : in     Dom;
       M     :    out Pn.Mappings.Mapping;
-      Ok    :    out Boolean;
-      Uscore: in     Boolean := False) is
+      Ok    :    out Boolean) is
       Ith_Tuple: Element;
       Tup      : Pn.Mappings.Tuple;
    begin
@@ -245,7 +240,7 @@ package body Helena_Parser.Main is
       Check_Type(E.Mapping_Tuples, HYT.List);
       for I in 1..Length(E.Mapping_Tuples.List_Elements) loop
          Ith_Tuple := Ith(E.Mapping_Tuples.List_Elements, I);
-         Parse_Tuple(Ith_Tuple, Cd, Vars, Tup, Ok, Uscore => Uscore);
+         Parse_Tuple(Ith_Tuple, Cd, Vars, Tup, Ok);
          if Ok then
             Add(M, Tup);
          else
@@ -637,10 +632,9 @@ package body Helena_Parser.Main is
    --==========================================================================
 
    procedure Parse_Arc
-     (E     : in Element;
-      T     : in Trans;
-      A     : in Arc_Type;
-      Uscore: in Boolean := False) is
+     (E: in Element;
+      T: in Trans;
+      A: in Arc_Type) is
       P   : Pn.Nodes.Places.Place;
       Msg : Ustring;
       Vars: Var_List_List;
@@ -653,14 +647,12 @@ package body Helena_Parser.Main is
          when Input_Arc   => A_T := Pre;
          when Output_Arc  => A_T := Post;
          when Inhibit_Arc => A_T := Inhibit;
-	 when Reset_Arc   => A_T := Reset;
       end case;
       Parse_Place_Ref(E.Arc_Place, P, Ok);
       if Ok then
          if Is_Empty(Get_Arc_Label(N, A_T, P, T)) then
             Vars := VLLP.New_Array((Get_Vars(T), Get_Ivars(T), Get_Lvars(T)));
-            Parse_Mapping(E.Arc_Mapping, Vars, Get_Dom(P), M, Ok,
-			  Uscore => Uscore);
+            Parse_Mapping(E.Arc_Mapping, Vars, Get_Dom(P), M, Ok);
             if Ok then
                Set_Arc_Label(N, A_T, P, T, M);
             end if;
@@ -669,7 +661,6 @@ package body Helena_Parser.Main is
 	       when Input_Arc   => Msg := To_Ustring("in");
 	       when Output_Arc  => Msg := To_Ustring("out");
 	       when Inhibit_Arc => Msg := To_Ustring("inhibit");
-	       when Reset_Arc   => Msg := To_Ustring("reset");
             end case;
             Redefinition(E, Msg & "(" & Get_Name(P) & "," & Get_Name(T) & ")",
                          Null_String);
@@ -678,16 +669,15 @@ package body Helena_Parser.Main is
    end;
 
    procedure Parse_Arcs
-     (E     : in Element;
-      T     : in Trans;
-      A     : in Arc_Type;
-      Uscore: in Boolean := False) is
+     (E: in Element;
+      T: in Trans;
+      A: in Arc_Type) is
       Ith_Arc: Element;
    begin
       Check_Type(E, HYT.List);
       for I in 1..Length(E.List_Elements) loop
          Ith_Arc := Ith(E.List_Elements, I);
-         Parse_Arc(Ith_Arc, T, A, Uscore => Uscore);
+         Parse_Arc(Ith_Arc, T, A);
       end loop;
    end;
 
@@ -868,7 +858,6 @@ package body Helena_Parser.Main is
                Parse_Arcs(E.Transition_Inputs,   T, Input_Arc);
                Parse_Arcs(E.Transition_Outputs,  T, Output_Arc);
                Parse_Arcs(E.Transition_Inhibits, T, Inhibit_Arc);
-               Parse_Arcs(E.Transition_Resets,   T, Reset_Arc, Uscore => True);
                if not Is_Evaluable(T, N) then
                   Add_Error(E.Transition_Name,
                             "Transition " & Name &

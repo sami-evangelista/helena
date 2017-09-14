@@ -396,6 +396,8 @@ do
     esac
 done
 
+createMakefile
+
 #####
 #  compilation of all files
 msg "Compiling source files ..."
@@ -409,7 +411,6 @@ compileCFiles
 endSec=$(date +"%s")
 endNan=$(date +"%N")
 ccTime=$(echo "scale=2;$endSec-$startSec+($endNan-$startNan)/1000000000" | bc)
-createMakefile
     
 #####
 #  execution and reporting
