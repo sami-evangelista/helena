@@ -4,7 +4,6 @@
 #include "state.h"
 #include "event.h"
 #include "heap.h"
-#include "hash_compaction.h"
 
 #ifndef CFG_MODEL_CONFIG
 #error Model configuration missing!
@@ -36,7 +35,7 @@ typedef struct {
   bucket_status_t update_status[CFG_HASH_SIZE];
   bucket_status_t status[CFG_HASH_SIZE];
 #if defined(CFG_HASH_COMPACTION)
-  char state[CFG_HASH_SIZE][CFG_ATTRS_CHAR_SIZE + sizeof(hash_compact_t)];
+  char state[CFG_HASH_SIZE][CFG_ATTRS_CHAR_SIZE + sizeof(hash_key_t)];
 #else
   bit_vector_t state[CFG_HASH_SIZE];
   hash_key_t hash[CFG_HASH_SIZE];

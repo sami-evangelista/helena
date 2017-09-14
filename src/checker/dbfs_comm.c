@@ -70,7 +70,10 @@ void dbfs_comm_send_buffer
  int pe) {
   buffer_prefix_t pref;
   
-  /*  periodically poll the remote PE to see if I can send my states  */
+  /**
+   *  periodically poll the remote PE to see if I can send my
+   *  states
+   */
   do {
     shmem_getmem(&pref, H + BUF.remote_pos[w][pe], sizeof(buffer_prefix_t), pe);
     if(pref.no_states > 0) {
@@ -78,14 +81,19 @@ void dbfs_comm_send_buffer
     }
   } while(pref.no_states > 0);
 
-  /*  send my states to the remote PE.  1st send the states then the prefix  */
+  /**
+   *  send my states to the remote PE.  first send the states then the
+   *  prefix
+   */
   pref.no_states = BUF.states[w][pe];
   pref.char_len = BUF.pos[w][pe];
   shmem_putmem(H + BUF.remote_pos[w][pe] + sizeof(buffer_prefix_t),
                BUF.buffers[w][pe], BUF.pos[w][pe], pe);
   shmem_putmem(H + BUF.remote_pos[w][pe], &pref, sizeof(buffer_prefix_t), pe);
 
-  /*  reinitialise the buffer  */
+  /**
+   *  reinitialise the buffer
+   */
   BUF.states[w][pe] = 0;
   BUF.pos[w][pe] = 0;
 }
@@ -122,15 +130,15 @@ void dbfs_comm_process_state
    */
   BUF.states[w][pe] ++;
   
-  /*  put the state hash value  */
+  /*  hash value  */
   memcpy(BUF.buffers[w][pe] + BUF.pos[w][pe], &h, sizeof(hash_key_t));
   BUF.pos[w][pe] += sizeof(hash_key_t);
   
-  /*  put the state char length  */
+  /*  state char length  */
   memcpy(BUF.buffers[w][pe] + BUF.pos[w][pe], &s_char_len, sizeof(uint16_t));
   BUF.pos[w][pe] += sizeof(uint16_t);
   
-  /*  put the state serialisation  */
+  /*  state serialisation  */
   memset(BUF.buffers[w][pe] + BUF.pos[w][pe], 0, s_char_len);
   state_serialise(s, BUF.buffers[w][pe] + BUF.pos[w][pe]);
   BUF.pos[w][pe] += s_char_len;
@@ -146,7 +154,7 @@ void dbfs_comm_barrier
   R->distributed_barrier_time += lna_timer_value(t);
 }
 
-void dbfs_comm_worker_receive_states
+void dbfs_comm_worker_process_incoming_states
 () {
   const worker_id_t my_worker_id = CFG_NO_WORKERS;
   uint32_t pos, tmp_pos, no_states;
@@ -175,23 +183,30 @@ void dbfs_comm_worker_receive_states
         pref.char_len = 0;
         shmem_putmem(H + pos, &pref, sizeof(buffer_prefix_t), ME);
         tmp_pos = 0;
-        for(; no_states > 0; no_states --) {
+        while(no_states > 0) {
 
-          /*  get hash value  */
+          /**
+           *  read the state from the buffer and insert it in the
+           *  storage
+           */
+
+          /*  hash value  */
           memcpy(&h, buffer + tmp_pos, sizeof(hash_key_t));
           tmp_pos += sizeof(hash_key_t);
           
-          /*  get length  */
+          /*  state char length  */
           memcpy(&s_char_len, buffer + tmp_pos, sizeof(uint16_t));
           tmp_pos += sizeof(uint16_t);
           
-          /*  get the encoded state  */
+          /*  insert the state  */
           storage_insert_serialised(S, buffer + tmp_pos, s_char_len,
                                     h, my_worker_id, &is_new, &sid);
           tmp_pos += s_char_len;
 
-          /*  the state is new => we put it in the queue.  if the
-              queue contains full state we have to unserialise it */
+          /**
+           * state is new => put it in the queue.  if the queue
+           * contains full states we have to unserialise it
+           */
           if(is_new) {
             item.id = sid;
 #if defined(BFS_QUEUE_STATE_IN_QUEUE)
@@ -204,6 +219,7 @@ void dbfs_comm_worker_receive_states
             state_free(item.s);
 #endif
           }
+          no_states --;
         }
       }
     }
@@ -221,11 +237,17 @@ void * dbfs_comm_worker
     remote_term[pe] = FALSE;
   }    
   while(!GLOB_TERM) {
+
+    /**
+     *  sleep a bit and process incoming states
+     */
     nanosleep(&COMM_WAIT_TIME, NULL);
-    dbfs_comm_worker_receive_states();
+    dbfs_comm_worker_process_incoming_states();
     
     /**
-     *  check for termination if I haven't received any state
+     *  local threads have terminated the current BFS level.  put TRUE
+     *  at beginning of the heap to notify other PE.  also check
+     *  whether it is also the case for other PEs
      */
     if(LOCAL_TERM) {
       if(!term_set) {
@@ -243,11 +265,15 @@ void * dbfs_comm_worker
         }
       }
 
-      /*  all PEs have terminated the current level  */
+      /**
+       *  all PEs have terminated the current level
+       */
       if(term == PES) {
 
-        /*  every PE puts in its heap its queue size and read others's
-            to check for termination  */
+        /**
+         *  every PE puts in its heap its queue size and read others's
+         *  to check for termination
+         */
         queue_size = bfs_queue_size(Q);
         shmem_putmem(H + sizeof(bool_t), &queue_size, sizeof(uint64_t), ME);
         dbfs_comm_barrier();
@@ -265,7 +291,10 @@ void * dbfs_comm_worker
         }
         dbfs_comm_barrier();
 
-        /*  reinitialise everything for termination detection at next level  */
+        /**
+         *  reinitialise everything for termination detection at next
+         *  level
+         */
         for(pe = 0; pe < PES; pe ++) {
           remote_term[pe] = FALSE;
         }
@@ -276,7 +305,9 @@ void * dbfs_comm_worker
         shmem_putmem(H, &remote_term[ME], sizeof(bool_t), ME);
         shmem_putmem(H, &queue_size, sizeof(uint64_t), ME);
 
-        /*  synchronise with the working threads  */
+        /**
+         *  synchronise with the working threads
+         */
         dbfs_comm_local_barrier();
       }
     }

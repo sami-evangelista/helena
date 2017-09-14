@@ -178,7 +178,7 @@ void * bfs_worker
           storage_insert(S, succ, w, &is_new, &id_succ, &h);
 #endif
 
-          /*
+          /**
            *  if new, enqueue the successor after setting its trace and
            *  level
            */
@@ -189,7 +189,7 @@ void * bfs_worker
             bfs_queue_enqueue(Q, succ_item, w, bfs_thread_owner(h));
           } else {
 
-            /*
+            /**
              *  if the successor state is not new it must be in the
              *  queue for the proviso to be satisfied
              */
@@ -208,8 +208,9 @@ void * bfs_worker
         state_free(s);
         event_set_free(en);
 
-        /*
-         *  the state leaves the queue
+        /**
+         *  the state leaves the queue => we unset its cyan bit and
+         *  delete it from storage if algo is FRONTIER.
          */
         R->arcs[w] += arcs;
         R->states_visited[w] ++;
@@ -220,7 +221,7 @@ void * bfs_worker
       }
     }
 
-    /*
+    /**
      *  all states in the current queue has been processed => initiate
      *  level termination processing
      */

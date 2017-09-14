@@ -112,7 +112,6 @@ void hash_tbl_insert_real
   bit_stream_t bits;
   hash_tbl_id_t pos, init_pos;
   bit_vector_t se_other;
-  hash_compact_t hc;
   bool_t found, garbage, del_found = FALSE;
 
   /**
@@ -120,8 +119,7 @@ void hash_tbl_insert_real
    */
 #if defined(CFG_HASH_COMPACTION)
   if(NULL == se) {
-    hash_compact(*s, &hc);
-    (*h) = hc.keys[0];
+    (*h) = state_hash(*s);
   } else {
     assert(h_set);
   }
@@ -157,8 +155,7 @@ void hash_tbl_insert_real
 	  }
         }
 #if defined(CFG_HASH_COMPACTION)
-        memcpy(tbl->state[pos] + CFG_ATTRS_CHAR_SIZE, &hc,
-               sizeof(hash_compact_t));
+        memcpy(tbl->state[pos] + CFG_ATTRS_CHAR_SIZE, h, sizeof(hash_key_t));
 #else
         if(NULL == se) {
           se_char_len = state_char_width(*s);
@@ -200,7 +197,7 @@ void hash_tbl_insert_real
       tbl->state_cmps[w] ++;
       se_other = tbl->state[pos] + CFG_ATTRS_CHAR_SIZE;
 #if defined(CFG_HASH_COMPACTION)
-      found = (0 == memcmp(&hc, se_other, sizeof(hash_compact_t)));
+      found = (0 == memcmp(h, se_other, sizeof(hash_key_t)));
 #else
       found = (tbl->hash[pos] == (*h));
       if(found) {
@@ -284,9 +281,8 @@ hash_key_t hash_tbl_get_hash
   hash_key_t result;
   
 #if defined(CFG_HASH_COMPACTION)
-  hash_compact_t h;
-  memcpy(&h, tbl->state[id] + CFG_ATTRS_CHAR_SIZE, sizeof(hash_compact_t));
-  result = h.keys[0];
+  hash_key_t h;
+  memcpy(&h, tbl->state[id] + CFG_ATTRS_CHAR_SIZE, sizeof(hash_key_t));
 #else
   result = tbl->hash[id];
 #endif
@@ -436,7 +432,7 @@ void hash_tbl_get_serialised
  uint16_t * size) {
   (*s) = tbl->state[id] + CFG_ATTRS_CHAR_SIZE;
 #if defined(CFG_HASH_COMPACTION)
-  (*size) = sizeof(hash_compact_t);
+  (*size) = sizeof(hash_key_t);
 #else
   (*size) = (uint16_t) hash_tbl_get_attribute(tbl, id,
                                               CFG_ATTR_CHAR_LEN_POS,
