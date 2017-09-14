@@ -146,70 +146,83 @@ void dbfs_comm_barrier
   R->distributed_barrier_time += lna_timer_value(t);
 }
 
-void * dbfs_comm_worker
-(void * arg) {
+void dbfs_comm_worker_receive_states
+() {
   const worker_id_t my_worker_id = CFG_NO_WORKERS;
-  int pe, term = 0;
-  bfs_queue_item_t item;
-  uint64_t queue_size;
   uint32_t pos, tmp_pos, no_states;
   uint16_t s_char_len;
-  bool_t term_set = FALSE, remote_term[PES], states_received, is_new;
-  worker_id_t w;
-  buffer_prefix_t pref;
+  bool_t states_received = TRUE, is_new;
   hash_key_t h;
-  storage_id_t sid;
+  buffer_prefix_t pref;
   char buffer[SYM_HEAP_SIZE_WORKER];
+  storage_id_t sid;
+  bfs_queue_item_t item;
+  heap_t heap = bounded_heap_new("", 10000);
+  state_t s;
   
-  memset(buffer, 0, SYM_HEAP_SIZE_WORKER);
+  while(states_received) {
+    states_received = FALSE;
+    for(pos = SYM_HEAP_PREFIX_SIZE;
+        pos < SYM_HEAP_SIZE;
+        pos += SYM_HEAP_SIZE_WORKER) {
+      shmem_getmem(&pref, H + pos, sizeof(buffer_prefix_t), ME);
+      if(pref.no_states > 0) {
+        states_received = TRUE;
+        shmem_getmem(buffer, H + pos + sizeof(buffer_prefix_t),
+                     pref.char_len, ME);
+        no_states = pref.no_states;
+        pref.no_states = 0;
+        pref.char_len = 0;
+        shmem_putmem(H + pos, &pref, sizeof(buffer_prefix_t), ME);
+        tmp_pos = 0;
+        for(; no_states > 0; no_states --) {
+
+          /*  get hash value  */
+          memcpy(&h, buffer + tmp_pos, sizeof(hash_key_t));
+          tmp_pos += sizeof(hash_key_t);
+          
+          /*  get length  */
+          memcpy(&s_char_len, buffer + tmp_pos, sizeof(uint16_t));
+          tmp_pos += sizeof(uint16_t);
+          
+          /*  get the encoded state  */
+          storage_insert_serialised(S, buffer + tmp_pos, s_char_len,
+                                    h, my_worker_id, &is_new, &sid);
+          tmp_pos += s_char_len;
+
+          /*  the state is new => we put it in the queue.  if the
+              queue contains full state we have to unserialise it */
+          if(is_new) {
+            item.id = sid;
+#if defined(BFS_QUEUE_STATE_IN_QUEUE)
+            heap_reset(heap);
+            s = state_unserialise_mem(buffer + tmp_pos - s_char_len, heap);
+            item.s = s;
+#endif
+            bfs_queue_enqueue(Q, item, my_worker_id, h % CFG_NO_WORKERS);
+#if defined(BFS_QUEUE_STATE_IN_QUEUE)
+            state_free(item.s);
+#endif
+          }
+        }
+      }
+    }
+  }
+  heap_free(heap);
+}
+
+void * dbfs_comm_worker
+(void * arg) {
+  int pe, term = 0;
+  uint64_t queue_size;
+  bool_t term_set = FALSE, remote_term[PES], states_received;
+  
   for(pe = 0; pe < PES; pe ++) {
     remote_term[pe] = FALSE;
   }    
   while(!GLOB_TERM) {
     nanosleep(&COMM_WAIT_TIME, NULL);
-
-    /**
-     *  receive states
-     */
-    states_received = TRUE;
-    while(states_received) {
-      states_received = FALSE;
-      for(pos = SYM_HEAP_PREFIX_SIZE;
-          pos < SYM_HEAP_SIZE;
-          pos += SYM_HEAP_SIZE_WORKER) {
-        shmem_getmem(&pref, H + pos, sizeof(buffer_prefix_t), ME);
-        if(pref.no_states > 0) {
-          states_received = TRUE;
-          shmem_getmem(buffer, H + pos + sizeof(buffer_prefix_t),
-                       pref.char_len, ME);
-          no_states = pref.no_states;
-          pref.no_states = 0;
-          pref.char_len = 0;
-          shmem_putmem(H + pos, &pref, sizeof(buffer_prefix_t), ME);
-          tmp_pos = 0;
-          for(; no_states > 0; no_states --) {
-
-            /*  get hash value  */
-            memcpy(&h, buffer + tmp_pos, sizeof(hash_key_t));
-            tmp_pos += sizeof(hash_key_t);
-          
-            /*  get length  */
-            memcpy(&s_char_len, buffer + tmp_pos, sizeof(uint16_t));
-            tmp_pos += sizeof(uint16_t);
-          
-            /*  get the encoded state  */
-            storage_insert_serialised(S, buffer + tmp_pos, s_char_len,
-                                      h, my_worker_id, &is_new, &sid);
-            tmp_pos += s_char_len;
-
-            if(is_new) {
-              item.id = sid;
-              bfs_queue_enqueue(Q, item, my_worker_id, h % CFG_NO_WORKERS);
-            }
-          }
-        }
-      }
-    }
+    dbfs_comm_worker_receive_states();
     
     /**
      *  check for termination if I haven't received any state

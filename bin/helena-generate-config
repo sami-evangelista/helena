@@ -191,7 +191,6 @@ class Config:
             self.partialOrder = False
         elif self.algo == DBFS:
             self.partialOrder = False
-            self.hashCompaction = False
 
     def openFile(self, name, mode):
         if self.directory is None:

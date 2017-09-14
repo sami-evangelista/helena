@@ -9,6 +9,8 @@ bfs_queue_node_t bfs_queue_node_new
   result = mem_alloc(SYSTEM_HEAP, sizeof(struct_bfs_queue_node_t));
 #if defined(BFS_QUEUE_STATE_IN_QUEUE)
   result->heap = evergrowing_heap_new("", 10000);
+#else
+  result->heap = NULL;
 #endif
   return result;
 }
@@ -103,14 +105,14 @@ void bfs_queue_enqueue
   bfs_queue_slot_t slot = q->next[to][from];
   
   if(!slot->first) {
-    slot->last = mem_alloc(SYSTEM_HEAP, sizeof(struct_bfs_queue_node_t));
+    slot->last = bfs_queue_node_new();
     slot->last_index = 0;
     slot->first = slot->last;
     slot->first->next = NULL;
     slot->first->prev = NULL;
   }
   else if(BFS_QUEUE_NODE_SIZE == slot->last_index) {
-    slot->last->next = mem_alloc(SYSTEM_HEAP, sizeof(struct_bfs_queue_node_t));
+    slot->last->next = bfs_queue_node_new();
     slot->last_index = 0;
     slot->last->next->next = NULL;
     slot->last->next->prev = slot->last;

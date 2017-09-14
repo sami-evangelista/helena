@@ -121,10 +121,10 @@ void hash_tbl_insert_real
 #if defined(CFG_HASH_COMPACTION)
   if(NULL == se) {
     hash_compact(*s, &hc);
+    (*h) = hc.keys[0];
   } else {
-    memcpy(&hc, se, sizeof(hash_compact_t));
+    assert(h_set);
   }
-  (*h) = hc.keys[0];
 #else
   if(!h_set) {
     (*h) = state_hash(*s);
