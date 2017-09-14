@@ -62,7 +62,6 @@ package Helena_Yacc_Tokens is
       Container_Aggregate,
       Empty,
       List_Slice,
-      Underscore,
 
       --  iterator types
       card_iterator,
@@ -291,7 +290,6 @@ package Helena_Yacc_Tokens is
             Transition_Inputs     : Element;
             Transition_Outputs    : Element;
             Transition_Inhibits   : Element;
-            Transition_Resets     : Element;
             Transition_Pick_Vars  : Element;
             Transition_Let_Vars   : Element;
             Transition_Attributes : Element;
@@ -334,7 +332,6 @@ package Helena_Yacc_Tokens is
             string_string : Unbounded_String;
          when Number =>
             Number_Number : Unbounded_String;
-         when Underscore => null;
 	 when mult_iterator => null;
          when card_iterator => null;
 	 when forall_iterator => null;
@@ -382,22 +379,22 @@ package Helena_Yacc_Tokens is
          Out_Token, Place_Token, Pick_Token,
          Pred_Token, Print_Token, Priority_Token,
          Product_Token, Proposition_Token, Range_Token,
-         Reset_Token, Return_Token, Safe_Token,
-         Set_Token, Struct_Token, Subtype_Token,
-         Succ_Token, Sum_Token, Transition_Token,
-         Type_Token, Vector_Token, While_Token,
-         With_Token, Identifier_Token, Number_Token,
-         String_Token, Amp_Token, Comma_Token,
-         Div_Token, Dot_Dot_Token, Dot_Token,
-         Eq_Token, Implies_Token, Inf_Token,
-         Inf_Eq_Token, Lbrace_Token, Lbracket_Token,
-         Lhook_Token, Ltuple_Token, Minus_Token,
-         Neq_Token, Pipe_Token, Plus_Token,
-         Question_Token, Quote_Token, Rbrace_Token,
-         Rarrow_Token, Rbracket_Token, Rhook_Token,
-         Rtuple_Token, Semicolon_Token, Sup_Token,
-         Sup_Eq_Token, Times_Token, Colon_Token,
-         Colon_Colon_Token, Colon_Equal_Token, Underscore_Token );
+         Return_Token, Safe_Token, Set_Token,
+         Struct_Token, Subtype_Token, Succ_Token,
+         Sum_Token, Transition_Token, Type_Token,
+         Vector_Token, While_Token, With_Token,
+         Identifier_Token, Number_Token, String_Token,
+         Amp_Token, Comma_Token, Div_Token,
+         Dot_Dot_Token, Dot_Token, Eq_Token,
+         Implies_Token, Inf_Token, Inf_Eq_Token,
+         Lbrace_Token, Lbracket_Token, Lhook_Token,
+         Ltuple_Token, Minus_Token, Neq_Token,
+         Pipe_Token, Plus_Token, Question_Token,
+         Quote_Token, Rbrace_Token, Rarrow_Token,
+         Rbracket_Token, Rhook_Token, Rtuple_Token,
+         Semicolon_Token, Sup_Token, Sup_Eq_Token,
+         Times_Token, Colon_Token, Colon_Colon_Token,
+         Colon_Equal_Token );
 
     Syntax_Error : exception;
 

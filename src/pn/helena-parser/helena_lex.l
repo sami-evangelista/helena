@@ -38,7 +38,6 @@ quote          [\"]
 "?"  {return proceed_special_token(Question_Token);}
 "'"  {return proceed_special_token(Quote_Token);}
 "|"  {return proceed_special_token(Pipe_Token);}
-"_"  {return proceed_special_token(Underscore_Token);}
 "&"  {return proceed_special_token(Amp_Token);}
 "#"[^\n]*"\n" {return proceed_directive;}
 "\""[^\"]*"\"" {return proceed_string;}
@@ -198,7 +197,6 @@ package body Helena_Lex is
       PROPOSITION_TOKEN => To_Unbounded_String("proposition"),
       PRODUCT_TOKEN     => To_Unbounded_String("product"),
       RANGE_TOKEN       => To_Unbounded_String("range"),
-      RESET_TOKEN       => To_Unbounded_String("reset"),
       RETURN_TOKEN      => To_Unbounded_String("return"),
       STRUCT_TOKEN      => To_Unbounded_String("struct"),
       SAFE_TOKEN        => To_Unbounded_String("safe"),
