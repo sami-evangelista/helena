@@ -3,15 +3,16 @@
 #include "report.h"
 #include "dbfs_comm.h"
 #include "prop.h"
+#include "workers.h"
 
 #if defined(CFG_ALGO_BFS) || defined(CFG_ALGO_DBFS) || \
   defined(CFG_ALGO_FRONTIER)
 
-static report_t R;
-static storage_t S;
-static bfs_queue_t Q;
-static pthread_barrier_t B;
-static bool_t TERM;
+report_t R;
+storage_t S;
+bfs_queue_t Q;
+pthread_barrier_t B;
+bool_t TERM;
 
 worker_id_t bfs_thread_owner
 (hash_key_t h) {
@@ -269,15 +270,7 @@ void bfs
   }
   state_free(s);
 
-  /*
-   *  start the threads and wait for their termination
-   */
-  for(w = 0; w < r->no_workers; w ++) {
-    pthread_create(&(r->workers[w]), NULL, &bfs_worker, (void *) (long) w);
-  }
-  for(w = 0; w < r->no_workers; w ++) {
-    pthread_join(r->workers[w], &dummy);
-  }
+  launch_and_wait_workers(R, &bfs_worker);
 
   bfs_queue_free(Q);
 

@@ -346,7 +346,7 @@ void report_finalise
 #endif
 #if defined(CFG_ALGO_RWALK)
   fprintf(out, "<eventExecPerSecond>%d</eventExecPerSecond>\n",
-	  (unsigned int)(1.0 * visited /(r->exec_time / 1000000.0)));
+	  (unsigned int)(1.0 * sum_visited /(r->exec_time / 1000000.0)));
 #endif
   fprintf(out, "</otherStatistics>\n");
   fprintf(out, "</statisticsReport>\n");

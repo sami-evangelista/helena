@@ -22,7 +22,8 @@ random_walk
 report
 simulator
 state
-storage"
+storage
+workers"
 
 toolName=helena-generate-checker
 binName=../../bin/$toolName

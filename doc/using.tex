@@ -129,28 +129,12 @@ conflicting options, the last ones will prevail.
   search.  The reductions done depend on the property verified.  If
   there is no property checked, the reduction done only preserves the
   existence of deadlock states.
-\item\optionDef{D}{delta}\\ This option can activate the delta
-  markings storage method to store the state space. The basic idea is
-  store a large set of states compactly by only storing differences
-  with respect to others states of the state space. This technique can
-  greatly reduce the memory needed to store the state space, but will
-  also slow the search. Option \shortForm{K} can be set to influence
-  this.
-\item\optionDef{K=N}{k-delta=N}\\ This is the parameter of the
-  delta markings storage method. Consequently, this has no effect if
-  \texttt{D=0} is passed to Helena. The higher this parameter is, the
-  less memory will be needed to store the state space, and the slower
-  the search will be.
 \item\optionDef{S}{state-caching}\\ The principle of state caching is
   to only store a subset of visited states in such a way that
   termination is still guaranteed.  Other visited states are
   forgotten.  This technique can be very efficient but can also
   considerably increase the execution time by revisiting forgotten
   states.
-\item\optionDef{s}{cache-size=N}\\ When using state caching Helena
-  can keep some visited states in a cache in order to limit redundant
-  state revisits.  This option is used to specify the size of this
-  cache.
 \end{description}
 
 \subsection{Search limits}

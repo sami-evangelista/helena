@@ -17,9 +17,25 @@
 
 
 /*****
- *  hash table
+ *  storage used by delta-ddd algorithm
  *****/
-#if defined (CFG_HASH_STORAGE)
+#if defined (CFG_DELTA_DDD_STORAGE)
+
+typedef delta_ddd_storage_t storage_t;
+typedef delta_ddd_storage_id_t storage_id_t;
+
+#define init_storage           init_delta_ddd_storage
+#define free_storage           free_delta_ddd_storage
+#define storage_new            delta_ddd_storage_new
+#define storage_free           delta_ddd_storage_free
+#define storage_size           delta_ddd_storage_size
+#define storage_output_stats   delta_ddd_storage_output_stats
+
+
+/*****
+ *  default storage is hash table
+ *****/
+#else
 
 typedef hash_tbl_t storage_t;
 typedef hash_tbl_id_t storage_id_t;
@@ -55,22 +71,6 @@ typedef hash_tbl_id_t storage_id_t;
 #define storage_gc                hash_tbl_gc
 #define storage_wait_barrier      hash_tbl_wait_barrier
 #define storage_output_stats      hash_tbl_output_stats
-
-
-/*****
- *  storage used by delta-ddd algorithm
- *****/
-#elif defined (CFG_DELTA_DDD_STORAGE)
-
-typedef delta_ddd_storage_t storage_t;
-typedef delta_ddd_storage_id_t storage_id_t;
-
-#define init_storage           init_delta_ddd_storage
-#define free_storage           free_delta_ddd_storage
-#define storage_new            delta_ddd_storage_new
-#define storage_free           delta_ddd_storage_free
-#define storage_size           delta_ddd_storage_size
-#define storage_output_stats   delta_ddd_storage_output_stats
 
 #endif
 

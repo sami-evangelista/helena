@@ -1,49 +1,50 @@
 #include "delta_ddd.h"
 #include "prop.h"
 #include "graph.h"
+#include "workers.h"
 
 #if defined(CFG_ALGO_DELTA_DDD)
 
-static report_t R;
-static delta_ddd_storage_t S;
-static uint32_t next_num;
+report_t R;
+delta_ddd_storage_t S;
+uint32_t next_num;
 
 /*  mail boxes used during expansion  */
-static delta_ddd_candidate_t * BOX[CFG_NO_WORKERS][CFG_NO_WORKERS];
-static uint32_t BOX_size[CFG_NO_WORKERS][CFG_NO_WORKERS];
-static uint32_t BOX_tot_size[CFG_NO_WORKERS];
-static uint32_t BOX_max_size;
+delta_ddd_candidate_t * BOX[CFG_NO_WORKERS][CFG_NO_WORKERS];
+uint32_t BOX_size[CFG_NO_WORKERS][CFG_NO_WORKERS];
+uint32_t BOX_tot_size[CFG_NO_WORKERS];
+uint32_t BOX_max_size;
 
 /*  candidate set (obtained from boxes after merging)  */
-static delta_ddd_candidate_t * CS[CFG_NO_WORKERS];
-static uint32_t CS_size[CFG_NO_WORKERS];
-static uint32_t * NCS[CFG_NO_WORKERS];
-static uint32_t CS_max_size;
+delta_ddd_candidate_t * CS[CFG_NO_WORKERS];
+uint32_t CS_size[CFG_NO_WORKERS];
+uint32_t * NCS[CFG_NO_WORKERS];
+uint32_t CS_max_size;
 
 /*  state table  */
-static delta_ddd_state_t * ST;
+delta_ddd_state_t * ST;
 
 /*  heaps used to store candidates, to reconstruct states and
  *  perform duplicate detection  */
-static heap_t candidates_heaps[CFG_NO_WORKERS];
-static heap_t expand_heaps[CFG_NO_WORKERS];
-static heap_t detect_heaps[CFG_NO_WORKERS];
-static heap_t expand_evts_heaps[CFG_NO_WORKERS];
-static heap_t detect_evts_heaps[CFG_NO_WORKERS];
+heap_t candidates_heaps[CFG_NO_WORKERS];
+heap_t expand_heaps[CFG_NO_WORKERS];
+heap_t detect_heaps[CFG_NO_WORKERS];
+heap_t expand_evts_heaps[CFG_NO_WORKERS];
+heap_t detect_evts_heaps[CFG_NO_WORKERS];
 
 /*  random seeds  */
-static rseed_t seeds[CFG_NO_WORKERS];
+rseed_t seeds[CFG_NO_WORKERS];
 
 /*  synchronisation variables  */
-static bool_t level_terminated[CFG_NO_WORKERS];
-static pthread_barrier_t barrier;
-static uint32_t next_lvl;
-static uint32_t next_lvls[CFG_NO_WORKERS];
-static pthread_mutex_t report_mutex;
-static bool_t error_reported;
+bool_t level_terminated[CFG_NO_WORKERS];
+pthread_barrier_t barrier;
+uint32_t next_lvl;
+uint32_t next_lvls[CFG_NO_WORKERS];
+pthread_mutex_t report_mutex;
+bool_t error_reported;
 
 /*  alternating bit to know which states to expand  */
-static uint8_t recons_id;
+uint8_t recons_id;
 
 #define EXPAND_HEAP_SIZE (1024 * 1024)
 #define DETECT_HEAP_SIZE (1024 * 1024)
@@ -880,17 +881,8 @@ void delta_ddd
     }
     CS_size[w] = 0;
   }
-  
-  /*
-   *  start the threads and wait for their termination
-   */
-  for(w = 0; w < r->no_workers; w ++) {
-    pthread_create(&(r->workers[w]), NULL, &delta_ddd_worker,
-                   (void *) (long) w);
-  }
-  for(w = 0; w < r->no_workers; w ++) {
-    pthread_join(r->workers[w], &dummy);
-  }
+
+  launch_and_wait_workers(R, &delta_ddd_worker_walk_worker);
 
   /*
    *  free heaps and mailboxes

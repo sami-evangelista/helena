@@ -319,7 +319,6 @@ class Config:
         #  partial order reduction
         if self.partialOrder:
             W("#define CFG_POR\n")
-            W("#define CFG_PROVISO\n")
             if self.propType is not None and \
                self.propType != DEADLOCK:
                 W("#define CFG_PROVISO\n")
@@ -351,8 +350,7 @@ class Config:
         if self.action == CHECK and self.propType == LTL:
             W("#define CFG_ATTR_PINK\n")
             W("#define CFG_ATTR_PINK_POS " + str(bitw) + "\n")
-            W("#define CFG_ATTR_PINK_SIZE " + \
-              str(self.workers) + "\n")
+            W("#define CFG_ATTR_PINK_SIZE " + str(self.workers) + "\n")
             bitw = bitw + self.workers
             W("#define CFG_ATTR_RED\n")
             W("#define CFG_ATTR_RED_POS " + str(bitw) + "\n")

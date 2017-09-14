@@ -9,11 +9,6 @@
 #define BUCKET_OK         1
 #define BUCKET_WRITE      2
 
-static const struct timespec PUBLISH_PERIOD =
-  { 0, PUBLISH_PERIOD_MS * 1000000 };
-static const struct timespec WAIT_TIME =
-  { 0, 10 };
-
 #include "ddfs_comm.h"
 
 typedef struct {
@@ -29,11 +24,14 @@ typedef struct {
   uint16_t k[CFG_NO_WORKERS];
 } ddfs_comm_boxes_t;
 
-static ddfs_comm_boxes_t B;
-static storage_t S;
-static report_t R;
-static void * H;
-static pthread_t W;
+const struct timespec PUBLISH_PERIOD = { 0, PUBLISH_PERIOD_MS * 1000000 };
+const struct timespec WAIT_TIME = { 0, 10 };
+
+ddfs_comm_boxes_t B;
+storage_t S;
+report_t R;
+void * H;
+pthread_t W;
 
 void ddfs_comm_process_explored_state
 (worker_id_t w,

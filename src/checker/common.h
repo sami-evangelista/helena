@@ -86,10 +86,10 @@ hash_key_t bit_vector_hash
 (bit_vector_t v,
  unsigned int len);
 
-#define MALLOC(ptr, ptr_type, size) {				\
-    if(!((ptr) = (ptr_type) malloc(size))) {			\
-      stop_search(MEMORY_EXHAUSTED);				\
-    }								\
+#define MALLOC(ptr, ptr_type, size) {           \
+    if(!((ptr) = (ptr_type) malloc(size))) {    \
+      stop_search(MEMORY_EXHAUSTED);            \
+    }                                           \
   }
 
 #define fatal_error(msg) {						\
@@ -98,7 +98,7 @@ hash_key_t bit_vector_hash
     printf("fatal error: %s\n", msg);					\
     printf("please send a mail with a file that caused this bug to\n"); \
     printf("      sami.evangelista@lipn.univ-paris13.fr\n");		\
-    exit(EXIT_FAILURE);						\
+    exit(EXIT_FAILURE);                                                 \
   }
 
 bool_t raise_error

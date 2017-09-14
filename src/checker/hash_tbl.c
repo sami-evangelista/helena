@@ -9,7 +9,7 @@
 
 #define MAX_TRIALS 10000
 
-static const struct timespec SLEEP_TIME = { 0, 1 };
+const struct timespec SLEEP_TIME = { 0, 1 };
 
 void hash_tbl_id_serialise
 (hash_tbl_id_t id,

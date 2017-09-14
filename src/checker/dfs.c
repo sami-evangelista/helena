@@ -1,23 +1,16 @@
-/**
- * @file dfs.h
- * @author Sami Evangelista
- * @date 12 sep 2017
- * @brief Implementation of DFS based algorithms: DFS, DDFS (distributed DFS).
- *        Nested DFS (NDFS) and muti-core NDFS are also implemented here.
- */
-
 #include "dfs.h"
 #include "model.h"
 #include "storage.h"
 #include "dfs_stack.h"
 #include "ddfs_comm.h"
 #include "prop.h"
+#include "workers.h"
 
 #if defined(CFG_ALGO_DDFS) || defined(CFG_ALGO_DFS)
 
-static report_t R;
-static storage_t S;
-static bool_t DONE[CFG_NO_WORKERS];
+report_t R;
+storage_t S;
+bool_t DONE[CFG_NO_WORKERS];
 
 bool_t dfs_all_done
 () {
@@ -331,17 +324,8 @@ void dfs
   for(w = 0; w < r->no_workers; w ++) {
     DONE[w] = FALSE;
   }
-
-  /*
-   *  start the threads and wait for their termination
-   */
-  for(w = 0; w < r->no_workers; w ++) {
-    pthread_create(&(r->workers[w]), NULL, &dfs_worker, (void *)(long) w);
-  }
-  for(w = 0; w < r->no_workers; w ++) {
-    pthread_join(r->workers[w], &dummy);
-  }
-  R->keep_searching = FALSE;
+  
+  launch_and_wait_workers(R, &dfs_worker);
 
 #if defined(CFG_ALGO_DDFS)
   ddfs_comm_end();

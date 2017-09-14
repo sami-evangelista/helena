@@ -18,26 +18,23 @@ typedef struct {
   uint32_t * remote_pos[CFG_NO_WORKERS];
 } worker_buffers_t;
 
-static const struct timespec COMM_WAIT_TIME =
-  { 0, COMM_WAIT_TIME_MS * 1000000 };
+const struct timespec COMM_WAIT_TIME = { 0, COMM_WAIT_TIME_MS * 1000000 };
+const struct timespec WORKER_WAIT_TIME = { 0, WORKER_WAIT_TIME_MS * 1000000 };
 
-static const struct timespec WORKER_WAIT_TIME =
-  { 0, WORKER_WAIT_TIME_MS * 1000000 };
-
-static report_t R;
-static storage_t S;
-static bfs_queue_t Q;
-static pthread_t W;
-static void * H;
-static pthread_barrier_t B;
-static worker_buffers_t BUF;
-static bool_t LOCAL_TERM;
-static bool_t GLOB_TERM;
-static uint32_t SYM_HEAP_SIZE;
-static uint32_t SYM_HEAP_SIZE_WORKER;
-static uint32_t SYM_HEAP_SIZE_PE;
-static int PES;
-static int ME;
+report_t R;
+storage_t S;
+bfs_queue_t Q;
+pthread_t W;
+void * H;
+pthread_barrier_t B;
+worker_buffers_t BUF;
+bool_t LOCAL_TERM;
+bool_t GLOB_TERM;
+uint32_t SYM_HEAP_SIZE;
+uint32_t SYM_HEAP_SIZE_WORKER;
+uint32_t SYM_HEAP_SIZE_PE;
+int PES;
+int ME;
 
 
 /**
