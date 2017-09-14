@@ -270,9 +270,9 @@ void report_finalise
   fprintf(out, "<searchTime>%.2f</searchTime>\n", r->exec_time / 1000000.0);
 #if defined(CFG_ALGO_DELTA_DDD)
   fprintf(out, "<duplicateDetectionTime>%.2f</duplicateDetectionTime>\n",
-          r->storage->dd_time / 1000000.0);
+          storage_dd_time(r->storage) / 1000000.0);
   fprintf(out, "<barrierTime>%.2f</barrierTime>\n",
-          do_large_sum(r->storage->barrier_time, r->no_workers) / 1000000.0);
+          storage_barrier_time(r->storage) / 1000000.0);
 #endif
 #if defined(CFG_DISTRIBUTED)
   fprintf(out, "<distributedBarrierTime>");
@@ -282,7 +282,7 @@ void report_finalise
 #if defined(CFG_STATE_CACHING)
   fprintf(out, "<garbageCollectionTime>");
   fprintf(out, "%.2f</garbageCollectionTime>\n",
-	  r->storage->gc_time / 1000000.0);
+	  storage_gc_time(r->storage) / 1000000.0);
 #endif
   fprintf(out, "</timeStatistics>\n");
   

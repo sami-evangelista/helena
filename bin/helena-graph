@@ -147,14 +147,14 @@ if withBLELengths: plot(l, "boxes", t, "ble-lengths.pdf")
 for e in doc.getElementsByTagName("level"):
     s = e.getElementsByTagName("states")[0]
     l.append((getAttr(e, "id"),
-              100 * int(s.childNodes[0].nodeValue) / states))
+              (100.0 * float(s.childNodes[0].nodeValue)) / states))
 plot(l, "lines", t, "bfs-levels.pdf")
 #####
 (l, t) = ([], "Evolution of the stack (% of states) during DFS")
 for e in doc.getElementsByTagName("stack-size"):
     l.append((getAttr(e, "id"), e.childNodes[0].nodeValue))
 withDFSStack = len(l) > 0
-if withDFSStack: plot(l, "boxes", t, "dfs-stack.pdf")
+if withDFSStack: plot(l, "lines", t, "dfs-stack.pdf")
 #####
 (l, t) = ([], "In-degree distribution (% of states)")
 for e in doc.getElementsByTagName("degree"):

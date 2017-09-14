@@ -30,6 +30,8 @@ typedef delta_ddd_storage_id_t storage_id_t;
 #define storage_free           delta_ddd_storage_free
 #define storage_size           delta_ddd_storage_size
 #define storage_output_stats   delta_ddd_storage_output_stats
+#define storage_barrier_time   delta_ddd_storage_barrier_time
+#define storage_dd_time        delta_ddd_storage_dd_time
 
 
 /*****
@@ -37,9 +39,8 @@ typedef delta_ddd_storage_id_t storage_id_t;
  *****/
 #else
 
-typedef hash_tbl_t storage_t;
-typedef hash_tbl_id_t storage_id_t;
-
+#define storage_t                 hash_tbl_t
+#define storage_id_t              hash_tbl_id_t
 #define init_storage              init_hash_tbl
 #define free_storage              free_hash_tbl
 #define storage_id_serialise      hash_tbl_id_serialise
@@ -69,7 +70,8 @@ typedef hash_tbl_id_t storage_id_t;
 #define storage_unref             hash_tbl_unref
 #define storage_do_gc             hash_tbl_do_gc
 #define storage_gc                hash_tbl_gc
-#define storage_wait_barrier      hash_tbl_wait_barrier
+#define storage_barrier           hash_tbl_barrier
+#define storage_gc_time           hash_tbl_gc_time
 #define storage_output_stats      hash_tbl_output_stats
 
 #endif

@@ -5,6 +5,39 @@
 
 #if defined(CFG_ALGO_DELTA_DDD)
 
+typedef struct {
+  delta_ddd_storage_id_t fst_child;
+  delta_ddd_storage_id_t next;
+  bool_t father;
+  bool_t dd;
+  bool_t dd_visit;
+  bool_t recons[2];
+  event_id_t e;
+#if defined(CFG_ACTION_BUILD_RG)
+  uint32_t num;
+#endif
+} delta_ddd_state_t;
+
+typedef struct {
+  unsigned char content;
+  delta_ddd_storage_id_t id;
+  delta_ddd_storage_id_t pred;
+  event_id_t e;
+  bit_vector_t s;
+  hash_key_t h;
+  uint16_t width;
+} delta_ddd_candidate_t;
+
+struct struct_delta_ddd_storage_t {
+  delta_ddd_storage_id_t root;
+  delta_ddd_state_t ST[CFG_HASH_SIZE];
+  int32_t size[CFG_NO_WORKERS];
+  uint64_t dd_time;
+  uint64_t barrier_time[CFG_NO_WORKERS];
+};
+
+typedef struct struct_delta_ddd_storage_t struct_delta_ddd_storage_t;
+
 report_t R;
 delta_ddd_storage_t S;
 uint32_t next_num;
@@ -110,7 +143,7 @@ void free_delta_ddd_storage
 () {
 }
 
-void delta_ddd_barrier_wait
+void delta_ddd_barrier
 (worker_id_t w) {
   lna_timer_t t;
     
@@ -121,6 +154,16 @@ void delta_ddd_barrier_wait
   lna_timer_stop(&t);
   S->barrier_time[w] += lna_timer_value(t);
 #endif
+}
+
+uint64_t delta_ddd_storage_barrier_time
+(delta_ddd_storage_t storage) {
+  return do_large_sum(storage->barrier_time, CFG_NO_WORKERS) / 1000000.0;
+}
+
+uint64_t delta_ddd_storage_dd_time
+(delta_ddd_storage_t storage) {
+  return storage->dd_time;
 }
 
 
@@ -174,7 +217,7 @@ uint64_t delta_ddd_storage_size
 
 void delta_ddd_storage_output_stats
 (delta_ddd_storage_t storage,
- FILE *        out) {
+ FILE * out) {
 }
 
 
@@ -477,9 +520,9 @@ void delta_ddd_write_nodes_graph
  *
  *****/
 delta_ddd_storage_id_t delta_ddd_insert_new_state
-(worker_id_t      w,
- hash_key_t       h,
- delta_ddd_state_t      s,
+(worker_id_t w,
+ hash_key_t h,
+ delta_ddd_state_t s,
  delta_ddd_storage_id_t pred) {
   uint8_t r = (recons_id + 1) & 1;
   unsigned int id, fst = h & CFG_HASH_SIZE_M, slot = fst;
@@ -531,7 +574,7 @@ void delta_ddd_insert_new_states
   delta_ddd_write_nodes_graph(w);
 #endif
 
-  delta_ddd_barrier_wait(w);
+  delta_ddd_barrier(w);
 
   if(0 == w) {
     for(x = 0; x < CFG_NO_WORKERS; x ++) {
@@ -584,7 +627,7 @@ bool_t delta_ddd_duplicate_detection
   /*
    *  merge the candidate set and mark states to reconstruct
    */
-  delta_ddd_barrier_wait(w);
+  delta_ddd_barrier(w);
   if(delta_ddd_storage_size(S) >= 0.9 * CFG_HASH_SIZE) {
     pthread_mutex_lock(&report_mutex);
     raise_error("state table too small (increase --hash-size and rerun)");
@@ -598,13 +641,13 @@ bool_t delta_ddd_duplicate_detection
   /*
    *  reconstruct states and perform duplicate detection
    */
-  delta_ddd_barrier_wait(w);
+  delta_ddd_barrier(w);
   delta_ddd_duplicate_detection_dfs(w, S->root, s, 0);
 
   /*
    *  insert these new states in the tree
    */
-  delta_ddd_barrier_wait(w);
+  delta_ddd_barrier(w);
   delta_ddd_insert_new_states(w);
 
   /*
@@ -776,13 +819,13 @@ void * delta_ddd_worker
     recons_id = 0;
     next_lvl = 1;
   }
-  delta_ddd_barrier_wait(w);
+  delta_ddd_barrier(w);
   while(next_lvl != 0) {
 
     /*
      *  initialise some data for the next level
      */
-    delta_ddd_barrier_wait(w);
+    delta_ddd_barrier(w);
     level_terminated[w] = FALSE;
     next_lvls[w] = 0;
     if(0 == w) {
@@ -793,7 +836,7 @@ void * delta_ddd_worker
     /*
      *  all workers expand the current level
      */
-    delta_ddd_barrier_wait(w);
+    delta_ddd_barrier(w);
     delta_ddd_expand(w, depth);
     depth ++;
     if(0 == w) {
@@ -802,7 +845,7 @@ void * delta_ddd_worker
       }
       report_update_bfs_levels(R, depth);
     }
-    delta_ddd_barrier_wait(w);
+    delta_ddd_barrier(w);
   }
   return NULL;
 }
@@ -882,7 +925,7 @@ void delta_ddd
     CS_size[w] = 0;
   }
 
-  launch_and_wait_workers(R, &delta_ddd_worker_walk_worker);
+  launch_and_wait_workers(R, &delta_ddd_worker);
 
   /*
    *  free heaps and mailboxes

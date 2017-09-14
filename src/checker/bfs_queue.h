@@ -38,33 +38,7 @@ typedef struct {
   storage_id_t id;
 } bfs_queue_item_t;
 
-struct struct_bfs_queue_node_t {
-  bfs_queue_item_t items[BFS_QUEUE_NODE_SIZE];
-  heap_t heap;
-  struct struct_bfs_queue_node_t * prev;
-  struct struct_bfs_queue_node_t * next;
-};
-
-typedef struct struct_bfs_queue_node_t struct_bfs_queue_node_t;
-
-typedef struct_bfs_queue_node_t * bfs_queue_node_t;
-
-typedef struct {
-  bfs_queue_node_t first;
-  bfs_queue_node_t last;
-  uint64_t first_index;
-  uint64_t last_index;
-  uint64_t size;
-} struct_bfs_queue_slot_t;
-
-typedef struct_bfs_queue_slot_t * bfs_queue_slot_t;
-
-typedef struct {
-  bfs_queue_slot_t current[NO_WORKERS_QUEUE][NO_WORKERS_QUEUE];
-  bfs_queue_slot_t next[NO_WORKERS_QUEUE][NO_WORKERS_QUEUE]; 
-} struct_bfs_queue_t;
-
-typedef struct_bfs_queue_t * bfs_queue_t;
+typedef struct struct_bfs_queue_t * bfs_queue_t;
 
 bfs_queue_t bfs_queue_new
 ();

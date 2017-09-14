@@ -3,6 +3,45 @@
 
 #if defined(CFG_ALGO_DFS) || defined(CFG_ALGO_DDFS)
 
+/**
+ *  items of the DFS stack
+ *
+ *  if the model does not allow the events to be undone and if the
+ *  storage does not allow states to recovered we need to save the
+ *  state on the stack
+ */
+typedef struct {
+  unsigned char n;
+  storage_id_t id;
+  event_set_t en;
+  heap_t heap_pos;
+  unsigned int * shuffle;
+  bool_t prov_ok;
+  bool_t fully_expanded;
+#if defined(DFS_STACK_STATE_IN_STACK)
+  state_t s;
+#endif
+} dfs_stack_item_t;
+
+typedef struct {
+  dfs_stack_item_t items[DFS_STACK_SLOT_SIZE];
+} struct_dfs_stack_slot_t;
+
+typedef struct_dfs_stack_slot_t * dfs_stack_slot_t;
+
+struct struct_dfs_stack_t {
+  int id;
+  dfs_stack_slot_t slots[DFS_STACK_SLOTS];
+  heap_t heaps[DFS_STACK_SLOTS];
+  unsigned char current;
+  int top;
+  unsigned int size;
+  unsigned int files;
+  rseed_t seed;
+};
+
+typedef struct struct_dfs_stack_t struct_dfs_stack_t;
+
 void dfs_stack_slot_free
 (dfs_stack_slot_t slot) {
   free(slot);

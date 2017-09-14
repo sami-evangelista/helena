@@ -17,26 +17,6 @@
 typedef uint8_t edge_num_t;
 typedef uint32_t node_t;
 
-typedef struct {
-  edge_num_t num;
-  node_t     dest;
-} edge_data_t;
-
-typedef struct {
-  uint8_t       no_succs;
-  edge_data_t * out;
-} node_data_t;
-
-typedef struct {
-  unsigned int  no_nodes;
-  unsigned int  no_edges;
-  node_data_t * data;
-  node_t        root;
-  heap_t        heap;
-} struct_graph_t;
-
-typedef struct_graph_t * graph_t;
-
 void graph_make_report
 (char * in_file,
  char * out_file,

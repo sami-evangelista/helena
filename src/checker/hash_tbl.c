@@ -2,6 +2,29 @@
 #include "report.h"
 #include "bit_stream.h"
 
+typedef uint8_t bucket_status_t;
+
+unsigned int hash_tbl_id_char_width;
+
+struct struct_hash_tbl_t {
+  uint64_t hash_size;
+  heap_t heaps[NO_WORKERS_STORAGE];
+  uint64_t size[NO_WORKERS_STORAGE];
+  uint64_t state_cmps[NO_WORKERS_STORAGE];
+  bucket_status_t update_status[CFG_HASH_SIZE];
+  bucket_status_t status[CFG_HASH_SIZE];
+#if defined(CFG_HASH_COMPACTION)
+  char state[CFG_HASH_SIZE][CFG_ATTRS_CHAR_SIZE + sizeof(hash_key_t)];
+#else
+  bit_vector_t state[CFG_HASH_SIZE];
+  hash_key_t hash[CFG_HASH_SIZE];
+#endif
+  uint64_t gc_time;
+  pthread_barrier_t barrier;
+  uint32_t seeds[NO_WORKERS_STORAGE];
+};
+typedef struct struct_hash_tbl_t struct_hash_tbl_t;
+
 #define BUCKET_EMPTY 1
 #define BUCKET_READY 2
 #define BUCKET_WRITE 3
@@ -495,10 +518,8 @@ bool_t hash_tbl_do_gc
   
 #if defined(CFG_STATE_CACHING)
   result =
-    (tbl->size[w] * CFG_NO_WORKERS) >=
+      (tbl->size[w] * CFG_NO_WORKERS) >=
     ((tbl->hash_size * CFG_STATE_CACHING_GC_THRESHOLD) / 100);
-  if(result) {
-  }
 #endif
   return result;
 }
@@ -546,7 +567,7 @@ void hash_tbl_gc
   pos = (random_int(&tbl->seeds[w]) % tbl->hash_size) / CFG_NO_WORKERS;
   pos = pos * CFG_NO_WORKERS + w;
   init_pos = pos;
-  to_delete = (tbl->size[w] * CFG_STATE_CACHING_GC_PERCENT) / 100;
+  to_delete = (int)((float) tbl->size[w] * CFG_STATE_CACHING_GC_PERCENT) / 100;
   while(to_delete) {
     if(tbl->status[pos] == BUCKET_READY) {
       gc = hash_tbl_get_attribute(tbl, pos, CFG_ATTR_GARBAGE_POS,
@@ -608,7 +629,11 @@ void hash_tbl_output_stats
           do_large_sum(tbl->state_cmps, NO_WORKERS_STORAGE));
   fprintf(out, "</hashTableStatistics>\n");
 }
-   
+
+uint64_t hash_tbl_gc_time
+(hash_tbl_t tbl) {
+  return tbl->gc_time;
+}                        
 
 void init_hash_tbl
 () {
@@ -617,18 +642,4 @@ void init_hash_tbl
 
 void free_hash_tbl
 () {
-}
-
-
-uint64_t hash_tbl_real_size
-(hash_tbl_t tbl) {
-  uint64_t result = 0;
-  uint32_t i = 0;
-
-  for(i = 0; i < tbl->hash_size; i++) {
-    if(tbl->status[i] == BUCKET_READY) {
-      result ++;
-    }
-  }
-  return result;
 }

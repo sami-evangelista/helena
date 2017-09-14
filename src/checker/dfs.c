@@ -298,7 +298,7 @@ void * dfs_worker
 #if defined(CFG_PARALLEL) && defined(CFG_STATE_CACHING)
   DONE[w] = TRUE;
   do {
-    storage_wait_barrier(S);
+    storage_barrier(S);
   }
   while(!dfs_all_done());
 #endif

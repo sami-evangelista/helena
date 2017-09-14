@@ -275,7 +275,7 @@ class Config:
         if self.stateCaching:
             W("#define CFG_STATE_CACHING\n")
             W("#define CFG_STATE_CACHING_GC_THRESHOLD 50\n")
-            W("#define CFG_STATE_CACHING_GC_PERCENT   0.01\n")
+            W("#define CFG_STATE_CACHING_GC_PERCENT   0.1\n")
 
         #  search limits
         if self.memoryLimit != 0:
