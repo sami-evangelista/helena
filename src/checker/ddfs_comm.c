@@ -1,4 +1,5 @@
 #include "ddfs_comm.h"
+#include "comm_shmem.h"
 
 #if defined(CFG_ALGO_DDFS)
 
@@ -80,22 +81,13 @@ void ddfs_comm_process_explored_state
   }
 }
 
-void ddfs_comm_barrier
-() {
-  lna_timer_t t;
-  lna_timer_init(&t);
-  lna_timer_start(&t);
-  shmem_barrier_all();
-  lna_timer_stop(&t);
-  R->distributed_barrier_time += lna_timer_value(t);
-}
-
 void * ddfs_comm_worker
 (void * arg) {
+  const worker_id_t my_worker_id = CFG_NO_WORKERS;
   const int me = shmem_my_pe();
   const int pes = shmem_n_pes();
   int i, pe;
-  worker_id_t w, my_worker_id = CFG_NO_WORKERS;
+  worker_id_t w;
   bool_t loop = TRUE;
   heap_prefix_t pref,  pref_other[pes];
   uint32_t pos;
@@ -115,7 +107,7 @@ void * ddfs_comm_worker
      *  1st step: put every state of the local shared box in the
      *  symmetrical heap
      */
-    ddfs_comm_barrier();
+    comm_shmem_barrier();
     pref.size = 0;
     pref.char_len = sizeof(heap_prefix_t);
     for(w = 0; w < CFG_NO_WORKERS; w ++) {
@@ -139,25 +131,30 @@ void * ddfs_comm_worker
 
         /*  put its hash value  */
         h = storage_get_hash(S, sid);
-        shmem_putmem(H + pref.char_len, &h, sizeof(hash_key_t), me);
+        comm_shmem_put(H + pref.char_len, &h, sizeof(hash_key_t), me,
+                       my_worker_id);
         pref.char_len += sizeof(hash_key_t);
           
         /*  put its blue attribute  */
         blue = storage_get_blue(S, sid);
-        shmem_putmem(H + pref.char_len, &blue, 1, me);
+        comm_shmem_put(H + pref.char_len, &blue, 1, me,
+                       my_worker_id);
         pref.char_len ++;
           
         /*  put its red attribute  */
         red = storage_get_red(S, sid);
-        shmem_putmem(H + pref.char_len, &red, 1, me);
+        comm_shmem_put(H + pref.char_len, &red, 1, me,
+                       my_worker_id);
         pref.char_len ++;
           
         /*  put its char length  */
-        shmem_putmem(H + pref.char_len, &s_char_len, sizeof(uint16_t), me);
+        comm_shmem_put(H + pref.char_len, &s_char_len, sizeof(uint16_t), me,
+                       my_worker_id);
         pref.char_len += sizeof(uint16_t);
           
         /*  put the state  */
-        shmem_putmem(H + pref.char_len, s, s_char_len, me);
+        comm_shmem_put(H + pref.char_len, s, s_char_len, me,
+                       my_worker_id);
         pref.char_len += s_char_len;
 
         /*  and decrease its reference counter  */
@@ -178,18 +175,19 @@ void * ddfs_comm_worker
     }
 
     /*  put my prefix in my local heap  */
-    shmem_putmem(H, &pref, sizeof(heap_prefix_t), me);
+    comm_shmem_put(H, &pref, sizeof(heap_prefix_t), me, my_worker_id);
 
     /**
      *  2nd step: get all the states sent py remote PEs
      */
-    ddfs_comm_barrier();
+    comm_shmem_barrier();
     
     /*  first read the heap prefixes of all remote PEs  */
     loop = !pref.terminated;
     for(pe = 0; pe < pes ; pe ++) {
       if(me != pe) {
-        shmem_getmem(&pref_other[pe], H, sizeof(heap_prefix_t), pe);
+        comm_shmem_get(&pref_other[pe], H, sizeof(heap_prefix_t), pe,
+                       my_worker_id);
         if(!pref_other[pe].terminated) {
           loop = TRUE;
         }
@@ -202,8 +200,8 @@ void * ddfs_comm_worker
     if(loop && R->keep_searching) {
       for(pe = 0; pe < pes ; pe ++) {
         if(me != pe) {
-          shmem_getmem(buffer, H + sizeof(heap_prefix_t),
-                       pref_other[pe].char_len, pe);
+          comm_shmem_get(buffer, H + sizeof(heap_prefix_t),
+                         pref_other[pe].char_len, pe, my_worker_id);
           pos = 0;
           for(i = 0; i < pref_other[pe].size; i++) {
 
@@ -249,7 +247,7 @@ void ddfs_comm_start
   pthread_t worker;
 
   /*  shmem and symmetrical heap initialisation  */
-  shmem_init();
+  comm_shmem_init(r);
   H = shmem_malloc(CFG_SYM_HEAP_SIZE * shmem_n_pes());
   
   R = r;
@@ -269,9 +267,7 @@ void ddfs_comm_end
   void * dummy;
 
   pthread_join(W, &dummy);
-  ddfs_comm_barrier();
-  shmem_free(H);
-  shmem_finalize();
+  comm_shmem_finalize(H);
 }
 
 #endif  /*  defined(CFG_ALGO_DDFS)  */

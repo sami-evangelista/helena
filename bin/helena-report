@@ -138,7 +138,8 @@ statistics = {
     "eventsExecutedDDD"         : "   for duplicate detection",
     "eventsExecutedExpansion"   : "   for state expansion    ",
     "eventExecPerSecond"        : "Event execution rate      ",
-    "maxMemoryUsed"             : "Max. memory used          " }
+    "maxMemoryUsed"             : "Max. memory used          ",
+    "bytesSend"                 : "Bytes send                " }
 statisticsUnits = {
     "searchTime"                : "s.",
     "duplicateDetectionTime"    : "s.",

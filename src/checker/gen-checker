@@ -5,6 +5,7 @@ bfs
 bfs_queue
 buchi
 common
+comm_shmem
 dbfs_comm
 ddfs_comm
 delta_ddd

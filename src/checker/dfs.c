@@ -281,7 +281,7 @@ void * dfs_worker
   hash_key_t h;
   bool_t dummy;
   storage_id_t id;
-  bounded_heap_t heap = bounded_heap_new("state heap", 1024 * 100);
+  heap_t heap = bounded_heap_new("state heap", 1024 * 100);
   state_t now = state_initial_mem(heap);
   dfs_stack_t blue_stack = dfs_stack_new(wid * 2);
 #if defined(CFG_ACTION_CHECK_LTL)
@@ -328,6 +328,7 @@ void dfs
   launch_and_wait_workers(R, &dfs_worker);
 
 #if defined(CFG_ALGO_DDFS)
+  R->keep_searching = FALSE;
   ddfs_comm_end();
 #endif
 }

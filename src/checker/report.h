@@ -55,6 +55,7 @@ struct struct_report_t {
   uint64_t * events_executed;
   uint64_t * events_executed_dd;
   uint64_t * state_cmps;
+  uint64_t * bytes_sent;
   uint64_t exec_time;
   uint64_t states_max_stored;
   unsigned int bfs_levels;
@@ -97,6 +98,15 @@ void report_set_comp_time
 void report_update_bfs_levels
 (report_t r,
  unsigned int bfs_levels);
+
+void report_increase_bytes_sent
+(report_t r,
+ worker_id_t w,
+ uint32_t bytes);
+
+void report_increase_distributed_barrier_time
+(report_t r,
+ float time);
 
 void report_faulty_state
 (report_t r,

@@ -4,8 +4,6 @@
 
 typedef uint8_t bucket_status_t;
 
-unsigned int hash_tbl_id_char_width;
-
 struct struct_hash_tbl_t {
   uint64_t hash_size;
   heap_t heaps[NO_WORKERS_STORAGE];

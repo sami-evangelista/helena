@@ -26,6 +26,8 @@
 #define STORAGE_STATE_RECOVERABLE
 #endif
 
+unsigned int hash_tbl_id_char_width;
+
 typedef struct struct_hash_tbl_t * hash_tbl_t;
 
 typedef uint64_t hash_tbl_id_t;

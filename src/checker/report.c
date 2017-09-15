@@ -25,6 +25,8 @@ report_t report_new
     mem_alloc(SYSTEM_HEAP, no_workers * sizeof(uint64_t));
   result->state_cmps =
     mem_alloc(SYSTEM_HEAP, no_workers * sizeof(uint64_t));
+  result->bytes_sent =
+    mem_alloc(SYSTEM_HEAP, (no_workers + 1) * sizeof(uint64_t));
   for(i = 0; i < no_workers; i ++) {
     result->states_visited[i] = 0;
     result->states_accepting[i] = 0;
@@ -33,6 +35,9 @@ report_t report_new
     result->events_executed[i] = 0;
     result->events_executed_dd[i] = 0;
     result->state_cmps[i] = 0;
+  }
+  for(i = 0; i < no_workers + 1; i ++) {
+    result->bytes_sent[i] = 0;
   }
   result->bfs_levels = 0;
   result->bfs_levels_ok = FALSE;
@@ -86,6 +91,7 @@ void report_free
   free(report->events_executed);
   free(report->events_executed_dd);
   free(report->state_cmps);
+  free(report->bytes_sent);
   storage_free(report->storage);
   if(report->error_msg) {
     free(report->error_msg);
@@ -348,6 +354,10 @@ void report_finalise
   fprintf(out, "<eventExecPerSecond>%d</eventExecPerSecond>\n",
 	  (unsigned int)(1.0 * sum_visited /(r->exec_time / 1000000.0)));
 #endif
+#if defined(CFG_DISTRIBUTED)
+  fprintf(out, "<bytesSend>%llu</bytesSend>\n",
+	  do_large_sum(r->bytes_sent, r->no_workers + 1));
+#endif
   fprintf(out, "</otherStatistics>\n");
   fprintf(out, "</statisticsReport>\n");
 
@@ -428,6 +438,19 @@ void report_update_bfs_levels
   if(bfs_levels > r->bfs_levels) {
     r->bfs_levels = bfs_levels;
   }
+}
+
+void report_increase_bytes_sent
+(report_t r,
+ worker_id_t w,
+ uint32_t bytes) {
+  r->bytes_sent[w] += bytes;
+}
+
+void report_increase_distributed_barrier_time
+(report_t r,
+ float time) {
+  r->distributed_barrier_time += time;
 }
 
 void report_faulty_state

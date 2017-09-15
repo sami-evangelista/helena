@@ -53,7 +53,8 @@ def mergeReports(refDoc, docs):
                            ("statesExpandedMin", False),
                            ("statesMaxStored", True),
                            ("statesStored", True),
-                           ("statesTerminal", False) ]:
+                           ("statesTerminal", False),
+                           ("bytesSend", True) ]:
         mergeNode(node, doSum, refDoc, docs)
 
 def exitWithError(errMsg):
