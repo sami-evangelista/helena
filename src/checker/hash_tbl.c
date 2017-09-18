@@ -6,20 +6,20 @@ typedef uint8_t bucket_status_t;
 
 struct struct_hash_tbl_t {
   uint64_t hash_size;
+  uint64_t gc_time;
+  pthread_barrier_t barrier;
   heap_t heaps[NO_WORKERS_STORAGE];
   uint64_t size[NO_WORKERS_STORAGE];
   uint64_t state_cmps[NO_WORKERS_STORAGE];
+  uint32_t seeds[NO_WORKERS_STORAGE];
+  hash_key_t hash[CFG_HASH_SIZE];
   bucket_status_t update_status[CFG_HASH_SIZE];
   bucket_status_t status[CFG_HASH_SIZE];
 #if defined(CFG_HASH_COMPACTION)
-  char state[CFG_HASH_SIZE][CFG_ATTRS_CHAR_SIZE + sizeof(hash_key_t)];
+  char state[CFG_HASH_SIZE][CFG_ATTRS_CHAR_SIZE];
 #else
   bit_vector_t state[CFG_HASH_SIZE];
-  hash_key_t hash[CFG_HASH_SIZE];
 #endif
-  uint64_t gc_time;
-  pthread_barrier_t barrier;
-  uint32_t seeds[NO_WORKERS_STORAGE];
 };
 typedef struct struct_hash_tbl_t struct_hash_tbl_t;
 
@@ -175,9 +175,7 @@ void hash_tbl_insert_real
 	    init_pos = (init_pos + 1) % tbl->hash_size;
 	  }
         }
-#if defined(CFG_HASH_COMPACTION)
-        memcpy(tbl->state[pos] + CFG_ATTRS_CHAR_SIZE, h, sizeof(hash_key_t));
-#else
+#if !defined(CFG_HASH_COMPACTION)
         if(NULL == se) {
           se_char_len = state_char_width(*s);
         }
@@ -188,11 +186,11 @@ void hash_tbl_insert_real
         } else {
           memcpy(tbl->state[pos] + CFG_ATTRS_CHAR_SIZE, se, se_char_len);
         }
-        tbl->hash[pos] = *h;
         bit_stream_init(bits, tbl->state[pos]);
         bit_stream_move(bits, CFG_ATTR_CHAR_LEN_POS);
         bit_stream_set(bits, se_char_len, CFG_ATTR_CHAR_LEN_SIZE);
 #endif
+        tbl->hash[pos] = *h;
         tbl->status[pos] = BUCKET_READY;
         tbl->size[w] ++;
         (*is_new) = TRUE;
@@ -217,10 +215,8 @@ void hash_tbl_insert_real
     } else if(tbl->status[pos] == BUCKET_READY) {
       tbl->state_cmps[w] ++;
       se_other = tbl->state[pos] + CFG_ATTRS_CHAR_SIZE;
-#if defined(CFG_HASH_COMPACTION)
-      found = (0 == memcmp(h, se_other, sizeof(hash_key_t)));
-#else
       found = (tbl->hash[pos] == (*h));
+#if !defined(CFG_HASH_COMPACTION)
       if(found) {
         if(NULL == se) {
           found = state_cmp_vector(*s, se_other);
@@ -299,15 +295,7 @@ state_t hash_tbl_get_mem
 hash_key_t hash_tbl_get_hash
 (hash_tbl_t tbl,
  hash_tbl_id_t id) {
-  hash_key_t result;
-  
-#if defined(CFG_HASH_COMPACTION)
-  hash_key_t h;
-  memcpy(&h, tbl->state[id] + CFG_ATTRS_CHAR_SIZE, sizeof(hash_key_t));
-#else
-  result = tbl->hash[id];
-#endif
-  return result;
+  return tbl->hash[id];
 }
 
 void hash_tbl_set_attribute
@@ -451,10 +439,11 @@ void hash_tbl_get_serialised
  hash_tbl_id_t id,
  bit_vector_t * s,
  uint16_t * size) {
-  (*s) = tbl->state[id] + CFG_ATTRS_CHAR_SIZE;
 #if defined(CFG_HASH_COMPACTION)
+  memcpy(*s, &tbl->hash[id], sizeof(hash_key_t));
   (*size) = sizeof(hash_key_t);
 #else
+  (*s) = tbl->state[id] + CFG_ATTRS_CHAR_SIZE;
   (*size) = (uint16_t) hash_tbl_get_attribute(tbl, id,
                                               CFG_ATTR_CHAR_LEN_POS,
                                               CFG_ATTR_CHAR_LEN_SIZE);
