@@ -501,10 +501,17 @@ class Config:
                     else:
                         recognized = False
 
+            #  does not match any option
             else:
                 recognized = False
+                val = None
+
             if not recognized:
-                print "warning: \"" + arg + "\" is not a valid option"
+                if val is not None:
+                    print "warning: invalid value for option " \
+                        + opt + ": " + val
+                else:
+                    print "warning: invalid option: " + arg
         if len(sys.argv) >= 2:
             self.inFile = sys.argv[len(sys.argv) - 2]
             (f, self.inFileExt) = os.path.splitext(self.inFile)
