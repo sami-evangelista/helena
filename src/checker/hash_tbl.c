@@ -620,7 +620,25 @@ void hash_tbl_output_stats
 uint64_t hash_tbl_gc_time
 (hash_tbl_t tbl) {
   return tbl->gc_time;
-}                        
+}
+
+void hash_tbl_fold
+(hash_tbl_t tbl,
+ hash_tbl_fold_func_t f,
+ void * data) {
+  state_t s;
+  uint64_t pos;
+  heap_t h = bounded_heap_new("", 10000);
+  
+  for(pos = 0; pos < tbl->hash_size; pos ++) {
+    if(tbl->status[pos] == BUCKET_READY) {
+      s = state_unserialise_mem(tbl->state[pos] + CFG_ATTRS_CHAR_SIZE, h);
+      f(s, pos, data);
+      state_free(s);
+      heap_reset(h);
+    }
+  }
+}
 
 void init_hash_tbl
 () {

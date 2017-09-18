@@ -32,6 +32,8 @@ typedef struct struct_hash_tbl_t * hash_tbl_t;
 
 typedef uint64_t hash_tbl_id_t;
 
+typedef void(* hash_tbl_fold_func_t)(state_t, hash_tbl_id_t, void *);
+
 void init_hash_tbl
 ();
 
@@ -180,5 +182,10 @@ uint64_t hash_tbl_gc_time
 void hash_tbl_output_stats
 (hash_tbl_t tbl,
  FILE * out);
+
+void hash_tbl_fold
+(hash_tbl_t tbl,
+ hash_tbl_fold_func_t f,
+ void * data);
 
 #endif

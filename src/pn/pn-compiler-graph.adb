@@ -225,9 +225,9 @@ package body Pn.Compiler.Graph is
       --=======================================================================
       Prototype := To_Ustring
 	("void model_graph_fold" & Nl &
-	   "(mstate_t          s," & Nl &
+	   "(mstate_t s," & Nl &
 	   " hash_tbl_id_t id," & Nl &
-	   " void *            data)");
+	   " void * data)");
       Plh(L, Prototype & ";");
       Plc(L, Prototype & " {");
       Plc(L, "#ifdef CFG_ACTION_BUILD_RG");
@@ -243,7 +243,7 @@ package body Pn.Compiler.Graph is
       Plc(L, "#ifdef CFG_ACTION_BUILD_RG");
       Plc(L, 1, "mstate_free (data->now);");
       Plc(L, 1, "mstate_free (data->proj);");
-      Plc(L, 1, "hash_tbl_fold (data->storage, 0, " &
+      Plc(L, 1, "hash_tbl_fold (data->storage, " &
 	    "&model_graph_fold, (void *) data);");
       Plc(L, "#endif");
       Plc(L, "}");
