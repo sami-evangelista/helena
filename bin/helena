@@ -259,20 +259,20 @@ distributed=0
 reportFile=""
 machineFile=""
 algo=""
+progressLevel=10
 
 for arg in $*
 do
+    idx=$(expr index $arg =)
     case $arg in
 	-v|--verbose) verbose=1 ;;
 	-h|--help) $configGenerator -h dummy dummy ; exit 0 ;;
 	-V|--version) $configGenerator -V dummy dummy ; exit 0 ;;
 	-md=*|--model-directory=*)
-	    idx=$(expr index $arg =)
 	    modelDir=${arg:$idx}
             ;;
 	-A=*|--algo=*)
-	    idx=$(expr index $arg =)
-	    algo=$(echo ${arg:$idx} | tr [a-z] [A-Z])
+	    algo=$(echo ${arg:$idx} | tr "[a-z]" "[A-Z]")
 	    if [ "$algo" = DDFS -o "$algo" = DBFS ]
 	    then
 		CC=$shcc
@@ -280,9 +280,18 @@ do
 	    fi
 	    ;;
 	-o=*|--report-file=*)
-	    idx=$(expr index $arg =)
 	    reportFile=${arg:$idx}
 	    ;;
+        -g=*|--progress=*)
+            opt=${arg:0:$idx - 1}
+            val=$(echo ${arg:$idx} | tr "[a-z]" "[A-Z]")
+            case "$val" in
+                NO-COMPILE) progressLevel=1 ;;
+                NO-CHECK)   progressLevel=2 ;;
+                NO-REPORT)  progressLevel=3 ;;
+                *) error "invalid value for option $opt: $val" ;;
+            esac
+            ;;
     esac
 done
 if [ $distributed -eq 1 ]
@@ -394,7 +403,6 @@ do
     esac
 done
 
-
 #####
 #  copy source files to the model directory
 msg "Copying files to model directory ($(getModelDir)/src/) ..."
@@ -406,6 +414,7 @@ createMakefile
 
 #####
 #  compilation
+[ $progressLevel -lt 2 ] && exit 0
 msg "Compiling source files ..."
 startSec=$(date +"%s")
 startNan=$(date +"%N")
@@ -413,10 +422,15 @@ compileCFiles
 endSec=$(date +"%s")
 endNan=$(date +"%N")
 ccTime=$(echo "scale=2;$endSec-$startSec+($endNan-$startNan)/1000000000" | bc)
-    
+
 #####
-#  execution and reporting
+#  execution
+[ $progressLevel -lt 3 ] && exit 0
 launchChecker
+
+#####
+#  reporting
+[ $progressLevel -lt 4 ] && exit 0
 if [ -e $(getModelDir)/$xmlReportFile ]
 then
     if [ ! -z "$reportFile" ]

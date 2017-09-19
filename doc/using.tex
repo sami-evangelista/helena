@@ -45,6 +45,16 @@ conflicting options, the last ones will prevail.
 \item\optionDef{V}{version}\\ Prints the version number and exit.
 \item\optionDef{v}{verbose}\\ This option activates the verbose
   mode.  Helena prints a message at each step.
+\item\optionDef{g}{progress=LEVEL}\\ \texttt{LEVEL} can then take
+  one of these three values:
+  \begin{itemize}
+  \item \texttt{no-compile} --- Helena stops after the generation of
+    source files.
+  \item \texttt{no-check} --- Helena launches compilation but does not
+    launches the search.
+  \item \texttt{no-report} --- Helena launches the search but does not
+    print any report.
+  \end{itemize}
 \item\optionDef{N}{action=ACTION}\\
   This indicates the action performed by Helena on the model.
   \texttt{ACTION} must have one of the following values:

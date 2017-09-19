@@ -99,9 +99,7 @@ state_t dfs_main
     /*
      *  launch garbage collection on the storage, if necessary
      */
-    if(storage_do_gc(S, w)) {
-      storage_gc(S, w);
-    }
+    storage_gc(S, w);
     
     /*
      *  reinitialise the heap if we do not have enough space
@@ -174,10 +172,10 @@ state_t dfs_main
       }
 
       /*
-       *  the state enters the stack => we decrease its reference
+       *  the state leaves the stack => we decrease its reference
        *  counter
        */
-      storage_unref(S, id_top);
+      storage_unref(S, w, id_top);
     }
 
     /**
@@ -232,7 +230,7 @@ state_t dfs_main
          *  the state enters the stack => we increase its reference
          *  counter
          */
-        storage_ref(S, id);
+        storage_ref(S, w, id);
 
         /*
          *  push the successor state on the stack and then set some
@@ -292,7 +290,7 @@ void * dfs_worker
 
   storage_insert(R->storage, now, w, &dummy, &id, &h);
   storage_set_cyan(S, id, w, TRUE);
-  storage_ref(S, id);
+  storage_ref(S, w, id);
   now = dfs_main(w, now, id, heap, TRUE, blue_stack, red_stack);
 
 #if defined(CFG_PARALLEL) && defined(CFG_STATE_CACHING)

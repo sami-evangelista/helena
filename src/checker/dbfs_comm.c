@@ -108,7 +108,7 @@ void dbfs_comm_reinit_buffer
     hash_tbl_free(BUF.states[w][pe]);
   }
   BUF.states[w][pe] = hash_tbl_new(WORKER_STATE_BUFFER_LEN * 2,
-                                   1, 1, FALSE, FALSE, ATTR_CHAR_LEN);
+                                   1, FALSE, 100, 0, ATTR_CHAR_LEN);
   heap_reset(BUF.heaps[w][pe]);
   hash_tbl_set_heap(BUF.states[w][pe], BUF.heaps[w][pe]);
   BUF.len[w][pe] = 0;

@@ -77,7 +77,6 @@ typedef delta_ddd_storage_id_t storage_id_t;
 #define storage_get_garbage       hash_tbl_get_garbage
 #define storage_ref               hash_tbl_ref
 #define storage_unref             hash_tbl_unref
-#define storage_do_gc             hash_tbl_do_gc
 #define storage_gc                hash_tbl_gc
 #define storage_barrier           hash_tbl_barrier
 #define storage_gc_time           hash_tbl_gc_time

@@ -52,9 +52,9 @@ order_t hash_tbl_id_cmp
 hash_tbl_t hash_tbl_new
 (uint64_t hash_size,
  uint16_t no_workers,
- uint16_t no_workers_barrier,
  bool_t hash_compaction,
- bool_t state_caching,
+ uint8_t gc_threshold,
+ float gc_ratio,
  uint32_t attrs);
 
 hash_tbl_t hash_tbl_default_new
@@ -93,6 +93,7 @@ void hash_tbl_insert_serialised
 
 void hash_tbl_remove
 (hash_tbl_t tbl,
+ worker_id_t w,
  hash_tbl_id_t id);
 
 state_t hash_tbl_get
@@ -158,6 +159,7 @@ bool_t hash_tbl_get_red
 
 void hash_tbl_set_garbage
 (hash_tbl_t tbl,
+ worker_id_t w,
  hash_tbl_id_t id,
  bool_t garbage);
 
@@ -167,15 +169,13 @@ bool_t hash_tbl_get_garbage
 
 void hash_tbl_ref
 (hash_tbl_t tbl,
+ worker_id_t w,
  hash_tbl_id_t id);
 
 void hash_tbl_unref
 (hash_tbl_t tbl,
+ worker_id_t w,
  hash_tbl_id_t id);
-
-bool_t hash_tbl_do_gc
-(hash_tbl_t tbl,
- worker_id_t w);
 
 void hash_tbl_gc
 (hash_tbl_t tbl,

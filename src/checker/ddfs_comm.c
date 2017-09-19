@@ -53,17 +53,20 @@ void ddfs_comm_process_explored_state
   bool_t process = TRUE;
 #if defined(CFG_DDFS_COMM_STRAT_MINE)
   if(storage_get_hash(S, id) % PES != ME) {
+    assert(0);
     return;
   }
 #endif
 #if defined(CFG_DDFS_COMM_STRAT_DEGREE)
   if(mevent_set_size(en) < CFG_DDFS_COMM_STRAT_DEGREE) {
+    assert(0);
     return;
   }
 #endif
 #if defined(CFG_DDFS_COMM_STRAT_K)
   B.k[w] ++;
   if(B.k[w] < CFG_DDFS_COMM_STRAT_K) {
+    assert(0);
     return;
   }
 #endif
@@ -74,13 +77,19 @@ void ddfs_comm_process_explored_state
    *  put the state of worker w in its box and increase its reference
    *  counter
    */
+ loop:
   if(CAS(&B.status[w], BUCKET_OK, BUCKET_WRITE)) {
     if(B.size[w] < MAX_BOX_SIZE) {
       B.box[w][B.size[w]] = id;
       B.size[w] ++;
-      storage_ref(S, id);
+      storage_ref(S, w, id);
+    } else {
+      B.status[w] = BUCKET_OK;
+      goto loop;
     }
     B.status[w] = BUCKET_OK;
+  } else {
+    goto loop;
   }
 }
 
@@ -163,7 +172,7 @@ void * ddfs_comm_worker
         pref.char_len += s_char_len;
 
         /*  and decrease its reference counter  */
-        storage_unref(S, sid);
+        storage_unref(S, my_worker_id, sid);
         
         pref.size ++;
       }
@@ -245,8 +254,8 @@ void * ddfs_comm_worker
 
             /*  the new state may be garbage collected  */
             if(is_new && storage_has_attr(S, ATTR_GARBAGE)) {
-              storage_set_garbage(S, sid, TRUE);
-            }            
+              storage_set_garbage(S, my_worker_id, sid, TRUE);
+            }
           }
         }
       }

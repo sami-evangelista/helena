@@ -78,7 +78,7 @@ package body Pn.Compiler.Graph is
       Plh(L, 1, "mstate_t       all;");
       Plh(L, 1, "int64_t        top;");
       Plh(L, 1, "mevent_t *     stack;");
-      Plh(L, 1, "hash_tbl_t storage;");
+      Plh(L, 1, "hash_tbl_t     storage;");
       Plh(L, 1, "bool_t         in_terminal;");
       Plh(L, 1, "bool_t         alt_bit;");
       Plh(L, 1, "mstate_t       dead[MAX_DEAD];");
@@ -105,7 +105,8 @@ package body Pn.Compiler.Graph is
 	    "sizeof (struct_model_graph_data_t));");
       Plc(L, 1, "(*data)->stack = mem_alloc (SYSTEM_HEAP, " &
 	    "sizeof (mevent_t) * no_states);");
-      Plc(L, 1, "(*data)->storage = hash_tbl_new (4194304);");
+      Pc(L, 1, "(*data)->storage = hash_tbl_new");
+      Plc(L, "(4194304, 1, FALSE, 100, 0, ATTR_CHAR_LEN);");
       Plc(L, 1, "mstate_init ((*data)->all, SYSTEM_HEAP);");
       Plc(L, 1, "(*data)->qlive_events = harray_new " &
 	    "(SYSTEM_HEAP, 1000000, ptr_mevent_hash," &

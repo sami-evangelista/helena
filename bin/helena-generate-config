@@ -44,16 +44,13 @@ LTL         = "LTL"
 STATE       = "STATE"
 DEADLOCK    = "DEADLOCK"
 
-def removeDashes(s):
-    if s[1] == '-':
-        return s[2:]
-    else:
-        return s[1:]
+def exitWithError(err):
+    print >> sys.stderr, "error: " + err
+    exit(1)
 
 def parseArgument(arg):
     S = re.search
     if S("^-(-)?[a-zA-Z\-]+(=.+)?$", arg):
-        arg = removeDashes(arg)
         l = arg.split("=", 1)
         if len(l) == 2:
             return (l[0], l[1])
@@ -96,6 +93,7 @@ def printHelp():
     print "  -h   --help"
     print "  -V   --version"
     print "  -v   --verbose"
+    print "  -g   --progress={no-compile|no-check|no-report}"
     print "  -N   --action={EXPLORE|SIMULATE|BUILD-GRAPH|CHECK-prop}"
     print "  -p   --property-file=FILE"
     print "  -md  --model-directory=DIRECTORY"
@@ -189,8 +187,10 @@ class Config:
             self.traceType = STATE
         elif self.algo == DDFS:
             self.partialOrder = False
+            self.stateCaching = False
         elif self.algo == DBFS:
             self.partialOrder = False
+            self.stateCaching = False
 
     def openFile(self, name, mode):
         if self.directory is None:
@@ -211,7 +211,7 @@ class Config:
         W("#define CFG_GRAPH_FILE \"graph.dat\"\n")
         W("#define CFG_WITH_OBSERVER\n")
         W("#define CFG_DATE \"" + \
-               now.strftime("%B, %d, %Y at %H:%M:%S") + "\"\n")
+          now.strftime("%B, %d, %Y at %H:%M:%S") + "\"\n")
         W("#define CFG_FILE_PATH \"" + os.path.realpath(self.inFile) + "\"\n")
         if self.inFileExt == ".lna":
             W("#define CFG_LANGUAGE \"helena\"\n")
@@ -268,7 +268,7 @@ class Config:
 
         #  state caching
         W("#define CFG_STATE_CACHING_GC_THRESHOLD 50\n")
-        W("#define CFG_STATE_CACHING_GC_PERCENT   1\n")
+        W("#define CFG_STATE_CACHING_GC_RATIO     0.01\n")
         if self.stateCaching:
             W("#define CFG_STATE_CACHING\n")
 
@@ -351,7 +351,8 @@ class Config:
         if val is None:
             return False
         if val.upper() in okVal:
-            setattr(self, attr, val.upper())
+            if attr is not None:
+                setattr(self, attr, val.upper())
             return True
         else:
             return False
@@ -363,60 +364,56 @@ class Config:
             (opt, val) = parseArgument(arg)
 
             #  options with no value
-            if (opt, val) in [("v", None),("verbose", None) ]:
+            if (opt, val) in [("-v", None),("--verbose", None) ]:
                 self.verbose = True
-            elif(opt, val) in [("V", None),("version", None) ]:
+            elif(opt, val) in [("-V", None),("--version", None) ]:
                 printVersion()
                 exit(0)
-            elif(opt, val) in [("h", None),("help", None) ]:
+            elif(opt, val) in [("-h", None),("--help", None) ]:
                 printHelp()
                 exit(0)
                 
             #  boolean options
-            elif opt in [ "P", "partial-order" ]:
+            elif opt in [ "-P", "--partial-order" ]:
                 self.partialOrder = (val is None) or val == "1"
-            elif opt in [ "r", "run-time-checks" ]:
+            elif opt in [ "-r", "--run-time-checks" ]:
                 self.runTimeChecks = (val is None) or val == "1"
-            elif opt in [ "S", "state-caching" ]:
+            elif opt in [ "-S", "--state-caching" ]:
                 self.stateCaching = (val is None) or val == "1"
-            elif opt in [ "H", "hash-compaction" ]:
+            elif opt in [ "-H", "--hash-compaction" ]:
                 self.hashCompaction = (val is None) or val == "1"
 
             #  numerical options
-            elif opt in [ "W", "workers" ]:
+            elif opt in [ "-W", "--workers" ]:
                 recognized = self.handleNumericalOption("workers", val)
-            elif opt in [ "a", "capacity" ]:
+            elif opt in [ "-a", "--capacity" ]:
                 recognized = self.handleNumericalOption("capacity", val)
-            elif opt in [ "cs", "candidate-set-size" ]:
+            elif opt in [ "-cs", "--candidate-set-size" ]:
                 recognized = self.handleNumericalOption("candidateSetSize",
-                                                         val)
-            elif opt in [ "t", "hash-size" ]:
+                                                        val)
+            elif opt in [ "-t", "--hash-size" ]:
                 recognized = self.handleNumericalOption("hashSize", val)
                 if self.hashSize > 32:
                     self.hashSize = 32
-            elif opt in [ "ml", "memory-limit" ]:
+            elif opt in [ "-ml", "--memory-limit" ]:
                 recognized = self.handleNumericalOption("memoryLimit", val)
-            elif opt in [ "tl", "time-limit" ]:
+            elif opt in [ "-tl", "--time-limit" ]:
                 recognized = self.handleNumericalOption("timeLimit", val)
-            elif opt in [ "sl", "state-limit" ]:
+            elif opt in [ "-sl", "--state-limit" ]:
                 recognized = self.handleNumericalOption("stateLimit", val)
 
             #  string options
-            elif opt in [ "d", "define" ]:
+            elif opt in [ "-d", "--define" ]:
                 recognized = self.handleStringOption(None, val)
                 if recognized:
                     self.symbols.append(val)
-            elif opt in [ "L", "link" ]:
+            elif opt in [ "-L", "--link" ]:
                 recognized = self.handleStringOption("link", val)
-            elif opt in [ "p", "property-file" ]:
+            elif opt in [ "-p", "--property-file" ]:
                 recognized = self.handleStringOption("propertyFile", val)
-            elif opt in [ "o", "report-file" ]:
+            elif opt in [ "-o", "--report-file" ]:
                 recognized = self.handleStringOption("reportFile", val)
-            elif opt in [ "md", "model-directory" ]:
-                recognized = True
-            elif opt in [ "mf", "machine-file" ]:
-                recognized = True
-            elif opt in [ "m", "parameter" ]:
+            elif opt in [ "-m", "--parameter" ]:
                 recognized = self.handleStringOption(None, val)
                 if recognized:
                     l = val.split("=")
@@ -425,17 +422,17 @@ class Config:
                         self.parameters.append(val)
 
             #  enum options
-            elif opt in [ "A", "algo" ]:
+            elif opt in [ "-A", "--algo" ]:
                 recognized = self.handleEnumOption \
-                    ("algo", val, [BFS, DBFS, DFS, DDFS, FRONTIER, \
-                                   DELTA_DDD, RWALK])
-            elif opt in [ "tr", "trace-type" ]:
+                             ("algo", val, [BFS, DBFS, DFS, DDFS, FRONTIER, \
+                                            DELTA_DDD, RWALK])
+            elif opt in [ "-tr", "--trace-type" ]:
                 recognized = self.handleEnumOption \
-                    ("traceType", val, [FULL, EVENTS, STATE])
-            elif opt in [ "N", "action" ]:
+                             ("traceType", val, [FULL, EVENTS, STATE])
+            elif opt in [ "-N", "--action" ]:
                 self.prop = None
                 recognized = self.handleEnumOption \
-                    ("action", val, [SIMULATE, EXPLORE, BUILD_GRAPH])
+                             ("action", val, [SIMULATE, EXPLORE, BUILD_GRAPH])
                 if not recognized:
                     (recognized, p) = parseCheckArgument(val)
                     if recognized:
@@ -443,7 +440,7 @@ class Config:
                         self.prop = p
 
             #  special case options
-            elif opt in [ "dc", "ddfs-comm-strategy" ]:
+            elif opt in [ "-dc", "--ddfs-comm-strategy" ]:
                 for s in val.split(","):
                     recognized = True
                     if S("^K[0-9]*", s):
@@ -455,6 +452,14 @@ class Config:
                     else:
                         recognized = False
 
+            #  option that are handled directly by the helena script
+            elif opt in [ "-md", "--model-directory" ]:
+                recognized = True
+            elif opt in [ "-mf", "--machine-file" ]:
+                recognized = True
+            elif opt in [ "-g", "--progress" ]:
+                recognized = True
+
             #  does not match any option
             else:
                 recognized = False
@@ -462,10 +467,10 @@ class Config:
 
             if not recognized:
                 if val is not None:
-                    print "warning: invalid value for option " \
-                        + opt + ": " + val
+                    err = "invalid value for option " + opt + ": " + val
                 else:
-                    print "warning: invalid option: " + arg
+                    err = "invalid option: " + arg
+                exitWithError(err)
         if len(sys.argv) >= 2:
             self.inFile = sys.argv[len(sys.argv) - 2]
             (f, self.inFileExt) = os.path.splitext(self.inFile)
@@ -476,8 +481,8 @@ class Config:
 
     def generatePropertyCode(self):
         if self.action != CHECK \
-                or self.prop is None \
-                or self.propFile is None:
+           or self.prop is None \
+           or self.propFile is None:
             f = self.openFile("prop.h", "w")
             f.close()
             f = self.openFile("prop.c", "w")

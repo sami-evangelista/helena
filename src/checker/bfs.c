@@ -217,7 +217,7 @@ void * bfs_worker
         R->states_visited[w] ++;
         storage_set_cyan(S, item.id, w, FALSE);
 #if defined(CFG_ALGO_FRONTIER)
-        storage_remove(S, item.id);
+        storage_remove(S, w, item.id);
 #endif
       }
     }
