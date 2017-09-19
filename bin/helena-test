@@ -15,6 +15,7 @@ def exitWithUsage(exitCode):
 
 class Model:
     defaultArgs = [ "--report-file=report.xml",
+                    "--hash-size=20",
                     "--state-limit=1000000",
                     "--time-limit=60" ]
 
