@@ -57,6 +57,14 @@ typedef struct struct_hash_tbl_t struct_hash_tbl_t;
 
 const struct timespec SLEEP_TIME = { 0, 1 };
 
+#define BIT_STREAM_INIT_ON_ATTRS(tbl, id, bits) {                       \
+    if(tbl->hash_compaction) {                                          \
+      bit_stream_init(bits, tbl->hc_state + id * tbl->attrs_char_width); \
+    } else {                                                            \
+      bit_stream_init(bits, tbl->state[id]);                            \
+    }                                                                   \
+  }
+  
 void hash_tbl_id_serialise
 (hash_tbl_id_t id,
  bit_vector_t v) {
@@ -471,12 +479,8 @@ uint64_t hash_tbl_get_attr
  uint32_t size) {
   uint64_t result;
   bit_stream_t bits;
-
-  if(tbl->hash_compaction) {
-    bit_stream_init(bits, tbl->hc_state + pos * tbl->attrs_char_width);
-  } else {
-    bit_stream_init(bits, tbl->state[id]);
-  }
+  
+  BIT_STREAM_INIT_ON_ATTRS(tbl, id, bits);
   bit_stream_move(bits, pos);
   bit_stream_get(bits, result, size);
   return result;
@@ -490,11 +494,7 @@ void hash_tbl_set_attr
  uint64_t val) {
   bit_stream_t bits;
 
-  if(tbl->hash_compaction) {
-    bit_stream_init(bits, tbl->hc_state + pos * tbl->attrs_char_width);
-  } else  {
-    bit_stream_init(bits, tbl->state[id]);
-  }
+  BIT_STREAM_INIT_ON_ATTRS(tbl, id, bits);
   bit_stream_move(bits, pos);
   if(tbl->no_workers > 0) {
     while(!CAS(&tbl->update_status[id], BUCKET_READY, BUCKET_WRITE)) {
@@ -636,7 +636,7 @@ void hash_tbl_change_refs
   uint8_t refs;
 
   if(hash_tbl_has_attr(tbl, ATTR_REFS)) {
-    bit_stream_init(bits, tbl->state[id]);
+    BIT_STREAM_INIT_ON_ATTRS(tbl, id, bits);
     bit_stream_move(bits, tbl->attr_pos[ATTR_REFS_NUM]);
     if(tbl->no_workers > 0) {
       while(!CAS(&tbl->update_status[id], BUCKET_READY, BUCKET_WRITE)) {
