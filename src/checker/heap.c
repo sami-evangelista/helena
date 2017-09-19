@@ -89,21 +89,21 @@ bool_t bounded_heap_has_mem_free
 /*
  *  evergrowing heap
  */
-typedef struct struct_evergrowing_heap_node_t {
+typedef struct struct_evergrowing_heap_block_t {
   void * ptr;
   mem_size_t size;
-  struct struct_evergrowing_heap_node_t * next;
-} struct_evergrowing_heap_node_t;
+  struct struct_evergrowing_heap_block_t * next;
+} struct_evergrowing_heap_block_t;
 
-typedef struct_evergrowing_heap_node_t * evergrowing_heap_node_t;
+typedef struct_evergrowing_heap_block_t * evergrowing_heap_block_t;
 
 typedef struct {
   unsigned char type;
   char * name;
   mem_size_t block_size;
   mem_size_t next;
-  evergrowing_heap_node_t fst;
-  evergrowing_heap_node_t last;
+  evergrowing_heap_block_t fst;
+  evergrowing_heap_block_t last;
 } struct_evergrowing_heap_t;
 
 typedef struct_evergrowing_heap_t * evergrowing_heap_t;
@@ -126,28 +126,28 @@ void * evergrowing_heap_new
 #endif
 }
 
-evergrowing_heap_t evergrowing_heap_free
+void evergrowing_heap_free_blocks
 (evergrowing_heap_t heap) {
-  evergrowing_heap_node_t tmp = heap->fst, next;
+  evergrowing_heap_block_t tmp = heap->fst, next;
+  
   while(tmp) {
     next = tmp->next;
     free(tmp->ptr);
     free(tmp);
     tmp = next;
   }
+}
+
+evergrowing_heap_t evergrowing_heap_free
+(evergrowing_heap_t heap) {
+  evergrowing_heap_free_blocks(heap);
   free(heap->name);  
   free(heap);
 }
 
 void * evergrowing_heap_reset
 (evergrowing_heap_t heap) {
-  evergrowing_heap_node_t tmp = heap->fst, next;
-  while(tmp) {
-    next = tmp->next;
-    free(tmp->ptr);
-    free(tmp);
-    tmp = next;
-  }
+  evergrowing_heap_free_blocks(heap);
   heap->next = 0;
   heap->last = heap->fst = NULL;
 }
@@ -156,20 +156,20 @@ void * evergrowing_heap_mem_alloc
 (evergrowing_heap_t heap,
  mem_size_t size) {
   void * result;
-  evergrowing_heap_node_t new_node;
+  evergrowing_heap_block_t new_block;
   
   if((NULL == heap->fst) || (size + heap->next >= heap->last->size)) {
     heap->next = 0;
-    MALLOC(new_node, evergrowing_heap_node_t,
-           sizeof(struct_evergrowing_heap_node_t));
-    new_node->size = (heap->block_size >= size) ? heap->block_size : size;
-    new_node->next = NULL;
-    MALLOC(new_node->ptr, char *, new_node->size);
+    MALLOC(new_block, evergrowing_heap_block_t,
+           sizeof(struct_evergrowing_heap_block_t));
+    new_block->size = (heap->block_size >= size) ? heap->block_size : size;
+    new_block->next = NULL;
+    MALLOC(new_block->ptr, char *, new_block->size);
     if(NULL == heap->fst) {
-      heap->fst = heap->last = new_node;
+      heap->fst = heap->last = new_block;
     } else {
-      heap->last->next = new_node;
-      heap->last = new_node;
+      heap->last->next = new_block;
+      heap->last = new_block;
     }
   }
   result = heap->last->ptr + heap->next;

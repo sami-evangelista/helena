@@ -3,20 +3,20 @@
 #if defined(CFG_ALGO_BFS) || defined(CFG_ALGO_DBFS) || \
   defined(CFG_ALGO_FRONTIER)
 
-struct struct_bfs_queue_node_t {
-  bfs_queue_item_t items[BFS_QUEUE_NODE_SIZE];
+struct struct_bfs_queue_block_t {
+  bfs_queue_item_t items[BFS_QUEUE_BLOCK_SIZE];
   heap_t heap;
-  struct struct_bfs_queue_node_t * prev;
-  struct struct_bfs_queue_node_t * next;
+  struct struct_bfs_queue_block_t * prev;
+  struct struct_bfs_queue_block_t * next;
 };
 
-typedef struct struct_bfs_queue_node_t struct_bfs_queue_node_t;
+typedef struct struct_bfs_queue_block_t struct_bfs_queue_block_t;
 
-typedef struct_bfs_queue_node_t * bfs_queue_node_t;
+typedef struct_bfs_queue_block_t * bfs_queue_block_t;
 
 typedef struct {
-  bfs_queue_node_t first;
-  bfs_queue_node_t last;
+  bfs_queue_block_t first;
+  bfs_queue_block_t last;
   uint64_t first_index;
   uint64_t last_index;
   uint64_t size;
@@ -31,27 +31,16 @@ struct struct_bfs_queue_t {
 
 typedef struct struct_bfs_queue_t struct_bfs_queue_t;
 
-bfs_queue_node_t bfs_queue_node_new
+bfs_queue_block_t bfs_queue_block_new
 () {
-  bfs_queue_node_t result;
-  result = mem_alloc(SYSTEM_HEAP, sizeof(struct_bfs_queue_node_t));
+  bfs_queue_block_t result;
+  result = mem_alloc(SYSTEM_HEAP, sizeof(struct_bfs_queue_block_t));
 #if defined(BFS_QUEUE_STATE_IN_QUEUE)
-  result->heap = evergrowing_heap_new("", 10000);
+  result->heap = evergrowing_heap_new("", 1000);
 #else
   result->heap = NULL;
 #endif
   return result;
-}
-
-void bfs_queue_node_free
-(bfs_queue_node_t n) {  
-  if(n) {
-    if(n->next) {
-      bfs_queue_node_free(n->next);
-    }
-    heap_free(n->heap);
-    mem_free(SYSTEM_HEAP, n);
-  }
 }
 
 bfs_queue_slot_t bfs_queue_slot_new
@@ -66,9 +55,21 @@ bfs_queue_slot_t bfs_queue_slot_new
   return result;
 }
 
+void bfs_queue_block_free
+(bfs_queue_block_t n,
+ bool_t free_next) {  
+  if(n) {
+    if(free_next && n->next) {
+      bfs_queue_block_free(n->next, free_next);
+    }
+    heap_free(n->heap);
+    mem_free(SYSTEM_HEAP, n);
+  }
+}
+
 void bfs_queue_slot_free
 (bfs_queue_slot_t q) {
-  bfs_queue_node_free(q->first);
+  bfs_queue_block_free(q->first, TRUE);
   mem_free(SYSTEM_HEAP, q);
 }
 
@@ -133,14 +134,14 @@ void bfs_queue_enqueue
   bfs_queue_slot_t slot = q->next[to][from];
   
   if(!slot->first) {
-    slot->last = bfs_queue_node_new();
+    slot->last = bfs_queue_block_new();
     slot->last_index = 0;
     slot->first = slot->last;
     slot->first->next = NULL;
     slot->first->prev = NULL;
   }
-  else if(BFS_QUEUE_NODE_SIZE == slot->last_index) {
-    slot->last->next = bfs_queue_node_new();
+  else if(BFS_QUEUE_BLOCK_SIZE == slot->last_index) {
+    slot->last->next = bfs_queue_block_new();
     slot->last_index = 0;
     slot->last->next->next = NULL;
     slot->last->next->prev = slot->last;
@@ -159,12 +160,12 @@ bfs_queue_item_t bfs_queue_dequeue
  worker_id_t from,
  worker_id_t to) {
   bfs_queue_item_t result;
-  bfs_queue_node_t tmp;
+  bfs_queue_block_t tmp;
   bfs_queue_slot_t slot = q->current[to][from];
 
-  if(BFS_QUEUE_NODE_SIZE == slot->first_index) {
+  if(BFS_QUEUE_BLOCK_SIZE == slot->first_index) {
     tmp = slot->first->next;
-    mem_free(SYSTEM_HEAP, slot->first);
+    bfs_queue_block_free(slot->first, FALSE);
     slot->first = tmp;
     slot->first_index = 0;
   }

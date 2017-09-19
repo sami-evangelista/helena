@@ -14,7 +14,7 @@
 #error Model configuration missing!
 #endif
 
-#define BFS_QUEUE_NODE_SIZE 10000
+#define BFS_QUEUE_BLOCK_SIZE 10000
 
 #if defined(CFG_ALGO_DBFS)
 #define NO_WORKERS_QUEUE (CFG_NO_WORKERS + 1)

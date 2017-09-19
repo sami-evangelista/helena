@@ -14,13 +14,16 @@ def exitWithUsage(exitCode):
     exit(exitCode)
 
 class Model:
+    defaultArgs = [ "--report-file=report.xml",
+                    "--state-limit=1000000",
+                    "--time-limit=60" ]
+
     def launchHelena(self, l, n):
         (model, _) = os.path.splitext(self.modelFile)
         d = self.outDir + os.sep
         md = d + "test-" + str(self.testNum)
-        args = "helena " + " ".join(l) + " --model-directory=" + md + " "\
-            "--report-file=report.xml " + \
-            "-sl=1000000 -tl=60 " + self.modelFile
+        args = "helena " + " ".join(l + self.defaultArgs) + \
+               " --model-directory=" + md + " " + self.modelFile
         print args
         errFile = open(d + "test-" + str(self.testNum) + ".err", "w")
         subprocess.call(args, stderr = errFile,
