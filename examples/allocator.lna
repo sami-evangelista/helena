@@ -13,9 +13,9 @@
 
 allocator
 {
-   constant int N := 4;
-   constant int M := 13;
-   constant int K := 4;
+   constant int N := 3;
+   constant int M := 10;
+   constant int K := 3;
    type client : range 1 .. N;
 
 
