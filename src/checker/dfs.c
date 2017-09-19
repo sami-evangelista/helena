@@ -198,7 +198,7 @@ state_t dfs_main
        */
       id_top = dfs_stack_top(stack);
       storage_insert(S, now, w, &is_new, &id, &h);
-
+      
       /*
        *  see if it must be pushed on the stack to be processed
        */

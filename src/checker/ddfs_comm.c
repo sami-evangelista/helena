@@ -31,8 +31,14 @@ const struct timespec WAIT_TIME = { 0, 10 };
 ddfs_comm_boxes_t B;
 storage_t S;
 report_t R;
-void * H;
 pthread_t W;
+int PES;
+int ME;
+
+/**
+ *  the symmetric heap
+ */
+void * H;
 
 void ddfs_comm_process_explored_state
 (worker_id_t w,
@@ -45,25 +51,22 @@ void ddfs_comm_process_explored_state
    */
 #if defined(CFG_DDFS_COMM_STRAT)
   bool_t process = TRUE;
-#if defined(CFG_DDFS_COMM_STRAT_K)
-  B.k[w] ++;
-  if(B.k[w] < CFG_DDFS_COMM_STRAT_K) {
-    process = FALSE;
-  }
-#endif
 #if defined(CFG_DDFS_COMM_STRAT_MINE)
-  if(storage_get_hash(S, id) % shmem_n_pes() != shmem_my_pe()) {
-    process = FALSE;
+  if(storage_get_hash(S, id) % PES != ME) {
+    return;
   }
 #endif
 #if defined(CFG_DDFS_COMM_STRAT_DEGREE)
   if(mevent_set_size(en) < CFG_DDFS_COMM_STRAT_DEGREE) {
-    process = FALSE;
-  }
-#endif
-  if(!process) {
     return;
   }
+#endif
+#if defined(CFG_DDFS_COMM_STRAT_K)
+  B.k[w] ++;
+  if(B.k[w] < CFG_DDFS_COMM_STRAT_K) {
+    return;
+  }
+#endif
   B.k[w] = 0;
 #endif
 
@@ -84,17 +87,15 @@ void ddfs_comm_process_explored_state
 void * ddfs_comm_worker
 (void * arg) {
   const worker_id_t my_worker_id = CFG_NO_WORKERS;
-  const int me = shmem_my_pe();
-  const int pes = shmem_n_pes();
   int i, pe;
   worker_id_t w;
   bool_t loop = TRUE;
-  heap_prefix_t pref,  pref_other[pes];
+  heap_prefix_t pref,  pref_other[PES];
   uint32_t pos;
   uint16_t s_char_len, len;
   storage_id_t sid;
   bit_vector_t s;
-  bool_t red, blue, is_new;
+  bool_t red = FALSE, blue = FALSE, is_new;
   char buffer[CFG_SYM_HEAP_SIZE];
   hash_key_t h;
   
@@ -131,29 +132,33 @@ void * ddfs_comm_worker
 
         /*  put its hash value  */
         h = storage_get_hash(S, sid);
-        comm_shmem_put(H + pref.char_len, &h, sizeof(hash_key_t), me,
+        comm_shmem_put(H + pref.char_len, &h, sizeof(hash_key_t), ME,
                        my_worker_id);
         pref.char_len += sizeof(hash_key_t);
           
         /*  put its blue attribute  */
-        blue = storage_get_blue(S, sid);
-        comm_shmem_put(H + pref.char_len, &blue, 1, me,
-                       my_worker_id);
-        pref.char_len ++;
+        if(storage_has_attr(S, ATTR_BLUE)) {
+          blue = storage_get_blue(S, sid);
+          comm_shmem_put(H + pref.char_len, &blue, 1, ME,
+                         my_worker_id);
+          pref.char_len ++;
+        }
           
         /*  put its red attribute  */
-        red = storage_get_red(S, sid);
-        comm_shmem_put(H + pref.char_len, &red, 1, me,
-                       my_worker_id);
-        pref.char_len ++;
+        if(storage_has_attr(S, ATTR_RED)) {
+          red = storage_get_red(S, sid);
+          comm_shmem_put(H + pref.char_len, &red, 1, ME,
+                         my_worker_id);
+          pref.char_len ++;
+        }
           
         /*  put its char length  */
-        comm_shmem_put(H + pref.char_len, &s_char_len, sizeof(uint16_t), me,
+        comm_shmem_put(H + pref.char_len, &s_char_len, sizeof(uint16_t), ME,
                        my_worker_id);
         pref.char_len += sizeof(uint16_t);
           
         /*  put the state  */
-        comm_shmem_put(H + pref.char_len, s, s_char_len, me,
+        comm_shmem_put(H + pref.char_len, s, s_char_len, ME,
                        my_worker_id);
         pref.char_len += s_char_len;
 
@@ -175,7 +180,7 @@ void * ddfs_comm_worker
     }
 
     /*  put my prefix in my local heap  */
-    comm_shmem_put(H, &pref, sizeof(heap_prefix_t), me, my_worker_id);
+    comm_shmem_put(H, &pref, sizeof(heap_prefix_t), ME, my_worker_id);
 
     /**
      *  2nd step: get all the states sent py remote PEs
@@ -184,8 +189,8 @@ void * ddfs_comm_worker
     
     /*  first read the heap prefixes of all remote PEs  */
     loop = !pref.terminated;
-    for(pe = 0; pe < pes ; pe ++) {
-      if(me != pe) {
+    for(pe = 0; pe < PES ; pe ++) {
+      if(ME != pe) {
         comm_shmem_get(&pref_other[pe], H, sizeof(heap_prefix_t), pe,
                        my_worker_id);
         if(!pref_other[pe].terminated) {
@@ -198,8 +203,8 @@ void * ddfs_comm_worker
         get states put by remote PEs in their heap and put these in my
         local storage */
     if(loop && R->keep_searching) {
-      for(pe = 0; pe < pes ; pe ++) {
-        if(me != pe) {
+      for(pe = 0; pe < PES ; pe ++) {
+        if(ME != pe) {
           comm_shmem_get(buffer, H + sizeof(heap_prefix_t),
                          pref_other[pe].char_len, pe, my_worker_id);
           pos = 0;
@@ -210,12 +215,16 @@ void * ddfs_comm_worker
             pos += sizeof(hash_key_t);
             
             /*  get blue attribute  */
-            memcpy(&blue, buffer + pos, 1);
-            pos ++;
+            if(storage_has_attr(S, ATTR_BLUE)) {
+              memcpy(&blue, buffer + pos, 1);
+              pos ++;
+            }
           
             /*  get red attribute  */
-            memcpy(&red, buffer + pos, 1);
-            pos ++;
+            if(storage_has_attr(S, ATTR_RED)) {
+              memcpy(&red, buffer + pos, 1);
+              pos ++;
+            }
           
             /*  get length  */
             memcpy(&s_char_len, buffer + pos, sizeof(uint16_t));
@@ -227,12 +236,17 @@ void * ddfs_comm_worker
             pos += s_char_len;
             
             /*  set the blue and red attribute of the state  */
-            if(blue) {
+            if(blue && storage_has_attr(S, ATTR_BLUE)) {
               storage_set_blue(S, sid, TRUE);
             }
-            if(red) {
+            if(red && storage_has_attr(S, ATTR_RED)) {
               storage_set_red(S, sid, TRUE);
             }
+
+            /*  the new state may be garbage collected  */
+            if(is_new && storage_has_attr(S, ATTR_GARBAGE)) {
+              storage_set_garbage(S, sid, TRUE);
+            }            
           }
         }
       }
@@ -249,6 +263,8 @@ void ddfs_comm_start
   /*  shmem and symmetrical heap initialisation  */
   comm_shmem_init(r);
   H = shmem_malloc(CFG_SYM_HEAP_SIZE * shmem_n_pes());
+  PES = shmem_n_pes();
+  ME = shmem_my_pe();
   
   R = r;
   S = R->storage;

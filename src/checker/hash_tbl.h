@@ -16,12 +16,6 @@
 #error Model configuration missing!
 #endif
 
-#if defined(CFG_DISTRIBUTED)
-#define NO_WORKERS_STORAGE (CFG_NO_WORKERS + 1)
-#else
-#define NO_WORKERS_STORAGE (CFG_NO_WORKERS)
-#endif
-
 #if !defined(CFG_HASH_COMPACTION)
 #define STORAGE_STATE_RECOVERABLE
 #endif
@@ -32,7 +26,11 @@ typedef struct struct_hash_tbl_t * hash_tbl_t;
 
 typedef uint64_t hash_tbl_id_t;
 
-typedef void(* hash_tbl_fold_func_t)(state_t, hash_tbl_id_t, void *);
+typedef void (* hash_tbl_fold_func_t)
+(state_t, hash_tbl_id_t, void *);
+
+typedef void (* hash_tbl_fold_serialised_func_t)
+(bit_vector_t, uint16_t, hash_key_t, void *);
 
 void init_hash_tbl
 ();
@@ -52,7 +50,12 @@ order_t hash_tbl_id_cmp
  hash_tbl_id_t id2);
 
 hash_tbl_t hash_tbl_new
-(uint64_t hash_size);
+(uint64_t hash_size,
+ uint16_t no_workers,
+ uint16_t no_workers_barrier,
+ bool_t hash_compaction,
+ bool_t state_caching,
+ uint32_t attrs);
 
 hash_tbl_t hash_tbl_default_new
 ();
@@ -153,6 +156,15 @@ bool_t hash_tbl_get_red
 (hash_tbl_t tbl,
  hash_tbl_id_t id);
 
+void hash_tbl_set_garbage
+(hash_tbl_t tbl,
+ hash_tbl_id_t id,
+ bool_t garbage);
+
+bool_t hash_tbl_get_garbage
+(hash_tbl_t tbl,
+ hash_tbl_id_t id);
+
 void hash_tbl_ref
 (hash_tbl_t tbl,
  hash_tbl_id_t id);
@@ -187,5 +199,18 @@ void hash_tbl_fold
 (hash_tbl_t tbl,
  hash_tbl_fold_func_t f,
  void * data);
+
+void hash_tbl_fold_serialised
+(hash_tbl_t tbl,
+ hash_tbl_fold_serialised_func_t f,
+ void * data);
+
+void hash_tbl_set_heap
+(hash_tbl_t tbl,
+ heap_t h);
+
+bool_t hash_tbl_has_attr
+(hash_tbl_t tbl,
+ uint32_t attr);
 
 #endif

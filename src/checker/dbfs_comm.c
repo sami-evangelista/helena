@@ -3,9 +3,16 @@
 
 #if defined(CFG_ALGO_DBFS)
 
-#define COMM_WAIT_TIME_MS       5
-#define WORKER_WAIT_TIME_MS     2
+#define COMM_WAIT_TIME_MS       2
+#define WORKER_WAIT_TIME_MS     1
 #define WORKER_STATE_BUFFER_LEN 10000
+
+#define DBFS_COMM_DEBUG
+
+typedef struct {
+  uint32_t pos;
+  bit_vector_t buffer;
+} buffer_data_t;
 
 typedef struct {
   uint32_t no_states;
@@ -13,17 +20,9 @@ typedef struct {
 } buffer_prefix_t;
 
 typedef struct {
-  hash_key_t h;
-  uint16_t len;
-  bit_vector_t s;
-} packet_t;
-
-typedef struct {
-  bit_vector_t * buffers[CFG_NO_WORKERS];
-  packet_t ** states[CFG_NO_WORKERS];
-  uint32_t * pos[CFG_NO_WORKERS];
+  heap_t * heaps[CFG_NO_WORKERS];
+  hash_tbl_t * states[CFG_NO_WORKERS];
   uint32_t * len[CFG_NO_WORKERS];
-  uint32_t * no_states[CFG_NO_WORKERS];
   uint32_t * remote_pos[CFG_NO_WORKERS];
 } worker_buffers_t;
 
@@ -100,22 +99,38 @@ void dbfs_comm_local_barrier
 
 
 /**
- * @fn dbfs_comm_init_buffer
+ * @fn dbfs_comm_reinit_buffer
  */
-void dbfs_comm_init_buffer
+void dbfs_comm_reinit_buffer
 (worker_id_t w,
  int pe) {
-  memset(BUF.buffers[w][pe], 0,
-         SYM_HEAP_SIZE_WORKER - sizeof(buffer_prefix_t));
+  if(BUF.states[w][pe]) {
+    hash_tbl_free(BUF.states[w][pe]);
+  }
+  BUF.states[w][pe] = hash_tbl_new(WORKER_STATE_BUFFER_LEN * 2,
+                                   1, 1, FALSE, FALSE, ATTR_CHAR_LEN);
+  heap_reset(BUF.heaps[w][pe]);
+  hash_tbl_set_heap(BUF.states[w][pe], BUF.heaps[w][pe]);
+  BUF.len[w][pe] = 0;
 }
 
 
 /**
- * @fn dbfs_comm_sort_buffer
+ * @fn dbfs_comm_fill_buffer
  */
-void dbfs_comm_sort_buffer
-(worker_id_t w,
- int pe) {
+void dbfs_comm_fill_buffer
+(bit_vector_t s,
+ uint16_t l,
+ hash_key_t h,
+ void * data) {
+  buffer_data_t * buf = (buffer_data_t *) data;
+
+  memcpy(buf->buffer + buf->pos, &h, sizeof(hash_key_t));
+  buf->pos += sizeof(hash_key_t);
+  memcpy(buf->buffer + buf->pos, &l, sizeof(uint16_t));
+  buf->pos += sizeof(uint16_t);
+  memcpy(buf->buffer + buf->pos, s, l);
+  buf->pos += l;
 }
 
 
@@ -125,21 +140,15 @@ void dbfs_comm_sort_buffer
 void dbfs_comm_send_buffer
 (worker_id_t w,
  int pe) {
-  uint32_t no;
-  uint32_t i, len;
   buffer_prefix_t pref;
   char buffer[SYM_HEAP_SIZE_WORKER];
+  buffer_data_t buf;
 
 #if defined(DBFS_COMM_DEBUG)
-  assert(no <= WORKER_STATE_BUFFER_LEN);
+  assert(hash_tbl_size(BUF.states[w][pe]) <= WORKER_STATE_BUFFER_LEN);
   assert(pe != ME);
   assert(BUF.len[w][pe] + sizeof(buffer_prefix_t) < SYM_HEAP_SIZE_WORKER);
 #endif
-
-  /**
-   *  first sort the buffer to remove duplicate states
-   */  
-  dbfs_comm_sort_buffer(w, pe);
   
   /**
    *  periodically poll the remote PE to see if I can send my
@@ -154,36 +163,30 @@ void dbfs_comm_send_buffer
   } while(pref.no_states > 0);
 
   /**
-   *  send my states to the remote PE.  first send the states then the
-   *  prefix
+   *  send my states to the remote PE
    */
-  len = 0;
-  no = BUF.no_states[w][pe];
-  for(i = 0; i < no; i ++) {
-    memcpy(buffer + len, &(BUF.states[w][pe][i].h), sizeof(hash_key_t));
-    len += sizeof(hash_key_t);
-    memcpy(buffer + len, &(BUF.states[w][pe][i].len), sizeof(uint16_t));
-    len += sizeof(uint16_t);
-    memcpy(buffer + len, BUF.states[w][pe][i].s, BUF.states[w][pe][i].len);
-    len += BUF.states[w][pe][i].len;  
-  }
+  memset(buffer, 0, SYM_HEAP_SIZE_WORKER);
+  buf.pos = 0;
+  buf.buffer = buffer;
+  hash_tbl_fold_serialised(BUF.states[w][pe], &dbfs_comm_fill_buffer, &buf);
 #if defined(DBFS_COMM_DEBUG)
-  assert(len == BUF.len[w][pe]);
+  assert(buf.pos == BUF.len[w][pe]);
 #endif
   comm_shmem_put(H + BUF.remote_pos[w][pe] + sizeof(buffer_prefix_t),
-                 buffer, len, pe, w);
-  pref.no_states = no;
-  pref.len = BUF.len[w][pe];
+                 buffer, buf.pos, pe, w);
+
+  /**
+   *  send my prefix to the remote PE
+   */
+  pref.no_states = hash_tbl_size(BUF.states[w][pe]);
+  pref.len = buf.pos;
   comm_shmem_put(H + BUF.remote_pos[w][pe], &pref,
                  sizeof(buffer_prefix_t), pe, w);
 
   /**
    *  reinitialise the buffer
    */
-  BUF.no_states[w][pe] = 0;
-  BUF.pos[w][pe] = 0;
-  BUF.len[w][pe] = 0;
-  dbfs_comm_init_buffer(w, pe);
+  dbfs_comm_reinit_buffer(w, pe);
 }
 
 
@@ -195,7 +198,7 @@ void dbfs_comm_send_all_pending_states
   int pe;
 
   for(pe = 0; pe < PES; pe ++) {
-    if(pe != ME && BUF.no_states[w][pe] > 0) {
+    if(pe != ME && hash_tbl_size(BUF.states[w][pe]) > 0) {
       dbfs_comm_send_buffer(w, pe);
     }
   }
@@ -211,11 +214,13 @@ void dbfs_comm_process_state
  hash_key_t h) {
   const uint16_t len = state_char_width(s);
   const int pe = dbfs_comm_state_owner(h);
+  storage_id_t id;
   uint32_t no;
+  bool_t is_new;
 
 #if defined(DBFS_COMM_DEBUG)
   assert(ME != pe);
-  assert(BUF.no_states[w][pe] <= WORKER_STATE_BUFFER_LEN);
+  assert(hash_tbl_size(BUF.states[w][pe]) <= WORKER_STATE_BUFFER_LEN);
 #endif
 
   /**
@@ -224,21 +229,17 @@ void dbfs_comm_process_state
    */
   if((BUF.len[w][pe] + sizeof(hash_key_t) + sizeof(uint16_t) + len >
       SYM_HEAP_SIZE_WORKER - sizeof(buffer_prefix_t))
-     || (BUF.no_states[w][pe] == WORKER_STATE_BUFFER_LEN)) {
+     || (hash_tbl_size(BUF.states[w][pe]) == WORKER_STATE_BUFFER_LEN)) {
     dbfs_comm_send_buffer(w, pe);
   }
 
   /**
-   *  put the state in the buffer
+   *  insert the state in table
    */
-  no = BUF.no_states[w][pe];
-  state_serialise(s, BUF.buffers[w][pe] + BUF.pos[w][pe]);
-  BUF.states[w][pe][no].h = h;
-  BUF.states[w][pe][no].len = len;
-  BUF.states[w][pe][no].s = BUF.buffers[w][pe] + BUF.pos[w][pe];
-  BUF.pos[w][pe] += len;
-  BUF.len[w][pe] += sizeof(hash_key_t) + sizeof(uint16_t) + len;
-  BUF.no_states[w][pe] ++; 
+  hash_tbl_insert_hashed(BUF.states[w][pe], s, 0, h, &is_new, &id);
+  if(is_new) {
+    BUF.len[w][pe] += sizeof(hash_key_t) + sizeof(uint16_t) + len;
+  }
 }
 
 
@@ -436,18 +437,10 @@ void dbfs_comm_start
   GLOB_TERM = FALSE;
   pthread_barrier_init(&LB, NULL, CFG_NO_WORKERS + 1);
   for(w = 0; w < CFG_NO_WORKERS; w ++) {
-    BUF.buffers[w] = mem_alloc(SYSTEM_HEAP, sizeof(bit_vector_t) * PES);
-    BUF.pos[w] = mem_alloc(SYSTEM_HEAP, sizeof(uint32_t) * PES);
     BUF.remote_pos[w] = mem_alloc(SYSTEM_HEAP, sizeof(uint32_t) * PES);
-    BUF.no_states[w] = mem_alloc(SYSTEM_HEAP, sizeof(uint32_t) * PES);
     BUF.len[w] = mem_alloc(SYSTEM_HEAP, sizeof(uint32_t) * PES);
-    BUF.states[w] = mem_alloc(SYSTEM_HEAP, sizeof(packet_t *) * PES);
-    for(pe = 0; pe < PES; pe ++) {
-      if(ME != pe) {
-        BUF.states[w][pe] =
-          mem_alloc(SYSTEM_HEAP, sizeof(packet_t) * WORKER_STATE_BUFFER_LEN);
-      }
-    }
+    BUF.states[w] = mem_alloc(SYSTEM_HEAP, sizeof(hash_tbl_t) * PES);
+    BUF.heaps[w] = mem_alloc(SYSTEM_HEAP, sizeof(heap_t) * PES);
   }
   for(pe = 0; pe < PES; pe ++) {
     remote_pos = ME * SYM_HEAP_SIZE_PE;
@@ -458,15 +451,12 @@ void dbfs_comm_start
       if(ME == pe) {
         BUF.remote_pos[w][pe] = 0;          
       } else {
-        BUF.no_states[w][pe] = 0;
-        BUF.pos[w][pe] = 0;
-        BUF.len[w][pe] = 0;
-        BUF.buffers[w][pe] = mem_alloc(SYSTEM_HEAP,
-                                       SYM_HEAP_SIZE_WORKER -
-                                       sizeof(buffer_prefix_t));
         BUF.remote_pos[w][pe] = remote_pos;
+        BUF.states[w][pe] = NULL;
+        BUF.heaps[w][pe] = bounded_heap_new("dbfs_comm buffer",
+                                            SYM_HEAP_SIZE_WORKER);
+        dbfs_comm_reinit_buffer(w, pe);
         remote_pos += SYM_HEAP_SIZE_WORKER;
-        dbfs_comm_init_buffer(w, pe);
       }
     }
   }
@@ -490,13 +480,13 @@ void dbfs_comm_end
   for(w = 0; w < CFG_NO_WORKERS; w ++) {
     for(pe = 0; pe < PES; pe ++) {
       if(ME != pe) {
-        mem_free(SYSTEM_HEAP, BUF.buffers[w][pe]);
-        mem_free(SYSTEM_HEAP, BUF.states[w][pe]);
+        hash_tbl_free(BUF.states[w][pe]);
+        heap_free(BUF.heaps[w][pe]);
       }
     }
-    mem_free(SYSTEM_HEAP, BUF.no_states[w]);
-    mem_free(SYSTEM_HEAP, BUF.buffers[w]);
-    mem_free(SYSTEM_HEAP, BUF.pos[w]);
+    mem_free(SYSTEM_HEAP, BUF.states[w]);
+    mem_free(SYSTEM_HEAP, BUF.heaps[w]);
+    mem_free(SYSTEM_HEAP, BUF.len[w]);
     mem_free(SYSTEM_HEAP, BUF.remote_pos[w]);
   }
 }

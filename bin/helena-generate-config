@@ -230,25 +230,21 @@ class Config:
             W("#define CFG_VERBOSE\n")
 
         #  search algorithm
+        W("#define CFG_ALGO_" + self.algo + "\n")
         if self.algo == FRONTIER:
-            W("#define CFG_ALGO_FRONTIER\n")
             W("#define CFG_HASH_STORAGE\n")
         elif self.algo == BFS:
-            W("#define CFG_ALGO_BFS\n")
             W("#define CFG_HASH_STORAGE\n")
         elif self.algo == DFS:
-            W("#define CFG_ALGO_DFS\n")
             W("#define CFG_HASH_STORAGE\n")
-        elif self.algo == DDFS:
-            W("#define CFG_ALGO_DDFS\n")
-            W("#define CFG_HASH_STORAGE\n")
-            W("#define CFG_SYM_HEAP_SIZE 100000\n")
-            if len(self.ddfsCommStrat) > 0:
-                W("#define CFG_DDFS_COMM_STRAT\n")
         elif self.algo == DBFS:
-            W("#define CFG_ALGO_DBFS\n")
             W("#define CFG_HASH_STORAGE\n")
             W("#define CFG_SYM_HEAP_SIZE 1000000\n")
+        elif self.algo == DDFS:
+            W("#define CFG_HASH_STORAGE\n")
+            W("#define CFG_SYM_HEAP_SIZE 1000000\n")
+            if len(self.ddfsCommStrat) > 0:
+                W("#define CFG_DDFS_COMM_STRAT\n")
                 
             K = False
             D = False
@@ -264,18 +260,17 @@ class Config:
                     W("#define CFG_DDFS_COMM_STRAT_MINE\n")
                     M = True
         elif self.algo == DELTA_DDD:
-            W("#define CFG_ALGO_DELTA_DDD\n")
             W("#define CFG_DELTA_DDD_STORAGE\n")
         elif self.algo == RWALK:
-            W("#define CFG_ALGO_RWALK\n")
+            pass
         W("#define CFG_DELTA_DDD_CAND_SET_SIZE " + \
           str(self.candidateSetSize) + "\n")
 
         #  state caching
+        W("#define CFG_STATE_CACHING_GC_THRESHOLD 50\n")
+        W("#define CFG_STATE_CACHING_GC_PERCENT   1\n")
         if self.stateCaching:
             W("#define CFG_STATE_CACHING\n")
-            W("#define CFG_STATE_CACHING_GC_THRESHOLD 50\n")
-            W("#define CFG_STATE_CACHING_GC_PERCENT   0.1\n")
 
         #  search limits
         if self.memoryLimit != 0:
@@ -295,7 +290,6 @@ class Config:
         W("#define CFG_HASH_SIZE_BITS " + str(self.hashSize) + "\n")
         if self.hashCompaction:
             W("#define CFG_HASH_COMPACTION\n")
-        W("#define CFG_HASH_COMPACTION_KEYS 1\n")
 
         #  action to perform
         if self.action == EXPLORE:
@@ -331,46 +325,6 @@ class Config:
         #  distributed mode
         if self.algo in [ DBFS, DDFS ]:
             W("#define CFG_DISTRIBUTED\n")
-
-        #  state attributes
-        bitw = 0
-        W("#define CFG_ATTR_CYAN\n")
-        W("#define CFG_ATTR_CYAN_POS " + str(bitw) + "\n")
-        W("#define CFG_ATTR_CYAN_SIZE " + str(self.workers) + "\n")
-        bitw = bitw + self.workers
-        W("#define CFG_ATTR_BLUE\n")
-        W("#define CFG_ATTR_BLUE_POS " + str(bitw) + "\n")
-        W("#define CFG_ATTR_BLUE_SIZE 1\n")
-        bitw = bitw + 1
-        if not self.hashCompaction:
-            W("#define CFG_ATTR_CHAR_LEN\n")
-            W("#define CFG_ATTR_CHAR_LEN_POS " + str(bitw) + "\n")
-            W("#define CFG_ATTR_CHAR_LEN_SIZE 16\n")
-            bitw = bitw + 16
-        if self.action == CHECK and self.propType == LTL:
-            W("#define CFG_ATTR_PINK\n")
-            W("#define CFG_ATTR_PINK_POS " + str(bitw) + "\n")
-            W("#define CFG_ATTR_PINK_SIZE " + str(self.workers) + "\n")
-            bitw = bitw + self.workers
-            W("#define CFG_ATTR_RED\n")
-            W("#define CFG_ATTR_RED_POS " + str(bitw) + "\n")
-            W("#define CFG_ATTR_RED_SIZE 1\n")
-            bitw = bitw + 1
-        if self.stateCaching or self.algo == FRONTIER:
-            W("#define CFG_ATTR_GARBAGE\n")
-            W("#define CFG_ATTR_GARBAGE_POS " + str(bitw) + "\n")
-            W("#define CFG_ATTR_GARBAGE_SIZE 1\n")
-            bitw = bitw + 1
-        if self.stateCaching:
-            W("#define CFG_ATTR_REFS\n")
-            W("#define CFG_ATTR_REFS_POS " + str(bitw) + "\n")
-            W("#define CFG_ATTR_REFS_SIZE 8\n")
-            bitw = bitw + 8
-            
-        charw = bitw / 8
-        if bitw % 8 != 0:
-            charw = charw + 1
-        W("#define CFG_ATTRS_CHAR_SIZE " + str(charw) + "\n")
 
         W("\n#endif  /*  LIB_CONFIG  */\n")
         f.close()

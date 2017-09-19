@@ -15,6 +15,13 @@
 #error Model configuration missing!
 #endif
 
+#define ATTR_CHAR_LEN 1
+#define ATTR_CYAN     2
+#define ATTR_BLUE     4
+#define ATTR_PINK     8
+#define ATTR_RED      16
+#define ATTR_GARBAGE  32
+#define ATTR_REFS     64
 
 /*****
  *  storage used by delta-ddd algorithm
@@ -66,12 +73,15 @@ typedef delta_ddd_storage_id_t storage_id_t;
 #define storage_get_pink          hash_tbl_get_pink
 #define storage_set_red           hash_tbl_set_red
 #define storage_get_red           hash_tbl_get_red
+#define storage_set_garbage       hash_tbl_set_garbage
+#define storage_get_garbage       hash_tbl_get_garbage
 #define storage_ref               hash_tbl_ref
 #define storage_unref             hash_tbl_unref
 #define storage_do_gc             hash_tbl_do_gc
 #define storage_gc                hash_tbl_gc
 #define storage_barrier           hash_tbl_barrier
 #define storage_gc_time           hash_tbl_gc_time
+#define storage_has_attr          hash_tbl_has_attr
 #define storage_output_stats      hash_tbl_output_stats
 
 #endif

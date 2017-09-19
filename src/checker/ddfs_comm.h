@@ -12,12 +12,24 @@
 #include "report.h"
 #include "storage.h"
 
+
+/**
+ *  @fn ddfs_comm_start
+ */
 void ddfs_comm_start
 (report_t r);
 
+
+/**
+ *  @fn ddfs_comm_end
+ */
 void ddfs_comm_end
 ();
 
+
+/**
+ *  @fn ddfs_comm_process_explored_state
+ */
 void ddfs_comm_process_explored_state
 (worker_id_t w,
  storage_id_t id,
