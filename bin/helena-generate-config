@@ -230,7 +230,7 @@ class Config:
             W("#define CFG_VERBOSE\n")
 
         #  search algorithm
-        W("#define CFG_ALGO_" + self.algo + "\n")
+        W("#define CFG_ALGO_" + self.algo.replace("-", "_") + "\n")
         if self.algo == FRONTIER:
             W("#define CFG_HASH_STORAGE\n")
         elif self.algo == BFS:

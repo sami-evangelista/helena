@@ -27,6 +27,8 @@ package body Pn.Compiler.Graph is
       Plh(L, "#include ""hash_tbl.h""");
       Plh(L, "#include ""config.h""");
       Plh(L, "#include ""hash_array.h""");
+      Plh(L, "#include ""report.h""");
+      Plh(L, "#include ""storage.h""");
       Nlh(L);
       Plh(L, "#define MAX_DEAD 10");
       --=======================================================================
