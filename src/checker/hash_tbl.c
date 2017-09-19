@@ -782,7 +782,7 @@ void hash_tbl_gc_all
 (hash_tbl_t tbl,
  worker_id_t w) {
   if(hash_tbl_has_attr(tbl, ATTR_GARBAGE)) {
-    hash_tbl_gc_real(tbl, w, 0, -1);
+    hash_tbl_gc_real(tbl, w, 0, tbl->no_garbages[w]);
   }
 }
 
