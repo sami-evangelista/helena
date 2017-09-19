@@ -99,7 +99,7 @@ class Model:
                 if len(fields) >= 3 and fields[1] == "property":
                     prop = fields[2].split(":")[0]
                     self.ltl = fields[0] == "ltl"
-                    f(l + [ "-N=check-" + prop ])
+                    f(l + [ "-N=check-" + prop ], n + 1)
                     self.ltl = False
             pf.close()
 
