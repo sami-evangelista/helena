@@ -266,10 +266,10 @@ void delta_ddd_create_trace
  *
  *****/
 bool_t delta_ddd_send_candidate
-(worker_id_t      w,
+(worker_id_t w,
  delta_ddd_storage_id_t pred,
- event_id_t       e,
- state_t          s) {
+ event_id_t e,
+ state_t s) {
   unsigned int i;
   delta_ddd_candidate_t c;
   worker_id_t x;
@@ -722,7 +722,7 @@ state_t delta_ddd_expand_dfs
       e_id = event_set_nth_id(en, i);
       t = state_succ_mem(s, e, heap);
       if(delta_ddd_send_candidate(w, now, e_id, t)) {
-	assert(0);
+        assert(0);
 	delta_ddd_duplicate_detection(w);
       }
     }
@@ -897,7 +897,7 @@ void delta_ddd
    *  initialisation of the mailboxes of workers
    */
   BOX_max_size = (CFG_DELTA_DDD_CAND_SET_SIZE /
-                  (CFG_NO_WORKERS * CFG_NO_WORKERS)) << 1;
+                  (CFG_NO_WORKERS * CFG_NO_WORKERS)) << 2;
   for(w = 0; w < CFG_NO_WORKERS; w ++) {
     for(x = 0; x < CFG_NO_WORKERS; x ++) {
       s = BOX_max_size * sizeof(delta_ddd_candidate_t);

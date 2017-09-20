@@ -267,7 +267,9 @@ package body Pn.Compiler.Graph is
       Plc(L, 1, "if (!harray_insert (data->qlive_events, (void *) pe)) {");
       Plc(L, 2, "ptr_mevent_free (pe);");
       Plc(L, 1, "}");
-      Plc(L, 1, "if (new_succ) {");
+      Plc(L, 1, "if (!new_succ) {");
+      Plc(L, 2, "mevent_free(e);");
+      Plc(L, 1, "} else {");
       Plc(L, 2, "data->top ++;");
       Plc(L, 2, "data->stack[data->top] = e;");
       Plc(L, 2, "mevent_exec (e, data->now);");
@@ -292,7 +294,7 @@ package body Pn.Compiler.Graph is
       Prototype := To_Ustring
 	("void model_graph_handle_state" & Nl &
 	   "(model_graph_data_t data," & Nl &
-	   " mstate_t           s)");
+	   " mstate_t s)");
       Plh(L, Prototype & ";");
       Plc(L, Prototype & " {");
       Plc(L, "#ifdef CFG_ACTION_BUILD_RG");
@@ -394,7 +396,7 @@ package body Pn.Compiler.Graph is
       Prototype := To_Ustring
 	("void model_graph_scc_dfs_push" & Nl &
 	   "(model_graph_data_t data," & Nl &
-	   " edge_num_t         num)");
+	   " edge_num_t num)");
       Plh(L, Prototype & ";");
       Plc(L, Prototype & " {");
       Plc(L, "#ifdef CFG_ACTION_BUILD_RG");
