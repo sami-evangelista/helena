@@ -80,6 +80,7 @@ state_t dfs_main
   /*
    *  push the root state on the stack
    */
+  storage_ref(S, w, id);
   dfs_stack_push(stack, id, now);
   en = dfs_stack_compute_events(stack, now, TRUE);
   if(blue) {
@@ -290,7 +291,6 @@ void * dfs_worker
 
   storage_insert(R->storage, now, w, &dummy, &id, &h);
   storage_set_cyan(S, id, w, TRUE);
-  storage_ref(S, w, id);
   now = dfs_main(w, now, id, heap, TRUE, blue_stack, red_stack);
 
 #if defined(CFG_PARALLEL) && defined(CFG_STATE_CACHING)
