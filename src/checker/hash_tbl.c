@@ -778,11 +778,13 @@ void hash_tbl_gc
     deleted = hash_tbl_gc_real(tbl, w, first_slot, to_delete);
 
     /**
-     *  stop if we could not delete more than 10% of states to delete
+     *  stop if we could not delete more than 10% of states to delete.
+     *  all workers must be aware of this.  hence the barrier
      */
     if(10 * deleted < to_delete) {
       raise_error("could not delete states (increase --hash-size and rerun)");
     }
+    hash_tbl_barrier(tbl);
   }
 }
     
