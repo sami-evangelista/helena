@@ -688,7 +688,7 @@ void hash_tbl_barrier
   }
 }
     
-void hash_tbl_gc_real
+uint64_t hash_tbl_gc_real
 (hash_tbl_t tbl,
  worker_id_t w,
  uint64_t first_slot,
@@ -756,12 +756,13 @@ void hash_tbl_gc_real
     lna_timer_stop(&t);
     tbl->gc_time += lna_timer_value(t);
   }
+  return deleted;
 }
     
 void hash_tbl_gc
 (hash_tbl_t tbl,
  worker_id_t w) {
-  uint64_t to_delete, first_slot;
+  uint64_t to_delete, first_slot, deleted;
   
   if(hash_tbl_has_attr(tbl, ATTR_GARBAGE) 
      && hash_tbl_size(tbl) >= ((tbl->hash_size * tbl->gc_threshold) / 100)) {
@@ -774,7 +775,14 @@ void hash_tbl_gc
       (uint64_t) ((double) hash_tbl_size(tbl) * tbl->gc_ratio) /
         (tbl->no_workers);
     }
-    hash_tbl_gc_real(tbl, w, first_slot, to_delete);
+    deleted = hash_tbl_gc_real(tbl, w, first_slot, to_delete);
+
+    /**
+     *  stop if we could not delete more than 10% of states to delete
+     */
+    if(10 * deleted < to_delete) {
+      raise_error("could not delete states (increase --hash-size and rerun)");
+    }
   }
 }
     

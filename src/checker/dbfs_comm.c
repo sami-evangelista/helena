@@ -432,7 +432,7 @@ void dbfs_comm_start
   /*  initialise global variables  */
   Q = q;
   R = r;
-  S = R->storage;
+  S = report_storage(R);
   LOCAL_TERM = FALSE;
   GLOB_TERM = FALSE;
   pthread_barrier_init(&LB, NULL, CFG_NO_WORKERS + 1);

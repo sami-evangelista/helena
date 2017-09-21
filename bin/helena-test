@@ -142,5 +142,8 @@ if __name__ == "__main__":
                 if ext2 != ".prop":
                     m = Model(os.path.abspath(inDir + os.sep + f + ext), outDir)
                     m.launchTest()
+            elif ext == ".dve":
+                m = Model(os.path.abspath(inDir + os.sep + f + ext), outDir)
+                m.launchTest()
         break
 exit(0)

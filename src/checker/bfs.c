@@ -70,7 +70,7 @@ void bfs_terminate_level
   bfs_queue_switch_level(Q, w);
   bfs_wait_barrier();
   if(0 == w) {
-    TERM = (!R->keep_searching || bfs_queue_is_empty(Q)) ? TRUE : FALSE;
+    TERM = (!report_keep_searching(R) || bfs_queue_is_empty(Q)) ? TRUE : FALSE;
   }
   bfs_wait_barrier();
 #endif
@@ -113,8 +113,8 @@ void * bfs_worker
   sprintf(heap_name, "bfs heap of worker %d", w);
   heap = bounded_heap_new(heap_name, 10 * 1024 * 1024);
   while(!TERM) {
-    for(x = 0; x < NO_WORKERS_QUEUE && R->keep_searching; x ++) {
-      while(!bfs_queue_slot_is_empty(Q, x, w) && R->keep_searching) {
+    for(x = 0; x < NO_WORKERS_QUEUE && report_keep_searching(R); x ++) {
+      while(!bfs_queue_slot_is_empty(Q, x, w) && report_keep_searching(R)) {
         
         /**
          *  dequeue a state sent by thread x, get its successors and a
@@ -131,7 +131,7 @@ void * bfs_worker
         en = state_enabled_events_mem(s, heap);
         en_size = event_set_size(en);
         if(0 == en_size) {
-          R->states_dead[w] ++;
+          report_incr_dead(R, w, 1);
         }
 #if defined(CFG_POR)
         en_size = event_set_size(en);
@@ -160,7 +160,7 @@ void * bfs_worker
           bool_t is_new;
 
           arcs ++;
-          R->events_executed[w] ++;
+          report_incr_evts_exec(R, w, 1);
 #if defined(CFG_EVENT_UNDOABLE)
           event_exec(e, s);
           succ = s;
@@ -213,8 +213,9 @@ void * bfs_worker
          *  the state leaves the queue => we unset its cyan bit and
          *  delete it from storage if algo is FRONTIER.
          */
-        R->arcs[w] += arcs;
-        R->states_visited[w] ++;
+	report_incr_arcs(R, w, arcs);
+	report_incr_visited(R, w, 1);
+        report_incr_evts_exec(R, w, arcs);
         storage_set_cyan(S, item.id, w, FALSE);
 #if defined(CFG_ALGO_FRONTIER)
         storage_remove(S, w, item.id);
@@ -245,7 +246,7 @@ void bfs
   bfs_queue_item_t item;
   
   R = r;
-  S = R->storage;
+  S = report_storage(R);
   Q = bfs_queue_new();
 
 #if defined(CFG_ALGO_DBFS)
@@ -261,7 +262,7 @@ void bfs
 #endif
   
   if(enqueue) {
-    storage_insert(R->storage, s, 0, &is_new, &id, &h);
+    storage_insert(S, s, 0, &is_new, &id, &h);
     w = h % CFG_NO_WORKERS;
     item.id = id;
     item.s = s;

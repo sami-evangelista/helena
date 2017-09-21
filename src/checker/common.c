@@ -357,11 +357,6 @@ void flush_error
 #endif
 }
 
-void stop_search
-(termination_state_t state) {
-  report_stop_search(state);
-}
-
 FILE * open_graph_file
 () {
   FILE * result = NULL;

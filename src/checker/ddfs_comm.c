@@ -184,7 +184,7 @@ void * ddfs_comm_worker
     pref.char_len -= sizeof(heap_prefix_t);
 
     /*  notify others if the search has terminated  */
-    if(!R->keep_searching) {
+    if(!report_keep_searching(R)) {
       pref.terminated = TRUE;
     }
 
@@ -211,7 +211,7 @@ void * ddfs_comm_worker
     /*  at least one process has not finished and neither have I =>
         get states put by remote PEs in their heap and put these in my
         local storage */
-    if(loop && R->keep_searching) {
+    if(loop && report_keep_searching(R)) {
       for(pe = 0; pe < PES ; pe ++) {
         if(ME != pe) {
           comm_shmem_get(buffer, H + sizeof(heap_prefix_t),
@@ -276,7 +276,7 @@ void ddfs_comm_start
   ME = shmem_my_pe();
   
   R = r;
-  S = R->storage;
+  S = report_storage(R);
   for(w = 0; w < CFG_NO_WORKERS; w ++) {
     B.status[w] = BUCKET_OK;
     B.size[w] = 0;

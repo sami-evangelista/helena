@@ -94,7 +94,7 @@ state_t dfs_main
   /*
    *  search loop
    */
-  while(dfs_stack_size(stack) && R->keep_searching) {
+  while(dfs_stack_size(stack) && report_keep_searching(R)) {
   loop_start:
 
     /*
@@ -135,10 +135,10 @@ state_t dfs_main
        */
 #if defined(CFG_ACTION_CHECK_LTL)
       if(blue && state_accepting(now)) {
-	R->states_accepting[w] ++;
+        report_incr_accepting(R, w, 1);
 	dfs_main(w, now, dfs_stack_top(stack), heap,
                  FALSE, blue_stack, red_stack);
-	if(!R->keep_searching) {
+	if(!report_keap_searching(R)) {
 	  return now;
 	}
       }
@@ -166,7 +166,7 @@ state_t dfs_main
       /*
        *  and finally pop the state
        */
-      R->states_visited[w] ++;
+      report_incr_visited(R, w, 1);
       dfs_stack_pop(stack);
       if(dfs_stack_size(stack)) {
         now = dfs_recover_state(stack, now, w, heap);
@@ -190,7 +190,7 @@ state_t dfs_main
        */
       dfs_stack_pick_event(stack, &e, &eid);
       event_exec(e, now);
-      R->events_executed[w] ++;
+      report_incr_evts_exec(R, w, 1);
 
       /*
        *  try to insert the successor
@@ -202,7 +202,7 @@ state_t dfs_main
        *  see if it must be pushed on the stack to be processed
        */
       if(blue) {
-	R->arcs[w] ++;
+	report_incr_arcs(R, w, 1);
         push = is_new ||
           ((!storage_get_blue(S, id)) &&
            (!storage_get_cyan(S, id, w)));
@@ -249,7 +249,7 @@ state_t dfs_main
          *  update some statistics and check the state
          */
 	if(blue && (0 == event_set_size(en))) {
-	  R->states_dead[w] ++;
+	  report_incr_dead(R, w, 1);
 	}
         dfs_check_state(now, en, blue_stack, red_stack);
 
@@ -259,8 +259,8 @@ state_t dfs_main
 	 */
 #if defined(CFG_ACTION_CHECK_LTL)
 	if(!blue && (EQUAL == storage_id_cmp(id, id_seed))) {
-	  R->keep_searching = FALSE;
-	  R->result = FAILURE;
+	  report_stop_search();
+	  report_set_result(R, FAILURE);
 	  dfs_stack_create_trace(blue_stack, red_stack, R);
 	}
 #endif
@@ -289,7 +289,7 @@ void * dfs_worker
   dfs_stack_t red_stack = NULL;
 #endif
 
-  storage_insert(R->storage, now, w, &dummy, &id, &h);
+  storage_insert(S, now, w, &dummy, &id, &h);
   storage_set_cyan(S, id, w, TRUE);
   now = dfs_main(w, now, id, heap, TRUE, blue_stack, red_stack);
 
@@ -313,7 +313,7 @@ void dfs
   void * dummy;
 
   R = r;
-  S = R->storage;
+  S = report_storage(R);
 
 #if defined(CFG_ALGO_DDFS)
   ddfs_comm_start(R);
@@ -326,7 +326,7 @@ void dfs
   launch_and_wait_workers(R, &dfs_worker);
 
 #if defined(CFG_ALGO_DDFS)
-  R->keep_searching = FALSE;
+  report_stop_search();
   ddfs_comm_end();
 #endif
 }

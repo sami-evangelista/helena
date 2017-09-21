@@ -27,11 +27,11 @@ void * random_walk_worker
   sprintf(heap_name, "random walk heap of worker %d", w);
   heap = bounded_heap_new(heap_name, RW_HEAP_SIZE);
 
-  while(R->keep_searching) {
+  while(report_keep_searching(R)) {
     heap_reset(heap);
     stack_size = 0;
     s = state_initial_mem(heap);
-    for(i = 0; i < RW_MAX_DEPTH && R->keep_searching; i ++) {
+    for(i = 0; i < RW_MAX_DEPTH && report_keep_searching(R); i ++) {
       en = state_enabled_events_mem(s, heap);
       en_size = event_set_size(en);
 #if defined(CFG_ACTION_CHECK_SAFETY)
@@ -51,12 +51,12 @@ void * random_walk_worker
 	event_exec(e, s);
 	stack[stack_size ++] = e;
       }
-      R->events_executed[w] ++;
-      R->states_visited[w] ++;
-      R->arcs[w] += en_size;
+      report_incr_evts_exec(R, w, 1);
+      report_incr_visited(R, w, 1);
+      report_incr_arcs(R, w, en_size);
       event_set_free(en);
       if(0 == en_size) {
-	R->states_dead[w] ++;
+        report_incr_dead(R, w, 1);
 	break;
       }
     }

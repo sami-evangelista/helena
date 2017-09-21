@@ -100,12 +100,11 @@ options = {
     "staticReductions"          : "Static reductions",
     "partialOrder"              : "Partial order reduction",
     "hashCompact"               : "Hash compaction",
-    "stateCaching"              : "State caching with --cache-size=",
+    "stateCaching"              : "State caching",
     "candidateSetSize"          :
         "Candidate set size (for --algo=delta-ddd) = ",
     "hashTableSlots"            : "Hash table size = " }
 optionsWithVal = {
-    "stateCaching"              : noFormat,
     "candidateSetSize"          : noFormat,
     "hashTableSlots"            : formatNumber }
 statistics = {

@@ -88,7 +88,7 @@ hash_key_t bit_vector_hash
 
 #define MALLOC(ptr, ptr_type, size) {           \
     if(!((ptr) = (ptr_type) malloc(size))) {    \
-      stop_search(MEMORY_EXHAUSTED);            \
+      fatal_error("could not malloc memory");   \
     }                                           \
   }
 
@@ -106,9 +106,6 @@ bool_t raise_error
 
 void flush_error
 ();
-
-void stop_search
-(termination_state_t state);
 
 FILE * open_graph_file
 ();

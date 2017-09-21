@@ -19,9 +19,9 @@ report_t report_new
     mem_alloc(SYSTEM_HEAP, no_workers * sizeof(uint64_t));
   result->arcs =
     mem_alloc(SYSTEM_HEAP, no_workers * sizeof(uint64_t));
-  result->events_executed =
+  result->evts_exec =
     mem_alloc(SYSTEM_HEAP, no_workers * sizeof(uint64_t));
-  result->events_executed_dd =
+  result->evts_exec_dd =
     mem_alloc(SYSTEM_HEAP, no_workers * sizeof(uint64_t));
   result->state_cmps =
     mem_alloc(SYSTEM_HEAP, no_workers * sizeof(uint64_t));
@@ -32,8 +32,8 @@ report_t report_new
     result->states_accepting[i] = 0;
     result->states_dead[i] = 0;
     result->arcs[i] = 0;
-    result->events_executed[i] = 0;
-    result->events_executed_dd[i] = 0;
+    result->evts_exec[i] = 0;
+    result->evts_exec_dd[i] = 0;
     result->state_cmps[i] = 0;
   }
   for(i = 0; i < no_workers + 1; i ++) {
@@ -88,8 +88,8 @@ void report_free
   free(report->states_dead);
   free(report->states_accepting);
   free(report->arcs);
-  free(report->events_executed);
-  free(report->events_executed_dd);
+  free(report->evts_exec);
+  free(report->evts_exec_dd);
   free(report->state_cmps);
   free(report->bytes_sent);
   storage_free(report->storage);
@@ -253,6 +253,9 @@ void report_finalise
 #if defined(CFG_POR)
   fprintf(out, "<partialOrder/>\n");
 #endif
+#if defined(CFG_STATE_CACHING)
+  fprintf(out, "<stateCaching/>\n");
+#endif
 #if defined(CFG_ALGO_DELTA_DDD)
   fprintf(out, "<candidateSetSize>%d</candidateSetSize>\n",
           CFG_DELTA_DDD_CAND_SET_SIZE);
@@ -342,13 +345,13 @@ void report_finalise
   fprintf(out, "<maxMemoryUsed>%.1f</maxMemoryUsed>\n",
           r->max_mem_used);
   fprintf(out, "<eventsExecuted>%llu</eventsExecuted>\n",
-          do_large_sum(r->events_executed, r->no_workers));
+          do_large_sum(r->evts_exec, r->no_workers));
 #if defined(CFG_ALGO_DELTA_DDD)
   fprintf(out, "<eventsExecutedDDD>%llu</eventsExecutedDDD>\n",
-          do_large_sum(r->events_executed_dd, r->no_workers));
+          do_large_sum(r->evts_exec_dd, r->no_workers));
   fprintf(out, "<eventsExecutedExpansion>%llu</eventsExecutedExpansion>\n",
-          do_large_sum(r->events_executed, r->no_workers) -
-          do_large_sum(r->events_executed_dd, r->no_workers));
+          do_large_sum(r->evts_exec, r->no_workers) -
+          do_large_sum(r->evts_exec_dd, r->no_workers));
 #endif
 #if defined(CFG_ALGO_RWALK)
   fprintf(out, "<eventExecPerSecond>%d</eventExecPerSecond>\n",

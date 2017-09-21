@@ -26,7 +26,7 @@ void * observer_start
   char name[100];
 
   gethostname(name, 1024);
-  while(r->keep_searching) {
+  while(report_keep_searching(r)) {
     sleep(1);
     gettimeofday(&now, NULL);
     stored = storage_size(r->storage);
@@ -55,19 +55,19 @@ void * observer_start
      */
 #if defined(CFG_MEMORY_LIMITED) && defined(CFG_MAX_MEMORY)
     if(mem > CFG_MAX_MEMORY) {
-      r->keep_searching = FALSE;
+      report_stop_search();
       r->result = MEMORY_EXHAUSTED;
     }
 #endif
 #if defined(CFG_TIME_LIMITED) && defined(CFG_MAX_TIME)
     if(time > (float) CFG_MAX_TIME) {
-      r->keep_searching = FALSE;
+      report_stop_search();
       r->result = TIME_ELAPSED;
     }
 #endif
 #if defined(CFG_STATE_LIMITED) && defined(CFG_MAX_STATE)
     if(visited > CFG_MAX_STATE) {
-      r->keep_searching = FALSE;
+      report_stop_search();
       r->result = STATE_LIMIT_REACHED;
     }
 #endif

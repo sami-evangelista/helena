@@ -444,8 +444,8 @@ state_t delta_ddd_duplicate_detection_dfs
     curr = start;
     do {
       if(ST[curr].dd || ST[curr].dd_visit) {
-	R->events_executed[w] ++;
-	R->events_executed_dd[w] ++;
+        report_incr_evts_exec(R, w, 1);
+        report_incr_evts_exec_dd(R, w, 1);
 	DELTA_DDD_VISIT_HANDLE_EVENT(delta_ddd_duplicate_detection_dfs);
       }
       if(ST[curr].father & 1) {
@@ -633,7 +633,7 @@ bool_t delta_ddd_duplicate_detection
     raise_error("state table too small (increase --hash-size and rerun)");
     pthread_mutex_unlock(&report_mutex);
   }
-  if(!R->keep_searching) {
+  if(!report_keep_searching(R)) {
     pthread_exit(NULL);
   }
   delta_ddd_merge_candidate_set(w);
@@ -713,11 +713,11 @@ state_t delta_ddd_expand_dfs
 #endif
     en_size = event_set_size(en);
     if(0 == en_size) {
-      R->states_dead[w] ++;
+      report_incr_dead(R, w, 1);
     }
     for(i = 0; i < en_size; i ++) {
-      R->arcs[w] ++;
-      R->events_executed[w] ++;
+      report_incr_arcs(R, w, 1);
+      report_incr_evts_exec(R, w, 1);
       e = event_set_nth(en, i);
       e_id = event_set_nth_id(en, i);
       t = state_succ_mem(s, e, heap);
@@ -726,7 +726,7 @@ state_t delta_ddd_expand_dfs
 	delta_ddd_duplicate_detection(w);
       }
     }
-    R->states_visited[w] ++;
+    report_incr_visited(R, w, 1);
 
     /*
      *  perform duplicate detection if the candidate set is full
@@ -747,7 +747,7 @@ state_t delta_ddd_expand_dfs
     curr = start;
     do {
       if(ST[curr].recons[recons_id]) {
-	R->events_executed[w] ++;
+        report_incr_evts_exec(R, w, 1);
 	DELTA_DDD_VISIT_HANDLE_EVENT(delta_ddd_expand_dfs);
       }
       if(ST[curr].father & 1) {
