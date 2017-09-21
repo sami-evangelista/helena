@@ -153,28 +153,34 @@ createMakefile () {
     links=$initLinks
     makefile=Makefile
     targets=""
-    (for f in $modelSrcFiles $checkerSrcFiles
+    (echo "CC = $CC"
+     echo "CC_VG = $CC_VG"
+     echo "CC_GP = $CC_GP"
+     echo
+     for f in $modelSrcFiles $checkerSrcFiles
      do
 	 [ ! -e $f.c ] && continue
          echo -e "$f.o: $f.h $f.c"
-         echo -e "\t$CC -c $f.c"
+         echo -e "\t\$(CC) -c $f.c"
          echo
          echo -e $f"_vg.o: $f.h $f.c"
-         echo -e "\t$CC_VG -c -o "$f"_vg.o $f.c"
+         echo -e "\t\$(CC_VG) -c -o "$f"_vg.o $f.c"
          echo
          echo -e $f"_gp.o: $f.h $f.c"
-         echo -e "\t$CC_GP -c -o "$f"_gp.o $f.c"
+         echo -e "\t\$(CC_GP) -c -o "$f"_gp.o $f.c"
          echo
          links=$links" $f.o"
          linksvg=$linksvg" "$f"_vg.o"
          linksgp=$linksgp" "$f"_gp.o"
      done
      echo "all: $links"
-     echo -e "\t$CC $links -o helena-checker main.c\n"
+     echo -e "\t\$(CC) $links -o helena-checker main.c\n"
      echo "all_vg: $linksvg"
-     echo -e "\t$CC_VG $linksvg -o helena-checker-vg main.c\n"
+     echo -e "\t\$(CC_VG) $linksvg -o helena-checker-vg main.c\n"
      echo "all_gp: $linksgp"
-     echo -e "\t$CC_GP $linksgp -o helena-checker-gp main.c\n"
+     echo -e "\t\$(CC_GP) $linksgp -o helena-checker-gp main.c\n"
+     echo "run: all"
+     echo -e "\t$RUN\n"
      echo "report:"
      echo -e "\tmake all_gp"
      echo -e "\t./helena-checker-gp &> /dev/null"
