@@ -3,6 +3,8 @@
 #if defined(CFG_ALGO_BFS) || defined(CFG_ALGO_DBFS) || \
   defined(CFG_ALGO_FRONTIER)
 
+#define BFS_QUEUE_BLOCK_SIZE 10000
+
 struct struct_bfs_queue_block_t {
   bfs_queue_item_t items[BFS_QUEUE_BLOCK_SIZE];
   heap_t heap;
@@ -25,8 +27,9 @@ typedef struct {
 typedef struct_bfs_queue_slot_t * bfs_queue_slot_t;
 
 struct struct_bfs_queue_t {
-  bfs_queue_slot_t current[NO_WORKERS_QUEUE][NO_WORKERS_QUEUE];
-  bfs_queue_slot_t next[NO_WORKERS_QUEUE][NO_WORKERS_QUEUE]; 
+  bfs_queue_slot_t ** current;
+  bfs_queue_slot_t ** next;
+  uint16_t no_workers;
 };
 
 typedef struct struct_bfs_queue_t struct_bfs_queue_t;
@@ -43,18 +46,6 @@ bfs_queue_block_t bfs_queue_block_new
   return result;
 }
 
-bfs_queue_slot_t bfs_queue_slot_new
-() {
-  bfs_queue_slot_t result;
-  result = mem_alloc(SYSTEM_HEAP, sizeof (struct_bfs_queue_slot_t));
-  result->first = NULL;
-  result->last = NULL;
-  result->first_index = 0;
-  result->last_index = 0;
-  result->size = 0;
-  return result;
-}
-
 void bfs_queue_block_free
 (bfs_queue_block_t n,
  bool_t free_next) {  
@@ -67,6 +58,18 @@ void bfs_queue_block_free
   }
 }
 
+bfs_queue_slot_t bfs_queue_slot_new
+() {
+  bfs_queue_slot_t result;
+  result = mem_alloc(SYSTEM_HEAP, sizeof (struct_bfs_queue_slot_t));
+  result->first = NULL;
+  result->last = NULL;
+  result->first_index = 0;
+  result->last_index = 0;
+  result->size = 0;
+  return result;
+}
+
 void bfs_queue_slot_free
 (bfs_queue_slot_t q) {
   bfs_queue_block_free(q->first, TRUE);
@@ -74,13 +77,20 @@ void bfs_queue_slot_free
 }
 
 bfs_queue_t bfs_queue_new
-() {
+(uint16_t no_workers) {
   worker_id_t w, x;
   bfs_queue_t result;
   
-  result = mem_alloc(SYSTEM_HEAP, sizeof (struct_bfs_queue_t));
-  for(w = 0; w < NO_WORKERS_QUEUE; w ++) {
-    for(x = 0; x < NO_WORKERS_QUEUE; x ++) {
+  result = mem_alloc(SYSTEM_HEAP, sizeof(struct_bfs_queue_t));
+  result->no_workers = no_workers;
+  result->current = mem_alloc(SYSTEM_HEAP, sizeof(bfs_queue_slot_t *));
+  result->next = mem_alloc(SYSTEM_HEAP, sizeof(bfs_queue_slot_t *));
+  for(w = 0; w < no_workers; w ++) {
+    result->current[w] = mem_alloc(SYSTEM_HEAP, sizeof(bfs_queue_slot_t) *
+                                   no_workers);
+    result->next[w] = mem_alloc(SYSTEM_HEAP, sizeof(bfs_queue_slot_t) *
+                                no_workers);
+    for(x = 0; x < no_workers; x ++) {
       result->current[w][x] = bfs_queue_slot_new();
       result->next[w][x] = bfs_queue_slot_new();
     }
@@ -92,12 +102,15 @@ void bfs_queue_free
 (bfs_queue_t q) {
   worker_id_t w, x;
 
-  for(w = 0; w < NO_WORKERS_QUEUE; w ++) {
-    for(x = 0; x < NO_WORKERS_QUEUE; x ++) {
+  for(w = 0; w < q->no_workers; w ++) {
+    for(x = 0; x < q->no_workers; x ++) {
       bfs_queue_slot_free(q->current[w][x]);
       bfs_queue_slot_free(q->next[w][x]);
     }
+    mem_free(SYSTEM_HEAP, q->next[w]);
+    mem_free(SYSTEM_HEAP, q->current[w]);
   }
+  mem_free(SYSTEM_HEAP, q->current);
   mem_free(SYSTEM_HEAP, q);
 }
 
@@ -111,12 +124,17 @@ uint64_t bfs_queue_size
   uint64_t result = 0;
   worker_id_t w, x;
 
-  for(w = 0; w < NO_WORKERS_QUEUE; w ++) {
-    for(x = 0; x < NO_WORKERS_QUEUE; x ++) {
+  for(w = 0; w < q->no_workers; w ++) {
+    for(x = 0; x < q->no_workers; x ++) {
       result += q->current[w][x]->size + q->next[w][x]->size;
     }
   }
   return result;
+}
+
+uint16_t bfs_queue_no_workers
+(bfs_queue_t q) {
+  return q->no_workers;
 }
 
 bool_t bfs_queue_slot_is_empty
@@ -180,7 +198,7 @@ void bfs_queue_switch_level
  worker_id_t w) {
   worker_id_t x;
 
-  for(x = 0; x < NO_WORKERS_QUEUE; x ++) {
+  for(x = 0; x < q->no_workers; x ++) {
     bfs_queue_slot_free(q->current[w][x]);
     q->current[w][x] = q->next[w][x];
     q->next[w][x] = bfs_queue_slot_new();

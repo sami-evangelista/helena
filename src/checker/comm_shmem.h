@@ -9,17 +9,32 @@
 #define LIB_COMM_SHMEM
 
 #include "includes.h"
-#include "report.h"
+#include "common.h"
 
+/**
+ * @brief comm_shmem_init
+ */
 void comm_shmem_init
-(report_t r);
+();
 
+
+/**
+ * @brief comm_shmem_finalize
+ */
 void comm_shmem_finalize
 (void * heap);
 
+
+/**
+ * @brief comm_shmem_barrier
+ */
 void comm_shmem_barrier
 ();
 
+
+/**
+ * @brief comm_shmem_put
+ */
 void comm_shmem_put
 (void * dst,
  void * src,
@@ -27,6 +42,10 @@ void comm_shmem_put
  int pe,
  worker_id_t w);
 
+
+/**
+ * @brief comm_shmem_get
+ */
 void comm_shmem_get
 (void * dst,
  void * src,

@@ -2,6 +2,7 @@
 #include "prop.h"
 #include "graph.h"
 #include "workers.h"
+#include "context.h"
 
 #if defined(CFG_ALGO_DELTA_DDD)
 
@@ -38,7 +39,6 @@ struct struct_delta_ddd_storage_t {
 
 typedef struct struct_delta_ddd_storage_t struct_delta_ddd_storage_t;
 
-report_t R;
 delta_ddd_storage_t S;
 uint32_t next_num;
 
@@ -73,7 +73,6 @@ bool_t level_terminated[CFG_NO_WORKERS];
 pthread_barrier_t barrier;
 uint32_t next_lvl;
 uint32_t next_lvls[CFG_NO_WORKERS];
-pthread_mutex_t report_mutex;
 bool_t error_reported;
 
 /*  alternating bit to know which states to expand  */
@@ -135,14 +134,6 @@ uint8_t recons_id;
     }								\
   }
 
-void init_delta_ddd_storage
-() {
-}
-
-void free_delta_ddd_storage
-() {
-}
-
 void delta_ddd_barrier
 (worker_id_t w) {
   lna_timer_t t;
@@ -158,7 +149,7 @@ void delta_ddd_barrier
 
 uint64_t delta_ddd_storage_barrier_time
 (delta_ddd_storage_t storage) {
-  return do_large_sum(storage->barrier_time, CFG_NO_WORKERS) / 1000000.0;
+  return large_sum(storage->barrier_time, CFG_NO_WORKERS) / 1000000.0;
 }
 
 uint64_t delta_ddd_storage_dd_time
@@ -233,16 +224,19 @@ void delta_ddd_create_trace
   delta_ddd_storage_id_t pred, curr = id;
   state_t s = state_initial();
   unsigned int i;
-  R->trace_len = 0;
+  uint32_t trace_len;
+  event_t * trace_evts;
+
+  trace_len = 0;
   while(curr != S->root) {
     while(!(ST[curr].father & 1)) { curr = ST[curr].next; }
     curr = ST[curr].next;
-    R->trace_len ++;
+    trace_len ++;
   }
-  R->trace = mem_alloc(SYSTEM_HEAP, sizeof(event_t) * R->trace_len);
+  trace_evts = mem_alloc(SYSTEM_HEAP, sizeof(event_t) * trace_len);
   trace = mem_alloc(SYSTEM_HEAP,
-                    sizeof(delta_ddd_storage_id_t) * (R->trace_len + 1));
-  i = R->trace_len;
+                    sizeof(delta_ddd_storage_id_t) * (trace_len + 1));
+  i = trace_len;
   curr = id;
   trace[i --] = curr;
   while(curr != S->root) {
@@ -250,12 +244,13 @@ void delta_ddd_create_trace
     curr = ST[curr].next;
     trace[i --] = curr;
   }
-  for(i = 1; i <= R->trace_len; i ++) {
-    R->trace[i - 1] = state_enabled_event(s, ST[trace[i]].e);
-    event_exec(R->trace[i - 1], s);
+  for(i = 1; i <= trace_len; i ++) {
+    trace_evts[i - 1] = state_enabled_event(s, ST[trace[i]].e);
+    event_exec(trace_evts[i - 1], s);
   }
   state_free(s);
   free(trace);
+  context_set_trace(trace_len, trace_evts);
 }
 
 
@@ -444,8 +439,8 @@ state_t delta_ddd_duplicate_detection_dfs
     curr = start;
     do {
       if(ST[curr].dd || ST[curr].dd_visit) {
-        report_incr_evts_exec(R, w, 1);
-        report_incr_evts_exec_dd(R, w, 1);
+        context_incr_evts_exec(w, 1);
+        context_incr_evts_exec_dd(w, 1);
 	DELTA_DDD_VISIT_HANDLE_EVENT(delta_ddd_duplicate_detection_dfs);
       }
       if(ST[curr].father & 1) {
@@ -489,21 +484,22 @@ void delta_ddd_write_nodes_graph
   delta_ddd_candidate_t * C = CS[w];
   unsigned int i = 0;
   uint8_t t, succs = 0;
+  FILE * gf = context_graph_file();
   for(i = 0; i < CS_max_size; i ++) {
     if(DELTA_DDD_CAND_NEW == C[i].content) {
       t = GT_NODE;
-      fwrite(&t, sizeof(uint8_t), 1, R->graph_file);
-      fwrite(&ST[C[i].id].num, sizeof(node_t), 1, R->graph_file);
-      fwrite(&succs, sizeof(uint8_t), 1, R->graph_file);
+      fwrite(&t, sizeof(uint8_t), 1, gf);
+      fwrite(&ST[C[i].id].num, sizeof(node_t), 1, gf);
+      fwrite(&succs, sizeof(uint8_t), 1, gf);
     }
   }
   for(i = 0; i < CS_max_size; i ++) {
     if(DELTA_DDD_CAND_NONE != C[i].content) {
       t = GT_EDGE;
-      fwrite(&t, sizeof(uint8_t), 1, R->graph_file);
-      fwrite(&ST[C[i].pred].num, sizeof(node_t), 1, R->graph_file);
-      fwrite(&C[i].e, sizeof(edge_num_t), 1, R->graph_file);
-      fwrite(&ST[C[i].id].num, sizeof(node_t), 1, R->graph_file);
+      fwrite(&t, sizeof(uint8_t), 1, gf);
+      fwrite(&ST[C[i].pred].num, sizeof(node_t), 1, gf);
+      fwrite(&C[i].e, sizeof(edge_num_t), 1, gf);
+      fwrite(&ST[C[i].id].num, sizeof(node_t), 1, gf);
     }
   }
 }
@@ -629,11 +625,9 @@ bool_t delta_ddd_duplicate_detection
    */
   delta_ddd_barrier(w);
   if(delta_ddd_storage_size(S) >= 0.9 * CFG_HASH_SIZE) {
-    pthread_mutex_lock(&report_mutex);
     raise_error("state table too small (increase --hash-size and rerun)");
-    pthread_mutex_unlock(&report_mutex);
   }
-  if(!report_keep_searching(R)) {
+  if(!context_keep_searching()) {
     pthread_exit(NULL);
   }
   delta_ddd_merge_candidate_set(w);
@@ -702,22 +696,20 @@ state_t delta_ddd_expand_dfs
     en = state_enabled_events_mem(s, heap);
 #if defined(CFG_ACTION_CHECK_SAFETY)
     if(state_check_property(s, en)) {
-      pthread_mutex_lock(&report_mutex);
       if(!error_reported) {
 	error_reported = TRUE;
-	report_faulty_state(R, s);
+	context_faulty_state(s);
 	delta_ddd_create_trace(now);
       }
-      pthread_mutex_unlock(&report_mutex);
     }
 #endif
     en_size = event_set_size(en);
     if(0 == en_size) {
-      report_incr_dead(R, w, 1);
+      context_incr_dead(w, 1);
     }
     for(i = 0; i < en_size; i ++) {
-      report_incr_arcs(R, w, 1);
-      report_incr_evts_exec(R, w, 1);
+      context_incr_arcs(w, 1);
+      context_incr_evts_exec(w, 1);
       e = event_set_nth(en, i);
       e_id = event_set_nth_id(en, i);
       t = state_succ_mem(s, e, heap);
@@ -726,7 +718,7 @@ state_t delta_ddd_expand_dfs
 	delta_ddd_duplicate_detection(w);
       }
     }
-    report_incr_visited(R, w, 1);
+    context_incr_visited(w, 1);
 
     /*
      *  perform duplicate detection if the candidate set is full
@@ -747,7 +739,7 @@ state_t delta_ddd_expand_dfs
     curr = start;
     do {
       if(ST[curr].recons[recons_id]) {
-        report_incr_evts_exec(R, w, 1);
+        context_incr_evts_exec(w, 1);
 	DELTA_DDD_VISIT_HANDLE_EVENT(delta_ddd_expand_dfs);
       }
       if(ST[curr].father & 1) {
@@ -796,7 +788,8 @@ void * delta_ddd_worker
 (void * arg) {
   worker_id_t x, w = (worker_id_t) (unsigned long int) arg;
   unsigned int depth = 0;
-
+  FILE * gf;
+  
   if(0 == w) {
     delta_ddd_state_t ns;
     state_t s = state_initial();
@@ -807,10 +800,11 @@ void * delta_ddd_worker
     ns.recons[1] = ns.father = 1;
     ns.next = ns.fst_child = slot;
 #if defined(CFG_ACTION_BUILD_RG)
+    gf = context_graph_file();
     ns.num = next_num ++;
-    fwrite(&t, sizeof(uint8_t), 1, R->graph_file);
-    fwrite(&ns.num, sizeof(node_t), 1, R->graph_file);
-    fwrite(&succs, sizeof(uint8_t), 1, R->graph_file);
+    fwrite(&t, sizeof(uint8_t), 1, gf);
+    fwrite(&ns.num, sizeof(node_t), 1, gf);
+    fwrite(&succs, sizeof(uint8_t), 1, gf);
 #endif
     ST[slot] = ns;
     S->root = slot;
@@ -843,7 +837,7 @@ void * delta_ddd_worker
       for(x = 0; x < CFG_NO_WORKERS; x ++) {
 	next_lvl += next_lvls[x];
       }
-      report_update_bfs_levels(R, depth);
+      context_update_bfs_levels(depth);
     }
     delta_ddd_barrier(w);
   }
@@ -858,22 +852,21 @@ void * delta_ddd_worker
  *
  *****/
 void delta_ddd
-(report_t r) {  
+() {  
   worker_id_t w, x;
   void * dummy;
   unsigned int i, s;
+  FILE * gf;
 
-  R = r;
-  S = (delta_ddd_storage_t) r->storage;
+  S = (delta_ddd_storage_t) context_storage();
   ST = S->ST;
   pthread_barrier_init(&barrier, NULL, CFG_NO_WORKERS);
-  pthread_mutex_init(&report_mutex, NULL);
   error_reported = FALSE;
   for(w = 0; w < CFG_NO_WORKERS; w ++) {
     seeds[w] = random_seed(w);
   }
   next_num = 0;
-  R->graph_file = open_graph_file();
+  gf = context_open_graph_file();
 
   /*
    *  initialisation of the heaps
@@ -925,7 +918,7 @@ void delta_ddd
     CS_size[w] = 0;
   }
 
-  launch_and_wait_workers(R, &delta_ddd_worker);
+  launch_and_wait_workers(&delta_ddd_worker);
 
   /*
    *  free heaps and mailboxes
@@ -942,10 +935,7 @@ void delta_ddd
     heap_free(detect_evts_heaps[w]);
 #endif
   }
-  if(R->graph_file) {
-    fclose(R->graph_file);
-    R->graph_file = NULL;
-  }
+  context_close_graph_file();
 }
 
 #endif  /*  defined(CFG_ALGO_DELTA_DDD)  */

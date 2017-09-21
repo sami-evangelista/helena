@@ -29,7 +29,6 @@ typedef struct {
 const struct timespec COMM_WAIT_TIME = { 0, COMM_WAIT_TIME_MS * 1000000 };
 const struct timespec WORKER_WAIT_TIME = { 0, WORKER_WAIT_TIME_MS * 1000000 };
 
-report_t R;
 storage_t S;
 bfs_queue_t Q;
 pthread_t W;
@@ -45,7 +44,7 @@ int ME;
 
 
 /**
- *  remotely accesible items
+ *  remotely accessible items
  */
 static bool_t H_TERM = FALSE;
 static uint64_t H_QUEUE_SIZE = 0;
@@ -415,13 +414,12 @@ void * dbfs_comm_worker
  * @fn dbfs_comm_start
  */
 void dbfs_comm_start
-(report_t r,
- bfs_queue_t q) {
+(bfs_queue_t q) {
   int pe, remote_pos;
   worker_id_t w;
   
   /*  shmem and symmetrical heap initialisation  */
-  comm_shmem_init(r);
+  comm_shmem_init();
   PES = shmem_n_pes();
   ME = shmem_my_pe();
   SYM_HEAP_SIZE_WORKER = CFG_SYM_HEAP_SIZE / ((PES - 1) * CFG_NO_WORKERS);
@@ -431,8 +429,7 @@ void dbfs_comm_start
 
   /*  initialise global variables  */
   Q = q;
-  R = r;
-  S = report_storage(R);
+  S = context_storage();
   LOCAL_TERM = FALSE;
   GLOB_TERM = FALSE;
   pthread_barrier_init(&LB, NULL, CFG_NO_WORKERS + 1);

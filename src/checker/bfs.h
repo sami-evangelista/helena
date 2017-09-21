@@ -11,7 +11,7 @@
 #define LIB_BFS
 
 #include "includes.h"
-#include "report.h"
+#include "context.h"
 #include "state.h"
 #include "event.h"
 #include "storage.h"
@@ -20,7 +20,11 @@
 #error Model configuration missing!
 #endif
 
+
+/**
+ * @brief bfs
+ */
 void bfs
-(report_t r);
+();
 
 #endif

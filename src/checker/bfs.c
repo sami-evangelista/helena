@@ -1,6 +1,6 @@
 #include "bfs.h"
 #include "bfs_queue.h"
-#include "report.h"
+#include "context.h"
 #include "dbfs_comm.h"
 #include "prop.h"
 #include "workers.h"
@@ -8,7 +8,6 @@
 #if defined(CFG_ALGO_BFS) || defined(CFG_ALGO_DBFS) || \
   defined(CFG_ALGO_FRONTIER)
 
-report_t R;
 storage_t S;
 bfs_queue_t Q;
 pthread_barrier_t B;
@@ -70,7 +69,7 @@ void bfs_terminate_level
   bfs_queue_switch_level(Q, w);
   bfs_wait_barrier();
   if(0 == w) {
-    TERM = (!report_keep_searching(R) || bfs_queue_is_empty(Q)) ? TRUE : FALSE;
+    TERM = !context_keep_searching() || bfs_queue_is_empty(Q);
   }
   bfs_wait_barrier();
 #endif
@@ -113,8 +112,10 @@ void * bfs_worker
   sprintf(heap_name, "bfs heap of worker %d", w);
   heap = bounded_heap_new(heap_name, 10 * 1024 * 1024);
   while(!TERM) {
-    for(x = 0; x < NO_WORKERS_QUEUE && report_keep_searching(R); x ++) {
-      while(!bfs_queue_slot_is_empty(Q, x, w) && report_keep_searching(R)) {
+    for(x = 0;
+        x < bfs_queue_no_workers(Q) && context_keep_searching();
+        x ++) {
+      while(!bfs_queue_slot_is_empty(Q, x, w) && context_keep_searching()) {
         
         /**
          *  dequeue a state sent by thread x, get its successors and a
@@ -131,7 +132,7 @@ void * bfs_worker
         en = state_enabled_events_mem(s, heap);
         en_size = event_set_size(en);
         if(0 == en_size) {
-          report_incr_dead(R, w, 1);
+          context_incr_dead(w, 1);
         }
 #if defined(CFG_POR)
         en_size = event_set_size(en);
@@ -144,7 +145,7 @@ void * bfs_worker
          */
 #if defined(CFG_ACTION_CHECK_SAFETY)
         if(state_check_property(s, en)) {
-          report_faulty_state(R, s);
+          context_faulty_state(s);
         }
 #endif
     
@@ -160,7 +161,6 @@ void * bfs_worker
           bool_t is_new;
 
           arcs ++;
-          report_incr_evts_exec(R, w, 1);
 #if defined(CFG_EVENT_UNDOABLE)
           event_exec(e, s);
           succ = s;
@@ -213,9 +213,9 @@ void * bfs_worker
          *  the state leaves the queue => we unset its cyan bit and
          *  delete it from storage if algo is FRONTIER.
          */
-	report_incr_arcs(R, w, arcs);
-	report_incr_visited(R, w, 1);
-        report_incr_evts_exec(R, w, arcs);
+	context_incr_arcs(w, arcs);
+	context_incr_visited(w, 1);
+        context_incr_evts_exec(w, arcs);
         storage_set_cyan(S, item.id, w, FALSE);
 #if defined(CFG_ALGO_FRONTIER)
         storage_remove(S, w, item.id);
@@ -231,11 +231,11 @@ void * bfs_worker
     levels ++;
   }
   heap_free(heap);
-  report_update_bfs_levels(R, levels);
+  context_update_bfs_levels(levels);
 }
 
 void bfs
-(report_t r) {
+() {
   state_t s = state_initial();
   bool_t is_new;
   storage_id_t id;
@@ -244,13 +244,17 @@ void bfs
   hash_key_t h;
   bool_t enqueue = TRUE;
   bfs_queue_item_t item;
+#if defined(CFG_ALGO_DBFS)
+  uint16_t no_workers = CFG_NO_WORKERS + 1;
+#else
+  uint16_t no_workers = CFG_NO_WORKERS;
+#endif
   
-  R = r;
-  S = report_storage(R);
-  Q = bfs_queue_new();
+  S = context_storage();
+  Q = bfs_queue_new(no_workers);
 
 #if defined(CFG_ALGO_DBFS)
-  dbfs_comm_start(R, Q);
+  dbfs_comm_start(Q);
 #endif
 
   TERM = FALSE;
@@ -271,7 +275,7 @@ void bfs
   }
   state_free(s);
 
-  launch_and_wait_workers(R, &bfs_worker);
+  launch_and_wait_workers(&bfs_worker);
 
   bfs_queue_free(Q);
 

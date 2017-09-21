@@ -1,7 +1,10 @@
 #include "dfs_stack.h"
 #include "model.h"
+#include "context.h"
 
 #if defined(CFG_ALGO_DFS) || defined(CFG_ALGO_DDFS)
+
+#define DFS_STACK_SLOTS 2
 
 /**
  *  items of the DFS stack
@@ -24,45 +27,53 @@ typedef struct {
 } dfs_stack_item_t;
 
 typedef struct {
-  dfs_stack_item_t items[DFS_STACK_SLOT_SIZE];
+  dfs_stack_item_t * items;
 } struct_dfs_stack_slot_t;
 
 typedef struct_dfs_stack_slot_t * dfs_stack_slot_t;
 
 struct struct_dfs_stack_t {
-  int id;
   dfs_stack_slot_t slots[DFS_STACK_SLOTS];
   heap_t heaps[DFS_STACK_SLOTS];
-  unsigned char current;
-  int top;
-  unsigned int size;
-  unsigned int files;
+  int32_t id;
+  uint8_t current;
+  int32_t top;
+  uint32_t size;
+  uint32_t files;
+  uint32_t slot_size;
+  bool_t shuffle;
   rseed_t seed;
 };
 
 typedef struct struct_dfs_stack_t struct_dfs_stack_t;
 
-void dfs_stack_slot_free
-(dfs_stack_slot_t slot) {
-  free(slot);
-}
-
 dfs_stack_slot_t dfs_stack_slot_new
-() {
+(uint32_t slot_size) {
   dfs_stack_slot_t result;
 
   result = mem_alloc(SYSTEM_HEAP, sizeof(struct_dfs_stack_slot_t));
+  result->items = mem_alloc(SYSTEM_HEAP, slot_size * sizeof(dfs_stack_item_t));
   return result;
 }
 
+void dfs_stack_slot_free
+(dfs_stack_slot_t slot) {
+  free(slot->items);
+  free(slot);
+}
+
 dfs_stack_t dfs_stack_new
-(int id) {
+(int id,
+ uint32_t slot_size,
+ bool_t shuffle) {
   dfs_stack_t result;
   int i;
   char name[100];
 
   result = mem_alloc(SYSTEM_HEAP, sizeof(struct_dfs_stack_t));
   result->id = id;
+  result->slot_size = slot_size;
+  result->shuffle = shuffle;
   result->top = - 1;
   result->size = 0;
   result->current = 0;
@@ -70,8 +81,8 @@ dfs_stack_t dfs_stack_new
   result->seed = random_seed(id);
   for(i = 0; i < DFS_STACK_SLOTS; i ++) {
     sprintf(name, "DFS stack heap");
-    result->heaps[i] = bounded_heap_new(name, DFS_STACK_SLOT_SIZE * 1000);
-    result->slots[i] = dfs_stack_slot_new();
+    result->heaps[i] = bounded_heap_new(name, result->slot_size * 1000);
+    result->slots[i] = dfs_stack_slot_new(result->slot_size);
   }
   return result;
 }
@@ -114,7 +125,7 @@ void dfs_stack_write
 
   sprintf(buffer, "STACK-%d-%d", stack->id, stack->files);
   f = fopen(buffer, "w");
-  for(i = 0; i < DFS_STACK_SLOT_SIZE; i ++) {
+  for(i = 0; i < stack->slot_size; i ++) {
     item = slot->items[i];
     w = event_set_char_width(item.en);
     fwrite(&(item.n), sizeof(unsigned char), 1, f);
@@ -122,12 +133,11 @@ void dfs_stack_write
     event_set_free(item.en);
     fwrite(&w, sizeof(unsigned int), 1, f);
     fwrite(buffer, w, 1, f);
-    storage_id_serialise(item.id, buffer);
-    fwrite(buffer, storage_id_char_width, 1, f);
-#if defined(CFG_PARALLEL) || defined(CFG_DISTRIBUTED)
-    fwrite(item.shuffle, sizeof(unsigned int), event_set_size(item.en), f);
-    mem_free(h, item.shuffle);
-#endif
+    fwrite(&item.id, sizeof(storage_id_t), 1, f);
+    if(stack->shuffle) {
+      fwrite(item.shuffle, sizeof(unsigned int), event_set_size(item.en), f);
+      mem_free(h, item.shuffle);
+    }
 #if defined(CFG_POR) && defined(CFG_PROVISO)
     fwrite(&item.prov_ok, sizeof(bool_t), 1, f);
     fwrite(&item.fully_expanded, sizeof(bool_t), 1, f);
@@ -157,19 +167,18 @@ void dfs_stack_read
   sprintf(name, "STACK-%d-%d", stack->id, stack->files);
   f = fopen(name, "r");
   heap_reset(h);
-  for(i = 0; i < DFS_STACK_SLOT_SIZE; i ++) {
+  for(i = 0; i < stack->slot_size; i ++) {
     item.heap_pos = heap_get_position(h);
     fread(&item.n, sizeof(unsigned char), 1, f);
     fread(&w, sizeof(unsigned int), 1, f);
     fread(buffer, w, 1, f);
     item.en = event_set_unserialise_mem(buffer, h);
-    fread(buffer, storage_id_char_width, 1, f);
-    item.id = storage_id_unserialise(buffer);
-#if defined(CFG_PARALLEL) || defined(CFG_DISTRIBUTED)
-    en_size = event_set_size(item.en);
-    item.shuffle = mem_alloc(h, sizeof(unsigned int) * en_size);
-    fread(item.shuffle, sizeof(unsigned int), en_size, f);
-#endif
+    fread(&item.id, sizeof(storage_id_t), 1, f);
+    if(stack->shuffle) {
+      en_size = event_set_size(item.en);
+      item.shuffle = mem_alloc(h, sizeof(unsigned int) * en_size);
+      fread(item.shuffle, sizeof(unsigned int), en_size, f);
+    }
 #if defined(CFG_POR) && defined(CFG_PROVISO)
     fread(&item.prov_ok, sizeof(bool_t), 1, f);
     fread(&item.fully_expanded, sizeof(bool_t), 1, f);
@@ -194,17 +203,17 @@ void dfs_stack_push
   
   stack->top ++;
   stack->size ++;
-  if(stack->top == DFS_STACK_SLOT_SIZE) {
+  if(stack->top == stack->slot_size) {
     if(stack->current == 1) {
       char name[100];
       dfs_stack_write(stack);
       dfs_stack_slot_free(stack->slots[0]);
       stack->slots[0] = stack->slots[1];
-      stack->slots[1] = dfs_stack_slot_new();
+      stack->slots[1] = dfs_stack_slot_new(stack->slot_size);
       heap_free(stack->heaps[0]);
       stack->heaps[0] = stack->heaps[1];
       sprintf(name, "DFS stack heap");
-      stack->heaps[1] = bounded_heap_new(name, DFS_STACK_SLOT_SIZE * 1000);
+      stack->heaps[1] = bounded_heap_new(name, stack->slot_size * 1000);
     }
     stack->current = 1;
     stack->top = 0;
@@ -229,9 +238,9 @@ void dfs_stack_pop
 #if defined(DFS_STACK_STATE_IN_STACK)
   state_free(item.s);
 #endif
-#if defined(CFG_PARALLEL) || defined(CFG_DISTRIBUTED)
-  mem_free(h, item.shuffle);
-#endif
+  if(stack->shuffle) {
+    mem_free(h, item.shuffle);
+  }
   event_set_free(item.en);
   heap_set_position(h, item.heap_pos);
   stack->top --;
@@ -244,7 +253,7 @@ void dfs_stack_pop
       dfs_stack_read(stack);
     }
     stack->current = 0;
-    stack->top = DFS_STACK_SLOT_SIZE - 1;
+    stack->top = stack->slot_size - 1;
   }
 }
 
@@ -322,23 +331,23 @@ event_set_t dfs_stack_compute_events
   item.en = result;
 
   /*  shuffle enabled events in parallel or distributed mode  */
-#if defined(CFG_PARALLEL) || defined(CFG_DISTRIBUTED)
-  en_size = event_set_size(result);
-  {
-    unsigned int num[en_size];
-    uint32_t rnd;
-    for(i = 0; i < en_size; i ++) {
-      num[i] = i;
-    }
-    item.shuffle = mem_alloc(stack->heaps[stack->current],
-                             sizeof(unsigned int) * en_size);
-    for(i = 0; i < en_size; i ++) {
-      rnd = random_int(&stack->seed) % (en_size - i);
-      item.shuffle[i] = num[rnd];
-      num[rnd] = num[en_size - i - 1];
+  if(stack->shuffle) {
+    en_size = event_set_size(result);
+    {
+      unsigned int num[en_size];
+      uint32_t rnd;
+      for(i = 0; i < en_size; i ++) {
+        num[i] = i;
+      }
+      item.shuffle = mem_alloc(stack->heaps[stack->current],
+                               sizeof(unsigned int) * en_size);
+      for(i = 0; i < en_size; i ++) {
+        rnd = random_int(&stack->seed) % (en_size - i);
+        item.shuffle[i] = num[rnd];
+        num[rnd] = num[en_size - i - 1];
+      }
     }
   }
-#endif
 
   stack->slots[stack->current]->items[stack->top] = item;
   return result;
@@ -350,11 +359,11 @@ void dfs_stack_pick_event
  event_id_t * eid) {
   dfs_stack_item_t item = stack->slots[stack->current]->items[stack->top];
   int chosen;
-#if defined(CFG_PARALLEL) || defined(CFG_DISTRIBUTED)
-  chosen = item.shuffle[item.n];
-#else
-  chosen = item.n;
-#endif
+  if(stack->shuffle) {
+    chosen = item.shuffle[item.n];
+  } else {
+    chosen = item.n;
+  }
   (*e) = event_set_nth(item.en, chosen);
   (*eid) = event_set_nth_id(item.en, chosen);
   item.n ++;
@@ -366,11 +375,11 @@ void dfs_stack_event_undo
  state_t s) {
   dfs_stack_item_t item = stack->slots[stack->current]->items[stack->top];
   unsigned int n;
-#if defined(CFG_PARALLEL) || defined(CFG_DISTRIBUTED)
-  n = item.shuffle[item.n - 1];
-#else
-  n = item.n - 1;
-#endif
+  if(stack->shuffle) {
+    n = item.shuffle[item.n - 1];
+  } else {
+    n = item.n - 1;
+  }
   event_undo(event_set_nth(item.en, n), s);
 }
 
@@ -401,39 +410,40 @@ bool_t dfs_stack_proviso
 
 void dfs_stack_create_trace
 (dfs_stack_t blue_stack,
- dfs_stack_t red_stack,
- report_t r) {
+ dfs_stack_t red_stack) {
   int now;
   dfs_stack_t stack, stacks[2];
   dfs_stack_item_t item;
   int i;
   unsigned int n;
+  event_t * trace;
+  uint32_t trace_len;
 
   stacks[0] = red_stack;
   stacks[1] = blue_stack;
-  r->trace_len = blue_stack->size - 1;
+  trace_len = blue_stack->size - 1;
   if(red_stack) {
-    r->trace_len += red_stack->size - 1;
+    trace_len += red_stack->size - 1;
   }
-  r->trace = mem_alloc(SYSTEM_HEAP, sizeof(event_t) * r->trace_len);
-  now = r->trace_len - 1;
-
+  trace = mem_alloc(SYSTEM_HEAP, sizeof(event_t) * trace_len);
+  now = trace_len - 1;
   for(i = 0; i < 2; i ++) {
     stack = stacks[i];
     if(stack) {
       dfs_stack_pop(stack);
       while(stack->size > 0) {
         item = stack->slots[stack->current]->items[stack->top];
-#if defined(CFG_PARALLEL) || defined(CFG_DISTRIBUTED)
-        n = item.shuffle[item.n - 1];
-#else
-        n = item.n - 1;
-#endif
-        r->trace[now --] = event_copy(event_set_nth(item.en, n));
+        if(stack->shuffle) {
+          n = item.shuffle[item.n - 1];
+        } else {
+          n = item.n - 1;
+        }        
+        trace[now --] = event_copy(event_set_nth(item.en, n));
         dfs_stack_pop(stack);
       }
     }
   }
+  context_set_trace(trace_len, trace);
 }
 
 #endif  /*  defined(CFG_ALGO_DFS) || defined(CFG_ALGO_DDFS)  */

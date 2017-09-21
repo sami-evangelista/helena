@@ -30,7 +30,6 @@ const struct timespec WAIT_TIME = { 0, 10 };
 
 ddfs_comm_boxes_t B;
 storage_t S;
-report_t R;
 pthread_t W;
 int PES;
 int ME;
@@ -184,7 +183,7 @@ void * ddfs_comm_worker
     pref.char_len -= sizeof(heap_prefix_t);
 
     /*  notify others if the search has terminated  */
-    if(!report_keep_searching(R)) {
+    if(!context_keep_searching()) {
       pref.terminated = TRUE;
     }
 
@@ -211,7 +210,7 @@ void * ddfs_comm_worker
     /*  at least one process has not finished and neither have I =>
         get states put by remote PEs in their heap and put these in my
         local storage */
-    if(loop && report_keep_searching(R)) {
+    if(loop && context_keep_searching()) {
       for(pe = 0; pe < PES ; pe ++) {
         if(ME != pe) {
           comm_shmem_get(buffer, H + sizeof(heap_prefix_t),
@@ -265,18 +264,17 @@ void * ddfs_comm_worker
 }
 
 void ddfs_comm_start
-(report_t r) {
+() {
   worker_id_t w;
   pthread_t worker;
 
   /*  shmem and symmetrical heap initialisation  */
-  comm_shmem_init(r);
+  comm_shmem_init();
   H = shmem_malloc(CFG_SYM_HEAP_SIZE * shmem_n_pes());
   PES = shmem_n_pes();
   ME = shmem_my_pe();
   
-  R = r;
-  S = report_storage(R);
+  S = context_storage();
   for(w = 0; w < CFG_NO_WORKERS; w ++) {
     B.status[w] = BUCKET_OK;
     B.size[w] = 0;

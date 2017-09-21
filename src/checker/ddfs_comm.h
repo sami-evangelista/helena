@@ -9,26 +9,26 @@
 #define LIB_DDFS_COMM
 
 #include "includes.h"
-#include "report.h"
+#include "context.h"
 #include "storage.h"
 
 
 /**
- *  @fn ddfs_comm_start
+ * @brief ddfs_comm_start
  */
 void ddfs_comm_start
-(report_t r);
+();
 
 
 /**
- *  @fn ddfs_comm_end
+ * @brief ddfs_comm_end
  */
 void ddfs_comm_end
 ();
 
 
 /**
- *  @fn ddfs_comm_process_explored_state
+ * @brief ddfs_comm_process_explored_state
  */
 void ddfs_comm_process_explored_state
 (worker_id_t w,

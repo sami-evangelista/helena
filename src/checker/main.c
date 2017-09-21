@@ -1,4 +1,4 @@
-#include "report.h"
+#include "context.h"
 #include "dfs.h"
 #include "bfs.h"
 #include "delta_ddd.h"
@@ -18,7 +18,6 @@ int main
   init_heap();
   init_bit_stream();
   init_common();
-  init_storage();
   init_model();
 
   /*
@@ -36,47 +35,43 @@ int main
   printf("Running...\n");
 
   /*
-   *  catch SIGINT by changing the report state
+   *  initialisation of the context
    */
-  signal(SIGINT, report_interruption_handler);
-
-  /*
-   *  initialisation of the report
-   */
-  glob_report = report_new(CFG_NO_WORKERS);
+  context_init(CFG_NO_WORKERS);
   for(i = 1; i < argc; i += 2) {
     if(0 == strcmp(argv[i], "comp-time")) {
       float comp_time;
       sscanf(argv[i + 1], "%f", &comp_time);
-      report_set_comp_time(glob_report, comp_time);
+      context_set_comp_time(comp_time);
     }
   }
 
   /*
-   *  launch the search and create the report
+   *  catch SIGINT by changing the context state
+   */
+  signal(SIGINT, context_interruption_handler);
+
+  /*
+   *  launch the search
    */
 #if defined(CFG_ALGO_BFS) || defined(CFG_ALGO_DBFS) || \
   defined(CFG_ALGO_FRONTIER)
-  bfs(glob_report);
+  bfs();
 #elif defined(CFG_ALGO_DFS) || defined(CFG_ALGO_DDFS)
-  dfs(glob_report);
+  dfs();
 #elif defined(CFG_ALGO_DELTA_DDD)
-  delta_ddd(glob_report);
+  delta_ddd();
 #elif defined(CFG_ALGO_RWALK)
-  random_walk(glob_report);
+  random_walk();
 #endif
-  report_finalise(glob_report);
+
+  context_finalise();
 
   /*
    *  termination of all libraries
    */
-  free_heap();
-  init_bit_stream();
-  free_common();
-  free_storage();
+  free_bit_stream();
   free_model();
-
-  report_free(glob_report);
 
 #if defined(CFG_ACTION_BUILD_RG)
   graph_make_report(CFG_GRAPH_FILE, CFG_RG_REPORT_FILE, NULL);

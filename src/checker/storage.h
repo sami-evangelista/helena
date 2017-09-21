@@ -31,8 +31,6 @@
 typedef delta_ddd_storage_t storage_t;
 typedef delta_ddd_storage_id_t storage_id_t;
 
-#define init_storage           init_delta_ddd_storage
-#define free_storage           free_delta_ddd_storage
 #define storage_new            delta_ddd_storage_new
 #define storage_free           delta_ddd_storage_free
 #define storage_size           delta_ddd_storage_size
@@ -46,13 +44,9 @@ typedef delta_ddd_storage_id_t storage_id_t;
  *****/
 #else
 
-#define storage_t                 hash_tbl_t
-#define storage_id_t              hash_tbl_id_t
-#define init_storage              init_hash_tbl
-#define free_storage              free_hash_tbl
-#define storage_id_serialise      hash_tbl_id_serialise
-#define storage_id_unserialise    hash_tbl_id_unserialise
-#define storage_id_char_width     hash_tbl_id_char_width
+typedef hash_tbl_t storage_t;
+typedef hash_tbl_id_t storage_id_t;
+
 #define storage_new               hash_tbl_default_new
 #define storage_free              hash_tbl_free
 #define storage_size              hash_tbl_size
@@ -60,7 +54,6 @@ typedef delta_ddd_storage_id_t storage_id_t;
 #define storage_insert_hashed     hash_tbl_insert_hashed
 #define storage_insert_serialised hash_tbl_insert_serialised
 #define storage_remove            hash_tbl_remove
-#define storage_id_cmp            hash_tbl_id_cmp
 #define storage_get_serialised    hash_tbl_get_serialised
 #define storage_get               hash_tbl_get
 #define storage_get_mem           hash_tbl_get_mem
@@ -74,7 +67,6 @@ typedef delta_ddd_storage_id_t storage_id_t;
 #define storage_set_red           hash_tbl_set_red
 #define storage_get_red           hash_tbl_get_red
 #define storage_set_garbage       hash_tbl_set_garbage
-#define storage_get_garbage       hash_tbl_get_garbage
 #define storage_ref               hash_tbl_ref
 #define storage_unref             hash_tbl_unref
 #define storage_gc                hash_tbl_gc

@@ -1,4 +1,6 @@
 #include "observer.h"
+#include "context.h"
+#include "storage.h"
 
 float mem_usage() {
   float result = 0.0;
@@ -16,7 +18,6 @@ float mem_usage() {
 
 void * observer_start
 (void * arg) {
-  report_t r = (report_t) arg;
   float time = 0;
   struct timeval now;
   float mem;
@@ -26,22 +27,15 @@ void * observer_start
   char name[100];
 
   gethostname(name, 1024);
-  while(report_keep_searching(r)) {
+  while(context_keep_searching()) {
     sleep(1);
     gettimeofday(&now, NULL);
-    stored = storage_size(r->storage);
+    stored = storage_size(context_storage());
     mem = mem_usage();
-    if(stored > r->states_max_stored) {
-      r->states_max_stored = stored;
-    }
-    if(mem > r->max_mem_used) {
-      r->max_mem_used = mem;
-    }
-    visited = 0;
-    for(i = 0; i < r->no_workers; i ++) {
-      visited += r->states_visited[i];
-    }
-    time = ((float) duration(r->start_time, now)) / 1000000.0;
+    context_update_max_states_stored(stored);
+    context_update_max_mem_used(mem);
+    visited = context_visited();
+    time = ((float) duration(context_start_time(), now)) / 1000000.0;
 #if defined(CFG_DISTRIBUTED)
     printf("[%s:%d] ", name, getpid());    
 #endif
@@ -55,20 +49,20 @@ void * observer_start
      */
 #if defined(CFG_MEMORY_LIMITED) && defined(CFG_MAX_MEMORY)
     if(mem > CFG_MAX_MEMORY) {
-      report_stop_search();
-      r->result = MEMORY_EXHAUSTED;
+      context_stop_search();
+      context_set_termination_state(MEMORY_EXHAUSTED);
     }
 #endif
 #if defined(CFG_TIME_LIMITED) && defined(CFG_MAX_TIME)
     if(time > (float) CFG_MAX_TIME) {
-      report_stop_search();
-      r->result = TIME_ELAPSED;
+      context_stop_search();
+      context_set_termination_state(TIME_ELAPSED);
     }
 #endif
 #if defined(CFG_STATE_LIMITED) && defined(CFG_MAX_STATE)
     if(visited > CFG_MAX_STATE) {
-      report_stop_search();
-      r->result = STATE_LIMIT_REACHED;
+      context_stop_search();
+      context_set_termination_state(STATE_LIMIT_REACHED);
     }
 #endif
   }

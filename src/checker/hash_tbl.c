@@ -1,5 +1,5 @@
 #include "hash_tbl.h"
-#include "report.h"
+#include "context.h"
 #include "bit_stream.h"
 
 #define ATTR_CHAR_LEN_NUM   0
@@ -34,7 +34,7 @@ struct struct_hash_tbl_t {
   heap_t heap;
   int64_t * size;
   uint64_t * state_cmps;
-  uint32_t * seeds;
+  rseed_t * seeds;
   hash_key_t * hash;
   bucket_status_t * update_status;
   bucket_status_t * status;
@@ -64,31 +64,6 @@ const struct timespec SLEEP_TIME = { 0, 1 };
       bit_stream_init(bits, tbl->state[id]);                            \
     }                                                                   \
   }
-  
-void hash_tbl_id_serialise
-(hash_tbl_id_t id,
- bit_vector_t v) {
-  bit_stream_t bits;
-  
-  bit_stream_init(bits, v);
-  bit_stream_set_size64(bits, id);
-}
-
-hash_tbl_id_t hash_tbl_id_unserialise
-(bit_vector_t v) {
-  hash_tbl_id_t result;
-  bit_stream_t bits;
-  
-  bit_stream_init(bits, v);
-  bit_stream_get_size64(bits, result);
-  return result;
-}
-
-order_t hash_tbl_id_cmp
-(hash_tbl_id_t id1,
- hash_tbl_id_t id2) {
-  return (id1 > id2) ? GREATER : ((id1 < id2) ? LESS : EQUAL);
-}
 
 hash_tbl_t hash_tbl_new
 (uint64_t hash_size,
@@ -801,7 +776,7 @@ void hash_tbl_output_stats
  FILE * out) {
   fprintf(out, "<hashTableStatistics>\n");
   fprintf(out, "<stateComparisons>%llu</stateComparisons>\n",
-          do_large_sum(tbl->state_cmps, tbl->no_workers));
+          large_sum(tbl->state_cmps, tbl->no_workers));
   fprintf(out, "</hashTableStatistics>\n");
 }
 
@@ -853,13 +828,4 @@ void hash_tbl_set_heap
 (hash_tbl_t tbl,
  heap_t h) {
   tbl->heap = h;
-}
-
-void init_hash_tbl
-() {
-  hash_tbl_id_char_width = sizeof(hash_tbl_id_t);
-}
-
-void free_hash_tbl
-() {
 }

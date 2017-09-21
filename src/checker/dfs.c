@@ -8,7 +8,8 @@
 
 #if defined(CFG_ALGO_DDFS) || defined(CFG_ALGO_DFS)
 
-report_t R;
+#define DFS_STACK_SLOT_SIZE 10000
+
 storage_t S;
 bool_t DONE[CFG_NO_WORKERS];
 
@@ -52,8 +53,8 @@ state_t dfs_check_state
  dfs_stack_t red_stack) { 
 #if defined(CFG_ACTION_CHECK_SAFETY)
   if(state_check_property(now, en)) {
-    report_faulty_state(R, now);
-    dfs_stack_create_trace(blue_stack, red_stack, R);
+    context_faulty_state(now);
+    dfs_stack_create_trace(blue_stack, red_stack);
   }
 #endif
 }
@@ -94,7 +95,7 @@ state_t dfs_main
   /*
    *  search loop
    */
-  while(dfs_stack_size(stack) && report_keep_searching(R)) {
+  while(dfs_stack_size(stack) && context_keep_searching()) {
   loop_start:
 
     /*
@@ -135,10 +136,10 @@ state_t dfs_main
        */
 #if defined(CFG_ACTION_CHECK_LTL)
       if(blue && state_accepting(now)) {
-        report_incr_accepting(R, w, 1);
+        context_incr_accepting(w, 1);
 	dfs_main(w, now, dfs_stack_top(stack), heap,
                  FALSE, blue_stack, red_stack);
-	if(!report_keap_searching(R)) {
+	if(!context_keep_searching()) {
 	  return now;
 	}
       }
@@ -166,7 +167,7 @@ state_t dfs_main
       /*
        *  and finally pop the state
        */
-      report_incr_visited(R, w, 1);
+      context_incr_visited(w, 1);
       dfs_stack_pop(stack);
       if(dfs_stack_size(stack)) {
         now = dfs_recover_state(stack, now, w, heap);
@@ -190,7 +191,7 @@ state_t dfs_main
        */
       dfs_stack_pick_event(stack, &e, &eid);
       event_exec(e, now);
-      report_incr_evts_exec(R, w, 1);
+      context_incr_evts_exec(w, 1);
 
       /*
        *  try to insert the successor
@@ -202,7 +203,7 @@ state_t dfs_main
        *  see if it must be pushed on the stack to be processed
        */
       if(blue) {
-	report_incr_arcs(R, w, 1);
+	context_incr_arcs(w, 1);
         push = is_new ||
           ((!storage_get_blue(S, id)) &&
            (!storage_get_cyan(S, id, w)));
@@ -249,7 +250,7 @@ state_t dfs_main
          *  update some statistics and check the state
          */
 	if(blue && (0 == event_set_size(en))) {
-	  report_incr_dead(R, w, 1);
+	  context_incr_dead(w, 1);
 	}
         dfs_check_state(now, en, blue_stack, red_stack);
 
@@ -258,10 +259,10 @@ state_t dfs_main
 	 *  reached is the seed
 	 */
 #if defined(CFG_ACTION_CHECK_LTL)
-	if(!blue && (EQUAL == storage_id_cmp(id, id_seed))) {
-	  report_stop_search();
-	  report_set_result(R, FAILURE);
-	  dfs_stack_create_trace(blue_stack, red_stack, R);
+	if(!blue && (id == id_seed)) {
+	  context_stop_search();
+	  context_set_result(FAILURE);
+	  dfs_stack_create_trace(blue_stack, red_stack);
 	}
 #endif
       }
@@ -282,9 +283,16 @@ void * dfs_worker
   storage_id_t id;
   heap_t heap = bounded_heap_new("state heap", 1024 * 100);
   state_t now = state_initial_mem(heap);
-  dfs_stack_t blue_stack = dfs_stack_new(wid * 2);
+#if defined(CFG_PARALLEL) || defined(CFG_DISTRIBUTED)
+  bool_t shuffle = TRUE;
+#else
+  bool_t shuffle = FALSE;
+#endif
+  dfs_stack_t blue_stack = dfs_stack_new(wid * 2, DFS_STACK_SLOT_SIZE,
+                                         shuffle);
 #if defined(CFG_ACTION_CHECK_LTL)
-  dfs_stack_t red_stack = dfs_stack_new(wid * 2 + 1);
+  dfs_stack_t red_stack = dfs_stack_new(wid * 2 + 1, DFS_STACK_SLOT_SIZE,
+                                        shuffle);
 #else
   dfs_stack_t red_stack = NULL;
 #endif
@@ -308,25 +316,24 @@ void * dfs_worker
 }
 
 void dfs
-(report_t r) {
+() {
   worker_id_t w;
   void * dummy;
 
-  R = r;
-  S = report_storage(R);
+  S = context_storage();
 
 #if defined(CFG_ALGO_DDFS)
-  ddfs_comm_start(R);
+  ddfs_comm_start();
 #endif
   
-  for(w = 0; w < r->no_workers; w ++) {
+  for(w = 0; w < context_no_workers(); w ++) {
     DONE[w] = FALSE;
   }
   
-  launch_and_wait_workers(R, &dfs_worker);
+  launch_and_wait_workers(&dfs_worker);
 
 #if defined(CFG_ALGO_DDFS)
-  report_stop_search();
+  context_stop_search();
   ddfs_comm_end();
 #endif
 }

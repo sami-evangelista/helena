@@ -355,7 +355,3 @@ void init_heap
   heap_has_mem_free_funcs[t] =
     (heap_has_mem_free_func_t) evergrowing_heap_has_mem_free;
 }
-
-void free_heap
-() {
-}

@@ -9,7 +9,6 @@
 #define LIB_DBFS_COMM
 
 #include "includes.h"
-#include "report.h"
 #include "storage.h"
 #include "bfs_queue.h"
 
@@ -18,8 +17,7 @@
  *  @fn dbfs_comm_start
  */
 void dbfs_comm_start
-(report_t r,
- bfs_queue_t q);
+(bfs_queue_t q);
 
 
 /**

@@ -1,5 +1,5 @@
 #include "common.h"
-#include "report.h"
+#include "context.h"
 
 void init_common
 () {
@@ -262,9 +262,6 @@ void init_common
   crc32_tab[i++] = 0x5a05df1b;
   crc32_tab[i++] = 0x2d02ef8d;
 }
-void free_common
-() {
-}
 
 hash_key_t bit_vector_hash
 (bit_vector_t v,
@@ -308,7 +305,7 @@ uint64_t duration
   return (uint64_t) t1_time - t0_time;
 }
 
-uint32_t random_seed
+rseed_t random_seed
 (worker_id_t w) {
   struct timeval t;
   
@@ -343,7 +340,7 @@ bool_t raise_error
   }
   return TRUE;
 #else
-  return report_error(msg);
+  return context_error(msg);
 #endif
 }
 
@@ -366,7 +363,7 @@ FILE * open_graph_file
   return result;
 }
 
-uint64_t do_large_sum
+uint64_t large_sum
 (uint64_t * array,
  unsigned int nb) {
   uint64_t result = 0;

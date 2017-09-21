@@ -23,7 +23,7 @@ int crc32_tab[256];
 
 char * glob_error_msg;
 
-typedef char termination_state_t;
+typedef uint8_t termination_state_t;
 #define SUCCESS             0
 #define ERROR               1
 #define INTERRUPTION        2
@@ -55,16 +55,18 @@ typedef uint8_t order_t;
 #define EQUAL   2
 #define GREATER 3
 
-typedef uint32_t rseed_t;
-
-rseed_t random_seed(worker_id_t w);
-
-rseed_t random_int(rseed_t * seed);
-
 typedef struct {
   struct timeval start;
   uint64_t value;
 } lna_timer_t;
+
+typedef uint32_t rseed_t;
+
+rseed_t random_seed
+(worker_id_t w);
+
+rseed_t random_int
+(rseed_t * seed);
 
 void lna_timer_init
 (lna_timer_t * t);
@@ -110,7 +112,7 @@ void flush_error
 FILE * open_graph_file
 ();
 
-uint64_t do_large_sum
+uint64_t large_sum
 (uint64_t * array,
  unsigned int nb);
 
