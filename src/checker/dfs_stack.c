@@ -33,6 +33,7 @@ struct struct_dfs_stack_t {
   uint32_t files;
   uint32_t block_size;
   bool_t shuffle;
+  bool_t states_stored;
   rseed_t seed;
   
 };

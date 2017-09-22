@@ -286,11 +286,16 @@ void * dfs_worker
 #else
   bool_t shuffle = FALSE;
 #endif
-  dfs_stack_t blue_stack = dfs_stack_new(wid * 2, DFS_STACK_BLOCK_SIZE,
-                                         shuffle);
+#if defined(CFG_EVENT_UNDOABLE) || defined(STORAGE_STATE_RECOVERABLE)
+  bool_t states_stored = FALSE;
+#else
+  bool_t states_stored = TRUE;
+#endif
+  dfs_stack_t blue_stack = dfs_stack_new(wid * 2, CFG_DFS_STACK_BLOCK_SIZE,
+                                         shuffle, states_stored);
 #if defined(CFG_ACTION_CHECK_LTL)
-  dfs_stack_t red_stack = dfs_stack_new(wid * 2 + 1, DFS_STACK_CLOCK_SIZE,
-                                        shuffle);
+  dfs_stack_t red_stack = dfs_stack_new(wid * 2 + 1, CFG_DFS_STACK_BLOCK_SIZE,
+                                        shuffle, states_stored);
 #else
   dfs_stack_t red_stack = NULL;
 #endif
