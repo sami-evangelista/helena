@@ -30,6 +30,7 @@ struct struct_bfs_queue_t {
   uint16_t no_workers;
   uint32_t slot_size;
   bool_t states_stored;
+  bool_t events_stored;
 };
 
 typedef struct struct_bfs_queue_t struct_bfs_queue_t;
@@ -82,7 +83,8 @@ void bfs_queue_slot_free
 bfs_queue_t bfs_queue_new
 (uint16_t no_workers,
  uint32_t slot_size,
- bool_t states_stored) {
+ bool_t states_stored,
+ bool_t events_stored) {
   worker_id_t w, x;
   bfs_queue_t result;
   
@@ -90,6 +92,7 @@ bfs_queue_t bfs_queue_new
   result->no_workers = no_workers;
   result->slot_size = slot_size;
   result->states_stored = states_stored;
+  result->events_stored = events_stored;
   result->current = mem_alloc(SYSTEM_HEAP,
                               sizeof(bfs_queue_slot_t *) * no_workers);
   result->next = mem_alloc(SYSTEM_HEAP,
@@ -182,6 +185,9 @@ void bfs_queue_enqueue
   }
   if(q->states_stored) {
     item.s = state_copy_mem(item.s, slot->last->heap);
+  }
+  if(q->events_stored && item.e_set) {
+    item.e = event_copy_mem(item.e, slot->last->heap);
   }
   slot->last->items[slot->last_index] = item;
   slot->last_index ++;

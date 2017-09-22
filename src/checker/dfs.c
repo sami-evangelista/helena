@@ -23,6 +23,18 @@ bool_t dfs_all_done
   return TRUE;
 }
 
+bool_t dfs_some_other_done
+(worker_id_t w) {
+  worker_id_t x;
+  
+  for(x = 0; x < CFG_NO_WORKERS; x ++) {
+    if(w != x && DONE[x]) {
+      return TRUE;
+    }
+  }
+  return FALSE;
+}
+
 state_t dfs_recover_state
 (dfs_stack_t stack,
  state_t now,
@@ -75,7 +87,7 @@ state_t dfs_main
   event_set_t en;
   storage_id_t id_top;
   hash_key_t h;
-  
+
   /*
    *  push the root state on the stack
    */
@@ -138,7 +150,7 @@ state_t dfs_main
 	dfs_main(w, now, dfs_stack_top(stack), heap,
                  FALSE, blue_stack, red_stack);
 	if(!context_keep_searching()) {
-	  return now;
+          break;
 	}
       }
 #endif
@@ -196,19 +208,30 @@ state_t dfs_main
        */
       id_top = dfs_stack_top(stack);
       storage_insert(S, now, w, &is_new, &id, &h);
+
+      /*
+       *  if we check an LTL property, test whether the state reached
+       *  is the seed.  exit the loop if this is the case
+       */
+#if defined(CFG_ACTION_CHECK_LTL)
+      if(!blue && (id == id_seed)) {
+        context_stop_search();
+        context_set_termination_state(FAILURE);
+        dfs_stack_create_trace(blue_stack, red_stack);
+        break;
+      }
+#endif
       
       /*
        *  see if it must be pushed on the stack to be processed
        */
       if(blue) {
 	context_incr_arcs(w, 1);
-        push = is_new ||
-          ((!storage_get_blue(S, id)) &&
-           (!storage_get_cyan(S, id, w)));
+        push = is_new || ((!storage_get_blue(S, id)) &&
+                          (!storage_get_cyan(S, id, w)));
       } else {
-        push = is_new ||
-          ((!storage_get_red(S, id)) &&
-           (!storage_get_pink(S, id, w)));
+        push = is_new || ((!storage_get_red(S, id)) &&
+                          (!storage_get_pink(S, id, w)));
       }
 
       /*
@@ -236,7 +259,7 @@ state_t dfs_main
          *  push the successor state on the stack and then set some
          *  color on it
          */
-	dfs_stack_push(stack, id, now);
+        dfs_stack_push(stack, id, now);
     	en = dfs_stack_compute_events(stack, now, TRUE);
         if(blue) {
           storage_set_cyan(S, id, w, TRUE);
@@ -251,23 +274,8 @@ state_t dfs_main
 	  context_incr_dead(w, 1);
 	}
         dfs_check_state(now, en, blue_stack, red_stack);
-
-	/*
-	 *  if we check an LTL property, test whether the state
-	 *  reached is the seed
-	 */
-#if defined(CFG_ACTION_CHECK_LTL)
-	if(!blue && (id == id_seed)) {
-	  context_stop_search();
-	  context_set_result(FAILURE);
-	  dfs_stack_create_trace(blue_stack, red_stack);
-	}
-#endif
       }
     }
-  }
-  if(!blue) {
-    storage_set_red(S, id_seed, TRUE);
   }
   return now;
 }
@@ -304,14 +312,21 @@ void * dfs_worker
   storage_set_cyan(S, id, w, TRUE);
   now = dfs_main(w, now, id, heap, TRUE, blue_stack, red_stack);
 
+  /**
+   *  if state caching is on we keep waiting on the storage barrier
+   *  since some other threads may also do this
+   */
 #if defined(CFG_PARALLEL) && defined(CFG_STATE_CACHING)
-  DONE[w] = TRUE;
   do {
+    DONE[w] = FALSE;
+    if(!dfs_some_other_done(w)) {
+      storage_barrier(S);
+    }
+    DONE[w] = TRUE;
     storage_barrier(S);
-  }
-  while(!dfs_all_done());
+  } while(!dfs_all_done());
 #endif
-  
+
   dfs_stack_free(blue_stack);
   dfs_stack_free(red_stack);
   state_free(now);

@@ -176,6 +176,7 @@ void context_finalise
   char name[1024], file_name[1024];
   char * buf = NULL;
   size_t n = 0;
+  int i;
   
   if(NULL != CTX->graph_file) {
     fclose(CTX->graph_file);
@@ -435,6 +436,9 @@ void context_finalise
   }
   free(CTX->workers);
   if(CTX->trace) {
+    for(i = 0; i < CTX->trace_len; i ++) {
+      event_free(CTX->trace[i]);
+    }
     free(CTX->trace);
   }
   if(CTX->faulty_state_found) {

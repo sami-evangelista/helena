@@ -21,6 +21,8 @@
  */
 typedef struct {
   state_t s;
+  event_t e;
+  bool_t e_set;
   storage_id_t id;
 } bfs_queue_item_t;
 
@@ -37,7 +39,8 @@ typedef struct struct_bfs_queue_t * bfs_queue_t;
 bfs_queue_t bfs_queue_new
 (uint16_t no_workers,
  uint32_t slot_size,
- bool_t states_stored);
+ bool_t states_stored,
+ bool_t events_stored);
 
 
 /**

@@ -45,6 +45,13 @@ bool_t event_is_dummy
 event_t event_copy
 (event_t e);
 
+event_t event_copy_mem
+(event_t e,
+ heap_t h);
+
+void event_free
+(event_t e);
+
 void event_exec
 (event_t e,
  state_t s);
@@ -156,6 +163,7 @@ typedef mevent_id_t event_id_t;
 typedef mevent_t event_t;
 #define event_is_dummy(e) FALSE
 #define event_copy mevent_copy
+#define event_copy_mem mevent_copy_mem
 #define event_exec mevent_exec
 #define event_undo mevent_undo
 #define event_to_xml mevent_to_xml

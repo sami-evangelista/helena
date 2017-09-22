@@ -116,10 +116,9 @@ conflicting options, the last ones will prevail.
   which stores the set of reachable markings to $2^N$.  The default
   value is 22.
 \item\optionDef{W=N}{workers=N}\\ Specify the number of working
-  threads that will perform the search.  This option is only usable if
-  the search algorithm is \texttt{DELTA-DDD} or \texttt{RWALK}.
-\item\optionDef{cs=N}{candidate-set-size=N}\\ Set the cache size of
-  algorithm \texttt{DELTA-DDD}.  100~000 is the default value.
+  threads that will perform the search.
+\item\optionDef{cs=N}{candidate-set-size=N}\\ Set the candidate set
+  size of algorithm \texttt{DELTA-DDD}.  100~000 is the default value.
   Increasing it may consume more memory but can fasten the search.
 \end{description}
 

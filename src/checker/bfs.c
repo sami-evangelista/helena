@@ -32,6 +32,28 @@ void bfs_wait_barrier
 #endif
 }
 
+void bfs_init_queue
+() {
+#if defined(CFG_ALGO_DBFS)
+  uint16_t no_workers = CFG_NO_WORKERS + 1;
+#else
+  uint16_t no_workers = CFG_NO_WORKERS;
+#endif
+#if defined(STORAGE_STATE_RECOVERABLE)
+  bool_t states_in_queue = FALSE;
+#else
+  bool_t states_in_queue = TRUE;
+#endif
+#if defined(CFG_EDGE_LEAN)
+  bool_t events_in_queue = TRUE;
+#else
+  bool_t events_in_queue = FALSE;
+#endif
+  
+  Q = bfs_queue_new(no_workers, CFG_BFS_QUEUE_BLOCK_SIZE,
+                    states_in_queue, events_in_queue);
+}
+
 void bfs_terminate_level
 (worker_id_t w) {
 #if defined(CFG_ALGO_DBFS)
@@ -181,13 +203,14 @@ void * bfs_worker
 #endif
 
           /**
-           *  if new, enqueue the successor after setting its trace and
-           *  level
+           *  if new, enqueue the successor
            */
           if(is_new) {
 	    storage_set_cyan(S, id_succ, w, TRUE);
             succ_item.id = id_succ;
             succ_item.s = succ;
+            succ_item.e_set = TRUE;
+            succ_item.e = e;
             bfs_queue_enqueue(Q, succ_item, w, bfs_thread_owner(h));
           } else {
 
@@ -245,19 +268,9 @@ void bfs
   hash_key_t h;
   bool_t enqueue = TRUE;
   bfs_queue_item_t item;
-#if defined(CFG_ALGO_DBFS)
-  uint16_t no_workers = CFG_NO_WORKERS + 1;
-#else
-  uint16_t no_workers = CFG_NO_WORKERS;
-#endif
-#if defined(STORAGE_STATE_RECOVERABLE)
-  bool_t states_in_queue = FALSE;
-#else
-  bool_t states_in_queue = TRUE;
-#endif
   
   S = context_storage();
-  Q = bfs_queue_new(no_workers, CFG_BFS_QUEUE_BLOCK_SIZE, states_in_queue);
+  bfs_init_queue();
 
 #if defined(CFG_ALGO_DBFS)
   dbfs_comm_start(Q);
@@ -276,6 +289,7 @@ void bfs
     w = h % CFG_NO_WORKERS;
     item.id = id;
     item.s = s;
+    item.e_set = TRUE;
     bfs_queue_enqueue(Q, item, w, w);
     bfs_queue_switch_level(Q, w);
   }

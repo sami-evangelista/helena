@@ -99,12 +99,13 @@ def printHelp():
     print "  -md  --model-directory=DIRECTORY"
     print ""
     print "Search and storage options"
-    print "  -A   --algo={BFS|DBFS|DFS|DDFS|FRONTIER|DELTA-DDD|RWALK}"
+    print "  -A   --algo={BFS|DFS|FRONTIER|DELTA-DDD|RWALK}"
+    #print "  -A   --algo={BFS|DBFS|DFS|DDFS|FRONTIER|DELTA-DDD|RWALK}"
     print "  -t   --hash-size=H"
     print "  -W   --workers=WORKERS"
     print "  -cs  --candidate-set-size=N"
-    print "  -dc  --ddfs-comm-strategy={K<N>|M|D<N>} ... {K<N>|M|D<N>}"
-    print "  -mf  --machine-file=FILE"
+    #print "  -dc  --ddfs-comm-strategy={K<N>|M|D<N>} ... {K<N>|M|D<N>}"
+    #print "  -mf  --machine-file=FILE"
     print ""
     print "Reduction techniques"
     print "  -H   --hash-compaction"
@@ -226,8 +227,6 @@ class Config:
             W("#define CFG_LANGUAGE_DVE\n")
         if self.inFileExt in [ ".lna", ".dve" ]:
             W("#define CFG_USE_HELENA_HEAPS\n")
-        if self.verbose:
-            W("#define CFG_VERBOSE\n")
 
         #  search algorithm
         W("#define CFG_ALGO_" + self.algo.replace("-", "_") + "\n")
@@ -244,8 +243,7 @@ class Config:
             W("#define CFG_HASH_STORAGE\n")
             W("#define CFG_SYM_HEAP_SIZE 1000000\n")
             if len(self.ddfsCommStrat) > 0:
-                W("#define CFG_DDFS_COMM_STRAT\n")
-                
+                W("#define CFG_DDFS_COMM_STRAT\n")                
             K = False
             D = False
             M = False
