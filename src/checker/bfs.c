@@ -92,6 +92,8 @@ void bfs_terminate_level
 
 void * bfs_worker
 (void * arg) {
+  const worker_id_t w = (worker_id_t) (unsigned long int) arg;
+  const bool_t states_in_queue = bfs_queue_states_stored(Q);
   uint32_t levels = 0;
   char t;
   unsigned int l, en_size;
@@ -101,7 +103,6 @@ void * bfs_worker
   worker_id_t x;
   int i, k, no;
   unsigned char * tr;
-  worker_id_t w = (worker_id_t) (unsigned long int) arg;
   char heap_name[100];
   bool_t fully_expanded;
   unsigned int arcs;
@@ -124,11 +125,11 @@ void * bfs_worker
          */
         item = bfs_queue_dequeue(Q, x, w);
         heap_reset(heap);
-#if defined(BFS_QUEUE_STATE_IN_QUEUE)
-        s = item.s;
-#else
-        s = storage_get_mem(S, item.id, w, heap);
-#endif
+        if(states_in_queue) {
+          s = item.s;
+        } else {
+          s = storage_get_mem(S, item.id, w, heap);
+        }
         en = state_enabled_events_mem(s, heap);
         en_size = event_set_size(en);
         if(0 == en_size) {
@@ -249,9 +250,14 @@ void bfs
 #else
   uint16_t no_workers = CFG_NO_WORKERS;
 #endif
+#if defined(STORAGE_STATE_RECOVERABLE)
+  bool_t states_in_queue = FALSE;
+#else
+  bool_t states_in_queue = TRUE;
+#endif
   
   S = context_storage();
-  Q = bfs_queue_new(no_workers);
+  Q = bfs_queue_new(no_workers, CFG_BFS_QUEUE_BLOCK_SIZE, states_in_queue);
 
 #if defined(CFG_ALGO_DBFS)
   dbfs_comm_start(Q);

@@ -26,6 +26,9 @@ class Model:
         args = "helena " + " ".join(l + self.defaultArgs) + \
                " --model-directory=" + md + " " + self.modelFile
         print args
+        f = open(d + "test-" + str(self.testNum) + ".opt", "w")
+        f.write(" ".join(l))
+        f.close()
         errFile = open(d + "test-" + str(self.testNum) + ".err", "w")
         subprocess.call(args, stderr = errFile,
                         stdout = self.outFile, shell = True)
@@ -42,9 +45,6 @@ class Model:
             f = open(d + "test-" + str(self.testNum) + ".xml", "w")
             f.write("error")
             f.close()
-        f = open(d + "test-" + str(self.testNum) + ".opt", "w")
-        f.write(" ".join(l))
-        f.close()
         shutil.rmtree(md)
         self.testNum = self.testNum + 1
 

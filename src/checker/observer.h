@@ -1,9 +1,9 @@
 /**
  * @file observer.h
- * @author Sami Evangelista
- * @date 12 sep 2017
  * @brief Implementation of an observer thread that periodically prints some
  *        statistics during the search.
+ * @date 12 sep 2017
+ * @author Sami Evangelista
  */
 
 #ifndef LIB_OBSERVER
@@ -11,13 +11,11 @@
 
 #include "includes.h"
 
-#ifndef CFG_MODEL_CONFIG
-#error Model configuration missing!
-#endif
-
 
 /**
- * @brief observer_start
+ * @brief Launches the observer thread.
+ * @param arg - ignored
+ * @return always NULL
  */
 void * observer_start
 (void * arg);

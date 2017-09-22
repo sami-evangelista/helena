@@ -1,8 +1,8 @@
 /**
  * @file context.h
- * @author Sami Evangelista
- * @date 12 sep 2017
  * @brief Implementation of the context produced after a search.
+ * @date 12 sep 2017
+ * @author Sami Evangelista
  */
 
 #ifndef LIB_CONTEXT
@@ -11,16 +11,6 @@
 #include "includes.h"
 #include "model.h"
 #include "storage.h"
-
-#ifndef CFG_MODEL_CONFIG
-#error Model configuration missing!
-#endif
-
-struct struct_context_t;
-
-typedef struct struct_context_t struct_context_t;
-
-typedef struct_context_t * context_t;
 
 void context_init
 (unsigned int no_workers);

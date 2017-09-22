@@ -326,6 +326,10 @@ class Config:
         if self.algo in [ DBFS, DDFS ]:
             W("#define CFG_DISTRIBUTED\n")
 
+        #  other parameters
+        W("#define CFG_BFS_QUEUE_BLOCK_SIZE 100\n")
+        W("#define CFG_DFS_STACK_BLOCK_SIZE 100\n")
+
         W("\n#endif  /*  LIB_CONFIG  */\n")
         f.close()
 

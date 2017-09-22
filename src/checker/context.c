@@ -1,7 +1,7 @@
 #include "context.h"
 #include "observer.h"
 
-struct struct_context_t {
+typedef struct {
   unsigned int no_workers;
   char * error_msg;
   unsigned int errors;
@@ -44,7 +44,9 @@ struct struct_context_t {
    */
   pthread_t observer;
   pthread_t * workers;
-};
+} struct_context_t;
+
+typedef struct_context_t * context_t;
 
 context_t CTX;
 
@@ -282,7 +284,6 @@ void context_finalise
   /**
    *  statistics context
    ***/
-#if defined(CFG_WITH_STATISTICS)
   fprintf(out, "<statisticsReport>\n");
   
   /*  model */
@@ -380,7 +381,6 @@ void context_finalise
 #endif
   fprintf(out, "</otherStatistics>\n");
   fprintf(out, "</statisticsReport>\n");
-#endif
 
   /**
    *  trace context

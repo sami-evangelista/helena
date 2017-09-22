@@ -11,10 +11,6 @@
 #include "hash_tbl.h"
 #include "delta_ddd.h"
 
-#ifndef CFG_MODEL_CONFIG
-#error Model configuration missing!
-#endif
-
 #define ATTR_CHAR_LEN 1
 #define ATTR_CYAN     2
 #define ATTR_BLUE     4

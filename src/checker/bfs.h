@@ -1,10 +1,10 @@
 /**
  * @file bfs.h
- * @author Sami Evangelista
- * @date 12 sep 2017
  * @brief Implementation of BFS based algorithms: BFS, DBFS (distributed BFS)
  *        and FRONTIER (BFS that only stores states of the current and next
  *        BFS levels)
+ * @date 12 sep 2017
+ * @author Sami Evangelista
  */
 
 #ifndef LIB_BFS
@@ -16,13 +16,9 @@
 #include "event.h"
 #include "storage.h"
 
-#ifndef CFG_MODEL_CONFIG
-#error Model configuration missing!
-#endif
-
 
 /**
- * @brief bfs
+ * @brief Launch the BFS based algorithm.
  */
 void bfs
 ();

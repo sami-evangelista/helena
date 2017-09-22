@@ -1,8 +1,8 @@
 /**
  * @file simulator.h
- * @author Sami Evangelista
- * @date 12 sep 2017
  * @brief Implementation of the simulation mode.
+ * @date 12 sep 2017
+ * @author Sami Evangelista
  */
 
 #ifndef LIB_SIMULATOR
@@ -12,10 +12,9 @@
 #include "common.h"
 #include "model.h"
 
-#ifndef CFG_MODEL_CONFIG
-#error Model configuration missing!
-#endif
-
+/**
+ * @brief Launches the simulation mode.
+ */
 void simulator
 ();
 

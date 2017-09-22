@@ -1,8 +1,8 @@
 /**
  * @file event.h
- * @author Sami Evangelista
- * @date 12 sep 2017
  * @brief Event definition.
+ * @date 12 sep 2017
+ * @author Sami Evangelista
  */
 
 #ifndef LIB_EVENT
@@ -13,13 +13,7 @@
 #include "prop.h"
 #include "state.h"
 
-#ifndef CFG_MODEL_CONFIG
-#error Model configuration missing!
-#endif
-
 #if defined(CFG_ACTION_CHECK_LTL)
-
-
 
 /*
  *  event definition when doing LTL model checking
@@ -152,8 +146,6 @@ state_t state_pred_mem
  heap_t heap);
 
 #else
-
-
 
 /*
  *  event definition when not doing LTL model checking

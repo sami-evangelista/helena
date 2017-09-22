@@ -1,8 +1,8 @@
 /**
  * @file delta_ddd.h
- * @author Sami Evangelista
- * @date 12 sep 2017
  * @brief Implementation of the delta DDD algorithm.
+ * @date 12 sep 2017
+ * @author Sami Evangelista
  */
 
 #ifndef LIB_DELTA_DDD
@@ -12,10 +12,6 @@
 #include "common.h"
 #include "state.h"
 #include "event.h"
-
-#ifndef CFG_MODEL_CONFIG
-#error Model configuration missing!
-#endif
 
 typedef uint32_t delta_ddd_storage_id_t;
 

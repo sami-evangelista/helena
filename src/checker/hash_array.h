@@ -1,8 +1,8 @@
 /**
  * @file hash_array.h
- * @author Sami Evangelista
- * @date 12 sep 2017
  * @brief Implementation of an hash array.
+ * @date 12 sep 2017
+ * @author Sami Evangelista
  */
 
 #ifndef LIB_HASH_ARRAY

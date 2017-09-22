@@ -1,8 +1,8 @@
 /**
  * @file workers.h
- * @author Sami Evangelista
- * @date 12 sep 2017
  * @brief Several routines to handle worker threads.
+ * @date 12 sep 2017
+ * @author Sami Evangelista
  */
 
 #ifndef LIB_WORKERS

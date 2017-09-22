@@ -1,8 +1,8 @@
 /**
  * @file heap.h
- * @author Sami Evangelista
- * @date 12 sep 2017
  * @brief Implementation of various heap structures.
+ * @date 12 sep 2017
+ * @author Sami Evangelista
  */
 
 #ifndef LIB_HEAP

@@ -4,15 +4,8 @@
 
 #if defined(CFG_ALGO_DFS) || defined(CFG_ALGO_DDFS)
 
-#define DFS_STACK_SLOTS 2
+#define DFS_STACK_BLOCKS 2
 
-/**
- *  items of the DFS stack
- *
- *  if the model does not allow the events to be undone and if the
- *  storage does not allow states to recovered we need to save the
- *  state on the stack
- */
 typedef struct {
   unsigned char n;
   storage_id_t id;
@@ -21,68 +14,71 @@ typedef struct {
   unsigned int * shuffle;
   bool_t prov_ok;
   bool_t fully_expanded;
-#if defined(DFS_STACK_STATE_IN_STACK)
   state_t s;
-#endif
 } dfs_stack_item_t;
 
 typedef struct {
   dfs_stack_item_t * items;
-} struct_dfs_stack_slot_t;
+} struct_dfs_stack_block_t;
 
-typedef struct_dfs_stack_slot_t * dfs_stack_slot_t;
+typedef struct_dfs_stack_block_t * dfs_stack_block_t;
 
 struct struct_dfs_stack_t {
-  dfs_stack_slot_t slots[DFS_STACK_SLOTS];
-  heap_t heaps[DFS_STACK_SLOTS];
+  dfs_stack_block_t blocks[DFS_STACK_BLOCKS];
+  heap_t heaps[DFS_STACK_BLOCKS];
   int32_t id;
   uint8_t current;
   int32_t top;
   uint32_t size;
   uint32_t files;
-  uint32_t slot_size;
+  uint32_t block_size;
   bool_t shuffle;
   rseed_t seed;
+  
 };
 
 typedef struct struct_dfs_stack_t struct_dfs_stack_t;
 
-dfs_stack_slot_t dfs_stack_slot_new
-(uint32_t slot_size) {
-  dfs_stack_slot_t result;
+dfs_stack_block_t dfs_stack_block_new
+(uint32_t block_size) {
+  dfs_stack_block_t result;
 
-  result = mem_alloc(SYSTEM_HEAP, sizeof(struct_dfs_stack_slot_t));
-  result->items = mem_alloc(SYSTEM_HEAP, slot_size * sizeof(dfs_stack_item_t));
+  result = mem_alloc(SYSTEM_HEAP,
+                     sizeof(struct_dfs_stack_block_t));
+  result->items = mem_alloc(SYSTEM_HEAP,
+                            block_size * sizeof(dfs_stack_item_t));
   return result;
 }
 
-void dfs_stack_slot_free
-(dfs_stack_slot_t slot) {
-  free(slot->items);
-  free(slot);
+void dfs_stack_block_free
+(dfs_stack_block_t block) {
+  free(block->items);
+  free(block);
 }
 
 dfs_stack_t dfs_stack_new
 (int id,
- uint32_t slot_size,
- bool_t shuffle) {
+ uint32_t block_size,
+ bool_t shuffle,
+ bool_t states_stored) {
   dfs_stack_t result;
   int i;
   char name[100];
 
   result = mem_alloc(SYSTEM_HEAP, sizeof(struct_dfs_stack_t));
   result->id = id;
-  result->slot_size = slot_size;
+  result->block_size = block_size;
   result->shuffle = shuffle;
+  result->states_stored = states_stored;
   result->top = - 1;
   result->size = 0;
   result->current = 0;
   result->files = 0;
   result->seed = random_seed(id);
-  for(i = 0; i < DFS_STACK_SLOTS; i ++) {
+  for(i = 0; i < DFS_STACK_BLOCKS; i ++) {
     sprintf(name, "DFS stack heap");
-    result->heaps[i] = bounded_heap_new(name, result->slot_size * 1000);
-    result->slots[i] = dfs_stack_slot_new(result->slot_size);
+    result->heaps[i] = bounded_heap_new(name, result->block_size * 1000);
+    result->blocks[i] = dfs_stack_block_new(result->block_size);
   }
   return result;
 }
@@ -92,9 +88,9 @@ void dfs_stack_free
   int i;
 
   if(stack) {
-    for(i = 0; i < DFS_STACK_SLOTS; i ++) {
-      if(stack->slots[i]) {
-	dfs_stack_slot_free(stack->slots[i]);
+    for(i = 0; i < DFS_STACK_BLOCKS; i ++) {
+      if(stack->blocks[i]) {
+	dfs_stack_block_free(stack->blocks[i]);
       }
       if(stack->heaps[i]) {
 	heap_free(stack->heaps[i]);
@@ -120,13 +116,13 @@ void dfs_stack_write
   FILE * f;
   char buffer[10000];
   heap_t h = stack->heaps[0];
-  dfs_stack_slot_t slot = stack->slots[0];
+  dfs_stack_block_t block = stack->blocks[0];
   dfs_stack_item_t item;
 
   sprintf(buffer, "STACK-%d-%d", stack->id, stack->files);
   f = fopen(buffer, "w");
-  for(i = 0; i < stack->slot_size; i ++) {
-    item = slot->items[i];
+  for(i = 0; i < stack->block_size; i ++) {
+    item = block->items[i];
     w = event_set_char_width(item.en);
     fwrite(&(item.n), sizeof(unsigned char), 1, f);
     event_set_serialise(item.en, buffer);
@@ -142,13 +138,13 @@ void dfs_stack_write
     fwrite(&item.prov_ok, sizeof(bool_t), 1, f);
     fwrite(&item.fully_expanded, sizeof(bool_t), 1, f);
 #endif
-#if defined(DFS_STACK_STATE_IN_STACK)
-    len = state_char_width(item.s);
-    fwrite(&len, sizeof(int), 1, f);
-    state_serialise(item.s, buffer);
-    fwrite(buffer, len, 1, f);
-    state_free(item.s);
-#endif
+    if(stack->states_stored) {
+      len = state_char_width(item.s);
+      fwrite(&len, sizeof(int), 1, f);
+      state_serialise(item.s, buffer);
+      fwrite(buffer, len, 1, f);
+      state_free(item.s);
+    }
   }
   fclose(f);
   stack->files ++;
@@ -167,7 +163,7 @@ void dfs_stack_read
   sprintf(name, "STACK-%d-%d", stack->id, stack->files);
   f = fopen(name, "r");
   heap_reset(h);
-  for(i = 0; i < stack->slot_size; i ++) {
+  for(i = 0; i < stack->block_size; i ++) {
     item.heap_pos = heap_get_position(h);
     fread(&item.n, sizeof(unsigned char), 1, f);
     fread(&w, sizeof(unsigned int), 1, f);
@@ -183,12 +179,12 @@ void dfs_stack_read
     fread(&item.prov_ok, sizeof(bool_t), 1, f);
     fread(&item.fully_expanded, sizeof(bool_t), 1, f);
 #endif
-#if defined(DFS_STACK_STATE_IN_STACK)
-    fread(&len, sizeof(int), 1, f);
-    fread(buffer, len, 1, f);
-    item.s = state_unserialise_mem(buffer, h);
-#endif
-    stack->slots[0]->items[i] = item;
+    if(stack->states_stored) {
+      fread(&len, sizeof(int), 1, f);
+      fread(buffer, len, 1, f);
+      item.s = state_unserialise_mem(buffer, h);
+    }
+    stack->blocks[0]->items[i] = item;
   }
   fclose(f);
   remove(name);
@@ -203,17 +199,17 @@ void dfs_stack_push
   
   stack->top ++;
   stack->size ++;
-  if(stack->top == stack->slot_size) {
+  if(stack->top == stack->block_size) {
     if(stack->current == 1) {
       char name[100];
       dfs_stack_write(stack);
-      dfs_stack_slot_free(stack->slots[0]);
-      stack->slots[0] = stack->slots[1];
-      stack->slots[1] = dfs_stack_slot_new(stack->slot_size);
+      dfs_stack_block_free(stack->blocks[0]);
+      stack->blocks[0] = stack->blocks[1];
+      stack->blocks[1] = dfs_stack_block_new(stack->block_size);
       heap_free(stack->heaps[0]);
       stack->heaps[0] = stack->heaps[1];
       sprintf(name, "DFS stack heap");
-      stack->heaps[1] = bounded_heap_new(name, stack->slot_size * 1000);
+      stack->heaps[1] = bounded_heap_new(name, stack->block_size * 1000);
     }
     stack->current = 1;
     stack->top = 0;
@@ -221,23 +217,23 @@ void dfs_stack_push
   h = stack->heaps[stack->current];
   item.id = sid;
   item.en = NULL;
-#if defined(DFS_STACK_STATE_IN_STACK)
-  item.s = state_copy_mem(s, h);
-#endif
-  stack->slots[stack->current]->items[stack->top] = item;
+  if(stack->states_stored) {
+    item.s = state_copy_mem(s,h);
+  }
+  stack->blocks[stack->current]->items[stack->top] = item;
 }
 
 void dfs_stack_pop
 (dfs_stack_t stack) {
   heap_t h = stack->heaps[stack->current];
-  dfs_stack_item_t item = stack->slots[stack->current]->items[stack->top];
+  dfs_stack_item_t item = stack->blocks[stack->current]->items[stack->top];
   
   if(stack->size == 0) {
     fatal_error("dfs_stack_pop: empty stack");
   }
-#if defined(DFS_STACK_STATE_IN_STACK)
-  state_free(item.s);
-#endif
+  if(stack->states_stored) {
+    state_free(item.s);
+  }
   if(stack->shuffle) {
     mem_free(h, item.shuffle);
   }
@@ -253,7 +249,7 @@ void dfs_stack_pop
       dfs_stack_read(stack);
     }
     stack->current = 0;
-    stack->top = stack->slot_size - 1;
+    stack->top = stack->block_size - 1;
   }
 }
 
@@ -262,7 +258,7 @@ storage_id_t dfs_stack_top
   if(stack->size == 0) {
     fatal_error("dfs_stack_top: empty stack");
   }
-  return stack->slots[stack->current]->items[stack->top].id;
+  return stack->blocks[stack->current]->items[stack->top].id;
 }
 
 state_t dfs_stack_top_state
@@ -270,15 +266,15 @@ state_t dfs_stack_top_state
  heap_t h) {
   state_t result;
   
-#if defined(DFS_STACK_STATE_IN_STACK)
-  if(stack->size == 0) {
-    fatal_error("dfs_stack_top_state: empty stack");
+  if(!stack->states_stored) {
+    fatal_error("dfs_stack_top_state: state cannot be recovered from stack");
+  } else {
+    if(stack->size == 0) {
+      fatal_error("dfs_stack_top_state: empty stack");
+    }
+    result = stack->blocks[stack->current]->items[stack->top].s;
+    result = state_copy_mem(result, h);
   }
-  result = stack->slots[stack->current]->items[stack->top].s;
-  result = state_copy_mem(result, h);
-#else
-  fatal_error("dfs_stack_top_state: state cannot be recovered from stack");
-#endif
   return result;
 }
 
@@ -287,7 +283,7 @@ event_set_t dfs_stack_top_events
   if(stack->size == 0) {
     fatal_error("dfs_stack_top: empty stack");
   }
-  return stack->slots[stack->current]->items[stack->top].en;
+  return stack->blocks[stack->current]->items[stack->top].en;
 }
 
 event_set_t dfs_stack_compute_events
@@ -298,7 +294,7 @@ event_set_t dfs_stack_compute_events
   int i;
   event_set_t result;
   unsigned int en_size, en_size_reduced;
-  dfs_stack_item_t item = stack->slots[stack->current]->items[stack->top];
+  dfs_stack_item_t item = stack->blocks[stack->current]->items[stack->top];
 
   if(stack->size == 0) {
     fatal_error("dfs_stack_compute_events: empty stack");
@@ -349,7 +345,7 @@ event_set_t dfs_stack_compute_events
     }
   }
 
-  stack->slots[stack->current]->items[stack->top] = item;
+  stack->blocks[stack->current]->items[stack->top] = item;
   return result;
 }
 
@@ -357,7 +353,7 @@ void dfs_stack_pick_event
 (dfs_stack_t stack,
  event_t * e,
  event_id_t * eid) {
-  dfs_stack_item_t item = stack->slots[stack->current]->items[stack->top];
+  dfs_stack_item_t item = stack->blocks[stack->current]->items[stack->top];
   int chosen;
   if(stack->shuffle) {
     chosen = item.shuffle[item.n];
@@ -367,13 +363,13 @@ void dfs_stack_pick_event
   (*e) = event_set_nth(item.en, chosen);
   (*eid) = event_set_nth_id(item.en, chosen);
   item.n ++;
-  stack->slots[stack->current]->items[stack->top] = item;
+  stack->blocks[stack->current]->items[stack->top] = item;
 }
 
 void dfs_stack_event_undo
 (dfs_stack_t stack,
  state_t s) {
-  dfs_stack_item_t item = stack->slots[stack->current]->items[stack->top];
+  dfs_stack_item_t item = stack->blocks[stack->current]->items[stack->top];
   unsigned int n;
   if(stack->shuffle) {
     n = item.shuffle[item.n - 1];
@@ -386,13 +382,13 @@ void dfs_stack_event_undo
 void dfs_stack_unset_proviso
 (dfs_stack_t stack) {
 #if defined(CFG_POR) && defined(CFG_PROVISO)
-  stack->slots[stack->current]->items[stack->top].prov_ok = FALSE;
+  stack->blocks[stack->current]->items[stack->top].prov_ok = FALSE;
 #endif
 }
 
 bool_t dfs_stack_top_expanded
 (dfs_stack_t stack) {
-  dfs_stack_item_t item = stack->slots[stack->current]->items[stack->top];
+  dfs_stack_item_t item = stack->blocks[stack->current]->items[stack->top];
   return (item.n == event_set_size(item.en)) ? TRUE : FALSE;
 } 
 
@@ -402,7 +398,7 @@ bool_t dfs_stack_proviso
   dfs_stack_item_t item;
   
 #if defined(CFG_POR) && defined(CFG_PROVISO)
-  item = stack->slots[stack->current]->items[stack->top];
+  item = stack->blocks[stack->current]->items[stack->top];
   result = item.prov_ok || item.fully_expanded;
 #endif
   return result;
@@ -432,7 +428,7 @@ void dfs_stack_create_trace
     if(stack) {
       dfs_stack_pop(stack);
       while(stack->size > 0) {
-        item = stack->slots[stack->current]->items[stack->top];
+        item = stack->blocks[stack->current]->items[stack->top];
         if(stack->shuffle) {
           n = item.shuffle[item.n - 1];
         } else {

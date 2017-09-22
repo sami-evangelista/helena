@@ -1,8 +1,15 @@
 /**
  * @file hash_tbl.h
- * @author Sami Evangelista
- * @date 12 sep 2017
  * @brief Implementation of an hash table supporting concurrent accesses.
+ * @date 12 sep 2017
+ * @author Sami Evangelista
+ *
+ * The hash table is a small variation of the structure presented in:
+ *
+ * Boosting Multi-Core Reachability Performance with Shared Hash Tables
+ * by Alfons Laarman, Jaco van de Pol, Michael Weber.
+ * in Formal Methods in Computer-Aided Design.
+ *
  */
 
 #ifndef LIB_HASH_TBL
@@ -11,10 +18,6 @@
 #include "state.h"
 #include "event.h"
 #include "heap.h"
-
-#ifndef CFG_MODEL_CONFIG
-#error Model configuration missing!
-#endif
 
 #if !defined(CFG_HASH_COMPACTION)
 #define STORAGE_STATE_RECOVERABLE

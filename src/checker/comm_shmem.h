@@ -1,8 +1,8 @@
 /**
  * @file comm_shmem.h
- * @author Sami Evangelista
- * @date 12 sep 2017
  * @brief Various stuffs for shmem communication
+ * @date 12 sep 2017
+ * @author Sami Evangelista
  */
 
 #ifndef LIB_COMM_SHMEM

@@ -1,9 +1,8 @@
 /**
- * @file   bfs_queue.h
+ * @file bfs_queue.h
+ * @brief Implementation of the queue used by BFS based algorithm.
+ * @date 12 sep 2017
  * @author Sami Evangelista
- * @date   12 sep 2017
- * @brief  Implementation of the queue used by BFS based algorithm.
- *
  */
 
 #ifndef LIB_BFS_QUEUE
@@ -11,21 +10,14 @@
 
 #include "bfs.h"
 
-#ifndef CFG_MODEL_CONFIG
-#error Model configuration missing!
-#endif
-
-#if !defined(STORAGE_STATE_RECOVERABLE)
-#define BFS_QUEUE_STATE_IN_QUEUE
-#endif
 
 /**
  * @struct bfs_queue_item_t
  * @brief  items of the BFS queue
  *
- * If states cannot be recovered from the storage (e.g., if
- * hash-compaction is one) we need to save the full state descriptor
- * in the queue (symbol BFS_QUEUE_STATE_IN_QUEUE is defined).
+ * The queue stores state identifiers.  If states cannot be recovered
+ * from the storage (e.g., if hash-compaction is one) we also need to
+ * save the full state descriptor.
  */
 typedef struct {
   state_t s;
@@ -43,7 +35,16 @@ typedef struct struct_bfs_queue_t * bfs_queue_t;
  * @brief BFS queue constructor
  */
 bfs_queue_t bfs_queue_new
-(uint16_t no_workers);
+(uint16_t no_workers,
+ uint32_t slot_size,
+ bool_t states_stored);
+
+
+/**
+ * @brief check if full states are stored in the queue
+ */
+bool_t bfs_queue_states_stored
+(bfs_queue_t q);
 
 
 /**

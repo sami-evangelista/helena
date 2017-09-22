@@ -246,7 +246,7 @@ void * mem_alloc
 }
 
 void * mem_alloc0
-(heap_t     heap,
+(heap_t heap,
  mem_size_t size) {
   void * result = mem_alloc(heap, size);
   memset(result, 0, size);

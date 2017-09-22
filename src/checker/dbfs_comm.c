@@ -302,13 +302,13 @@ void dbfs_comm_worker_process_incoming_states
            */
           if(is_new) {
             item.id = sid;
-#if defined(BFS_QUEUE_STATE_IN_QUEUE)
+#if !defined(STORAGE_STATE_RECOVERABLE)
             heap_reset(heap);
             s = state_unserialise_mem(buffer + tmp_pos - s_len, heap);
             item.s = s;
 #endif
             bfs_queue_enqueue(Q, item, my_worker_id, h % CFG_NO_WORKERS);
-#if defined(BFS_QUEUE_STATE_IN_QUEUE)
+#if !defined(STORAGE_STATE_RECOVERABLE)
             state_free(item.s);
 #endif
           }

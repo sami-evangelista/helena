@@ -1,8 +1,8 @@
 /**
  * @file buchi.h
- * @author Sami Evangelista
- * @date 12 sep 2017
  * @brief Description of Buchi automata for LTL verification algorithms.
+ * @date 12 sep 2017
+ * @author Sami Evangelista
  */
 
 #ifndef LIB_BUCHI
@@ -11,10 +11,6 @@
 #include "common.h"
 #include "includes.h"
 #include "model.h"
-
-#ifndef CFG_MODEL_CONFIG
-#error Model configuration missing!
-#endif
 
 typedef int bstate_t;
 

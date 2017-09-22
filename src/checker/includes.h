@@ -1,9 +1,9 @@
 /**
  * @file includes.h
- * @author Sami Evangelista
- * @date 12 sep 2017
  * @brief Single file including all necessary system files and the
  *        configuration file.
+ * @date 12 sep 2017
+ * @author Sami Evangelista
  */
 
 #ifndef LIB_INCLUDES

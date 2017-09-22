@@ -1,8 +1,8 @@
 /**
  * @file state.h
- * @author Sami Evangelista
- * @date 12 sep 2017
  * @brief State definition.
+ * @date 12 sep 2017
+ * @author Sami Evangelista
  */
 
 #ifndef LIB_STATE
@@ -12,13 +12,7 @@
 #include "heap.h"
 #include "prop.h"
 
-#ifndef CFG_MODEL_CONFIG
-#error Model configuration missing!
-#endif
-
 #if defined(CFG_ACTION_CHECK_LTL)
-
-
 
 /*
  *  state definition when doing LTL model checking
@@ -86,8 +80,6 @@ state_t state_unserialise_mem
  heap_t heap);
 
 #else
-
-
 
 /*
  *  state definition when not doing LTL model checking

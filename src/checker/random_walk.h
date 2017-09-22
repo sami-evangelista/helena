@@ -1,18 +1,14 @@
 /**
  * @file random_walk.h
- * @author Sami Evangelista
- * @date 12 sep 2017
  * @brief Implementation of RWALK (random walk) algorithm.
+ * @date 12 sep 2017
+ * @author Sami Evangelista
  */
 
 #ifndef LIB_RANDOM_WALK
 #define LIB_RANDOM_WALK
 
 #include "includes.h"
-
-#ifndef CFG_MODEL_CONFIG
-#error Model configuration missing!
-#endif
 
 void random_walk
 ();

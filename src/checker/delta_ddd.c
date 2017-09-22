@@ -69,14 +69,14 @@ heap_t detect_evts_heaps[CFG_NO_WORKERS];
 rseed_t seeds[CFG_NO_WORKERS];
 
 /*  synchronisation variables  */
-bool_t level_terminated[CFG_NO_WORKERS];
-pthread_barrier_t barrier;
-uint32_t next_lvl;
-uint32_t next_lvls[CFG_NO_WORKERS];
+bool_t LVL_TERMINATED[CFG_NO_WORKERS];
+pthread_barrier_t BARRIER;
+uint32_t NEXT_LVL;
+uint32_t NEXT_LVLS[CFG_NO_WORKERS];
 bool_t error_reported;
 
 /*  alternating bit to know which states to expand  */
-uint8_t recons_id;
+uint8_t RECONS_ID;
 
 #define EXPAND_HEAP_SIZE (1024 * 1024)
 #define DETECT_HEAP_SIZE (1024 * 1024)
@@ -138,10 +138,10 @@ void delta_ddd_barrier
 (worker_id_t w) {
   lna_timer_t t;
     
-#if defined(CFG_PARALLEL)   
+#if defined(CFG_PARALLEL)
   lna_timer_init(&t);
   lna_timer_start(&t);
-  pthread_barrier_wait(&barrier);
+  pthread_barrier_wait(&BARRIER);
   lna_timer_stop(&t);
   S->barrier_time[w] += lna_timer_value(t);
 #endif
@@ -265,17 +265,14 @@ bool_t delta_ddd_send_candidate
  delta_ddd_storage_id_t pred,
  event_id_t e,
  state_t s) {
-  unsigned int i;
   delta_ddd_candidate_t c;
   worker_id_t x;
+  
   c.content = DELTA_DDD_CAND_NEW;
   c.pred = pred;
   c.e = e;
   c.width = state_char_width(s);
-  c.s = mem_alloc(candidates_heaps[w], c.width);
-  for(i = 0; i < c.width; i ++) {
-    c.s[i] = 0;
-  }
+  c.s = mem_alloc0(candidates_heaps[w], c.width);
   state_serialise(s, c.s);
   c.h = state_hash(s);
   x = DELTA_DDD_OWNER(c.h);
@@ -296,7 +293,7 @@ bool_t delta_ddd_send_candidate
  *
  *****/
 bool_t delta_ddd_cmp_vector
-(uint16_t     width,
+(uint16_t width,
  bit_vector_t v,
  bit_vector_t w) {
   uint16_t i;
@@ -379,8 +376,8 @@ bool_t delta_ddd_merge_candidate_set
  *
  *****/
 void delta_ddd_storage_delete_candidate
-(worker_id_t      w,
- state_t          s,
+(worker_id_t w,
+ state_t s,
  delta_ddd_storage_id_t id) {
   hash_key_t h = state_hash(s);
   unsigned int fst, i = h % CS_max_size;
@@ -406,10 +403,10 @@ void delta_ddd_storage_delete_candidate
 }
 
 state_t delta_ddd_duplicate_detection_dfs
-(worker_id_t      w,
+(worker_id_t w,
  delta_ddd_storage_id_t now,
- state_t          s,
- unsigned int     depth) {
+ state_t s,
+ unsigned int depth) {
   heap_t heap = detect_heaps[w];
   heap_t heap_evts = detect_evts_heaps[w];
   state_t t;
@@ -460,7 +457,7 @@ state_t delta_ddd_duplicate_detection_dfs
 #if defined(CFG_ACTION_BUILD_RG)
 void delta_ddd_remove_duplicates_around
 (delta_ddd_candidate_t * C,
- unsigned int      i) {
+ unsigned int i) {
   int j, k, m, moves[2] = { 1, -1};
   for(k = 0; k < 2; k ++) {
     j = i;
@@ -520,7 +517,7 @@ delta_ddd_storage_id_t delta_ddd_insert_new_state
  hash_key_t h,
  delta_ddd_state_t s,
  delta_ddd_storage_id_t pred) {
-  uint8_t r = (recons_id + 1) & 1;
+  uint8_t r = (RECONS_ID + 1) & 1;
   unsigned int id, fst = h & CFG_HASH_SIZE_M, slot = fst;
   while(ST[slot].fst_child != UINT_MAX) {
     assert((slot = (slot + CFG_NO_WORKERS) & CFG_HASH_SIZE_M) != fst);
@@ -550,8 +547,8 @@ void delta_ddd_insert_new_states
   delta_ddd_state_t ns;
   unsigned int no_new = 0;
 
-  ns.dd = ns.dd_visit = ns.recons[recons_id] = FALSE;
-  ns.recons[(recons_id + 1) & 1] = TRUE;
+  ns.dd = ns.dd_visit = ns.recons[RECONS_ID] = FALSE;
+  ns.recons[(RECONS_ID + 1) & 1] = TRUE;
   for(i = 0; i < CS_size[w]; i ++) {
     c = C[NCS[w][i]];
     if(DELTA_DDD_CAND_NEW == c.content) {
@@ -565,7 +562,7 @@ void delta_ddd_insert_new_states
     }
   }
   S->size[w] += no_new;
-  next_lvls[w] += no_new;
+  NEXT_LVLS[w] += no_new;
 #if defined(CFG_ACTION_BUILD_RG)
   delta_ddd_write_nodes_graph(w);
 #endif
@@ -651,12 +648,13 @@ bool_t delta_ddd_duplicate_detection
   BOX_tot_size[w] = 0;
   for(x = 0; x < CFG_NO_WORKERS; x ++) {
     BOX_size[w][x] = 0;
-    all_terminated = all_terminated && level_terminated[x];
+    all_terminated = all_terminated && LVL_TERMINATED[x];
   }
   if(0 == w) {
     lna_timer_stop(&t);
     S->dd_time += lna_timer_value(t);
   }
+  delta_ddd_barrier(w);
   return all_terminated ? FALSE : TRUE;
 }
 
@@ -670,10 +668,10 @@ bool_t delta_ddd_duplicate_detection
  *
  *****/
 state_t delta_ddd_expand_dfs
-(worker_id_t      w,
+(worker_id_t w,
  delta_ddd_storage_id_t now,
- state_t          s,
- unsigned int     depth) {
+ state_t s,
+ unsigned int depth) {
   heap_t heap = expand_heaps[w];
   heap_t heap_evts = expand_evts_heaps[w];
   void * heap_pos;
@@ -708,16 +706,15 @@ state_t delta_ddd_expand_dfs
       context_incr_dead(w, 1);
     }
     for(i = 0; i < en_size; i ++) {
-      context_incr_arcs(w, 1);
-      context_incr_evts_exec(w, 1);
       e = event_set_nth(en, i);
       e_id = event_set_nth_id(en, i);
       t = state_succ_mem(s, e, heap);
       if(delta_ddd_send_candidate(w, now, e_id, t)) {
-        assert(0);
 	delta_ddd_duplicate_detection(w);
       }
     }
+    context_incr_arcs(w, en_size);
+    context_incr_evts_exec(w, en_size);
     context_incr_visited(w, 1);
 
     /*
@@ -738,7 +735,7 @@ state_t delta_ddd_expand_dfs
     DELTA_DDD_PICK_RANDOM_NODE(w, now, start);
     curr = start;
     do {
-      if(ST[curr].recons[recons_id]) {
+      if(ST[curr].recons[RECONS_ID]) {
         context_incr_evts_exec(w, 1);
 	DELTA_DDD_VISIT_HANDLE_EVENT(delta_ddd_expand_dfs);
       }
@@ -750,7 +747,7 @@ state_t delta_ddd_expand_dfs
     } while(curr != start);
   }
 
-  ST[now].recons[recons_id] = FALSE;
+  ST[now].recons[RECONS_ID] = FALSE;
   DELTA_DDD_VISIT_POST_HEAP_PROCESS();
   return s;
 }
@@ -773,7 +770,7 @@ void delta_ddd_expand
   heap_reset(expand_heaps[w]);
   s = state_initial_mem(expand_heaps[w]);
   delta_ddd_expand_dfs(w, S->root, s, depth);
-  level_terminated[w] = TRUE;
+  LVL_TERMINATED[w] = TRUE;
   while(delta_ddd_duplicate_detection(w));
 }
 
@@ -810,21 +807,21 @@ void * delta_ddd_worker
     S->root = slot;
     S->size[0] = 1;
     state_free(s);
-    recons_id = 0;
-    next_lvl = 1;
+    RECONS_ID = 0;
+    NEXT_LVL = 1;
   }
   delta_ddd_barrier(w);
-  while(next_lvl != 0) {
+  while(NEXT_LVL != 0) {
 
     /*
      *  initialise some data for the next level
      */
     delta_ddd_barrier(w);
-    level_terminated[w] = FALSE;
-    next_lvls[w] = 0;
+    LVL_TERMINATED[w] = FALSE;
+    NEXT_LVLS[w] = 0;
     if(0 == w) {
-      next_lvl = 0;
-      recons_id = (recons_id + 1) & 1;
+      NEXT_LVL = 0;
+      RECONS_ID = (RECONS_ID + 1) & 1;
     }
 
     /*
@@ -835,7 +832,7 @@ void * delta_ddd_worker
     depth ++;
     if(0 == w) {
       for(x = 0; x < CFG_NO_WORKERS; x ++) {
-	next_lvl += next_lvls[x];
+	NEXT_LVL += NEXT_LVLS[x];
       }
       context_update_bfs_levels(depth);
     }
@@ -860,7 +857,7 @@ void delta_ddd
 
   S = (delta_ddd_storage_t) context_storage();
   ST = S->ST;
-  pthread_barrier_init(&barrier, NULL, CFG_NO_WORKERS);
+  pthread_barrier_init(&BARRIER, NULL, CFG_NO_WORKERS);
   error_reported = FALSE;
   for(w = 0; w < CFG_NO_WORKERS; w ++) {
     seeds[w] = random_seed(w);

@@ -2,20 +2,6 @@
 #include "context.h"
 #include "storage.h"
 
-float mem_usage() {
-  float result = 0.0;
-  FILE * f;
-  char buf[30];
-  unsigned int size = 0;
-  snprintf(buf, 30, "/proc/%u/statm", (unsigned) getpid());
-  f = fopen(buf, "r");
-  if(f) {
-    fscanf(f, "%u", &size);
-  }
-  fclose(f);
-  return (float) size / 1024.0;
-}
-
 void * observer_start
 (void * arg) {
   float time = 0;
@@ -66,4 +52,5 @@ void * observer_start
     }
 #endif
   }
+  return NULL;
 }
