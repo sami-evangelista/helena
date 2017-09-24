@@ -106,9 +106,6 @@ private
      (C  : in Num_Cls_Record;
       Lib: in Library);
 
-   function To_Pnml
-     (C: in Num_Cls_Record) return Ustring;
-
    function From_Num_Value
      (D: in Num_Cls_Record;
       N: in Num_Type) return Expr;

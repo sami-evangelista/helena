@@ -408,9 +408,6 @@ package Pn.Mappings is
    function To_Helena
      (M: in Mapping) return Ustring;
 
-   function To_Pnml
-     (M: in Mapping) return Ustring;
-
    Null_Mapping: constant Mapping;
 
 

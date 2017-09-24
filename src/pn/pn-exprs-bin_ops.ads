@@ -128,9 +128,6 @@ private
    function To_Helena
      (E: in Bin_Op_Record) return Ustring;
 
-   function To_Pnml
-     (E: in Bin_Op_Record) return Ustring;
-
    function Compile_Evaluation
      (E: in Bin_Op_Record;
       M: in Var_Mapping) return Ustring;

@@ -322,12 +322,6 @@ package body Pn.Exprs is
       return Result;
    end;
 
-   function To_Pnml
-     (E: access Expr_Record'Class) return Ustring is
-   begin
-      return To_Pnml(E.all);
-   end;
-
    function Compile_Evaluation
      (E    : access Expr_Record'Class;
       R    : in     Var_Mapping;

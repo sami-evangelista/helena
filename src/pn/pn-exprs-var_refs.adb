@@ -187,32 +187,6 @@ package body Pn.Exprs.Var_Refs is
       return Get_Name(E.V);
    end;
 
-   function To_Pnml
-     (E: in Var_Ref_Record) return Ustring is
-      Result: Ustring;
-      C     : Expr;
-      Val   : Expr;
-      St    : Evaluation_State;
-   begin
-      case Get_Type(E.V) is
-	 when A_Trans_Var =>
-	    Result := "<variable refvariable=""V-" & Get_Name(E.V) &
-	      "-" & Get_Name(Get_Cls(E.V)) & """/>";
-	 when A_Net_Const =>
-	    C := Get_Init(E.V);
-	    Evaluate_Static(C, True, Val, St);
-	    if Is_Success(St) then
-	       Result := To_Pnml(Val);
-	       Free(Val);
-	    else
-	       raise Export_Exception;
-	    end if;
-	 when others =>
-	    raise Export_Exception;
-      end case;
-      return Result;
-   end;
-
    function Compile_Evaluation
      (E: in Var_Ref_Record;
       M: in Var_Mapping) return Ustring is

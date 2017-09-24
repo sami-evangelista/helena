@@ -656,28 +656,6 @@ package body Pn.Exprs.Bin_Ops is
               To_Helena(E.Right));
    end;
 
-   function To_Pnml
-     (E: in Bin_Op_Record) return Ustring is
-      Result: Ustring :=
-	"<subterm>" & To_Pnml(E.Left) & "</subterm>" &
-	"<subterm>" & To_Pnml(E.Right) & "</subterm>";
-      Op    : Ustring;
-   begin
-      case E.Op is
-         when And_Op    => Op := To_Ustring("and");
-	 when Eq_Op     => Op := To_Ustring("equality");
-	 when Neq_Op    => Op := To_Ustring("inequality");
-         when Or_Op     => Op := To_Ustring("or");
-         when Sup_Op    => Op := To_Ustring("greaterthan");
-         when Sup_Eq_Op => Op := To_Ustring("greaterthanorequal");
-         when Inf_Op    => Op := To_Ustring("lessthan");
-         when Inf_Eq_Op => Op := To_Ustring("lessthanorequal");
-	 when others => raise Export_Exception;
-      end case;
-      Result := "<" & Op & ">" & Result & "</" & Op & ">";
-      return Result;
-   end;
-
    function Compile_Evaluation
      (E: in Bin_Op_Record;
       M: in Var_Mapping) return Ustring is

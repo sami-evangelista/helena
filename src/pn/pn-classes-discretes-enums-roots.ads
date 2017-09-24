@@ -62,9 +62,6 @@ private
    function Colors_Used
      (C: in Enum_Root_Cls_Record) return Cls_Set;
 
-   function To_Pnml
-     (C: in Enum_Root_Cls_Record) return Ustring;
-
    function Get_Root_Values
      (E: in Enum_Root_Cls_Record) return Ustring_List;
 

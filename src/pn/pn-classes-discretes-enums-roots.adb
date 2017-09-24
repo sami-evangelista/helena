@@ -52,22 +52,6 @@ package body Pn.Classes.Discretes.Enums.Roots is
       return New_Cls_Set;
    end;
 
-   function To_Pnml
-     (C: in Enum_Root_Cls_Record) return Ustring is
-      Result: Ustring := Null_String;
-      Len   : constant Natural := String_List_Pkg.Length(C.Values);
-      Val   : Ustring;
-   begin
-      for I in 1..Len loop
-	 Val := String_List_Pkg.Ith(C.Values, I);
-	 Result := Result &
-	   "<feconstant " &
-	   "id=""C-" & C.Name & "-" & Val & """ " &
-	   "name=""" & Val & """>" & "</feconstant>";
-      end loop;
-      return "<finiteenumeration>" & Result & "</finiteenumeration>";
-   end;
-
    function Get_Root_Values
      (E: in Enum_Root_Cls_Record) return Ustring_List is
    begin

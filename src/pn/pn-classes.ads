@@ -97,9 +97,6 @@ package Pn.Classes is
    function Is_Container_Cls
      (C: access Cls_Record'Class) return Boolean;
 
-   function To_Pnml
-     (C: access Cls_Record'Class) return Ustring;
-
    procedure Compile
      (C  : access Cls_Record'Class;
       Lib: in     Library);

@@ -281,19 +281,6 @@ package body Pn.Exprs.Un_Ops is
       return To_Helena(E.Op) & " " & To_Helena(E.Right);
    end;
 
-   function To_Pnml
-     (E: in Un_Op_Record) return Ustring is
-      Result : Ustring := "<subterm>" & To_Pnml(E.Right) & "</subterm>";
-   begin
-      case E.Op is
-         when Pred_Op => Result := "<predecessor>" & Result & "</predecessor>";
-	 when Succ_Op => Result := "<successor>" & Result & "</successor>";
-         when Not_Op  => Result := "<not>" & Result & "</not>";
-         when others  => raise Export_Exception;
-      end case;
-      return Result;
-   end;
-
    function Compile_Evaluation
      (E: in Un_Op_Record;
       M: in Var_Mapping) return Ustring is

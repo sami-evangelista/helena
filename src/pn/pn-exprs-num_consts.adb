@@ -154,14 +154,6 @@ package body Pn.Exprs.Num_Consts is
       return To_Helena(E.Const);
    end;
 
-   function To_Pnml
-     (E: in Num_Const_Record) return Ustring is
-   begin
-      return
-	"<useroperator declaration=""C-" &
-	Get_Name(Get_True_Cls(E.Me)) & "-" & E.Const & """/>";
-   end;
-
    function Compile_Evaluation
      (E: in Num_Const_Record;
       M: in Var_Mapping) return Ustring is

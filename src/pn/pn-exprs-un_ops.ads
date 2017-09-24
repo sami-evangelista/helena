@@ -103,9 +103,6 @@ private
    function To_Helena
      (E: in Un_Op_Record) return Ustring;
 
-   function To_Pnml
-     (E: in Un_Op_Record) return Ustring;
-
    function Compile_Evaluation
      (E: in Un_Op_Record;
       M: in Var_Mapping) return Ustring;

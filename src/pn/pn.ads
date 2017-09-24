@@ -358,9 +358,6 @@ package Pn is
      (C     : in     Cls_Record;
       Parent: access Cls_Record'Class) return Boolean;
 
-   function To_Pnml
-     (C: in Cls_Record) return Ustring;
-
    procedure Compile_Type_Definition
      (C  : in Cls_Record;
       Lib: in Library) is abstract;
@@ -510,9 +507,6 @@ package Pn is
 
    function To_Helena
      (E: in Expr_Record) return Ustring is abstract;
-
-   function To_Pnml
-     (E: in Expr_Record) return Ustring;
 
    type Var_Expr is
       record

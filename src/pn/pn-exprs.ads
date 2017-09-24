@@ -130,9 +130,6 @@ package Pn.Exprs is
    function To_Helena
      (E: access Expr_Record'Class) return Ustring;
 
-   function To_Pnml
-     (E: access Expr_Record'Class) return Ustring;
-
    function Compile_Evaluation
      (E: access Expr_Record'Class) return Ustring;
 

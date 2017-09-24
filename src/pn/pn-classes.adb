@@ -196,12 +196,6 @@ package body Pn.Classes is
       return Is_Sub_Cls(C.all, Parent);
    end;
 
-   function To_Pnml
-     (C: access Cls_Record'Class) return Ustring is
-   begin
-      return To_Pnml(C.all);
-   end;
-
    procedure Compile
      (C  : access Cls_Record'Class;
       Lib: in     Library) is

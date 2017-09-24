@@ -439,38 +439,6 @@ package body Pn.Mappings is
       return Result;
    end;
 
-   function To_Pnml
-     (T: in Tuple) return Ustring_List is
-      Result: Ustring_List;
-      procedure Apply
-        (T      : in Tuple;
-         First  : in Card_Type;
-         Last   : in Card_Type;
-         Current: in Card_Type) is
-	 G  : constant Guard := Get_Guard(T);
-	 E  : constant Expr_List := Get_Expr_List(T);
-	 F  : constant Mult_Type := Get_Factor(T);
-	 Xml: Ustring := Null_String;
-      begin
-	 for I in 1..Length(E) loop
-	    Xml := Xml & "<subterm>" & To_Pnml(Ith(E, I)) & "</subterm>";
-	 end loop;
-	 if Length(E) > 1 then
-	    Xml := "<subterm><tuple>" & Xml & "</tuple></subterm>";
-	 end if;
-	 Xml :=
-	   "<subterm><numberof><subterm>" &
-	   "<numberconstant value=""" & F & """><positive/></numberconstant>" &
-	   "</subterm>" & Xml & "</numberof></subterm>";
-	 String_List_Pkg.Append(Result, Xml);
-      end;
-      procedure Tuple_Loop is new Generic_Unfold(Apply);
-   begin
-      Result := String_List_Pkg.Empty_Array;
-      Tuple_Loop(T);
-      return Result;
-   end;
-
    procedure Generic_Unfold
      (T: in Tuple) is
       procedure Dummy_Expr
@@ -1076,21 +1044,6 @@ package body Pn.Mappings is
          T := Ith(M, I);
          Result := Result & To_Helena(T);
       end loop;
-      return Result;
-   end;
-
-   function To_Pnml
-     (M: in Mapping) return Ustring is
-      Result: Ustring := Null_String;
-      L     : Ustring_List;
-   begin
-      for I in 1..Size(M) loop
-	 String_List_Pkg.Append(L, To_Pnml(Ith(M, I)));
-      end loop;
-      for I in 1..String_List_Pkg.Length(L) loop
-	 Result := Result & String_List_Pkg.Ith(L, I);
-      end loop;
-      Result := "<add>" & Result & "</add>";
       return Result;
    end;
 

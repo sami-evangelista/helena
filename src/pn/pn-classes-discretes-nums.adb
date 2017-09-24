@@ -249,27 +249,6 @@ package body Pn.Classes.Discretes.Nums is
       return Result;
    end;
 
-   function To_Pnml
-     (C: in Num_Cls_Record) return Ustring is
-      Result: Ustring := Null_String;
-      St    : Count_State;
-      Count : Card_Type;
-      Ex    : Expr;
-   begin
-      Card(C, Count, St);
-      if not Is_Success(St) then
-	 raise Export_Exception;
-      end if;
-      for I in 1..Count loop
-	 Ex := Ith_Value(C, I);
-	 Result := Result & "<feconstant " &
-	   "id=""C-" & C.Name & "-" & To_Helena(Ex) & """ " &
-	   "name=""" & To_Helena(Ex) & """>" & "</feconstant>";
-	 Free(Ex);
-      end loop;
-      return "<finiteenumeration>" & Result & "</finiteenumeration>";
-   end;
-
    function From_Num_Value
      (D: in Num_Cls_Record;
       N: in Num_Type) return Expr is

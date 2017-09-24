@@ -2,7 +2,6 @@ with
   Pn.Classes,
   Pn.Compiler,
   Pn.Exprs.Num_Consts,
-  Pn.Nets.Exporter,
   Pn.Nodes,
   Pn.Vars,
   Utils.Math;
@@ -11,7 +10,6 @@ use
   Pn.Classes,
   Pn.Compiler,
   Pn.Exprs.Num_Consts,
-  Pn.Nets.Exporter,
   Pn.Nodes,
   Pn.Vars,
   Utils.Math;
@@ -78,14 +76,6 @@ package body Pn.Nets is
       Name: in Ustring) is
    begin
       N.Name := Name;
-   end;
-
-   procedure To_Pnml
-     (N     : in     Net;
-      File  : in     String;
-      Result:    out Export_Result) is
-   begin
-      Exporter.To_Pnml(N, File, True, Result);
    end;
 
 

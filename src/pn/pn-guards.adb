@@ -63,16 +63,6 @@ package body Pn.Guards is
       end if;
    end;
 
-   function To_Pnml
-     (G: in Guard) return Ustring is
-   begin
-      if G /= null then
-         return To_Pnml(Expr(G));
-      else
-         return Null_String;
-      end if;
-   end;
-
    function Compile_Evaluation
      (G: in Guard) return Ustring is
    begin

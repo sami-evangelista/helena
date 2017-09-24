@@ -112,9 +112,6 @@ private
    function To_Helena
      (E: in Num_Const_Record) return Ustring;
 
-   function To_Pnml
-     (E: in Num_Const_Record) return Ustring;
-
    function Compile_Evaluation
      (E: in Num_Const_Record;
       M: in Var_Mapping) return Ustring;

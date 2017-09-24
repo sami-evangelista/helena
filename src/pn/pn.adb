@@ -113,13 +113,6 @@ package body Pn is
       return C.Me = Parent;
    end;
 
-   function To_Pnml
-     (C: in Cls_Record) return Ustring is
-   begin
-      raise Export_Exception;
-      return Null_String;
-   end;
-
 
 
    --==========================================================================
@@ -160,13 +153,6 @@ package body Pn is
       --  by default an expression does not generate any definition in the
       --  generated code
       null;
-   end;
-
-   function To_Pnml
-     (E: in Expr_Record) return Ustring is
-   begin
-      raise Export_Exception;
-      return Null_String;
    end;
 
 

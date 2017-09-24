@@ -36,9 +36,6 @@ package Pn.Guards is
    function To_Helena
      (G: in Guard) return Ustring;
 
-   function To_Pnml
-     (G: in Guard) return Ustring;
-
    function Compile_Evaluation
      (G: in Guard) return Ustring;
 
@@ -64,7 +61,7 @@ package Pn.Guards is
      (G     : in     Guard;
       B     : in     Binding;
       Result:    out Boolean;
-      State:    out Evaluation_State);
+      State :    out Evaluation_State);
 
    function Is_Static
      (G: in Guard) return Boolean;
