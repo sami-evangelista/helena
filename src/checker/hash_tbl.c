@@ -688,9 +688,18 @@ uint64_t hash_tbl_gc_real
     id = tbl->garbages[w][i];
     if(tbl->status[id] == BUCKET_READY && hash_tbl_get_garbage(tbl, id)) {  
       if(CAS(&tbl->update_status[id], BUCKET_READY, BUCKET_WRITE)) {
+
+        /**
+         *  the gc flag has been unset after I set it
+         */
         if(!hash_tbl_get_garbage(tbl, id)) {
           tbl->status[id] = BUCKET_READY;
         } else {
+
+          /**
+           *  delete the bucket
+           */
+          tbl->update_status[id] = BUCKET_READY;
           if(tbl->hash_compaction) {
             memset(tbl->hc_state + id * tbl->attrs_char_width,
                    0, tbl->attrs_char_width);
@@ -698,9 +707,23 @@ uint64_t hash_tbl_gc_real
             mem_free(tbl->heap, tbl->state[id]);
             tbl->state[id] = NULL;
           }
-          tbl->size[w] --;
           tbl->status[id] = BUCKET_DEL;
-          tbl->update_status[id] = BUCKET_READY;
+
+          /**
+           *  if the next bucket is empty then all deleted buckets
+           *  before this one can be also be set to empty
+           */
+          if(tbl->status[(id + 1) % tbl->hash_size] == BUCKET_EMPTY) {
+            while(tbl->status[id] == BUCKET_DEL) {
+              tbl->status[id] = BUCKET_EMPTY;
+              if(0 == id) {
+                id = tbl->hash_size - 1;
+              } else {
+                id --;
+              }
+            }
+          }
+          tbl->size[w] --;
           deleted ++;
         }
       }
@@ -724,7 +747,7 @@ uint64_t hash_tbl_gc_real
       tbl->garbages[w][j] = tbl->garbages[w][first_slot - j - 1];
     }
   }
-    
+
   tbl->no_garbages[w] -= scanned;
   hash_tbl_barrier(tbl);
   if(0 == w) {

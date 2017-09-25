@@ -162,6 +162,7 @@ typedef mevent_id_t event_id_t;
 
 typedef mevent_t event_t;
 #define event_is_dummy(e) FALSE
+#define event_free mevent_free
 #define event_copy mevent_copy
 #define event_copy_mem mevent_copy_mem
 #define event_exec mevent_exec
