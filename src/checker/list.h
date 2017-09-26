@@ -19,9 +19,9 @@ typedef struct struct_list_t * list_t;
 
 typedef struct struct_list_node_t * list_iter_t;
 
-typedef void (* list_node_free_func_t) (void *, heap_t);
-typedef void * (* list_node_copy_func_t) (void *);
-typedef void (* list_node_app_func_t) (void *, void *);
+typedef void (* list_free_func_t) (void *, heap_t);
+typedef char (* list_pred_func_t) (void *, void *);
+typedef void (* list_app_func_t) (void *, void *);
 
 
 /**
@@ -30,7 +30,7 @@ typedef void (* list_node_app_func_t) (void *, void *);
 list_t list_new
 (heap_t heap,
  uint32_t sizeof_item,
- list_node_free_func_t free_func);
+ list_free_func_t free_func);
 
 
 /**
@@ -67,7 +67,7 @@ void * list_nth
  */
 void list_app
 (list_t list,
- list_node_app_func_t app_func,
+ list_app_func_t app_func,
  void * data);
 
 
@@ -102,6 +102,24 @@ void list_pick_random
 (list_t list,
  void * item,
  rseed_t * seed);
+
+
+/**
+ *  @brief list_find
+ */
+void * list_find
+(list_t list,
+ list_pred_func_t pred_func,
+ void * find_data);
+
+
+/**
+ *  @brief list_filter
+ */
+void list_filter
+(list_t list,
+ list_pred_func_t pred_func,
+ void * filter_data);
 
 
 /**

@@ -26,16 +26,47 @@ package body Pn.Compiler.Por is
      (N  : in Net;
       Lib: in Library) is
       Prototype: constant String :=
-        "void mstate_stubborn_set (" & Nl &
-        "   mstate_t s," & Nl &
-        "   list_t en)";
+        "void mstate_stubborn_set" & Nl &
+	"(mstate_t s," & Nl &
+        " list_t en)";
    begin
       Plh(Lib, Prototype & ";");
+      Plc(Lib, "char is_safe_and_invisible(void * item, void * data) {");
+      Plc(Lib, 1, "mevent_t e = * (mevent_t *) item;");
+      Plc(Lib, 1, "if(TRANS_ID_is_safe(e.tid) && " &
+	    "!TRANS_ID_is_visible(e.tid)) { return TRUE; }");
+      Plc(Lib, 1, "else { return FALSE; }");
+      Plc(Lib, "}");
+      Plc(Lib, "char is_not_id(void * item, void * data) {");
+      Plc(Lib, 1, "mevent_t e = * (mevent_t *) item;");
+      Plc(Lib, 1, "mevent_id_t id = * (mevent_id_t *) data;");
+      Plc(Lib, 1, "if(e.id != id) { return TRUE; }");
+      Plc(Lib, 1, "else { return FALSE; }");
+      Plc(Lib, "}");
+      Plc(Lib, "char in_set_and_invisible(void * item, void * data) {");
+      Plc(Lib, 1, "mevent_t e = * (mevent_t *) item;");
+      Plc(Lib, 1, "if(TRANS_ID_safe_set(e.tid) > 0 && " &
+	    "!TRANS_ID_is_visible(e.tid)) { return TRUE; }");
+      Plc(Lib, 1, "else { return FALSE; }");
+      Plc(Lib, "}");
+      Plc(Lib, "char in_set_and_visible(void * item, void * data) {");
+      Plc(Lib, 1, "mevent_t e = * (mevent_t *) item;");
+      Plc(Lib, 1, "unsigned int set = * (unsigned int *) data;");
+      Plc(Lib, 1, "if(TRANS_ID_safe_set(e.tid) == set && " &
+	    "TRANS_ID_is_visible(e.tid)) { return TRUE; }");
+      Plc(Lib, 1, "else { return FALSE; }");
+      Plc(Lib, "}");
+      Plc(Lib, "char is_not_in_set(void * item, void * data) {");
+      Plc(Lib, 1, "mevent_t e = * (mevent_t *) item;");
+      Plc(Lib, 1, "unsigned int set = * (unsigned int *) data;");
+      Plc(Lib, 1, "if(TRANS_ID_safe_set(e.tid) != set) { return TRUE; }");
+      Plc(Lib, 1, "else { return FALSE; }");
+      Plc(Lib, "}");
       Plc(Lib, Prototype & " {");
       if not With_Priority(N) then
-	 Plc(Lib, 1, "list_t tmp, tmp2, tmp3, * last;");
-	 Plc(Lib, 1, "bool_t ok;");
-	 Plc(Lib, 1, "unsigned int size, set;");
+	 Plc(Lib, 1, "unsigned int set;");
+	 Plc(Lib, 1, "mevent_t e;");
+	 Plc(Lib, 1, "void * data;");
 	 Nlc(Lib);
 
 	 --===
@@ -44,59 +75,23 @@ package body Pn.Compiler.Por is
 	 --    2 - invisible
 	 --  the singleton composed of this transition is a valid stubborn set
 	 --===
-	 Plc(Lib, "/*");
-	 Plc(Lib, 1, "for (tmp = en->first; tmp; tmp = tmp->next) {");
-	 Plc(Lib, 2, "if (TRANS_ID_is_safe (tmp->e.tid) && " &
-	       "!TRANS_ID_is_visible (tmp->e.tid)) {");
-	 Plc(Lib, 3, "for (tmp2 = en->first; tmp2; tmp2 = tmp3) {");
-	 Plc(Lib, 4, "tmp3 = tmp2->next;");
-	 Plc(Lib, 4, "if (tmp != tmp2) {");
-	 Plc(Lib, 5, "mevent_free_mem (tmp2->e, en->heap);");
-	 Plc(Lib, 5, "mem_free (en->heap, tmp2);");
-	 Plc(Lib, 4, "}");
-	 Plc(Lib, 3, "}");
-	 Plc(Lib, 3, "tmp->next = NULL;");
-	 Plc(Lib, 3, "en->first = tmp;");
-	 Plc(Lib, 3, "en->size  = 1;");
-	 Plc(Lib, 3, "return;");
-	 Plc(Lib, 2, "}");
-	 Plc(Lib, 1, "}");
+	 Plc(Lib, 1, "if(data = list_find(en, is_safe_and_invisible, NULL)) {");
+	 Plc(Lib, 2, "e = * (mevent_t *) data;");
+	 Plc(Lib, 2, "list_filter(en, is_not_id, &e.id);");
+	 Plc(Lib, 1, "} else {");
 
 	 --===
 	 --  otherwise check if there is a safe set of invisible transitions
 	 --===
-	 Plc(Lib, 1, "for (tmp = en->first; tmp; tmp = tmp->next) {");
-	 Plc(Lib, 2, "if (TRANS_ID_safe_set (tmp->e.tid) > 0 && " &
-	       "!TRANS_ID_is_visible (tmp->e.tid)) {");
-	 Plc(Lib, 3, "ok  = TRUE;");
-	 Plc(Lib, 3, "set = TRANS_ID_safe_set (tmp->e.tid);");
-	 Plc(Lib, 3, "for (tmp2 = en->first; tmp2; tmp2 = tmp2->next) {");
-	 Plc(Lib, 4, "if (TRANS_ID_safe_set (tmp2->e.tid) == set && " &
-	       "TRANS_ID_is_visible (tmp2->e.tid)) {");
-	 Plc(Lib, 5, "ok = FALSE;");
-	 Plc(Lib, 4, "}");
-	 Plc(Lib, 3, "}");
-	 Plc(Lib, 3, "if (ok) {");
-	 Plc(Lib, 4, "last = &(en->first);");
-	 Plc(Lib, 4, "size = 0;");
-	 Plc(Lib, 4, "for (tmp2 = en->first; tmp2; tmp2 = tmp3) {");
-	 Plc(Lib, 5, "tmp3 = tmp2->next;");
-	 Plc(Lib, 5, "if (TRANS_ID_safe_set (tmp2->e.tid) != set) {");
-	 Plc(Lib, 6, "mevent_free_mem (tmp2->e, en->heap);");
-	 Plc(Lib, 6, "mem_free (en->heap, tmp2);");
-	 Plc(Lib, 5, "} else {");
-	 Plc(Lib, 6, "size ++;");
-	 Plc(Lib, 6, "*last = tmp2;");
-	 Plc(Lib, 6, "last = &(tmp2->next);");
-	 Plc(Lib, 5, "}");
-	 Plc(Lib, 4, "}");
-	 Plc(Lib, 4, "*last = NULL;");
-	 Plc(Lib, 4, "en->size = size;");
-	 Plc(Lib, 4, "return;");
+	 Plc(Lib, 2, "if(data = list_find(en, in_set_and_invisible, NULL)) {");
+	 Plc(Lib, 3, "e = * (mevent_t *) data;");
+	 Plc(Lib, 3, "set = TRANS_ID_safe_set(e.tid);");
+	 Plc(Lib, 3, "data = &set;");
+	 Plc(Lib, 3, "if(NULL == list_find(en, in_set_and_visible, data)) {");
+	 Plc(Lib, 4, "list_filter(en, is_not_in_set, data);");
 	 Plc(Lib, 3, "}");
 	 Plc(Lib, 2, "}");
 	 Plc(Lib, 1, "}");
-	 Plc(Lib, "*/");
       end if;
       Plc(Lib, "}");
    end;

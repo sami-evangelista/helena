@@ -728,7 +728,7 @@ package body Pn.Compiler.Enabling_Test is
       Plh(L, Prototype & ";");
       Plc(L, Prototype & " {");
       Plc(L, 1, "list_t result;");
-      Plc(L, 1, "uint16_t id = 0;");
+      Plc(L, 1, "mevent_id_t id = 0;");
       Plc(L, 1, "mevent_t e;");
       Plc(L, 1, "result = list_new(heap, sizeof(mevent_t), NULL);");
       Gen_Enabled_Events_Check(Post_Get_All_Enabled'Access);
@@ -749,7 +749,7 @@ package body Pn.Compiler.Enabling_Test is
       Prototype := To_Ustring
 	("mevent_t mstate_enabled_event_mem (" & Nl &
 	   "   mstate_t s," & Nl &
-	   "   uint16_t id," & Nl &
+	   "   mevent_id_t id," & Nl &
 	   "   heap_t heap)");
       Plh(L, Prototype & ";");
       Plc(L, Prototype & " {");

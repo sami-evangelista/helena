@@ -13,7 +13,7 @@ struct struct_list_t {
   list_size_t no_items;
   list_node_t first;
   list_node_t last;
-  list_node_free_func_t free_func;
+  list_free_func_t free_func;
   uint32_t sizeof_item;
 };
 
@@ -22,7 +22,7 @@ typedef struct struct_list_t struct_list_t;
 list_t list_new
 (heap_t heap,
  uint32_t sizeof_item,
- list_node_free_func_t free_func) {
+ list_free_func_t free_func) {
   list_t result;
 
   result = mem_alloc(heap, sizeof(struct_list_t));
@@ -78,7 +78,7 @@ void * list_nth
 
 void list_app
 (list_t list,
- list_node_app_func_t app_func,
+ list_app_func_t app_func,
  void * data) {
   list_node_t ptr = list->first, next;
 
@@ -177,6 +177,55 @@ void list_pick_random
   list->no_items --;
 }
 
+void * list_find
+(list_t list,
+ list_pred_func_t pred_func,
+ void * find_data) {
+  void * result = NULL;
+  list_node_t ptr = list->first;
+
+  while(ptr && !result) {
+    if(pred_func(ptr->item, find_data)) {
+      result = ptr->item;
+    }
+    ptr = ptr->next;
+  }
+  return result;
+}
+
+void list_filter
+(list_t list,
+ list_pred_func_t pred_func,
+ void * filter_data) {
+  list_node_t ptr = list->first, next, prev;
+
+  prev = NULL;
+  while(ptr) {
+    next = ptr->next;
+    if(!pred_func(ptr->item, filter_data)) {
+      prev = ptr;
+    } else {
+      if(prev) {
+	prev->next = next;
+	if(next) {
+	  next->prev = prev;
+	} else {
+	  list->last = prev;
+	}
+      } else {
+	list->first = next;
+	if(next) {
+	  next->prev = NULL;
+	}
+      }
+      mem_free(list->heap, ptr->item);
+      mem_free(list->heap, ptr);
+      list->no_items --;
+    }
+    ptr = next;
+  }
+}
+
 list_iter_t list_get_iterator
 (list_t l) {
   return l->first;
@@ -190,9 +239,9 @@ list_iter_t list_iterator_next
 char list_iterator_at_end
 (list_iter_t it) {
   if(it) {
-    return FALSE;
+    return 0;
   } else {
-    return TRUE;
+    return 1;
   }
 }
 

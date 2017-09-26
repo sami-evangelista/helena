@@ -158,8 +158,10 @@ package body Pn.Compiler.Event is
 	 end loop;
       end loop;
       --=======================================================================
+      Plh(L, "typedef uint16_t mevent_id_t;");
+      --=======================================================================
       Plh(L, "typedef struct {");
-      Plh(L, 1, "uint16_t id;");
+      Plh(L, 1, "mevent_id_t id;");
       Plh(L, 1, "tr_id_t tid;");
       Plh(L, 1, "void * c;");
       Plh(L, 1, "heap_t h;");

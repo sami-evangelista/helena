@@ -679,7 +679,7 @@ state_t delta_ddd_expand_dfs
   state_t t;
   event_t e;
   event_id_t e_id;
-  event_set_t en;
+  event_list_t en;
   unsigned int en_size, i;
   worker_id_t x, y;
   uint32_t size;
@@ -701,7 +701,7 @@ state_t delta_ddd_expand_dfs
       }
     }
 #endif
-    en_size = event_set_size(en);
+    en_size = event_list_size(en);
     if(0 == en_size) {
       context_incr_dead(w, 1);
     }
