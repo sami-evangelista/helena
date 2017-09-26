@@ -170,6 +170,14 @@ bool_t hash_tbl_get_cyan
 
 
 /**
+ * @brief hash_tbl_get_any_cyan
+ */
+bool_t hash_tbl_get_any_cyan
+(hash_tbl_t tbl,
+ hash_tbl_id_t id);
+
+
+/**
  * @brief hash_tbl_set_blue
  */
 void hash_tbl_set_blue
@@ -223,6 +231,23 @@ bool_t hash_tbl_get_red
 
 
 /**
+ * @brief hash_tbl_set_expanded
+ */
+void hash_tbl_set_expanded
+(hash_tbl_t tbl,
+ hash_tbl_id_t id,
+ bool_t expanded);
+
+
+/**
+ * @brief hash_tbl_get_expanded
+ */
+bool_t hash_tbl_get_expanded
+(hash_tbl_t tbl,
+ hash_tbl_id_t id);
+
+
+/**
  * @brief hash_tbl_set_garbage
  */
 void hash_tbl_set_garbage
@@ -267,10 +292,11 @@ void hash_tbl_gc_all
 
 
 /**
- * @brief hash_tbl_barrier
+ * @brief hash_tbl_gc_barrier
  */
-void hash_tbl_barrier
-(hash_tbl_t tbl);
+void hash_tbl_gc_barrier
+(hash_tbl_t tbl,
+ worker_id_t w);
 
 
 /**
@@ -320,5 +346,24 @@ void hash_tbl_set_heap
 bool_t hash_tbl_has_attr
 (hash_tbl_t tbl,
  uint32_t attr);
+
+
+/**
+ * @brief hash_tbl_set_pred
+ */
+void hash_tbl_set_pred
+(hash_tbl_t tbl,
+ hash_tbl_id_t id,
+ bool_t pred_ok,
+ hash_tbl_id_t pred,
+ uint8_t evt);
+
+
+/**
+ * @brief hash_tbl_create_trace
+ */
+void hash_tbl_create_trace
+(hash_tbl_t tbl,
+ hash_tbl_id_t id);
 
 #endif

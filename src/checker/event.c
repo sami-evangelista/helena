@@ -50,11 +50,8 @@ void event_undo
 void event_to_xml
 (event_t e,
  FILE * f) {
-  if(!e.dummy) {
-    mevent_to_xml(e.m, f);
-  } else {
-    fatal_error("event_to_xml: called with dummy event");
-  }
+  assert(!e.dummy);
+  mevent_to_xml(e.m, f);
 }
 
 unsigned int event_char_width
@@ -77,85 +74,68 @@ order_t event_cmp
 bool_t event_are_independent
 (event_t e,
  event_t f) {
-  fatal_error("event_are_independent: unimplemented feature");
+  /*  not implemented  */
+  assert(0);
 }
 
-void event_set_free
-(event_set_t en) {
-  mevent_set_free(en->m);
+void event_list_free
+(event_list_t en) {
+  mevent_list_free(en->m);
   mem_free(en->heap, en->b);
   mem_free(en->heap, en);
 }
 
-unsigned int event_set_size
-(event_set_t en) {
+unsigned int event_list_size
+(event_list_t en) {
   if(en->b_size == 0) {
     return 0;
   }
-  if(mevent_set_size(en->m) == 0) {
+  if(mevent_list_size(en->m) == 0) {
     return en->b_size;
   }
-  return mevent_set_size(en->m) * en->b_size;
+  return mevent_list_size(en->m) * en->b_size;
 }
 
-event_t event_set_nth
-(event_set_t en,
+event_t event_list_nth
+(event_list_t en,
  unsigned int n) {
   event_t result;
-  if(en->b_size == 0) {
-    fatal_error("event_set_nth: empty set");
-  }
-  if(mevent_set_size(en->m) == 0) {
+  
+  assert(en->b_size > 0);
+  if(mevent_list_size(en->m) == 0) {
     result.dummy = TRUE;
     result.b = en->b[n];
   } else {
     result.dummy = FALSE;
-    result.m = mevent_set_nth(en->m, n / en->b_size);
+    result.m = mevent_list_nth(en->m, n / en->b_size);
     result.b = en->b[n % en->b_size];
   }
   return result;
 }
 
-event_id_t event_set_nth_id
-(event_set_t en,
- unsigned int n) {
-  event_id_t result;
-  if(en->b_size == 0) {
-    fatal_error("event_set_nth_id: empty set");
-  }
-  if(mevent_set_size(en->m) == 0) {
-    result.dummy = TRUE;
-    result.b = n;
-  } else {
-    result.dummy = FALSE;
-    result.m = mevent_set_nth_id(en->m, n / en->b_size);
-    result.b = n % en->b_size;
-  }
-  return result;
-}
-
-void event_set_serialise
-(event_set_t en,
+void event_list_serialise
+(event_list_t en,
  bit_vector_t v) {
   unsigned int bs = en->b_size * sizeof(bevent_t);
+  
   v[0] = en->b_size;
   if(bs) {
     memcpy(v + 1, en->b, bs);
   }
-  mevent_set_serialise(en->m, v + 1 + bs);
+  mevent_list_serialise(en->m, v + 1 + bs);
 }
 
-event_set_t event_set_unserialise
+event_list_t event_list_unserialise
 (bit_vector_t v) {
-  return event_set_unserialise_mem(v, SYSTEM_HEAP);
+  return event_list_unserialise_mem(v, SYSTEM_HEAP);
 }
 
-unsigned int event_set_char_width
-(event_set_t en) {
-  return 1 +(en->b_size * sizeof(bevent_t)) + mevent_set_char_width(en->m);
+unsigned int event_list_char_width
+(event_list_t en) {
+  return 1 +(en->b_size * sizeof(bevent_t)) + mevent_list_char_width(en->m);
 }
 
-event_set_t state_enabled_events
+event_list_t state_enabled_events
 (state_t s) {
   return state_enabled_events_mem(s, SYSTEM_HEAP);
 }
@@ -168,7 +148,7 @@ event_t state_enabled_event
 
 void state_stubborn_set
 (state_t s,
- event_set_t en) {
+ event_list_t en) {
   mstate_stubborn_set(s->m, en->m);
 }
 
@@ -200,26 +180,26 @@ event_t event_unserialise_mem
   return result;
 }
 
-event_set_t event_set_unserialise_mem
+event_list_t event_list_unserialise_mem
 (bit_vector_t v,
  heap_t heap) {
-  event_set_t result = mem_alloc(heap, sizeof(struct_event_set_t));
+  event_list_t result = mem_alloc(heap, sizeof(struct_event_list_t));
   unsigned int bs;
   result->heap = heap;
   result->b_size = v[0];
   bs = result->b_size * sizeof(bevent_t);
   result->b = mem_alloc(heap, sizeof(bevent_t) * result->b_size);
   memcpy(result->b, v + 1, bs);
-  result->m = mevent_set_unserialise_mem(v + 1 + bs, heap);
+  result->m = mevent_list_unserialise_mem(v + 1 + bs, heap);
   return result;
 }
 
-event_set_t state_enabled_events_mem
+event_list_t state_enabled_events_mem
 (state_t s,
  heap_t heap) {
   bstate_t succs[256];
   unsigned int i;
-  event_set_t result = mem_alloc(heap, sizeof(struct_event_set_t));
+  event_list_t result = mem_alloc(heap, sizeof(struct_event_list_t));
   result->heap = heap;
   result->m = mstate_enabled_events_mem(s->m, heap);
   bstate_succs(s->b, s->m, &succs[0], &(result->b_size));

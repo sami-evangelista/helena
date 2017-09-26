@@ -46,8 +46,7 @@ void context_set_termination_state
 (termination_state_t state);
 
 void context_set_trace
-(uint32_t trace_len,
- event_t * trace);
+(list_t trace);
 
 uint64_t context_visited
 ();

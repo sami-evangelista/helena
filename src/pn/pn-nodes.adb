@@ -296,44 +296,4 @@ package body Pn.Nodes is
       end loop;
    end;
 
-   function Get_Module
-     (N: access Node_Record'Class) return Natural is
-      Sep   : constant Char_Set := ('_' => True, others => False);
-      L     : constant Unbounded_String_Array :=
-	Utils.Strings.Split(To_String(N.Name), Sep);
-      function Ith
-	(I: in Natural) return String is
-      begin
-	 return To_String(L(L'First + I - 1));
-      end;
-   begin
-      if Ith(1) = "P" or Ith(1) = "T" then
-	 return Natural'Value(Ith(2));
-      end if;
-      return 0;
-   exception
-      when Constraint_Error =>
-	 return 0;
-   end;
-
-   function Get_Fusion_Set
-     (N: access Node_Record'Class) return Integer is
-      Sep   : constant Char_Set := ('_' => True, others => False);
-      L     : constant Unbounded_String_Array :=
-	Utils.Strings.Split(To_String(N.Name), Sep);
-      function Ith
-	(I: in Natural) return String is
-      begin
-	 return To_String(L(L'First + I - 1));
-      end;
-   begin
-      if Ith(1) = "T" and Ith(3) = "F" then
-	 return Natural'Value(Ith(4));
-      end if;
-      return -1;
-   exception
-      when Constraint_Error =>
-	 return -1;
-   end;
-
 end Pn.Nodes;

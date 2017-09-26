@@ -157,6 +157,11 @@ class Config:
         self.propositions = []
         self.parameters = []
         self.ddfsCommStrat = []
+        self.bfsQueueBlockSize = 10
+        self.dfsStackBlockSize = 10
+        self.rwalkMaxDepth = 1000
+        self.stateCachingGcThreshold = 50
+        self.stateCachingGcRatio = 0.01
 
     #  correct inconsistencies in received arguments
     def correct(self):
@@ -179,6 +184,7 @@ class Config:
             self.partialOrder = False
         elif self.algo == FRONTIER:
             self.stateCaching = False
+            self.traceType = STATE
         elif self.algo == DELTA_DDD:
             self.stateCaching = False
             self.hashCompaction = False
@@ -192,6 +198,7 @@ class Config:
         elif self.algo == DBFS:
             self.partialOrder = False
             self.stateCaching = False
+            self.traceType = STATE
 
     def openFile(self, name, mode):
         if self.directory is None:
@@ -265,8 +272,10 @@ class Config:
           str(self.candidateSetSize) + "\n")
 
         #  state caching
-        W("#define CFG_STATE_CACHING_GC_THRESHOLD 50\n")
-        W("#define CFG_STATE_CACHING_GC_RATIO     0.01\n")
+        W("#define CFG_STATE_CACHING_GC_THRESHOLD " + \
+          str(self.stateCachingGcThreshold) + "\n")
+        W("#define CFG_STATE_CACHING_GC_RATIO " + \
+          str(self.stateCachingGcRatio) + "     0.01\n")
         if self.stateCaching:
             W("#define CFG_STATE_CACHING\n")
 
@@ -325,8 +334,12 @@ class Config:
             W("#define CFG_DISTRIBUTED\n")
 
         #  other parameters
-        W("#define CFG_BFS_QUEUE_BLOCK_SIZE 100\n")
-        W("#define CFG_DFS_STACK_BLOCK_SIZE 100\n")
+        W("#define CFG_BFS_QUEUE_BLOCK_SIZE " + \
+          str(self.bfsQueueBlockSize) + "\n")
+        W("#define CFG_DFS_STACK_BLOCK_SIZE " + \
+          str(self.dfsStackBlockSize) + "\n")
+        W("#define CFG_RWALK_MAX_DEPTH " + \
+          str(self.rwalkMaxDepth) + "\n")          
 
         W("\n#endif  /*  LIB_CONFIG  */\n")
         f.close()

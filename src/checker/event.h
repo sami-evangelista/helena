@@ -12,6 +12,8 @@
 #include "heap.h"
 #include "prop.h"
 #include "state.h"
+#include "mevent_list.h"
+
 
 #if defined(CFG_ACTION_CHECK_LTL)
 
@@ -21,7 +23,7 @@
 
 typedef struct {
   bool_t dummy;
-  mevent_id_t  m;
+  uint8_t m;
   uint8_t b;
 } event_id_t;
 
@@ -32,12 +34,13 @@ typedef struct {
 } event_t;
 
 typedef struct {
-  mevent_set_t m;
+  mevent_list_t m;
   bevent_t * b;
   unsigned int b_size;
   heap_t heap;
-} struct_event_set_t;
-typedef struct_event_set_t * event_set_t;
+} struct_event_list_t;
+
+typedef struct_event_list_t * event_list_t;
 
 bool_t event_is_dummy
 (event_t e);
@@ -86,38 +89,34 @@ bool_t event_are_independent
 (event_t e,
  event_t f);
 
-void event_set_free
-(event_set_t en);
+void event_list_free
+(event_list_t en);
 
-event_t event_set_nth
-(event_set_t en,
+event_t event_list_nth
+(event_list_t en,
  unsigned int n);
 
-event_id_t event_set_nth_id
-(event_set_t en,
- unsigned int n);
+unsigned int event_list_size
+(event_list_t en);
 
-unsigned int event_set_size
-(event_set_t en);
-
-void event_set_serialise
-(event_set_t en,
+void event_list_serialise
+(event_list_t en,
  bit_vector_t v);
 
-event_set_t event_set_unserialise
+event_list_t event_list_unserialise
 (bit_vector_t v);
 
-event_set_t event_set_unserialise_mem
+event_list_t event_list_unserialise_mem
 (bit_vector_t v,
  heap_t heap);
 
-unsigned int event_set_char_width
-(event_set_t en);
+unsigned int event_list_char_width
+(event_list_t en);
 
-event_set_t state_enabled_events
+event_list_t state_enabled_events
 (state_t s);
 
-event_set_t state_enabled_events_mem
+event_list_t state_enabled_events_mem
 (state_t s,
  heap_t heap);
 
@@ -132,7 +131,7 @@ event_t state_enabled_event_mem
 
 void state_stubborn_set
 (state_t s,
- event_set_t en);
+ event_list_t en);
 
 state_t state_succ
 (state_t s,
@@ -158,9 +157,11 @@ state_t state_pred_mem
  *  event definition when not doing LTL model checking
  */
 
-typedef mevent_id_t event_id_t;
 
 typedef mevent_t event_t;
+typedef uint8_t event_id_t;
+typedef mevent_list_t event_list_t;
+
 #define event_is_dummy(e) FALSE
 #define event_free mevent_free
 #define event_copy mevent_copy
@@ -174,15 +175,16 @@ typedef mevent_t event_t;
 #define event_cmp mevent_cmp
 #define event_are_independent mevent_are_independent
 
-typedef mevent_set_t event_set_t;
-#define event_set_free mevent_set_free
-#define event_set_nth mevent_set_nth
-#define event_set_nth_id mevent_set_nth_id
-#define event_set_size mevent_set_size
-#define event_set_serialise mevent_set_serialise
-#define event_set_unserialise mevent_set_unserialise
-#define event_set_char_width mevent_set_char_width
-#define event_set_filter mevent_set_filter
+#define event_list_size mevent_list_size
+#define event_list_free mevent_list_free
+#define event_list_append mevent_list_append
+#define event_list_pick_random mevent_list_pick_random
+#define event_list_pick_first mevent_list_pick_first
+#define event_list_is_empty mevent_list_is_empty
+#define event_list_char_width mevent_list_char_width
+#define event_list_serialise mevent_list_serialise
+#define event_list_unserialise mevent_list_unserialise
+#define event_list_unserialise_mem mevent_list_unserialise_mem
 
 #define state_enabled_events mstate_enabled_events
 #define state_enabled_event mstate_enabled_event
@@ -192,14 +194,12 @@ typedef mevent_set_t event_set_t;
 
 #if defined(CFG_USE_HELENA_HEAPS)
 #define event_unserialise_mem mevent_unserialise_mem
-#define event_set_unserialise_mem mevent_set_unserialise_mem
 #define state_enabled_events_mem mstate_enabled_events_mem
 #define state_enabled_event_mem mstate_enabled_event_mem
 #define state_succ_mem mstate_succ_mem
 #define state_pred_mem mstate_pred_mem
 #else
 #define event_unserialise_mem(v, heap) mevent_unserialise (v)
-#define event_set_unserialise_mem(v, heap) mevent_set_unserialise (v)
 #define state_enabled_events_mem(s, heap) mstate_enabled_events (s)
 #define state_enabled_event_mem(s, heap) mstate_enabled_event (s)
 #define state_succ_mem(s, e, heap) mstate_succ (s, e)

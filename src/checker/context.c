@@ -17,8 +17,8 @@ typedef struct {
    */
   bool_t faulty_state_found;
   state_t faulty_state;
-  event_t * trace;
-  unsigned int trace_len;
+  list_t trace;
+  pthread_mutex_t ctx_mutex;
 
   /*
    *  statistics field
@@ -98,7 +98,6 @@ void context_init
   CTX->storage = storage_new();
   CTX->faulty_state_found = FALSE;
   CTX->trace = NULL;
-  CTX->trace_len = 0;
   CTX->error_msg = NULL;
   CTX->errors = 0;
   CTX->keep_searching = TRUE;
@@ -123,35 +122,37 @@ void context_init
   CTX->observer = NULL;
 #endif
   CTX->workers = mem_alloc(SYSTEM_HEAP, sizeof(pthread_t) * CTX->no_workers);
+  pthread_mutex_init(&CTX->ctx_mutex, NULL);
 }
 
 
-
-/*****
- *
- *  Function: context_output_trace
- *
- *****/
 void context_output_trace
 (FILE * out) {
+  event_t e;
   unsigned int i = 0;
   state_t s = state_initial();
-  
+  list_size_t l;
+
   state_to_xml(s, out);
-  for(i = 0; i < CTX->trace_len; i ++) {
-    if(!event_is_dummy(CTX->trace[i])) {
-      event_to_xml(CTX->trace[i], out);
-      event_exec(CTX->trace[i], s);
+  if(CTX->trace) {
+    l = list_size(CTX->trace);
+    while(!list_is_empty(CTX->trace)) {
+      list_pick_first(CTX->trace, &e);
+      if(!event_is_dummy(CTX->trace[i])) {
+        event_to_xml(e, out);
+        event_exec(e, s);
 #if defined(CFG_TRACE_FULL)
-      state_to_xml(s, out);
+        state_to_xml(s, out);
 #endif
+      }
+      event_free(e);
     }
-  }
 #if defined(CFG_TRACE_EVENTS)
-  if(CTX->trace_len > 0) {
-    state_to_xml(s, out);
-  }
+    if(l > 0) {
+      state_to_xml(s, out);
+    }
 #endif
+  }
   state_free(s);
 }
 
@@ -408,7 +409,8 @@ void context_finalise
 
   /**
    *  in distributed mode the context file must be printed to the
-   *  standard output so that it can be sent to the main process
+   *  standard output so that it can be sent to the main process.  we
+   *  prefix each line with [xml-PID]
    */
 #if defined(CFG_DISTRIBUTED)
   out = fopen(file_name, "r");
@@ -436,14 +438,12 @@ void context_finalise
   }
   free(CTX->workers);
   if(CTX->trace) {
-    for(i = 0; i < CTX->trace_len; i ++) {
-      event_free(CTX->trace[i]);
-    }
-    free(CTX->trace);
+    list_free(CTX->trace);
   }
   if(CTX->faulty_state_found) {
     state_free(CTX->faulty_state);
   }
+  pthread_mutex_destroy(&CTX->ctx_mutex);
   free(CTX);
 }
 
@@ -475,10 +475,14 @@ void context_stop_search
 
 void context_faulty_state
 (state_t s) {
-  CTX->faulty_state = state_copy(s);
-  CTX->keep_searching = FALSE;
-  CTX->term_state = FAILURE;
-  CTX->faulty_state_found = TRUE;
+  if(CTX->keep_searching) {
+    pthread_mutex_lock(&CTX->ctx_mutex);
+    CTX->faulty_state = state_copy(s);
+    CTX->keep_searching = FALSE;
+    CTX->term_state = FAILURE;
+    CTX->faulty_state_found = TRUE;
+    pthread_mutex_unlock(&CTX->ctx_mutex);
+  }
 }
 
 storage_t context_storage
@@ -507,9 +511,7 @@ void context_set_termination_state
 }
 
 void context_set_trace
-(uint32_t trace_len,
- event_t * trace) {
-  CTX->trace_len = trace_len;
+(list_t trace) {
   CTX->trace = trace;
 }
 

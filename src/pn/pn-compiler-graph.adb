@@ -44,7 +44,7 @@ package body Pn.Compiler.Graph is
 	    "((ptr_mevent_t) f)->e);");
       Plc(L, "}");
       Plc(L, "void ptr_mevent_free (harray_value_t e) {");
-      Plc(L, 1, "mevent_free_mem (((ptr_mevent_t) e)->e, SYSTEM_HEAP);");
+      Plc(L, 1, "mevent_free (((ptr_mevent_t) e)->e);");
       Plc(L, 1, "mem_free (SYSTEM_HEAP, e);");
       Plc(L, "}");
       Plc(L, "void ptr_mevent_to_xml (harray_key_t k, harray_value_t e," &
@@ -300,14 +300,14 @@ package body Pn.Compiler.Graph is
       Plc(L, 1, "hash_key_t h;");
       Plc(L, 1, "bool_t b;");
       Plc(L, 1, "hash_tbl_id_t id;");
-      Plc(L, 1, "mevent_set_t en = mstate_enabled_events (s);");
-      Plc(L, 1, "if (mevent_set_size (en) == 0) {");
-      Plc(L, 2, "if (data->no_dead < MAX_DEAD) {");
+      Plc(L, 1, "list_t en = mstate_enabled_events(s);");
+      Plc(L, 1, "if(list_is_empty(en)) {");
+      Plc(L, 2, "if(data->no_dead < MAX_DEAD) {");
       Plc(L, 3, "data->dead[data->no_dead] = mstate_copy (s);");
       Plc(L, 2, "}");
       Plc(L, 2, "data->no_dead ++;");
       Plc(L, 1, "}");
-      Plc(L, 1, "mevent_set_free (en);");
+      Plc(L, 1, "list_free (en);");
       for I in 1..P_Size(N) loop
 	 P := Ith_Place(N, I);
 	 C := State_Component_Name(P);

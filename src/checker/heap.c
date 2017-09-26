@@ -48,11 +48,7 @@ void * bounded_heap_mem_alloc
  mem_size_t size) {
   void * result;
 
-  if(heap->next + size > heap->size) {
-    char msg[100];
-    sprintf(msg, "bounded heap \"%s\" too small", heap->name);
-    fatal_error(msg);
-  }
+  assert(heap->next + size <= heap->size);
   result = heap->ptr + heap->next;
   heap->next += size;
   return result;
@@ -184,19 +180,19 @@ void * evergrowing_heap_mem_free
 
 void * evergrowing_heap_get_position
 (evergrowing_heap_t heap) {
-  fatal_error("evergrowing_heap_get_position: impossible operation");
+  assert(0);
   return NULL;
 }
 
 void evergrowing_heap_set_position
 (evergrowing_heap_t heap,
  void * pos) {
-  fatal_error("evergrowing_heap_set_position: impossible operation");
+  assert(0);
 }
 
 mem_size_t evergrowing_heap_space_left
 (evergrowing_heap_t heap) {
-  fatal_error("evergrowing_heap_space_left: impossible operation");
+  assert(0);
 }
 
 bool_t evergrowing_heap_has_mem_free

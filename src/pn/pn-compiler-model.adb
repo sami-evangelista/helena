@@ -50,7 +50,6 @@ package body Pn.Compiler.Model is
 	 State_Lib,
 	 Mappings_Lib,
 	 Event_Lib,
-	 Event_Set_Lib,
 	 Enabling_Test_Lib,
 	 Por_Lib);
       Comment  : constant String :=

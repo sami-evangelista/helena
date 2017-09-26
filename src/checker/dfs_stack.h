@@ -97,7 +97,7 @@ state_t dfs_stack_top_state
 /**
  * @brief Return enabled events of the state on top of the stack.
  */
-event_set_t dfs_stack_top_events
+event_list_t dfs_stack_top_events
 (dfs_stack_t stack);
 
 
@@ -107,7 +107,7 @@ event_set_t dfs_stack_top_events
  *        stack
  * @param filter - TRUE if enabled events are filtered according to POR
  */
-event_set_t dfs_stack_compute_events
+event_list_t dfs_stack_compute_events
 (dfs_stack_t stack,
  state_t s,
  bool_t filter);
@@ -115,13 +115,10 @@ event_set_t dfs_stack_compute_events
 
 /**
  * @brief Pick the next enabled event of the state on top of the stack.
- * @param e - the resulting event
- * @param eid - its number in the enabled event list of the state
  */
 void dfs_stack_pick_event
 (dfs_stack_t stack,
- event_t * e,
- event_id_t * eid);
+ event_t * e);
 
 
 /**

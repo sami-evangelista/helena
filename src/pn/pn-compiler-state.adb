@@ -769,41 +769,6 @@ package body Pn.Compiler.State is
 	       State_Component_Name(P) & ");");
       end loop;
       Plc(L, "}");
-      --=======================================================================
-      Prototype := To_Ustring
-	("void mstate_reset_other_modules (" & Nl &
-	   "   mstate_t s," & Nl &
-	   "   uint32_t mod)");
-      Plh(L, Prototype & ";");
-      Plc(L, Prototype & " {");
-      Plc(L, 1, "switch(mod) {");
-      declare
-	 Modules: constant Natural_Set_Pkg.Set_Type := Get_Modules(N);
-	 M      : Natural;
-      begin
-	 for I in 1..Natural_Set_Pkg.Card(Modules) loop
-	    M := Natural_Set_Pkg.Ith(Modules, I);
-	    Plc(L, 1, "case " & M & ": {");
-	    for J in 1..P_Size(N) loop
-	       P := Ith_Place(N, J);
-	       if Get_Module(P) /= M then
-		  Plc(L, 2, "if (!(" & Local_State_Is_Empty_Func(P) &
-			"(s->" & State_Component_Name(P) & "))) {" &
-			Local_State_Free_Func(P) & "(s->" &
-			State_Component_Name(P) & "); }");
-		  Plc(L, 2, Local_State_Init_Func(P) & "(s->" &
-			State_Component_Name(P) & ", s->heap);");
-	       end if;
-	    end loop;
-	    Plc(L, 2, "break;");
-	    Plc(L, 1, "}");
-	 end loop;
-      end;
-      Plc(L, 1, "default:");
-      Plc(L, 2, "fatal_error (""mstate_reset_other_modules: invalid mod"");");
-      Plc(L, 2, "break;");
-      Plc(L, 1, "}");
-      Plc(L, "}");
    end;
 
 

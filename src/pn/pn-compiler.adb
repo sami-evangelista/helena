@@ -11,7 +11,6 @@ with
   Pn.Compiler.Domains,
   Pn.Compiler.Enabling_Test,
   Pn.Compiler.Event,
-  Pn.Compiler.Event_Set,
   Pn.Compiler.Funcs,
   Pn.Compiler.Graph,
   Pn.Compiler.Interfaces,
@@ -34,7 +33,6 @@ use
   Pn.Compiler.Domains,
   Pn.Compiler.Enabling_Test,
   Pn.Compiler.Event,
-  Pn.Compiler.Event_Set,
   Pn.Compiler.Funcs,
   Pn.Compiler.Graph,
   Pn.Compiler.Interfaces,
@@ -89,7 +87,6 @@ package body Pn.Compiler is
       Funcs.Gen(N, Path);
       State.Gen(N, Path);
       Event.Gen(N, Path);
-      Event_Set.Gen(N, Path);
       Mappings.Gen(N, Path);
       Enabling_Test.Gen(N, Path);
       Por.Gen(N, Path);
@@ -105,7 +102,6 @@ package body Pn.Compiler is
       Put_Line(F, State_Lib);
       Put_Line(F, Mappings_Lib);
       Put_Line(F, Event_Lib);
-      Put_Line(F, Event_Set_Lib);
       Put_Line(F, Enabling_Test_Lib);
       Put_Line(F, Por_Lib);
       Put_Line(F, Model_Lib);

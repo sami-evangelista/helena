@@ -89,9 +89,7 @@ bool_t harray_insert
       break;
     }
     }
-    if (loop && pos == fst_pos) {
-      fatal_error ("harray_insert: resizing not implemented");
-    }
+    assert(!loop || pos != fst_pos);
   }
   return result;
 }
@@ -99,7 +97,8 @@ bool_t harray_insert
 void harray_delete
 (harray_t       harray,
  harray_value_t val) {
-  fatal_error ("harray_delete: function not implemented");
+  /*  not implemented  */
+  assert(0);
 }
 
 harray_value_t harray_lookup

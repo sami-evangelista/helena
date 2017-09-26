@@ -28,12 +28,12 @@ package body Pn.Compiler.Por is
       Prototype: constant String :=
         "void mstate_stubborn_set (" & Nl &
         "   mstate_t s," & Nl &
-        "   mevent_set_t en)";
+        "   list_t en)";
    begin
       Plh(Lib, Prototype & ";");
       Plc(Lib, Prototype & " {");
       if not With_Priority(N) then
-	 Plc(Lib, 1, "mevent_list_t tmp, tmp2, tmp3, * last;");
+	 Plc(Lib, 1, "list_t tmp, tmp2, tmp3, * last;");
 	 Plc(Lib, 1, "bool_t ok;");
 	 Plc(Lib, 1, "unsigned int size, set;");
 	 Nlc(Lib);
@@ -44,6 +44,7 @@ package body Pn.Compiler.Por is
 	 --    2 - invisible
 	 --  the singleton composed of this transition is a valid stubborn set
 	 --===
+	 Plc(Lib, "/*");
 	 Plc(Lib, 1, "for (tmp = en->first; tmp; tmp = tmp->next) {");
 	 Plc(Lib, 2, "if (TRANS_ID_is_safe (tmp->e.tid) && " &
 	       "!TRANS_ID_is_visible (tmp->e.tid)) {");
@@ -95,6 +96,7 @@ package body Pn.Compiler.Por is
 	 Plc(Lib, 3, "}");
 	 Plc(Lib, 2, "}");
 	 Plc(Lib, 1, "}");
+	 Plc(Lib, "*/");
       end if;
       Plc(Lib, "}");
    end;

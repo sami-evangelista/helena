@@ -101,7 +101,7 @@ void bfs_terminate_level
    *  level that were marked as garbage by the storage_remove calls
    */
 #if defined(CFG_ALGO_FRONTIER)
-  hash_tbl_gc_all(S, w);
+  storage_gc_all(S, w);
 #endif
 }
 
@@ -117,20 +117,19 @@ void * bfs_worker
   const worker_id_t w = (worker_id_t) (unsigned long int) arg;
   const bool_t states_in_queue = bfs_queue_states_stored(Q);
   uint32_t levels = 0;
-  char t;
   unsigned int l, en_size;
   state_t s, succ;
   storage_id_t id_succ;
-  event_set_t en;
-  worker_id_t x;
-  int i, k, no;
-  unsigned char * tr;
+  event_list_t en;
+  worker_id_t x, y;
   char heap_name[100];
   bool_t fully_expanded;
   unsigned int arcs;
   heap_t heap;
   hash_key_t h;
   bfs_queue_item_t item, succ_item;
+  event_t e;
+  bool_t is_new;
   
   sprintf(heap_name, "bfs heap of worker %d", w);
   heap = bounded_heap_new(heap_name, 10 * 1024 * 1024);
@@ -153,14 +152,14 @@ void * bfs_worker
           s = storage_get_mem(S, item.id, w, heap);
         }
         en = state_enabled_events_mem(s, heap);
-        en_size = event_set_size(en);
+        en_size = list_size(en);
         if(0 == en_size) {
           context_incr_dead(w, 1);
         }
 #if defined(CFG_POR)
-        en_size = event_set_size(en);
+        en_size = list_size(en);
         state_stubborn_set(s, en);
-        fully_expanded = (en_size == event_set_size(en)) ? TRUE : FALSE;
+        fully_expanded = (en_size == list_size(en)) ? TRUE : FALSE;
 #endif
 
         /**
@@ -178,11 +177,8 @@ void * bfs_worker
          */
       state_expansion:
         arcs = 0;
-        en_size = event_set_size(en);
-        for(i = 0; i < en_size; i ++) {
-          event_t e = event_set_nth(en, i);
-          bool_t is_new;
-
+        while(!list_is_empty(en)) {
+          list_pick_first(en, &e);
           arcs ++;
 #if defined(CFG_EVENT_UNDOABLE)
           event_exec(e, s);
@@ -206,22 +202,24 @@ void * bfs_worker
            *  if new, enqueue the successor
            */
           if(is_new) {
-	    storage_set_cyan(S, id_succ, w, TRUE);
+            y = bfs_thread_owner(h);
+	    storage_set_cyan(S, id_succ, y, TRUE);
             succ_item.id = id_succ;
             succ_item.s = succ;
             succ_item.e_set = TRUE;
             succ_item.e = e;
-            bfs_queue_enqueue(Q, succ_item, w, bfs_thread_owner(h));
+            bfs_queue_enqueue(Q, succ_item, w, y);
           } else {
 
             /**
-             *  if the successor state is not new it must be in the
-             *  queue for the proviso to be satisfied
+             *  if the successor state is not new and if the current
+             *  state is reduced then the successor must be in the
+             *  queue (i.e., cyan)
              */
 #if defined(CFG_POR) && defined(CFG_PROVISO)
-            if(!fully_expanded && !storage_get_cyan(S, id_succ, w)) {
+            if(!fully_expanded && !storage_get_any_cyan(S, id_succ)) {
               fully_expanded = TRUE;
-              event_set_free(en);
+              event_list_free(en);
               bfs_back_to_s();
               en = state_enabled_events_mem(s, heap);
               goto state_expansion;
@@ -231,7 +229,7 @@ void * bfs_worker
           bfs_back_to_s();
         }
         state_free(s);
-        event_set_free(en);
+        event_list_free(en);
 
         /**
          *  the state leaves the queue => we unset its cyan bit and

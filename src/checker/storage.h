@@ -56,6 +56,7 @@ typedef hash_tbl_id_t storage_id_t;
 #define storage_get_hash          hash_tbl_get_hash
 #define storage_set_cyan          hash_tbl_set_cyan
 #define storage_get_cyan          hash_tbl_get_cyan
+#define storage_get_any_cyan      hash_tbl_get_any_cyan
 #define storage_set_blue          hash_tbl_set_blue
 #define storage_get_blue          hash_tbl_get_blue
 #define storage_set_pink          hash_tbl_set_pink
@@ -66,7 +67,7 @@ typedef hash_tbl_id_t storage_id_t;
 #define storage_ref               hash_tbl_ref
 #define storage_unref             hash_tbl_unref
 #define storage_gc                hash_tbl_gc
-#define storage_barrier           hash_tbl_barrier
+#define storage_gc_all            hash_tbl_gc_all
 #define storage_gc_time           hash_tbl_gc_time
 #define storage_has_attr          hash_tbl_has_attr
 #define storage_output_stats      hash_tbl_output_stats

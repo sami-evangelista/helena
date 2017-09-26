@@ -119,7 +119,6 @@ private
    State_Lib           : constant Ustring := To_Ustring("mstate");
    Mappings_Lib        : constant Ustring := To_Ustring("mappings");
    Event_Lib           : constant Ustring := To_Ustring("mevent");
-   Event_Set_Lib       : constant Ustring := To_Ustring("mevent_set");
    Enabling_Test_Lib   : constant Ustring := To_Ustring("enabling_test");
    Por_Lib             : constant Ustring := To_Ustring("por");
    Model_Lib           : constant Ustring := To_Ustring("model");

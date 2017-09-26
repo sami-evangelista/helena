@@ -9,31 +9,6 @@
 #if defined(CFG_ALGO_DDFS) || defined(CFG_ALGO_DFS)
 
 storage_t S;
-bool_t DONE[CFG_NO_WORKERS];
-
-bool_t dfs_all_done
-() {
-  worker_id_t w;
-  
-  for(w = 0; w < CFG_NO_WORKERS; w ++) {
-    if(!DONE[w]) {
-      return FALSE;
-    }
-  }
-  return TRUE;
-}
-
-bool_t dfs_some_other_done
-(worker_id_t w) {
-  worker_id_t x;
-  
-  for(x = 0; x < CFG_NO_WORKERS; x ++) {
-    if(w != x && DONE[x]) {
-      return TRUE;
-    }
-  }
-  return FALSE;
-}
 
 state_t dfs_recover_state
 (dfs_stack_t stack,
@@ -58,7 +33,7 @@ state_t dfs_recover_state
 
 state_t dfs_check_state
 (state_t now,
- event_set_t en,
+ event_list_t en,
  dfs_stack_t blue_stack,
  dfs_stack_t red_stack) { 
 #if defined(CFG_ACTION_CHECK_SAFETY)
@@ -82,9 +57,8 @@ state_t dfs_main
   dfs_stack_t stack = blue ? blue_stack : red_stack;
   state_t copy;
   event_t e;
-  event_id_t eid;
   bool_t is_new;
-  event_set_t en;
+  event_list_t en;
   storage_id_t id_top;
   hash_key_t h;
 
@@ -199,7 +173,7 @@ state_t dfs_main
       /*
        *  get the next event to process on the top state and excute it
        */
-      dfs_stack_pick_event(stack, &e, &eid);
+      dfs_stack_pick_event(stack, &e);
       event_exec(e, now);
       context_incr_evts_exec(w, 1);
 
@@ -270,7 +244,7 @@ state_t dfs_main
         /*
          *  update some statistics and check the state
          */
-	if(blue && (0 == event_set_size(en))) {
+	if(blue && (0 == event_list_size(en))) {
 	  context_incr_dead(w, 1);
 	}
         dfs_check_state(now, en, blue_stack, red_stack);
@@ -314,17 +288,10 @@ void * dfs_worker
 
   /**
    *  if state caching is on we keep waiting on the storage barrier
-   *  since some other threads may also do this
+   *  since some other threads may still launch garbage collection
    */
 #if defined(CFG_PARALLEL) && defined(CFG_STATE_CACHING)
-  do {
-    DONE[w] = FALSE;
-    if(!dfs_some_other_done(w)) {
-      storage_barrier(S);
-    }
-    DONE[w] = TRUE;
-    storage_barrier(S);
-  } while(!dfs_all_done());
+  storage_gc_barrier(S, w);
 #endif
 
   dfs_stack_free(blue_stack);
@@ -343,10 +310,6 @@ void dfs
 #if defined(CFG_ALGO_DDFS)
   ddfs_comm_start();
 #endif
-  
-  for(w = 0; w < context_no_workers(); w ++) {
-    DONE[w] = FALSE;
-  }
   
   launch_and_wait_workers(&dfs_worker);
 

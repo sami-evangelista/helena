@@ -131,6 +131,7 @@ in
      "mstate_t mstate_copy (mstate_t s);",
      "mstate_t mstate_copy_mem (mstate_t s, heap_t heap);",
      "void mstate_print (mstate_t s, FILE * out);",
+     "void mevent_print (mevent_t e, FILE * out);",
      "",
      Utils.fmt {init  = if consts <> [] then "/*  constants  */\n" else "",
 		sep   = "\n",
@@ -175,7 +176,7 @@ in
      "}",
      "",
      "void mevent_print (mevent_t e, FILE * out) {",
-     "   fatal_error (\"mevent_print: unimplemented feature\");",
+     "   fprintf(out, \"%d\\n\", e);",
      "}",
      ""
     ])
@@ -198,22 +199,16 @@ in
 				  (Int.toString (!num)
 				   before (num := !num + 1))) }
 		systemEvents,
-     "typedef struct {",
-     "   uint8_t no_evts;",
-     "   mevent_t * evts;",
-     "   heap_t * heap;",
-     "} struct_mevent_set_t;",
-     "typedef mevent_t mevent_id_t;",
-     "typedef struct_mevent_set_t * mevent_set_t;",
+     "uint32_t mevent_char_width (mevent_t e);",
      "void mevent_free (mevent_t e);",
      "mevent_t mevent_copy (mevent_t e);",
-     "mevent_t mevent_copy_mem (mevent_t e, heap_t h);",
-     "void mevent_set_free (mevent_set_t set);",
-     "unsigned short mevent_set_size (mevent_set_t set);",
-     "mevent_t mevent_set_nth (mevent_set_t set, unsigned int n);",
-     "mevent_id_t mevent_set_nth_id (mevent_set_t set, unsigned int n);"
+     "mevent_t mevent_copy_mem (mevent_t e, heap_t h);"
      ],
      concatLines [
+     "uint32_t mevent_char_width (mevent_t e) {",
+     "   return sizeof(mevent_t);",
+     "}",
+     "",
      "void mevent_free (mevent_t e) {",
      "}",
      "",
@@ -223,23 +218,6 @@ in
      "",
      "mevent_t mevent_copy_mem(mevent_t e, heap_t h) {",
      "   return e;",
-     "}",
-     "",
-     "void mevent_set_free (mevent_set_t set) {",
-     "   mem_free (set->heap, set->evts);",
-     "   mem_free (set->heap, set);",
-     "}",
-     "",
-     "unsigned short mevent_set_size (mevent_set_t set) {",
-     "   return set->no_evts;",
-     "}",
-     "",
-     "mevent_t mevent_set_nth (mevent_set_t set, unsigned int n) {",
-     "   return set->evts[n];",
-     "}",
-     "",
-     "mevent_id_t mevent_set_nth_id (mevent_set_t set, unsigned int n) {",
-     "   return set->evts[n];",
      "}"
     ])
 end

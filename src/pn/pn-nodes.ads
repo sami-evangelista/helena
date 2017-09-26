@@ -146,12 +146,6 @@ package Pn.Nodes is
    procedure Generic_Apply_Arcs_Labels
      (N: access Node_Record'Class);
 
-   function Get_Module
-     (N: access Node_Record'Class) return Natural;
-
-   function Get_Fusion_Set
-     (N: access Node_Record'Class) return Integer;
-
 
 private
 

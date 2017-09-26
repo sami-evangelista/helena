@@ -53,33 +53,23 @@ fun compileGetEnabledEvents getEvents funcName
 
     fun compileTest (enVar, noVar) e =
 	String.concat [
-	"   if (", enVar, "[i ++] = (is_enabled_" ^ (getEventName e),
-	" (s))) ", noVar, " ++;" ]
+	    "   if(is_enabled_", getEventName e,
+	    " (s)) { e = ", getEventName e,
+            "; list_append(result, &e); }" ]
 
-    val protMem = String.concat [ "mevent_set_t " ^ funcName ^ "_mem" ^
+    val protMem = String.concat [ "list_t " ^ funcName ^ "_mem" ^
 			       " (mstate_t s, heap_t heap)" ]
     val bodyMem = [
 	protMem ^ " {",
-	"   unsigned short i = 0, no_evts = 0, j = 0;",
-	"   bool_t en [NO_EVENTS];",
-	"   mevent_set_t result = mem_alloc " ^
-	"(heap, sizeof (struct_mevent_set_t));",
-	"   result->no_evts = 0;",
-	"   result->heap = heap;",
-	"   i = 0;",
+        "   mevent_t e;",
+        "   list_t result = " ^
+        "list_new(heap, sizeof(mevent_t), NULL);",
 	concatLines (List.map (compileTest ("en", "no_evts")) events),
- 	"   result->no_evts = no_evts;",
-	"   result->evts = mem_alloc " ^
-	"(heap, result->no_evts * sizeof (mevent_t));",
-	"   no_evts = 0;",
-	"   for (i = 0; i < NO_EVENTS; i ++)",
-	"      if (en[i])",
-	"         result->evts[no_evts ++] = i;",
 	"   return result;",
 	"}" ]
     val bodyMem = concatLines bodyMem
 
-    val prot = String.concat [ "mevent_set_t " ^ funcName ^ " (mstate_t s)" ]
+    val prot = String.concat [ "list_t " ^ funcName ^ " (mstate_t s)" ]
     val body = [
 	prot ^ " {",
 	"   return " ^ funcName ^ "_mem (s, SYSTEM_HEAP);",
@@ -101,12 +91,12 @@ fun compileGetEnabledEvent getEvents funcName
 			   (s: System.system, checks, hFile, cFile) = let
     val prot    = String.concat [
 		  "mevent_t ", funcName,
-		  " (mstate_t s, mevent_id_t id)" ]
+		  " (mstate_t s, mevent_t e)" ]
     val protMem = String.concat [
 		  "mevent_t ", funcName, "_mem",
-		  " (mstate_t s, mevent_id_t id, heap_t heap)" ]
-    val body    = concatLines [ prot, " { return id; }" ]
-    val bodyMem = concatLines [ protMem, " { return id; }" ]
+		  " (mstate_t s, mevent_t e, heap_t heap)" ]
+    val body    = concatLines [ prot, " { return e; }" ]
+    val bodyMem = concatLines [ protMem, " { return e; }" ]
 in
     TextIO.output (hFile, "\n" ^ prot ^ ";\n");
     TextIO.output (hFile, "\n" ^ protMem ^ ";\n");
@@ -115,6 +105,7 @@ in
 end
 
 fun gen (s, checks, hFile, cFile) = (
+    TextIO.output (hFile, "#include \"list.h\"");
     TextIO.output (hFile, "/*  enabling test functions  */");
     TextIO.output (cFile, "/*  enabling test functions  */");
     compileGetEnabledEvent
@@ -124,11 +115,11 @@ fun gen (s, checks, hFile, cFile) = (
     TextIO.output
         (hFile,
          concatLines [
-	     "void mstate_stubborn_set (mstate_t s, mevent_set_t en);" ]);
+	     "void mstate_stubborn_set (mstate_t s, list_t en);" ]);
     TextIO.output
         (cFile,
          concatLines [
-	     "void mstate_stubborn_set (mstate_t s, mevent_set_t en) {",
+	     "void mstate_stubborn_set (mstate_t s, list_t en) {",
              "/*  not implemented  */",
 	     "}" ]))
 end

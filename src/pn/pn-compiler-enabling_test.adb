@@ -2,7 +2,6 @@ with
   Pn.Classes,
   Pn.Compiler.Domains,
   Pn.Compiler.Event,
-  Pn.Compiler.Event_Set,
   Pn.Compiler.Names,
   Pn.Compiler.State,
   Pn.Compiler.Util,
@@ -16,7 +15,6 @@ use
   Pn.Classes,
   Pn.Compiler.Domains,
   Pn.Compiler.Event,
-  Pn.Compiler.Event_Set,
   Pn.Compiler.Names,
   Pn.Compiler.State,
   Pn.Compiler.Util,
@@ -585,46 +583,47 @@ package body Pn.Compiler.Enabling_Test is
      (N  : in Net;
       Lib: in Library) is
       Prototype: constant String :=
-	"void mevent_set_check_priority (" & Nl &
-        "   mevent_set_t set," & Nl &
+	"void mevent_list_check_priority (" & Nl &
+        "   list_t l," & Nl &
 	"   mstate_t s)";
       Test     : Ustring;
    begin
       Plh(Lib, Prototype & ";");
       Plc(Lib, Prototype & " {");
-      if With_Priority(N) then
-	 --===
-	 --  compute the maximal priority over all events
-	 --===
-	 Plc(Lib, 1, "int max = INT_MIN;");
-	 Plc(Lib, 1, "mevent_list_t ptr, next, prev;");
-	 Plc(Lib, 1, "for(ptr = set->first; ptr; ptr = ptr->next) {");
-	 Plc(Lib, 2, "mevent_compute_priority (&ptr->e, s);");
-	 Plc(Lib, 2, "if (max < ptr->e.priority) max = ptr->e.priority;");
-	 Plc(Lib, 1, "}");
 
-	 --===
-	 --  remove all transitions which do not have the maximal priority
-	 --===
-	 Plc(Lib, 1, "prev = NULL;");
-	 Plc(Lib, 1, "ptr = set->first;");
-	 Plc(Lib, 1, "while (ptr) {");
-	 Plc(Lib, 2, "if (max == ptr->e.priority) {");
-	 Plc(Lib, 3, "prev = ptr;");
-	 Plc(Lib, 3, "ptr = ptr->next;");
-	 Plc(Lib, 2, "}");
-	 Plc(Lib, 2, "else {");
-	 Plc(Lib, 3, "set->size --;");
-	 Plc(Lib, 3, "next = ptr->next;");
-	 Plc(Lib, 3, "if (prev != NULL)");
-	 Plc(Lib, 4, "prev->next = next;");
-	 Plc(Lib, 3, "else");
-	 Plc(Lib, 4, "set->first = next;");
-	 Plc(Lib, 3, "mevent_free_mem (ptr->e, set->heap);");
-	 Plc(Lib, 3, "mem_free (set->heap, ptr);");
-	 Plc(Lib, 3, "ptr = next;");
-	 Plc(Lib, 2, "}");
-	 Plc(Lib, 1, "}");
+      --===
+      --  compute the maximal priority over all events
+      --===
+      if False then
+      Plc(Lib, 1, "int max = INT_MIN;");
+      Plc(Lib, 1, "list_t ptr, next, prev;");
+      Plc(Lib, 1, "for(ptr = set->first; ptr; ptr = ptr->next) {");
+      Plc(Lib, 2, "mevent_compute_priority (&ptr->e, s);");
+      Plc(Lib, 2, "if (max < ptr->e.priority) max = ptr->e.priority;");
+      Plc(Lib, 1, "}");
+
+      --===
+      --  remove all transitions which do not have the maximal priority
+      --===
+      Plc(Lib, 1, "prev = NULL;");
+      Plc(Lib, 1, "ptr = set->first;");
+      Plc(Lib, 1, "while (ptr) {");
+      Plc(Lib, 2, "if (max == ptr->e.priority) {");
+      Plc(Lib, 3, "prev = ptr;");
+      Plc(Lib, 3, "ptr = ptr->next;");
+      Plc(Lib, 2, "}");
+      Plc(Lib, 2, "else {");
+      Plc(Lib, 3, "set->size --;");
+      Plc(Lib, 3, "next = ptr->next;");
+      Plc(Lib, 3, "if (prev != NULL)");
+      Plc(Lib, 4, "prev->next = next;");
+      Plc(Lib, 3, "else");
+      Plc(Lib, 4, "set->first = next;");
+      Plc(Lib, 3, "mevent_free (ptr->e);");
+      Plc(Lib, 3, "mem_free (set->heap, ptr);");
+      Plc(Lib, 3, "ptr = next;");
+      Plc(Lib, 2, "}");
+      Plc(Lib, 1, "}");
       end if;
       Plc(Lib, "}");
    end;
@@ -661,17 +660,16 @@ package body Pn.Compiler.Enabling_Test is
       L   : in Library) is
    begin
       Plc(L, 1, "for (k = 0; k < no; k ++) {");
-      Plc(L, 2, "(*pred) = (mevent_list_t) " &
-	    "mem_alloc (heap, sizeof (struct_mevent_list_t));");
-      Plc(L, 2, "(*pred)->e.tid = " & Tid(T) & ";");
-      Plc(L, 2, "(*pred)->e.c = (void *) mem_alloc (heap, sizeof (" &
+      Plc(L, 2, "e.id = id;");
+      Plc(L, 2, "e.h = heap;");
+      Plc(L, 2, "e.tid = " & Tid(T) & ";");
+      Plc(L, 2, "e.c = mem_alloc(heap, sizeof(" &
 	    Trans_Dom_Type(T) & "));");
       Plc(L, 2, "(* ((" & Trans_Dom_Type(T) &
-	    " *) (*pred)->e.c)) = cols[k];");
-      Plc(L, 2, "(*pred)->next = NULL;");
-      Plc(L, 2, "pred = &((*pred)->next);");
+	    " *) e.c)) = cols[k];");
+      Plc(L, 2, "list_append(result, &e);");
+      Plc(L, 2, "id ++;");
       Plc(L, 1, "}");
-      Plc(L, 1, "result->size += no;");
    end;
 
    procedure Post_Get_One_Enabled
@@ -681,6 +679,7 @@ package body Pn.Compiler.Enabling_Test is
    begin
       Plc(L, 1, "if (no > id) {");
       Plc(L, 2, "result.tid = " & Tid(T) & ";");
+      Plc(L, 2, "result.h = heap;");
       Plc(L, 2, "result.c = (void *) mem_alloc (heap, sizeof (" &
 	    Trans_Dom_Type(T) & "));");
       Plc(L, 2, "(* ((" & Trans_Dom_Type(T) & " *) result.c)) = cols[id];");
@@ -695,7 +694,6 @@ package body Pn.Compiler.Enabling_Test is
       Path: in Ustring) is
       Prototype: Ustring;
       L        : Library;
-      T        : Trans;
       Comment  : constant Ustring :=
 	To_Ustring("This library implements the enabling test.");
 
@@ -720,33 +718,28 @@ package body Pn.Compiler.Enabling_Test is
    begin
       Init_Library(Enabling_Test_Lib, Comment, Path, L);
       Plh(L, "#include ""mevent.h""");
-      Plh(L, "#include ""mevent_set.h""");
+      Plh(L, "#include ""list.h""");
       Gen_Check_Priority_Func(N, L);
       --=======================================================================
       Prototype := To_Ustring
-	("mevent_set_t mstate_enabled_events_mem (" & Nl &
+	("list_t mstate_enabled_events_mem (" & Nl &
 	   "   mstate_t s," & Nl &
-	   "   heap_t   heap)");
+	   "   heap_t heap)");
       Plh(L, Prototype & ";");
       Plc(L, Prototype & " {");
-      Plc(L, 1, "mevent_set_t result;");
-      Plc(L, 1, "mevent_list_t tmp;");
-      Plc(L, 1, "mevent_list_t * pred;");
-      Plc(L, 1, "mevent_id_t id = 0;");
-      Plc(L, 1, "mevent_set_init (result, heap);");
-      Plc(L, 1, "pred = &(result->first);");
+      Plc(L, 1, "list_t result;");
+      Plc(L, 1, "uint16_t id = 0;");
+      Plc(L, 1, "mevent_t e;");
+      Plc(L, 1, "result = list_new(heap, sizeof(mevent_t), NULL);");
       Gen_Enabled_Events_Check(Post_Get_All_Enabled'Access);
       if With_Priority(N) then
-	 Plc(L, 1, "mevent_set_check_priority (result, s);");
+	 Plc(L, 1, "mevent_list_check_priority (result, s);");
       end if;
-      Plc(L, 1, "for (tmp = result->first; tmp; tmp = tmp->next) {");
-      Plc(L, 2, "tmp->id = id ++;");
-      Plc(L, 1, "}");
       Plc(L, 1, "return result;");
       Plc(L, "}");
       --=======================================================================
       Prototype := To_Ustring
-	("mevent_set_t mstate_enabled_events (" & Nl &
+	("list_t mstate_enabled_events (" & Nl &
 	   "   mstate_t s)");
       Plh(L, Prototype & ";");
       Plc(L, Prototype & " {");
@@ -755,9 +748,9 @@ package body Pn.Compiler.Enabling_Test is
       --=======================================================================
       Prototype := To_Ustring
 	("mevent_t mstate_enabled_event_mem (" & Nl &
-	   "   mstate_t    s," & Nl &
-	   "   mevent_id_t id," & Nl &
-	   "   heap_t      heap)");
+	   "   mstate_t s," & Nl &
+	   "   uint16_t id," & Nl &
+	   "   heap_t heap)");
       Plh(L, Prototype & ";");
       Plc(L, Prototype & " {");
       Plc(L, 1, "mevent_t result;");
@@ -774,86 +767,11 @@ package body Pn.Compiler.Enabling_Test is
       --=======================================================================
       Prototype := To_Ustring
 	("mevent_t mstate_enabled_event (" & Nl &
-	   "   mstate_t    s," & Nl &
-	   "   mevent_id_t id)");
+	   "   mstate_t s," & Nl &
+	   "   uint32_t id)");
       Plh(L, Prototype & ";");
       Plc(L, Prototype & " {");
       Plc(L, 1, "return mstate_enabled_event_mem (s, id, SYSTEM_HEAP);");
-      Plc(L, "}");
-      --=======================================================================
-      Prototype := To_Ustring
-	("mevent_set_t mstate_enabled_events_module_mem (" & Nl &
-	   "   mstate_t s," & Nl &
-	   "   uint32_t mod," & Nl &
-	   "   heap_t   heap)");
-      Plh(L, Prototype & ";");
-      Plc(L, Prototype & " {");
-      Plc(L, 1, "mevent_set_t result;");
-      Plc(L, 1, "mevent_list_t tmp;");
-      Plc(L, 1, "mevent_list_t * pred;");
-      Plc(L, 1, "mevent_id_t id = 0;");
-      Plc(L, 1, "mevent_list_t ptr;");
-      Plc(L, 1, "mevent_set_init (result, heap);");
-      Plc(L, 1, "pred = &(result->first);");
-      Plc(L, 1, "switch (mod) {");
-      declare
-	 Modules: constant Natural_Set_Pkg.Set_Type := Get_Modules(N);
-	 M      : Natural;
-      begin
-	 for I in 1..Natural_Set_Pkg.Card(Modules) loop
-	    M := Natural_Set_Pkg.Ith(Modules, I);
-	    Plc(L, 1, "case " & M & ": {");
-	    for J in 1..T_Size(N) loop
-	       T := Ith_Trans(N, J);
-	       if Get_Module(T) = M then
-		  Nlc(L);
-		  Plc(L, 1, "/*  transition " & Get_Name(T) & "  */");
-		  Plc(L, 1, "{");
-		  Plc(L, 1, Trans_Dom_Type(T) & " cols[256];");
-		  Plc(L, 1, "unsigned int no = 0, k;");
-		  Gen_Evaluation_Code
-		    (T, N, Gen_Add_Enabled_Event_Code'Access, L);
-		  Plc(L, 1, "for (k = 0; k < no; k ++) {");
-		  Plc(L, 2, "(*pred) = (mevent_list_t) " &
-			"mem_alloc (heap, sizeof (struct_mevent_list_t));");
-		  Plc(L, 2, "(*pred)->e.tid = " & Tid(T) & ";");
-		  Plc(L, 2, "(*pred)->e.c = mem_alloc (heap, sizeof (" &
-			Trans_Dom_Type(T) & "));");
-		  Plc(L, 2, "(* ((" & Trans_Dom_Type(T) &
-			" *) (*pred)->e.c)) = cols[k];");
-		  Plc(L, 2, "(*pred)->next = NULL;");
-		  Plc(L, 2, "pred = &((*pred)->next);");
-		  Plc(L, 1, "}");
-		  Plc(L, 1, "result->size += no;");
-		  Plc(L, 1, "}");
-	       end if;
-	    end loop;
-	    Plc(L, 1, "break;");
-	    Plc(L, 1, "}");
-	 end loop;
-      end;
-      Plc(L, 1, "default:");
-      Plc(L, 1,
-	  "fatal_error (" &
-	    """mstate_enabled_events_module_mem: undefined module"");");
-      Plc(L, 1, "}");
-      Plc(L, 1, "for(ptr = result->first; ptr; ptr = ptr->next) {");
-      Plc(L, 2, "mevent_compute_priority (&ptr->e, s);");
-      Plc(L, 1, "}");
-      Plc(L, 1, "for (tmp = result->first; tmp; tmp = tmp->next) {");
-      Plc(L, 2, "tmp->id = id ++;");
-      Plc(L, 1, "}");
-      Plc(L, 1, "return result;");
-      Plc(L, "}");
-      --=======================================================================
-      Prototype := To_Ustring
-	("mevent_set_t mstate_enabled_events_module (" & Nl &
-	   "   mstate_t s," & Nl &
-	   "   uint32_t mod)");
-      Plh(L, Prototype & ";");
-      Plc(L, Prototype & " {");
-      Plc(L, 1, "return mstate_enabled_events_module_mem " &
-	    "(s, mod, SYSTEM_HEAP);");
       Plc(L, "}");
       --=======================================================================
       Prototype := "void " & Lib_Init_Func(Enabling_Test_Lib) & Nl & "()";

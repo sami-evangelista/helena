@@ -159,28 +159,19 @@ package body Pn.Compiler.Event is
       end loop;
       --=======================================================================
       Plh(L, "typedef struct {");
+      Plh(L, 1, "uint16_t id;");
       Plh(L, 1, "tr_id_t tid;");
       Plh(L, 1, "void * c;");
-      if With_Priority(N) then
-	 Plh(L, 1, "int priority;");
-      end if;
+      Plh(L, 1, "heap_t h;");
+      Plh(L, 1, "int priority;");
       Plh(L, "} mevent_t;");
-      --=======================================================================
-      Prototype := To_Ustring
-	("void mevent_free_mem (" & Nl &
-	   "   mevent_t e," & Nl &
-	   "   heap_t  heap)");
-      Plh(L, Prototype & ";");
-      Plc(L, Prototype & " {");
-      Plc(L, 1, "mem_free (heap, e.c);");
-      Plc(L, "}");
       --=======================================================================
       Prototype := To_Ustring
 	("void mevent_free (" & Nl &
 	   "   mevent_t e)");
       Plh(L, Prototype & ";");
       Plc(L, Prototype & " {");
-      Plc(L, 1, "mevent_free_mem (e, SYSTEM_HEAP);");
+      Plc(L, 1, "mem_free(e.h, e.c);");
       Plc(L, "}");
       --=======================================================================
       Prototype := To_Ustring
@@ -191,6 +182,7 @@ package body Pn.Compiler.Event is
       Plc(L, Prototype & " {");
       Plc(L, 1, "mevent_t result;");
       Plc(L, 1, "result.tid = e.tid;");
+      Plc(L, 1, "result.h = heap;");
       if With_Priority(N) then
 	 Plc(L, 1, "result.priority = e.priority;");
       end if;
@@ -227,29 +219,27 @@ package body Pn.Compiler.Event is
 	   "   mstate_t   prop_state)");
       Plh(L, Prototype & ";");
       Plc(L, Prototype & " {");
-      if With_Priority(N) then
-	 Plc(L, 1, "switch (e->tid) {");
-	 for I in 1..T_Size(N) loop
-	    T := Ith_Trans(N, I);
-	    Id := Tid(T);
-	    Prio := Get_Priority(T);
-	    Plc(L, 1, "case " & Id & ": {");
-	    if Prio = No_Priority then
-	       Plc(L, 2, "e->priority = 0;");
-	    else
-	       Gen_Let_Vars_Evaluation(T, L, 2, "e->c");
-	       Plc(L, 2, "e->priority = " &
-		     Compile_Evaluation(Prio, Build_Map(T, "e->c")) & ";");
-	    end if;
-	    Plc(L, 2, "break;");
-	    Plc(L, 1, "}");
-	 end loop;
-	 Plc(L, 1, "default:");
-	 Plc(L, 2, "fatal_error (""mevent_compute_priority: " &
-	       "invalid transition-id"");");
-	 Plc(L, 2, "break;");
-	 Plc(L, 1, "}");
-      end if;
+      Plc(L, 1, "switch (e->tid) {");
+      for I in 1..T_Size(N) loop
+         T := Ith_Trans(N, I);
+         Id := Tid(T);
+         Prio := Get_Priority(T);
+         Plc(L, 1, "case " & Id & ": {");
+         if Prio = No_Priority then
+            Plc(L, 2, "e->priority = 0;");
+         else
+            Gen_Let_Vars_Evaluation(T, L, 2, "e->c");
+            Plc(L, 2, "e->priority = " &
+                  Compile_Evaluation(Prio, Build_Map(T, "e->c")) & ";");
+         end if;
+         Plc(L, 2, "break;");
+         Plc(L, 1, "}");
+      end loop;
+      Plc(L, 1, "default:");
+      Plc(L, 2, "fatal_error (""mevent_compute_priority: " &
+            "invalid transition-id"");");
+      Plc(L, 2, "break;");
+      Plc(L, 1, "}");
       Plc(L, "}");
       --=======================================================================
       for F in Firing_Mode loop
@@ -259,10 +249,10 @@ package body Pn.Compiler.Event is
 	    Mode := To_Ustring("pred");
 	 end if;
 	 Prototype :=
-	   "mstate_t mstate_" & Mode & "_mem (" & Nl &
-	   "   mstate_t s," & Nl &
-	   "   mevent_t e," & Nl &
-	   "   heap_t  heap)";
+	   "mstate_t mstate_" & Mode & "_mem" & Nl &
+	   "(mstate_t s," & Nl &
+	   " mevent_t e," & Nl &
+	   " heap_t heap)";
 	 Plh(L, Prototype & ";");
 	 Plc(L, Prototype & " {");
 	 Plc(L, 1, "mstate_t result = mstate_copy_mem (s, heap);");
@@ -298,9 +288,9 @@ package body Pn.Compiler.Event is
 	    Func_Name := To_Ustring("mevent_undo");
 	 end if;
 	 Prototype :=
-	   "void " & Func_Name & " (" & Nl &
-	   "   mevent_t e," & Nl &
-	   "   mstate_t s)";
+	   "void " & Func_Name & Nl &
+	   "(mevent_t e," & Nl &
+	   " mstate_t s)";
 	 Plh(L, Prototype & ";");
 	 Plc(L, Prototype & " {");
 	 Plc(L, 1, "switch (e.tid) {");
@@ -320,8 +310,8 @@ package body Pn.Compiler.Event is
       end loop;
       --=======================================================================
       Prototype := To_Ustring
-	("unsigned int mevent_char_width (" & Nl &
-	   "   mevent_t e)");
+	("unsigned int mevent_char_width" & Nl &
+	   "(mevent_t e)");
       Plh(L, Prototype & ";");
       Plc(L, Prototype & " {");
       Plc(L, 1, "unsigned int result;");
@@ -392,6 +382,7 @@ package body Pn.Compiler.Event is
       Plh(L, Prototype & ";");
       Plc(L, Prototype & " {");
       Plc(L, 1, "mevent_t result;");
+      Plc(L, 1, "result.h = heap;");
       Plc(L, 1, "bit_stream_t bits;");
       Plc(L, 1, "bit_stream_init(bits, v);");
       Plc(L, 1, "TRANS_ID_decode (bits, result.tid);");
@@ -609,27 +600,6 @@ package body Pn.Compiler.Event is
       else
 	 Plc(L, 1, "return 0;");
       end if;
-      Plc(L, "}");
-      --=======================================================================
-      Prototype := To_Ustring
-	("bool_t mevent_is_local (" & Nl &
-	   "   mevent_t e)");
-      Plh(L, Prototype & ";");
-      Plc(L, Prototype & " {");
-      Plc(L, 1, "switch(e.tid) {");
-      for I in 1..T_Size(N) loop
-	 T := Ith_Trans(N, I);
-	 Pc(L, 1, "case " & Tid(T) & ": return ");
-	 if Get_Fusion_Set(T) >= 0 then
-	    Plc(L, "TRUE;");
-	 else
-	    Plc(L, "FALSE;");
-	 end if;
-      end loop;
-      Plc(L, 1, "default:");
-      Plc(L, 2, "fatal_error (""mevent_is_local: invalid transition-id"");");
-      Plc(L, 2, "break;");
-      Plc(L, 1, "}");
       Plc(L, "}");
       --=======================================================================
       End_Library(L);

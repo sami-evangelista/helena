@@ -771,25 +771,6 @@ package body Pn.Nets is
 
 
    --==========================================================================
-   --  Modules
-   --==========================================================================
-
-   function Get_Modules
-     (N: in Net) return Natural_Set_Pkg.Set_Type is
-      Result: Natural_Set_Pkg.Set_Type := Natural_Set_Pkg.Empty_Set;
-   begin
-      for I in 1..P_Size(N) loop
-	 Natural_Set_Pkg.Insert(Result, Get_Module(Ith_Place(N, I)));
-      end loop;
-      for I in 1..T_Size(N) loop
-	 Natural_Set_Pkg.Insert(Result, Get_Module(Ith_Trans(N, I)));
-      end loop;
-      return Result;
-   end;
-
-
-
-   --==========================================================================
    --  Others
    --==========================================================================
 

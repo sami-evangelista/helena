@@ -46,9 +46,9 @@ package body Prop.State is
       Lib: in Library;
       Dir: in String) is
       Prototype: constant String :=
-	"bool_t state_check_property (" & Nl &
-	"   mstate_t     prop_state," & Nl &
-	"   mevent_set_t prop_en)";
+	"bool_t state_check_property" & Nl &
+	"(mstate_t prop_state," & Nl &
+	" list_t prop_en)";
       Test     : Ustring := Compile_Evaluation(P.Reject);
    begin
       for I in 1..Length(P.Accepts) loop
@@ -115,7 +115,7 @@ package body Prop.State is
      (C: in State_Property_Comp) return Ustring is
    begin
       if C.Deadlock then
-	 return To_Ustring("(0 == mevent_set_size (prop_en))");
+	 return To_Ustring("list_is_empty(prop_en)");
       else
 	 return "state_proposition_" & C.Prop & " (prop_state)";
       end if;
