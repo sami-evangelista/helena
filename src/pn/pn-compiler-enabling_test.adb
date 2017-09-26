@@ -726,11 +726,15 @@ package body Pn.Compiler.Enabling_Test is
 	   "   mstate_t s," & Nl &
 	   "   heap_t heap)");
       Plh(L, Prototype & ";");
+      Plc(L, "void mevent_free_ptr(void * data) {");
+      Plc(L, 1, "mevent_t e = * ((mevent_t *) data);");
+      Plc(L, 1, "mevent_free(e);");
+      Plc(L, "}");
       Plc(L, Prototype & " {");
       Plc(L, 1, "list_t result;");
       Plc(L, 1, "mevent_id_t id = 0;");
       Plc(L, 1, "mevent_t e;");
-      Plc(L, 1, "result = list_new(heap, sizeof(mevent_t), NULL);");
+      Plc(L, 1, "result = list_new(heap, sizeof(mevent_t), mevent_free_ptr);");
       Gen_Enabled_Events_Check(Post_Get_All_Enabled'Access);
       if With_Priority(N) then
 	 Plc(L, 1, "mevent_list_check_priority (result, s);");

@@ -73,7 +73,7 @@ int main
   free_bit_stream();
   free_model();
 
-#if defined(CFG_ACTION_BUILD_RG)
+#if defined(CFG_ACTION_BUILD_GRAPH)
   graph_make_report(CFG_GRAPH_FILE, CFG_RG_REPORT_FILE, NULL);
 #endif
   printf("done.\n");

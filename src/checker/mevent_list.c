@@ -1,8 +1,7 @@
 #include "mevent_list.h"
 
 void mevent_list_free_item
-(void * ptr,
- heap_t h) {
+(void * ptr) {
   mevent_t e = * ((mevent_t *) ptr);
   
   mevent_free(e);

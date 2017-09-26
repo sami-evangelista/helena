@@ -16,6 +16,7 @@ typedef list_t mevent_list_t;
 
 
 #define mevent_list_size list_size
+#define mevent_list_nth list_nth
 #define mevent_list_free list_free
 #define mevent_list_append list_append
 #define mevent_list_pick_random list_pick_random

@@ -19,7 +19,7 @@ typedef struct struct_list_t * list_t;
 
 typedef struct struct_list_node_t * list_iter_t;
 
-typedef void (* list_free_func_t) (void *, heap_t);
+typedef void (* list_free_func_t) (void *);
 typedef char (* list_pred_func_t) (void *, void *);
 typedef void (* list_app_func_t) (void *, void *);
 
@@ -55,11 +55,20 @@ void list_free
 
 
 /**
+ * @brief list_top
+ */
+void list_top
+(list_t list,
+ void * item);
+
+
+/**
  * @brief list_nth
  */
-void * list_nth
+void list_nth
 (list_t list,
- list_index_t n);
+ list_index_t n,
+ void * item);
 
 
 /**

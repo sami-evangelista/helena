@@ -299,13 +299,8 @@ class Config:
             W("#define CFG_HASH_COMPACTION\n")
 
         #  action to perform
-        if self.action == EXPLORE:
-            W("#define CFG_ACTION_EXPLORE\n")
-        elif self.action == BUILD_GRAPH:
-            W("#define CFG_ACTION_BUILD_RG\n")
-        elif self.action == SIMULATE:
-            W("#define CFG_ACTION_SIMULATE\n")
-        elif self.action == CHECK:
+        W("#define CFG_ACTION_" + self.action + "\n")
+        if self.action == CHECK:
             W("#define CFG_PROPERTY \"" + self.prop + "\"\n")
             if self.propType == LTL:
                 W("#define CFG_ACTION_CHECK_LTL\n")

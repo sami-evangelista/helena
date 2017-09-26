@@ -357,7 +357,7 @@ void flush_error
 FILE * open_graph_file
 () {
   FILE * result = NULL;
-#if defined(CFG_ACTION_BUILD_RG)
+#if defined(CFG_ACTION_BUILD_GRAPH)
   result = fopen(CFG_GRAPH_FILE, "w");
 #endif
   return result;

@@ -14,7 +14,7 @@ typedef struct {
   bool_t dd_visit;
   bool_t recons[2];
   event_id_t e;
-#if defined(CFG_ACTION_BUILD_RG)
+#if defined(CFG_ACTION_BUILD_GRAPH)
   uint32_t num;
 #endif
 } delta_ddd_state_t;
@@ -346,7 +346,7 @@ bool_t delta_ddd_merge_candidate_set
 	  }
 	  break;
 	case DELTA_DDD_CAND_NEW :
-#if defined(CFG_ACTION_BUILD_RG)
+#if defined(CFG_ACTION_BUILD_GRAPH)
 	  pos = (pos + 1) % CS_max_size;
 	  assert (pos != fst);
 #else
@@ -390,7 +390,7 @@ void delta_ddd_storage_delete_candidate
     case DELTA_DDD_CAND_NEW  :
       if(state_cmp_vector(s, CS[x][i].s)) {
 	CS[x][i].content = DELTA_DDD_CAND_DEL;
-#if defined(CFG_ACTION_BUILD_RG)
+#if defined(CFG_ACTION_BUILD_GRAPH)
 	CS[x][i].id = id;
 	break;
 #else
@@ -454,7 +454,7 @@ state_t delta_ddd_duplicate_detection_dfs
 }
 
 
-#if defined(CFG_ACTION_BUILD_RG)
+#if defined(CFG_ACTION_BUILD_GRAPH)
 void delta_ddd_remove_duplicates_around
 (delta_ddd_candidate_t * C,
  unsigned int i) {
@@ -523,7 +523,7 @@ delta_ddd_storage_id_t delta_ddd_insert_new_state
     assert((slot = (slot + CFG_NO_WORKERS) & CFG_HASH_SIZE_M) != fst);
   }
   s.next = s.fst_child = slot;
-#if defined(CFG_ACTION_BUILD_RG)
+#if defined(CFG_ACTION_BUILD_GRAPH)
   s.num = next_num ++;
 #endif
   ST[slot] = s;
@@ -556,14 +556,14 @@ void delta_ddd_insert_new_states
       ns.e = c.e;
       ns.father = 0;
       C[NCS[w][i]].id = delta_ddd_insert_new_state(w, c.h, ns, c.pred);
-#if defined(CFG_ACTION_BUILD_RG)
+#if defined(CFG_ACTION_BUILD_GRAPH)
       delta_ddd_remove_duplicates_around(C, NCS[w][i]);
 #endif
     }
   }
   S->size[w] += no_new;
   NEXT_LVLS[w] += no_new;
-#if defined(CFG_ACTION_BUILD_RG)
+#if defined(CFG_ACTION_BUILD_GRAPH)
   delta_ddd_write_nodes_graph(w);
 #endif
 
@@ -796,7 +796,7 @@ void * delta_ddd_worker
     ns.dd = ns.dd_visit = ns.recons[0] = FALSE;
     ns.recons[1] = ns.father = 1;
     ns.next = ns.fst_child = slot;
-#if defined(CFG_ACTION_BUILD_RG)
+#if defined(CFG_ACTION_BUILD_GRAPH)
     gf = context_graph_file();
     ns.num = next_num ++;
     fwrite(&t, sizeof(uint8_t), 1, gf);

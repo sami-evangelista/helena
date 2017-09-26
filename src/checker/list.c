@@ -42,7 +42,7 @@ void list_free
   while(ptr) {
     next = ptr->next;
     if(list->free_func) {
-      list->free_func(ptr->item, list->heap);
+      list->free_func(ptr->item);
     }
     mem_free(list->heap, ptr->item);
     mem_free(list->heap, ptr);
@@ -61,9 +61,17 @@ list_size_t list_size
   return list->no_items;
 }
 
-void * list_nth
+void list_top
 (list_t list,
- list_index_t n) {
+ void * item) {
+  assert(list->last);
+  memcpy(item, list->last->item, list->sizeof_item);
+}
+
+void list_nth
+(list_t list,
+ list_index_t n,
+ void * item) {
   list_node_t ptr = list->first, next;
   list_index_t i = n;
   
@@ -73,7 +81,7 @@ void * list_nth
     i --;
   }
   assert(ptr);
-  return ptr->item;
+  memcpy(item, ptr->item, list->sizeof_item);
 }
 
 void list_app
