@@ -534,9 +534,9 @@ package body Pn.Compiler.State is
       Plc(L, "}");
       --=======================================================================
       Prototype := To_Ustring
-        ("void mstate_print (" & Nl &
-           "   mstate_t s," & Nl &
-	   "   FILE *   out)");
+        ("void mstate_print" & Nl &
+           "(mstate_t s," & Nl &
+	   " FILE *   out)");
       Plh(L, Prototype & ";");
       Plc(L, Prototype & " {");
       Plc(L, 1, "fprintf(out, ""{\n"");");
@@ -556,8 +556,8 @@ package body Pn.Compiler.State is
       Plc(L, "}");
       --=======================================================================
       Prototype := To_Ustring
-        ("void mstate_free (" & Nl &
-           "   mstate_t s)");
+        ("void mstate_free" & Nl &
+           "(mstate_t s)");
       Plh(L, Prototype & ";");
       Plc(L, Prototype & " {");
       Plc(L, 1, "if (!heap_has_mem_free (s->heap)) { return; }");
@@ -569,6 +569,14 @@ package body Pn.Compiler.State is
                State_Component_Name(P) & ");");
       end loop;
       Plc(L, 1, "mem_free (s->heap, s);");
+      Plc(L, "}");
+      --=======================================================================
+      Prototype := To_Ustring
+	("void mstate_free_void" & Nl &
+	   "(void * data)");
+      Plh(L, Prototype & ";");
+      Plc(L, Prototype & " {");
+      Plc(L, 1, "mstate_free(* ((mstate_t *) data));");
       Plc(L, "}");
       --=======================================================================
       Prototype := To_Ustring
@@ -700,9 +708,7 @@ package body Pn.Compiler.State is
                " (vec, result->" & State_Component_Name(P) & ", heap);");
          Plc(L, 3, "break;");
       end loop;
-      Plc(L, 2, "default:");
-      Plc(L, 3, "fatal_error(""mstate_unserialise_mem: invalid place-id"");");
-      Plc(L, 3, "break;");
+      Plc(L, 2, "default: assert(0);");
       Plc(L, 2, "}");
       Plc(L, 1, "}");
       Plc(L, 1, "return result;");
@@ -740,9 +746,7 @@ package body Pn.Compiler.State is
                ", &bits))) return FALSE;");
 	 Plc(L, 3, "break;");
       end loop;
-      Plc(L, 2, "default:");
-      Plc(L, 3, "fatal_error(""mstate_cmp_vector: invalid place-id"");");
-      Plc(L, 3, "break;");
+      Plc(L, 2, "default: assert(0);");
       Plc(L, 2, "}");
       Plc(L, 1, "}");
       Plc(L, 1, "return TRUE;");

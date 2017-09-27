@@ -22,11 +22,11 @@ use
 
 package body Pn.Compiler.Por is
 
-   procedure Gen_Compute_Stubborn_Set_Func
+   procedure Gen_Compute_Reduced_Set_Func
      (N  : in Net;
       Lib: in Library) is
       Prototype: constant String :=
-        "void mstate_stubborn_set" & Nl &
+        "void mstate_reduced_set" & Nl &
 	"(mstate_t s," & Nl &
         " list_t en)";
    begin
@@ -73,7 +73,7 @@ package body Pn.Compiler.Por is
 	 --  first check if there is an enabled transition which is
 	 --    1 - statically safe
 	 --    2 - invisible
-	 --  the singleton composed of this transition is a valid stubborn set
+	 --  the singleton composed of this transition is a valid reduced set
 	 --===
 	 Plc(Lib, 1, "if(data = list_find(en, is_safe_and_invisible, NULL)) {");
 	 Plc(Lib, 2, "e = * (mevent_t *) data;");
@@ -128,7 +128,7 @@ package body Pn.Compiler.Por is
    begin
       Init_Library(Por_Lib, To_Ustring(Comment), Path, Lib);
       Plh(Lib, "#include ""model.h""");
-      Gen_Compute_Stubborn_Set_Func(N, Lib);
+      Gen_Compute_Reduced_Set_Func(N, Lib);
       Gen_Lib_Init_Func;
       Gen_Lib_Free_Func;
       End_Library(Lib);

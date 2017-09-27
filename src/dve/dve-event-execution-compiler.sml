@@ -109,7 +109,7 @@ fun genEventExec (s: System.system, checks, hFile, cFile) = let
 		     compileExecEvent e ^ "      break;",
 		     "   }" ]) events
 	),
-	"   default: fatal_error (\"mevent_exec: undefined event\");",
+	"   default: assert(0);",
 	"   }",
 	"}"
 	]
@@ -122,9 +122,7 @@ fun genEventUndo (s: System.system, checks, hFile, cFile) = let
     val prot = "void mevent_undo (mevent_t e, mstate_t s)"
     val body =
 	concatLines [
-	prot ^ " {",
-	"   fatal_error (\"mevent_undo: unimplemented feature\");",
-	"}"
+	prot ^ " { assert(0); }"
 	]
 in
     TextIO.output (hFile, prot ^ ";\n");
@@ -164,7 +162,7 @@ fun genStatePred (s: System.system, checks, hFile, cFile) = let
 	concatLines [
 	prot ^ " {",
 	"   mstate_t result = NULL;",
-	"   fatal_error (\"mstate_pred: unimplemented feature\");",
+	"   assert(0);",
 	"   return result;",
 	"}",
 	""

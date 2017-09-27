@@ -158,7 +158,7 @@ package body Pn.Compiler.Event is
 	 end loop;
       end loop;
       --=======================================================================
-      Plh(L, "typedef uint16_t mevent_id_t;");
+      Plh(L, "typedef uint8_t mevent_id_t;");
       --=======================================================================
       Plh(L, "typedef struct {");
       Plh(L, 1, "mevent_id_t id;");
@@ -169,11 +169,27 @@ package body Pn.Compiler.Event is
       Plh(L, "} mevent_t;");
       --=======================================================================
       Prototype := To_Ustring
+	("mevent_id_t mevent_id" & Nl &
+	   "(mevent_t e)");
+      Plh(L, Prototype & ";");
+      Plc(L, Prototype & " {");
+      Plc(L, 1, "return e.id;");
+      Plc(L, "}");
+      --=======================================================================
+      Prototype := To_Ustring
 	("void mevent_free (" & Nl &
 	   "   mevent_t e)");
       Plh(L, Prototype & ";");
       Plc(L, Prototype & " {");
       Plc(L, 1, "mem_free(e.h, e.c);");
+      Plc(L, "}");
+      --=======================================================================
+      Prototype := To_Ustring
+	("void mevent_free_void" & Nl &
+	   "(void * data)");
+      Plh(L, Prototype & ";");
+      Plc(L, Prototype & " {");
+      Plc(L, 1, "mevent_free(* ((mevent_t *) data));");
       Plc(L, "}");
       --=======================================================================
       Prototype := To_Ustring
@@ -200,9 +216,7 @@ package body Pn.Compiler.Event is
 	       & "(*(" & Trans_Dom_Type(T) & " *) e.c);");
 	 Plc(L, 2, "break;");
       end loop;
-      Plc(L, 1, "default:");
-      Plc(L, 2, "fatal_error (""mevent_copy_mem: invalid transition-id"");");
-      Plc(L, 2, "break;");
+      Plc(L, 1, "default: assert(0);");
       Plc(L, 1, "}");
       Plc(L, 1, "return result;");
       Plc(L, "}");
@@ -216,9 +230,9 @@ package body Pn.Compiler.Event is
       Plc(L, "}");
       --=======================================================================
       Prototype := To_Ustring
-	("void mevent_compute_priority (" & Nl &
-	   "   mevent_t * e," & Nl &
-	   "   mstate_t   prop_state)");
+	("void mevent_compute_priority" & Nl &
+	   "(mevent_t * e," & Nl &
+	   " mstate_t   prop_state)");
       Plh(L, Prototype & ";");
       Plc(L, Prototype & " {");
       Plc(L, 1, "switch (e->tid) {");
@@ -237,10 +251,7 @@ package body Pn.Compiler.Event is
          Plc(L, 2, "break;");
          Plc(L, 1, "}");
       end loop;
-      Plc(L, 1, "default:");
-      Plc(L, 2, "fatal_error (""mevent_compute_priority: " &
-            "invalid transition-id"");");
-      Plc(L, 2, "break;");
+      Plc(L, 1, "default: assert(0);");
       Plc(L, 1, "}");
       Plc(L, "}");
       --=======================================================================
@@ -266,10 +277,7 @@ package body Pn.Compiler.Event is
 	    Plc(L, 2, Trans_Exec_Func(T, F) & " (result, e.c);");
 	    Plc(L, 2, "break;");
 	 end loop;
-	 Plc(L, 1, "default:");
-	 Plc(L, 2, "fatal_error (""mstate_" & Mode &
-	       "_mem: invalid transition-id"");");
-	 Plc(L, 2, "break;");
+	 Plc(L, 1, "default: assert(0);");
 	 Plc(L, 1, "}");
 	 Plc(L, 1, "return result;");
 	 Plc(L, "}");
@@ -303,10 +311,7 @@ package body Pn.Compiler.Event is
 	    Plc(L, 2, Trans_Exec_Func(T, F) & " (s, e.c);");
 	    Plc(L, 2, "break;");
 	 end loop;
-	 Plc(L, 1, "default:");
-	 Plc(L, 2, "fatal_error (""" & Func_Name &
-	       ": invalid transition-id"");");
-	 Plc(L, 2, "break;");
+	 Plc(L, 1, "default: assert(0);");
 	 Plc(L, 1, "}");
 	 Plc(L, "}");
       end loop;
@@ -326,9 +331,7 @@ package body Pn.Compiler.Event is
 	       (Get_Dom(T), "(*(" & Trans_Dom_Type(T) & " *) e.c)") & ";");
 	 Plc(L, 2, "break;");
       end loop;
-      Plc(L, 1, "default:");
-      Plc(L, 2, "fatal_error (""mevent_char_width: invalid transition-id"");");
-      Plc(L, 2, "break;");
+      Plc(L, 1, "default: assert(0);");
       Plc(L, 1, "}");
       Plc(L, 1, "return (result >> 3) + ((result & 7) ? 1 : 0);");
       Plc(L, "}");
@@ -347,9 +350,7 @@ package body Pn.Compiler.Event is
 	       "((*(" & Trans_Dom_Type(T) & " *) e.c), (&result));");
 	 Plc(L, 2, "break;");
       end loop;
-      Plc(L, 1, "default:");
-      Plc(L, 2, "fatal_error (""mevent_hash: invalid transition-id"");");
-      Plc(L, 2, "break;");
+      Plc(L, 1, "default: assert(0);");
       Plc(L, 1, "}");
       Plc(L, 1, "return result;");
       Plc(L, "}");
@@ -371,9 +372,7 @@ package body Pn.Compiler.Event is
 	       Trans_Dom_Encode_Func(T) &
 	       " ((*(" & Trans_Dom_Type(T) & " *) e.c), bits); break;");
       end loop;
-      Plc(L, 1, "default:");
-      Plc(L, 2, "fatal_error (""mevent_serialise: invalid transition-id"");");
-      Plc(L, 2, "break;");
+      Plc(L, 1, "default: assert(0);");
       Plc(L, 1, "}");
       Plc(L, "}");
       --=======================================================================
@@ -401,10 +400,7 @@ package body Pn.Compiler.Event is
 	 Plc(L, 2, "break;");
 	 Plc(L, 1, "}");
       end loop;
-      Plc(L, 1, "default:");
-      Plc(L, 2,
-	  "fatal_error (""mevent_unserialise_mem: invalid transition-id"");");
-      Plc(L, 2, "break;");
+      Plc(L, 1, "default: assert(0);");
       Plc(L, 1, "}");
       Plc(L, 1, "return result;");
       Plc(L, "}");
@@ -455,9 +451,7 @@ package body Pn.Compiler.Event is
 	 Plc(L, 2, "break;");
 	 Plc(L, 1, "}");
       end loop;
-      Plc(L, 1, "default:");
-      Plc(L, 2, "fatal_error (""mevent_to_xml: invalid transition-id"");");
-      Plc(L, 2, "break;");
+      Plc(L, 1, "default: assert(0);");
       Plc(L, 1, "}");
       Plc(L, 1, "if (!binding_only) { fprintf (out, ""</event>\n""); }");
       Plc(L, "}");
@@ -518,9 +512,7 @@ package body Pn.Compiler.Event is
 	 Plc(L, 2, "break;");
 	 Plc(L, 1, "}");
       end loop;
-      Plc(L, 1, "default:");
-      Plc(L, 2, "fatal_error (""mevent_print: invalid transition-id"");");
-      Plc(L, 2, "break;");
+      Plc(L, 1, "default: assert(0);");
       Plc(L, 1, "}");
       Plc(L, "}");
       --=======================================================================
@@ -549,9 +541,7 @@ package body Pn.Compiler.Event is
 	       "(* ((" & Trans_Dom_Type(T) & " *) e.c)), " &
 	       "(* ((" & Trans_Dom_Type(T) & " *) f.c)));");
       end loop;
-      Plc(L, 1, "default:");
-      Plc(L, 2, "fatal_error (""mevent_cmp: invalid transition-id"");");
-      Plc(L, 2, "break;");
+      Plc(L, 1, "default: assert(0);");
       Plc(L, 1, "}");
       Plc(L, "}");
       --=======================================================================
@@ -584,10 +574,7 @@ package body Pn.Compiler.Event is
 	    Plc(L, 2, "}");
 	    Free(Pre_T);
 	 end loop;
-	 Plc(L, 1, "default:");
-	 Plc(L, 2, "fatal_error (""mevent_are_independent: " &
-	       "invalid transition-id"");");
-	 Plc(L, 2, "break;");
+	 Plc(L, 1, "default: assert(0);");
 	 Plc(L, 1, "}");
       end if;
       Plc(L, "}");

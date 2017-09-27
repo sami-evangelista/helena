@@ -220,37 +220,28 @@ void delta_ddd_storage_output_stats
  *****/
 void delta_ddd_create_trace
 (delta_ddd_storage_id_t id) {
-  delta_ddd_storage_id_t * trace;
-  delta_ddd_storage_id_t pred, curr = id;
+  event_list_t trace = list_new(SYSTEM_HEAP, sizeof(event_t), event_free_void);
   state_t s = state_initial();
-  unsigned int i;
-  uint32_t trace_len;
-  event_t * trace_evts;
+  list_t trace_ids = list_new(SYSTEM_HEAP, sizeof(event_id_t), NULL);
+  event_id_t eid;
+  event_t e;
+  delta_ddd_storage_id_t curr;
 
-  trace_len = 0;
-  while(curr != S->root) {
-    while(!(ST[curr].father & 1)) { curr = ST[curr].next; }
-    curr = ST[curr].next;
-    trace_len ++;
-  }
-  trace_evts = mem_alloc(SYSTEM_HEAP, sizeof(event_t) * trace_len);
-  trace = mem_alloc(SYSTEM_HEAP,
-                    sizeof(delta_ddd_storage_id_t) * (trace_len + 1));
-  i = trace_len;
   curr = id;
-  trace[i --] = curr;
   while(curr != S->root) {
+    list_append(trace_ids, &ST[curr].e);
     while(!(ST[curr].father & 1)) { curr = ST[curr].next; }
     curr = ST[curr].next;
-    trace[i --] = curr;
   }
-  for(i = 1; i <= trace_len; i ++) {
-    trace_evts[i - 1] = state_enabled_event(s, ST[trace[i]].e);
-    event_exec(trace_evts[i - 1], s);
+  while(!list_is_empty(trace_ids)) {
+    list_pick_last(trace_ids, &eid);
+    e = state_enabled_event(s, eid);
+    event_exec(e, s);
+    list_append(trace, &e);
   }
+  list_free(trace_ids);
   state_free(s);
-  free(trace);
-  context_set_trace(trace_len, trace_evts);
+  context_set_trace(trace);
 }
 
 
@@ -701,13 +692,13 @@ state_t delta_ddd_expand_dfs
       }
     }
 #endif
-    en_size = event_list_size(en);
+    en_size = list_size(en);
     if(0 == en_size) {
       context_incr_dead(w, 1);
     }
     for(i = 0; i < en_size; i ++) {
-      e = event_set_nth(en, i);
-      e_id = event_set_nth_id(en, i);
+      list_nth(en, i, &e);
+      e_id = event_id(e);
       t = state_succ_mem(s, e, heap);
       if(delta_ddd_send_candidate(w, now, e_id, t)) {
 	delta_ddd_duplicate_detection(w);
@@ -921,6 +912,8 @@ void delta_ddd
    *  free heaps and mailboxes
    */
   for(w = 0; w < CFG_NO_WORKERS; w ++) {
+    mem_free(SYSTEM_HEAP, CS[w]);
+    mem_free(SYSTEM_HEAP, NCS[w]);
     for(x = 0; x < CFG_NO_WORKERS; x ++) {
       mem_free(SYSTEM_HEAP, BOX[w][x]);
     }

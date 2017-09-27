@@ -1,10 +1,83 @@
 #include "event.h"
 
+uint32_t mevent_list_char_width
+(list_t l) {
+  uint32_t result = sizeof(list_size_t);
+  list_iter_t it;
+  mevent_t e;
+  
+  for(it = list_get_iterator(l);
+      !list_iterator_at_end(it);
+      it = list_iterator_next(it)) {
+    e = * ((mevent_t *) list_iterator_item(it));
+    result += mevent_char_width(e);
+  }
+  return result;
+}
+
+void mevent_list_serialise
+(list_t l,
+ bit_vector_t v) {
+  mevent_t e;
+  list_iter_t it;
+  list_size_t size = list_size(l);
+  uint32_t pos = 0;
+
+  memcpy(v, &size, sizeof(list_size_t));
+  pos = sizeof(list_size_t);
+  for(it = list_get_iterator(l);
+      !list_iterator_at_end(it);
+      it = list_iterator_next(it)) {
+    e = * ((mevent_t *) list_iterator_item(it));
+    mevent_serialise(e, v + pos);
+    pos += mevent_char_width(e);
+  }
+}
+
+list_t mevent_list_unserialise
+(bit_vector_t v) {
+  return mevent_list_unserialise_mem(v, SYSTEM_HEAP);
+}
+
+list_t mevent_list_unserialise_mem
+(bit_vector_t v,
+ heap_t heap) {
+  list_t result;
+  uint32_t size, pos;
+  mevent_t e;
+
+  memcpy(&size, v, sizeof(list_size_t));
+  result = list_new(heap, sizeof(mevent_t), mevent_free_void);
+  pos = sizeof(list_size_t);
+  while(size) {
+    e = mevent_unserialise_mem(v + pos, heap);
+    pos += mevent_char_width(e);
+    list_append(result, &e);
+    size --;
+  }
+  return result;
+}
+
 #if defined(CFG_ACTION_CHECK_LTL)
 
 bool_t event_is_dummy
 (event_t e) {
   return e.dummy;
+}
+
+void event_free
+(event_t e) {
+  mevent_free(e.m);
+}
+
+void event_free_void
+(void * e) {
+  mevent_free(* ((event_t *) e.m));
+}
+
+event_t event_copy
+(event_t e) {
+  return event_copy_mem(e, SYSTEM_HEAP);
 }
 
 event_t event_copy_mem
@@ -19,14 +92,10 @@ event_t event_copy_mem
   return result;
 }
 
-event_t event_copy
+event_id_t event_id
 (event_t e) {
-  return event_copy_mem(e, SYSTEM_HEAP);
-}
-
-void event_free
-(event_t e) {
-  mevent_free(e.m);
+  /*  not implemented  */
+  assert(0);
 }
 
 void event_exec
@@ -54,12 +123,6 @@ void event_to_xml
   mevent_to_xml(e.m, f);
 }
 
-unsigned int event_char_width
-(event_t e) {
-  return 1 + 2 * bstate_char_width() +
-   (e.dummy ? 0 : mevent_char_width(e.m));
-}
-
 order_t event_cmp
 (event_t e,
  event_t f) {
@@ -76,6 +139,12 @@ bool_t event_are_independent
  event_t f) {
   /*  not implemented  */
   assert(0);
+}
+
+unsigned int event_char_width
+(event_t e) {
+  return 1 + 2 * bstate_char_width() +
+   (e.dummy ? 0 : mevent_char_width(e.m));
 }
 
 void event_list_free
@@ -146,10 +215,10 @@ event_t state_enabled_event
   return state_enabled_event_mem(s, id, SYSTEM_HEAP);
 }
 
-void state_stubborn_set
+void state_reduced_set
 (state_t s,
  event_list_t en) {
-  mstate_stubborn_set(s->m, en->m);
+  mstate_reduced_set(s->m, en->m);
 }
 
 state_t state_succ

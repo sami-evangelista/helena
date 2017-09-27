@@ -115,11 +115,11 @@ fun gen (s, checks, hFile, cFile) = (
     TextIO.output
         (hFile,
          concatLines [
-	     "void mstate_stubborn_set (mstate_t s, list_t en);" ]);
+	     "void mstate_reduced_set (mstate_t s, list_t en);" ]);
     TextIO.output
         (cFile,
          concatLines [
-	     "void mstate_stubborn_set (mstate_t s, list_t en) {",
+	     "void mstate_reduced_set (mstate_t s, list_t en) {",
              "/*  not implemented  */",
 	     "}" ]))
 end

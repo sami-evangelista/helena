@@ -84,21 +84,6 @@ hash_key_t bit_vector_hash
 (bit_vector_t v,
  unsigned int len);
 
-#define MALLOC(ptr, ptr_type, size) {           \
-    if(!((ptr) = (ptr_type) malloc(size))) {    \
-      fatal_error("could not malloc memory");   \
-    }                                           \
-  }
-
-#define fatal_error(msg) {						\
-    printf("file       : %s\n", __FILE__);				\
-    printf("line       : %d\n", __LINE__);				\
-    printf("fatal error: %s\n", msg);					\
-    printf("please send a mail with a file that caused this bug to\n"); \
-    printf("      sami.evangelista@lipn.univ-paris13.fr\n");		\
-    exit(EXIT_FAILURE);                                                 \
-  }
-
 bool_t raise_error
 (char * msg);
 

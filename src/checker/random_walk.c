@@ -18,7 +18,7 @@ void * random_walk_worker
   unsigned int en_size;
   char heap_name [100];
   heap_t heap;
-  list_t trace, new_trace;
+  event_list_t trace, new_trace;
 
   sprintf(heap_name, "random walk heap of worker %d", w);
   heap = bounded_heap_new(heap_name, RW_HEAP_SIZE);
@@ -26,15 +26,15 @@ void * random_walk_worker
   while(context_keep_searching()) {
     heap_reset(heap);
     s = state_initial_mem(heap);
-    trace = list_new(heap, sizeof(event_t), NULL);
+    trace = list_new(heap, sizeof(event_t), event_free_void);
     for(i = 0; i < CFG_RWALK_MAX_DEPTH && context_keep_searching(); i ++) {
       en = state_enabled_events_mem(s, heap);
-      en_size = event_list_size(en);
+      en_size = list_size(en);
 #if defined(CFG_ACTION_CHECK_SAFETY)
       if(state_check_property(s, en)) {
         
         /*  copy the trace to the system heap  */
-        new_trace = list_new(SYSTEM_HEAP, sizeof(event_t), NULL);
+        new_trace = list_new(SYSTEM_HEAP, sizeof(event_t), event_free_void);
         while(!list_is_empty(trace)) {
           list_pick_first(trace, &e);
           e = event_copy(e);
@@ -46,20 +46,20 @@ void * random_walk_worker
       }
 #endif
       if(0 != en_size) {
-        event_list_pick_random(en, &e, &seed);
+        list_pick_random(en, &e, &seed);
 	event_exec(e, s);
         list_append(trace, &e);
       }
       context_incr_evts_exec(w, 1);
       context_incr_visited(w, 1);
       context_incr_arcs(w, en_size);
-      event_list_free(en);
+      list_free(en);
       if(0 == en_size) {
         context_incr_dead(w, 1);
 	break;
       }
     }
-    event_list_free(trace);
+    list_free(trace);
     state_free(s);
   }
   heap_free(heap);

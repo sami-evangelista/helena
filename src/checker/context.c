@@ -17,7 +17,7 @@ typedef struct {
    */
   bool_t faulty_state_found;
   state_t faulty_state;
-  list_t trace;
+  event_list_t trace;
   pthread_mutex_t ctx_mutex;
 
   /*
@@ -511,7 +511,7 @@ void context_set_termination_state
 }
 
 void context_set_trace
-(list_t trace) {
+(event_list_t trace) {
   CTX->trace = trace;
 }
 

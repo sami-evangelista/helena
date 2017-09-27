@@ -583,48 +583,49 @@ package body Pn.Compiler.Enabling_Test is
      (N  : in Net;
       Lib: in Library) is
       Prototype: constant String :=
-	"void mevent_list_check_priority (" & Nl &
-        "   list_t l," & Nl &
-	"   mstate_t s)";
+	"void check_priority" & Nl &
+        "(list_t l," & Nl &
+	" mstate_t s)";
       Test     : Ustring;
    begin
+      Plc(Lib, "void compute_priority(void * item, void * data) {");
+      Plc(Lib, 1, "mevent_t * e = ((mevent_t *) item);");
+      Plc(Lib, 1, "mstate_t s = * ((mstate_t *) data);");
+      Plc(Lib, 2, "mevent_compute_priority(e, s);");
+      Plc(Lib, "}");
+      Plc(Lib, "void find_max_priority(void * item, void * data) {");
+      Plc(Lib, 1, "mevent_t e = * ((mevent_t *) item);");
+      Plc(Lib, 1, "int max = * ((int *) data);");
+      Plc(Lib, 1, "if(e.priority > max) {");
+      Plc(Lib, 2, "(*((int *) data)) = e.priority;");
+      Plc(Lib, 1, "}");
+      Plc(Lib, "}");
+      Plc(Lib, "char has_less_priority(void * item, void * data) {");
+      Plc(Lib, 1, "mevent_t e = * ((mevent_t *) item);");
+      Plc(Lib, 1, "int max = * ((int *) data);");
+      Plc(Lib, 1, "if(e.priority != max) { return TRUE; }");
+      Plc(Lib, 1, "else { return FALSE; }");
+      Plc(Lib, "}");
+      Plc(Lib, "void recompute_id(void * item, void * data) {");
+      Plc(Lib, 1, "mevent_t * e = ((mevent_t *) item);");
+      Plc(Lib, 1, "int n = * ((int *) data);");
+      Plc(Lib, 1, "e->id = n;");
+      Plc(Lib, 1, "(*((int *) data)) ++;");
+      Plc(Lib, "}");
+
+      --===
+      --  1 - compute priorities
+      --  2 - compute the max priority
+      --  3 - remove events that do not have this max priority
+      --  4 - recompute transitions id
+      --===
       Plh(Lib, Prototype & ";");
       Plc(Lib, Prototype & " {");
-
-      --===
-      --  compute the maximal priority over all events
-      --===
-      if False then
-      Plc(Lib, 1, "int max = INT_MIN;");
-      Plc(Lib, 1, "list_t ptr, next, prev;");
-      Plc(Lib, 1, "for(ptr = set->first; ptr; ptr = ptr->next) {");
-      Plc(Lib, 2, "mevent_compute_priority (&ptr->e, s);");
-      Plc(Lib, 2, "if (max < ptr->e.priority) max = ptr->e.priority;");
-      Plc(Lib, 1, "}");
-
-      --===
-      --  remove all transitions which do not have the maximal priority
-      --===
-      Plc(Lib, 1, "prev = NULL;");
-      Plc(Lib, 1, "ptr = set->first;");
-      Plc(Lib, 1, "while (ptr) {");
-      Plc(Lib, 2, "if (max == ptr->e.priority) {");
-      Plc(Lib, 3, "prev = ptr;");
-      Plc(Lib, 3, "ptr = ptr->next;");
-      Plc(Lib, 2, "}");
-      Plc(Lib, 2, "else {");
-      Plc(Lib, 3, "set->size --;");
-      Plc(Lib, 3, "next = ptr->next;");
-      Plc(Lib, 3, "if (prev != NULL)");
-      Plc(Lib, 4, "prev->next = next;");
-      Plc(Lib, 3, "else");
-      Plc(Lib, 4, "set->first = next;");
-      Plc(Lib, 3, "mevent_free (ptr->e);");
-      Plc(Lib, 3, "mem_free (set->heap, ptr);");
-      Plc(Lib, 3, "ptr = next;");
-      Plc(Lib, 2, "}");
-      Plc(Lib, 1, "}");
-      end if;
+      Plc(Lib, 1, "int max = INT_MIN, n = 0;");
+      Plc(Lib, 1, "list_app(l, compute_priority, &s);");
+      Plc(Lib, 1, "list_app(l, find_max_priority, &max);");
+      Plc(Lib, 1, "list_filter(l, has_less_priority, &max);");
+      Plc(Lib, 1, "list_app(l, recompute_id, &n);");
       Plc(Lib, "}");
    end;
 
@@ -737,7 +738,7 @@ package body Pn.Compiler.Enabling_Test is
       Plc(L, 1, "result = list_new(heap, sizeof(mevent_t), mevent_free_ptr);");
       Gen_Enabled_Events_Check(Post_Get_All_Enabled'Access);
       if With_Priority(N) then
-	 Plc(L, 1, "mevent_list_check_priority (result, s);");
+	 Plc(L, 1, "check_priority (result, s);");
       end if;
       Plc(L, 1, "return result;");
       Plc(L, "}");
@@ -761,12 +762,13 @@ package body Pn.Compiler.Enabling_Test is
       if not With_Priority(N) then
 	 Gen_Enabled_Events_Check(Post_Get_One_Enabled'Access);
       else
-	 Plc(L, 1, "mevent_set_t en = mstate_enabled_events_mem (s, heap);");
-	 Plc(L, 1, "result = mevent_copy_mem (mevent_set_nth(en, id), heap);");
-	 Plc(L, 1, "mevent_set_free (en);");
+	 Plc(L, 1, "list_t en = mstate_enabled_events_mem (s, heap);");
+	 Plc(L, 1, "list_nth(en, id, &result);");
+	 Plc(L, 1, "result = mevent_copy_mem(result, heap);");
+	 Plc(L, 1, "list_free(en);");
 	 Plc(L, 1, "return result;");
       end if;
-      Plc(L, 1, "fatal_error (""mstate_enabled_event_mem: evt not found"");");
+      Plc(L, 1, "assert(0);");
       Plc(L, "}");
       --=======================================================================
       Prototype := To_Ustring

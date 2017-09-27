@@ -244,7 +244,7 @@ state_t dfs_main
         /*
          *  update some statistics and check the state
          */
-	if(blue && (0 == event_list_size(en))) {
+	if(blue && (0 == list_size(en))) {
 	  context_incr_dead(w, 1);
 	}
         dfs_check_state(now, en, blue_stack, red_stack);

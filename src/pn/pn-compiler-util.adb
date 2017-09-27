@@ -176,7 +176,7 @@ package body Pn.Compiler.Util is
 	 Plc(Lib, 1, "case " & Tid(T) & ": return " &
 	       Get_Safe_Set(T) & ";");
       end loop;
-      Plc(Lib, 1, "default: fatal_error (""TRANS_ID_safe_set: invalid id"");");
+      Plc(Lib, 1, "default: assert(0);");
       Plc(Lib, 1, "}");
       Plc(Lib, "}");
    end;

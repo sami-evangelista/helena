@@ -14,7 +14,7 @@
 
 #if defined(CFG_ACTION_CHECK_LTL)
 
-/*
+/**
  *  state definition when doing LTL model checking
  */
 
@@ -81,32 +81,28 @@ state_t state_unserialise_mem
 
 #else
 
-/*
+/**
  *  state definition when not doing LTL model checking
  */
 
 typedef mstate_t state_t;
+typedef list_t state_list_t;
+
 #define state_initial mstate_initial
+#define state_initial_mem mstate_initial_mem
 #define state_equal mstate_equal
 #define state_free mstate_free
+#define state_free_void mstate_free_void
 #define state_hash mstate_hash
 #define state_copy mstate_copy
+#define state_copy_mem mstate_copy_mem
 #define state_print mstate_print
 #define state_to_xml mstate_to_xml
 #define state_serialise mstate_serialise
 #define state_unserialise mstate_unserialise
+#define state_unserialise_mem mstate_unserialise_mem
 #define state_char_width mstate_char_width
 #define state_cmp_vector mstate_cmp_vector
-
-#if defined(CFG_USE_HELENA_HEAPS)
-#define state_initial_mem mstate_initial_mem
-#define state_copy_mem mstate_copy_mem
-#define state_unserialise_mem mstate_unserialise_mem
-#else
-#define state_initial_mem(heap) mstate_initial ()
-#define state_copy_mem(s, heap) mstate_copy (s)
-#define state_unserialise_mem(v, heap) mstate_unserialise(v)
-#endif
 
 #endif
 

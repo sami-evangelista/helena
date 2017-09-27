@@ -17,9 +17,7 @@ fun compileStateToXml (s: System.system, hFile, cFile) = let
     val prot = "void mstate_to_xml (mstate_t s, FILE * out)"
     val body =
 	concatLines [
-	prot ^ " {",
-	"   fatal_error (\"mstate_to_xml: unimplemented feature\");",
-	"}"
+	prot ^ " { assert(0); }"
 	]
 in
     TextIO.output (hFile, prot ^ ";\n");
@@ -30,9 +28,7 @@ fun compileEventToXml (s: System.system, hFile, cFile) = let
     val prot = "void mevent_to_xml (mevent_t e, FILE * out)"
     val body =
 	concatLines [
-	prot ^ " {",
-	"   fatal_error (\"mevent_to_xml: unimplemented feature\");",
-	"}"
+	prot ^ " { assert(0); }"
 	]
 in
     TextIO.output (hFile, prot ^ ";\n");

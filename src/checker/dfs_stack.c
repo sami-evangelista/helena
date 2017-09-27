@@ -152,7 +152,7 @@ void dfs_stack_write
       fwrite(buffer, len, 1, f);
       state_free(item.s);
     }
-    event_list_free(item.en);
+    list_free(item.en);
     event_free(item.e);
   }
   fclose(f);
@@ -249,7 +249,7 @@ void dfs_stack_pop
   if(stack->states_stored) {
     state_free(item.s);
   }
-  event_list_free(item.en);
+  list_free(item.en);
   if(item.e_set) {
     event_free(item.e);
   }
@@ -302,19 +302,19 @@ event_list_t dfs_stack_compute_events
 
   assert(0 != stack->size);
   if(item.en) {
-    event_list_free(item.en);
+    list_free(item.en);
   }
   item.heap_pos = heap_get_position(h);
   result = state_enabled_events_mem(s, h);
   
-  /*  compute a stubborn set if POR is activated  */
+  /*  compute a reduced set if POR is activated  */
 #if defined(CFG_POR)
   if(filter) {
-    en_size = event_list_size(result);
-    state_stubborn_set(s, result);
+    en_size = list_size(result);
+    state_reduced_set(s, result);
 #if defined(CFG_PROVISO)
     item.prov_ok = TRUE;
-    item.fully_expanded = (en_size == event_list_size(result)) ?
+    item.fully_expanded = (en_size == list_size(result)) ?
       TRUE : FALSE;
 #endif
   }
@@ -337,9 +337,9 @@ void dfs_stack_pick_event
   int chosen;
   
   if(stack->shuffle) {
-    event_list_pick_random(item.en, &item.e, &stack->seed);
+    list_pick_random(item.en, &item.e, &stack->seed);
   } else {
-    event_list_pick_first(item.en, &item.e);
+    list_pick_first(item.en, &item.e);
   }
   item.e_set = TRUE;
   stack->blocks[stack->current]->items[stack->top] = item;
@@ -365,7 +365,7 @@ bool_t dfs_stack_top_expanded
 (dfs_stack_t stack) {
   dfs_stack_item_t item = stack->blocks[stack->current]->items[stack->top];
   
-  return event_list_is_empty(item.en);
+  return list_is_empty(item.en);
 } 
 
 bool_t dfs_stack_proviso
@@ -387,7 +387,7 @@ void dfs_stack_create_trace
   dfs_stack_t stack, stacks[2];
   dfs_stack_item_t item;
   int i;
-  list_t trace = list_new(SYSTEM_HEAP, sizeof(event_t), NULL);
+  event_list_t trace = list_new(SYSTEM_HEAP, sizeof(event_t), event_free_void);
 
   stacks[0] = red_stack;
   stacks[1] = blue_stack;

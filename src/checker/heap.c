@@ -1,5 +1,9 @@
 #include "heap.h"
 
+#define MALLOC(ptr, ptr_type, size) {           \
+    assert(ptr = (ptr_type) malloc(size));      \
+  }
+
 /*
  *  bounded size heap without free operation
  */

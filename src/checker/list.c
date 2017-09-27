@@ -13,8 +13,8 @@ struct struct_list_t {
   list_size_t no_items;
   list_node_t first;
   list_node_t last;
-  list_free_func_t free_func;
   uint32_t sizeof_item;
+  list_free_func_t free_func;  
 };
 
 typedef struct struct_list_t struct_list_t;
@@ -30,8 +30,8 @@ list_t list_new
   result->no_items = 0;
   result->first = NULL;
   result->last = NULL;
-  result->sizeof_item = sizeof_item;
   result->free_func = free_func;
+  result->sizeof_item = sizeof_item;
   return result;
 }
 
@@ -39,16 +39,18 @@ void list_free
 (list_t list) {
   list_node_t ptr = list->first, next;
 
-  while(ptr) {
-    next = ptr->next;
-    if(list->free_func) {
-      list->free_func(ptr->item);
+  if(heap_has_mem_free(list->heap)) {
+    while(ptr) {
+      next = ptr->next;
+      if(list->free_func) {
+        list->free_func(ptr->item);
+      }
+      mem_free(list->heap, ptr->item);
+      mem_free(list->heap, ptr);
+      ptr = next;
     }
-    mem_free(list->heap, ptr->item);
-    mem_free(list->heap, ptr);
-    ptr = next;
+    mem_free(list->heap, list);
   }
-  mem_free(list->heap, list);
 }
 
 char list_is_empty

@@ -42,7 +42,7 @@ void * H;
 void ddfs_comm_process_explored_state
 (worker_id_t w,
  storage_id_t id,
- mevent_set_t en) {
+ event_list_t en) {
 
   /**
    *  if a communication strategy has been set we check if the state
@@ -57,7 +57,7 @@ void ddfs_comm_process_explored_state
   }
 #endif
 #if defined(CFG_DDFS_COMM_STRAT_DEGREE)
-  if(mevent_set_size(en) < CFG_DDFS_COMM_STRAT_DEGREE) {
+  if(list_size(en) < CFG_DDFS_COMM_STRAT_DEGREE) {
     assert(0);
     return;
   }

@@ -10,6 +10,7 @@
 
 #include "includes.h"
 #include "model.h"
+#include "event.h"
 #include "storage.h"
 
 void context_init
@@ -46,7 +47,7 @@ void context_set_termination_state
 (termination_state_t state);
 
 void context_set_trace
-(list_t trace);
+(event_list_t trace);
 
 uint64_t context_visited
 ();

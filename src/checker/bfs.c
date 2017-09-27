@@ -141,7 +141,7 @@ void * bfs_worker
         
         /**
          *  dequeue a state sent by thread x, get its successors and a
-         *  valid stubborn set.  if the states are not stored in the
+         *  valid reduced set.  if the states are not stored in the
          *  queue we get it from the storage
          */
         item = bfs_queue_dequeue(Q, x, w);
@@ -158,7 +158,7 @@ void * bfs_worker
         }
 #if defined(CFG_POR)
         en_size = list_size(en);
-        state_stubborn_set(s, en);
+        state_reduced_set(s, en);
         fully_expanded = (en_size == list_size(en)) ? TRUE : FALSE;
 #endif
 
@@ -219,7 +219,7 @@ void * bfs_worker
 #if defined(CFG_POR) && defined(CFG_PROVISO)
             if(!fully_expanded && !storage_get_any_cyan(S, id_succ)) {
               fully_expanded = TRUE;
-              event_list_free(en);
+              list_free(en);
               bfs_back_to_s();
               en = state_enabled_events_mem(s, heap);
               goto state_expansion;
@@ -229,7 +229,7 @@ void * bfs_worker
           bfs_back_to_s();
         }
         state_free(s);
-        event_list_free(en);
+        list_free(en);
 
         /**
          *  the state leaves the queue => we unset its cyan bit and

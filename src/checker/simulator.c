@@ -15,16 +15,6 @@ bool_t check_error () {
   }
 }
 
-void free_state
-(void * data) {
-  mstate_free(* ((mstate_t *) data));
-}
-
-void free_event
-(void * data) {
-  mevent_free(* ((mevent_t *) data));
-}
-
 void simulator () {
   unsigned int i;
   bool_t loop = TRUE;
@@ -33,13 +23,14 @@ void simulator () {
   mevent_t e;
   size_t n;
   char prop[65536];
-  list_t stack, stack_evts;
-  mevent_list_t en;
+  state_list_t stack;
+  event_list_t stack_evts;
+  event_list_t en;
   list_iter_t it;
 
   s = mstate_initial();
-  stack = list_new(SYSTEM_HEAP, sizeof(state_t), free_state);
-  stack_evts = list_new(SYSTEM_HEAP, sizeof(event_t), free_event);
+  stack = list_new(SYSTEM_HEAP, sizeof(state_t), state_free_void);
+  stack_evts = list_new(SYSTEM_HEAP, sizeof(event_t), event_free_void);
   list_append(stack, &s);
   while(loop) {
     printf("# ");
@@ -82,11 +73,10 @@ void simulator () {
       list_top(stack, &s);
       en = mstate_enabled_events(s);
       if(check_error()) {
-	if(i < 1 || i > mevent_list_size(en)) {
-	  printf("error: state has %d enabled event(s)\n",
-		 mevent_list_size(en));
+	if(i < 1 || i > list_size(en)) {
+	  printf("error: state has %d enabled event(s)\n", list_size(en));
 	} else {
-	  mevent_list_nth(en, i - 1, &e);
+	  list_nth(en, i - 1, &e);
 	  s = mstate_succ(s, e);
 	  if(check_error()) {
 	    e = mevent_copy(e);
@@ -97,7 +87,7 @@ void simulator () {
 	  }
 	}
       }
-      mevent_list_free(en);
+      list_free(en);
     } else if(!strcmp(cmd, "pop")) {
       if(list_is_empty(stack_evts)) {
 	printf("error: stack is empty\n");
@@ -111,13 +101,17 @@ void simulator () {
       list_top(stack, &s);
       en = mstate_enabled_events(s);
       if(check_error()) {
-	for(i = 0; i < mevent_list_size(en); i ++) {
-	  printf("%3d: ", i + 1);
-	  mevent_list_nth(en, i, &e);
-	  mevent_print(e, stdout);
-	}
+        if(list_is_empty(en)) {
+          printf("no enabled event\n");
+        } else {
+          for(i = 0; i < list_size(en); i ++) {
+            printf("%3d: ", i + 1);
+            list_nth(en, i, &e);
+            mevent_print(e, stdout);
+          }
+        }
       }
-      mevent_list_free(en);
+      list_free(en);
     } else if(!strcmp(cmd, "help")) {
       printf("\
 show    -> show the current state (the one on top of the stack)\n\
