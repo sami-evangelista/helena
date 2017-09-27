@@ -185,14 +185,6 @@ package body Pn.Compiler.Event is
       Plc(L, "}");
       --=======================================================================
       Prototype := To_Ustring
-	("void mevent_free_void" & Nl &
-	   "(void * data)");
-      Plh(L, Prototype & ";");
-      Plc(L, Prototype & " {");
-      Plc(L, 1, "mevent_free(* ((mevent_t *) data));");
-      Plc(L, "}");
-      --=======================================================================
-      Prototype := To_Ustring
 	("mevent_t mevent_copy_mem (" & Nl &
 	   "   mevent_t e," & Nl &
 	   "   heap_t  heap)");

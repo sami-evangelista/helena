@@ -104,22 +104,35 @@ in
     TextIO.output (cFile, "\n" ^ bodyMem ^ "\n")
 end
 
+fun compileGetReduced getEvents funcName
+		      (s: System.system, checks, hFile, cFile) = let
+    val prot    = String.concat [
+	    "list_t ", funcName,
+	    " (mstate_t s, bool_t * reduced)" ]
+    val protMem = String.concat [
+	    "list_t ", funcName, "_mem",
+	    " (mstate_t s, bool_t * reduced, heap_t heap)" ]
+    val body    = concatLines [
+            prot,
+            " { return " ^ funcName ^ "_mem(s, reduced, SYSTEM_HEAP); }" ]
+    val bodyMem = concatLines [
+            protMem,
+            " { *reduced = FALSE; return mstate_events_mem(s, heap); }" ]
+in
+    TextIO.output (hFile, "\n" ^ prot ^ ";\n");
+    TextIO.output (hFile, "\n" ^ protMem ^ ";\n");
+    TextIO.output (cFile, "\n" ^ body ^ "\n");
+    TextIO.output (cFile, "\n" ^ bodyMem ^ "\n")
+end
+
 fun gen (s, checks, hFile, cFile) = (
     TextIO.output (hFile, "#include \"list.h\"");
     TextIO.output (hFile, "/*  enabling test functions  */");
     TextIO.output (cFile, "/*  enabling test functions  */");
     compileGetEnabledEvent
-	buildEvents "mstate_enabled_event" (s, checks, hFile, cFile);
+	buildEvents "mstate_event" (s, checks, hFile, cFile);
     compileGetEnabledEvents
-	buildEvents "mstate_enabled_events" (s, checks, hFile, cFile);
-    TextIO.output
-        (hFile,
-         concatLines [
-	     "void mstate_reduced_set (mstate_t s, list_t en);" ]);
-    TextIO.output
-        (cFile,
-         concatLines [
-	     "void mstate_reduced_set (mstate_t s, list_t en) {",
-             "/*  not implemented  */",
-	     "}" ]))
+	buildEvents "mstate_events" (s, checks, hFile, cFile);
+    compileGetReduced
+	buildEvents "mstate_events_reduced" (s, checks, hFile, cFile))
 end

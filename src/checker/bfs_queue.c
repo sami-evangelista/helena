@@ -42,7 +42,7 @@ bfs_queue_block_t bfs_queue_block_new
   result = mem_alloc(SYSTEM_HEAP, sizeof(struct_bfs_queue_block_t));
   result->items = mem_alloc(SYSTEM_HEAP, sizeof(bfs_queue_item_t) * slot_size);
   if(allocate_heap) {
-    result->heap = evergrowing_heap_new("", 1000);
+    result->heap = evergrowing_heap_new(1000);
   } else {
     result->heap = NULL;
   }

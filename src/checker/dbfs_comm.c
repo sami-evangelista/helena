@@ -256,7 +256,7 @@ void dbfs_comm_worker_process_incoming_states
   char buffer[SYM_HEAP_SIZE_WORKER];
   storage_id_t sid;
   bfs_queue_item_t item;
-  heap_t heap = bounded_heap_new("", 10000);
+  heap_t heap = bounded_heap_new(10000);
   state_t s;
   
   while(states_received) {
@@ -450,8 +450,7 @@ void dbfs_comm_start
       } else {
         BUF.remote_pos[w][pe] = remote_pos;
         BUF.states[w][pe] = NULL;
-        BUF.heaps[w][pe] = bounded_heap_new("dbfs_comm buffer",
-                                            SYM_HEAP_SIZE_WORKER);
+        BUF.heaps[w][pe] = bounded_heap_new(SYM_HEAP_SIZE_WORKER);
         dbfs_comm_reinit_buffer(w, pe);
         remote_pos += SYM_HEAP_SIZE_WORKER;
       }

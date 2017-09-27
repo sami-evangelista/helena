@@ -259,7 +259,7 @@ package body Pn.Compiler.Graph is
       Plc(L, Prototype & " {");
       Plc(L, "#ifdef CFG_ACTION_BUILD_GRAPH");
       Plc(L, 1, "ptr_mevent_t pe;");
-      Plc(L, 1, "mevent_t e = mstate_enabled_event (data->now, num);");
+      Plc(L, 1, "mevent_t e = mstate_event (data->now, num);");
       Plc(L, 1, "pe = mem_alloc (SYSTEM_HEAP, sizeof (struct_ptr_mevent_t));");
       Plc(L, 1, "pe->bit = 0;");
       Plc(L, 1, "pe->e = mevent_copy_mem (e, SYSTEM_HEAP);");
@@ -300,7 +300,7 @@ package body Pn.Compiler.Graph is
       Plc(L, 1, "hash_key_t h;");
       Plc(L, 1, "bool_t b;");
       Plc(L, 1, "hash_tbl_id_t id;");
-      Plc(L, 1, "list_t en = mstate_enabled_events(s);");
+      Plc(L, 1, "list_t en = mstate_events(s);");
       Plc(L, 1, "if(list_is_empty(en)) {");
       Plc(L, 2, "if(data->no_dead < MAX_DEAD) {");
       Plc(L, 3, "data->dead[data->no_dead] = mstate_copy (s);");
@@ -400,7 +400,7 @@ package body Pn.Compiler.Graph is
       Plc(L, Prototype & " {");
       Plc(L, "#ifdef CFG_ACTION_BUILD_GRAPH");
       Plc(L, 1, "ptr_mevent_t pe, prev;");
-      Plc(L, 1, "mevent_t e = mstate_enabled_event (data->now, num);");
+      Plc(L, 1, "mevent_t e = mstate_event (data->now, num);");
       Plc(L, 1, "data->top ++;");
       Plc(L, 1, "data->stack[data->top] = e;");
       Plc(L, 1, "mevent_exec (e, data->now);");

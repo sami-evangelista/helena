@@ -13,17 +13,22 @@
 #include "prop.h"
 #include "state.h"
 
+typedef list_t event_list_t;
+
+void mevent_free_void
+(void * data);
+
 uint32_t mevent_list_char_size
-(list_t l);
+(event_list_t l);
 
 void mevent_list_serialise
-(list_t l,
+(event_list_t l,
  bit_vector_t v);
 
-list_t mevent_list_unserialise
+event_list_t mevent_list_unserialise
 (bit_vector_t v);
 
-list_t mevent_list_unserialise_mem
+event_list_t mevent_list_unserialise_mem
 (bit_vector_t v,
  heap_t heap);
 
@@ -46,8 +51,6 @@ typedef struct {
   bevent_t b;
 } event_t;
 
-typedef struct_event_list_t * event_list_t;
-
 bool_t event_is_dummy(event_t e);
 void event_free(event_t e);
 void event_free_void(void * e);
@@ -64,18 +67,19 @@ void event_serialise(event_t e, bit_vector_t v);
 event_t event_unserialise(bit_vector_t v);
 event_t event_unserialise_mem(bit_vector_t v, heap_t heap);
 
-event_list_t state_enabled_events(state_t s);
-event_list_t state_enabled_events_mem(state_t s, heap_t heap);
-event_t state_enabled_event(state_t s, event_id_t id);
-event_t state_enabled_event_mem(state_t s, event_id_t id, heap_t heap);
-void state_reduced_set(state_t s, event_list_t en);
+event_list_t state_events(state_t s);
+event_list_t state_events_mem(state_t s, heap_t heap);
+event_t state_event(state_t s, event_id_t id);
+event_t state_event_mem(state_t s, event_id_t id, heap_t heap);
+event_list_t state_events_reduced(state_t s, bool_t * red);
+event_list_t state_events_reduced_mem(state_t s, bool_t * red, heap_t heap);
 state_t state_succ(state_t s, event_t e);
 state_t state_succ_mem(state_t s, event_t e, heap_t heap);
 state_t state_pred(state_t s, event_t e);
 state_t state_pred_mem(state_t s, event_t e, heap_t heap);
 
-unsigned int event_list_char_size(event_list_t en);
-void event_list_serialise(event_list_t en, bit_vector_t v);
+unsigned int event_list_char_size(event_list_t l);
+void event_list_serialise(event_list_t l, bit_vector_t v);
 event_list_t event_list_unserialise(bit_vector_t v);
 event_list_t event_list_unserialise_mem(bit_vector_t v, heap_t heap);
 
@@ -89,7 +93,6 @@ event_list_t event_list_unserialise_mem(bit_vector_t v, heap_t heap);
 
 typedef mevent_t event_t;
 typedef mevent_id_t event_id_t;
-typedef list_t event_list_t;
 
 #define event_is_dummy(e) FALSE
 #define event_free mevent_free
@@ -107,11 +110,12 @@ typedef list_t event_list_t;
 #define event_unserialise mevent_unserialise
 #define event_unserialise_mem mevent_unserialise_mem
 
-#define state_enabled_events mstate_enabled_events
-#define state_enabled_events_mem mstate_enabled_events_mem
-#define state_enabled_event mstate_enabled_event
-#define state_enabled_event_mem mstate_enabled_event_mem
-#define state_reduced_set mstate_reduced_set
+#define state_events mstate_events
+#define state_events_mem mstate_events_mem
+#define state_event mstate_event
+#define state_event_mem mstate_event_mem
+#define state_events_reduced mstate_events_reduced
+#define state_events_reduced_mem mstate_events_reduced_mem
 #define state_succ mstate_succ
 #define state_succ_mem mstate_succ_mem
 #define state_pred mstate_pred

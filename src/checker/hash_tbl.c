@@ -871,7 +871,7 @@ void hash_tbl_fold
  void * data) {
   state_t s;
   uint64_t pos;
-  heap_t h = bounded_heap_new("", 10000);
+  heap_t h = bounded_heap_new(10000);
   
   for(pos = 0; pos < tbl->hash_size; pos ++) {
     if(tbl->status[pos] == BUCKET_READY) {

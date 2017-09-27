@@ -27,16 +27,14 @@ typedef void * heap_t;
  * @brief bounded_heap_new
  */
 heap_t bounded_heap_new
-(char * name,
- mem_size_t size);
+(mem_size_t size);
 
 
 /**
  * @brief evergrowing_heap_new
  */
 heap_t evergrowing_heap_new
-(char * name,
- mem_size_t block_size);
+(mem_size_t block_size);
 
 
 /**

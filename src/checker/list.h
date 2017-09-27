@@ -174,30 +174,30 @@ list_t list_unserialise
 
 
 /**
- * @brief list_get_iterator
+ * @brief list_get_iter
  */
-list_iter_t list_get_iterator
+list_iter_t list_get_iter
 (list_t list);
 
 
 /**
- * @brief list_iterator_next
+ * @brief list_iter_next
  */
-list_iter_t list_iterator_next
+list_iter_t list_iter_next
 (list_iter_t it);
 
 
 /**
- * @brief list_iterator_at_end
+ * @brief list_iter_at_end
  */
-char list_iterator_at_end
+char list_iter_at_end
 (list_iter_t it);
 
 
 /**
- * @brief list_iterator_item
+ * @brief list_iter_item
  */
-void * list_iterator_item
+void * list_iter_item
 (list_iter_t it);
 
 #endif

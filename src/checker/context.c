@@ -138,7 +138,7 @@ void context_output_trace
     l = list_size(CTX->trace);
     while(!list_is_empty(CTX->trace)) {
       list_pick_first(CTX->trace, &e);
-      if(!event_is_dummy(CTX->trace[i])) {
+      if(!event_is_dummy(e)) {
         event_to_xml(e, out);
         event_exec(e, s);
 #if defined(CFG_TRACE_FULL)

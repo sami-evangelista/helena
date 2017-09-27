@@ -572,14 +572,6 @@ package body Pn.Compiler.State is
       Plc(L, "}");
       --=======================================================================
       Prototype := To_Ustring
-	("void mstate_free_void" & Nl &
-	   "(void * data)");
-      Plh(L, Prototype & ";");
-      Plc(L, Prototype & " {");
-      Plc(L, 1, "mstate_free(* ((mstate_t *) data));");
-      Plc(L, "}");
-      --=======================================================================
-      Prototype := To_Ustring
         ("mstate_t mstate_copy_mem (" & Nl &
            "   mstate_t s," & Nl &
            "   heap_t heap)");

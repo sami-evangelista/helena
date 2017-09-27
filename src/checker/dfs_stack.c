@@ -5,6 +5,7 @@
 #if defined(CFG_ALGO_DFS) || defined(CFG_ALGO_DDFS)
 
 #define DFS_STACK_BLOCKS 2
+#define DFS_STACK_HEAP_SIZE(stack) (stack->block_size * 10000)
 
 typedef struct {
   storage_id_t id;
@@ -63,7 +64,6 @@ dfs_stack_t dfs_stack_new
  bool_t states_stored) {
   dfs_stack_t result;
   int i;
-  char name[100];
 
   result = mem_alloc(SYSTEM_HEAP, sizeof(struct_dfs_stack_t));
   result->id = id;
@@ -76,8 +76,7 @@ dfs_stack_t dfs_stack_new
   result->files = 0;
   result->seed = random_seed(id);
   for(i = 0; i < DFS_STACK_BLOCKS; i ++) {
-    sprintf(name, "DFS stack heap");
-    result->heaps[i] = bounded_heap_new(name, result->block_size * 1000);
+    result->heaps[i] = bounded_heap_new(DFS_STACK_HEAP_SIZE(result));
     result->blocks[i] = dfs_stack_block_new(result->block_size);
   }
   return result;
@@ -139,7 +138,7 @@ void dfs_stack_write
     /*  state id  */
     fwrite(&item.id, sizeof(storage_id_t), 1, f);
     
-#if defined(CFG_POR) && defined(CFG_PROVISO)
+#if defined(CFG_PROVISO)
     fwrite(&item.prov_ok, sizeof(bool_t), 1, f);
     fwrite(&item.fully_expanded, sizeof(bool_t), 1, f);
 #endif
@@ -189,7 +188,7 @@ void dfs_stack_read
     /*  state id  */
     fread(&item.id, sizeof(storage_id_t), 1, f);
     
-#if defined(CFG_POR) && defined(CFG_PROVISO)
+#if defined(CFG_PROVISO)
     fread(&item.prov_ok, sizeof(bool_t), 1, f);
     fread(&item.fully_expanded, sizeof(bool_t), 1, f);
 #endif
@@ -217,15 +216,13 @@ void dfs_stack_push
   stack->size ++;
   if(stack->top == stack->block_size) {
     if(stack->current == 1) {
-      char name[100];
       dfs_stack_write(stack);
       dfs_stack_block_free(stack->blocks[0]);
       stack->blocks[0] = stack->blocks[1];
       stack->blocks[1] = dfs_stack_block_new(stack->block_size);
       heap_free(stack->heaps[0]);
       stack->heaps[0] = stack->heaps[1];
-      sprintf(name, "DFS stack heap");
-      stack->heaps[1] = bounded_heap_new(name, stack->block_size * 1000);
+      stack->heaps[1] = bounded_heap_new(DFS_STACK_HEAP_SIZE(stack));
     }
     stack->current = 1;
     stack->top = 0;
@@ -295,36 +292,30 @@ event_list_t dfs_stack_compute_events
  state_t s,
  bool_t filter) {
   heap_t h = stack->heaps[stack->current];
-  int i;
   event_list_t result;
-  unsigned int en_size, en_size_reduced;
   dfs_stack_item_t item = stack->blocks[stack->current]->items[stack->top];
+  bool_t reduced;
 
   assert(0 != stack->size);
   if(item.en) {
     list_free(item.en);
   }
   item.heap_pos = heap_get_position(h);
-  result = state_enabled_events_mem(s, h);
   
-  /*  compute a reduced set if POR is activated  */
-#if defined(CFG_POR)
   if(filter) {
-    en_size = list_size(result);
-    state_reduced_set(s, result);
+    result = state_events_reduced_mem(s, &reduced, h);
 #if defined(CFG_PROVISO)
     item.prov_ok = TRUE;
-    item.fully_expanded = (en_size == list_size(result)) ?
-      TRUE : FALSE;
+    item.fully_expanded = !reduced;
 #endif
   }
-#if defined(CFG_PROVISO)
   else {
+    result = state_events_mem(s, h);
+#if defined(CFG_PROVISO)
     item.prov_ok = TRUE;
     item.fully_expanded = TRUE;
+#endif
   }
-#endif
-#endif
   item.en = result;
   stack->blocks[stack->current]->items[stack->top] = item;
   return result;
@@ -356,7 +347,7 @@ void dfs_stack_event_undo
 
 void dfs_stack_unset_proviso
 (dfs_stack_t stack) {
-#if defined(CFG_POR) && defined(CFG_PROVISO)
+#if defined(CFG_PROVISO)
   stack->blocks[stack->current]->items[stack->top].prov_ok = FALSE;
 #endif
 }
@@ -373,7 +364,7 @@ bool_t dfs_stack_proviso
   bool_t result = TRUE;
   dfs_stack_item_t item;
   
-#if defined(CFG_POR) && defined(CFG_PROVISO)
+#if defined(CFG_PROVISO)
   item = stack->blocks[stack->current]->items[stack->top];
   result = item.prov_ok || item.fully_expanded;
 #endif

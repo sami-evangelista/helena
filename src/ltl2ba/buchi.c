@@ -696,9 +696,7 @@ void print_C_buchi(FILE * f) {
   fprintf (f, "      succs[*no_succs] = BSTATE_ACCEPT_ALL;\n");
   fprintf (f, "      *no_succs = 1;\n");
   fprintf (f, "      break;\n");
-  fprintf (f, "   default:\n");
-  fprintf (f, "      fatal_error (\"bstate_succs: undefined buchi state\");\n");
-  fprintf (f, "      break;\n");
+  fprintf (f, "   default: assert(0);\n");
   fprintf(f, "   }\n");
   fprintf(f, "}\n");
 }

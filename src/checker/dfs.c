@@ -61,13 +61,18 @@ state_t dfs_main
   event_list_t en;
   storage_id_t id_top;
   hash_key_t h;
+#if defined(CFG_POR)
+  const bool_t filter = TRUE;
+#else
+  const bool_t filter = FALSE;
+#endif
 
   /*
    *  push the root state on the stack
    */
   storage_ref(S, w, id);
   dfs_stack_push(stack, id, now);
-  en = dfs_stack_compute_events(stack, now, TRUE);
+  en = dfs_stack_compute_events(stack, now, filter);
   if(blue) {
     storage_set_cyan(S, id, w, TRUE);
   } else {
@@ -234,7 +239,7 @@ state_t dfs_main
          *  color on it
          */
         dfs_stack_push(stack, id, now);
-    	en = dfs_stack_compute_events(stack, now, TRUE);
+    	en = dfs_stack_compute_events(stack, now, filter);
         if(blue) {
           storage_set_cyan(S, id, w, TRUE);
         } else {
@@ -261,7 +266,7 @@ void * dfs_worker
   hash_key_t h;
   bool_t dummy;
   storage_id_t id;
-  heap_t heap = bounded_heap_new("state heap", 1024 * 100);
+  heap_t heap = bounded_heap_new(1024 * 100);
   state_t now = state_initial_mem(heap);
 #if defined(CFG_PARALLEL) || defined(CFG_DISTRIBUTED)
   bool_t shuffle = TRUE;

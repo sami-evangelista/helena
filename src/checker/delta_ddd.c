@@ -102,11 +102,11 @@ uint8_t RECONS_ID;
 #define DELTA_DDD_VISIT_POST_HEAP_PROCESS() {   \
     heap_set_position(heap_evts, heap_pos);	\
   }
-#define DELTA_DDD_VISIT_HANDLE_EVENT(func) {                    \
-    e = state_enabled_event_mem(s, ST[curr].e, heap_evts);	\
-    event_exec(e, s);						\
-    s = func(w, curr, s, depth - 1);				\
-    event_undo(e, s);						\
+#define DELTA_DDD_VISIT_HANDLE_EVENT(func) {            \
+    e = state_event_mem(s, ST[curr].e, heap_evts);	\
+    event_exec(e, s);                                   \
+    s = func(w, curr, s, depth - 1);                    \
+    event_undo(e, s);                                   \
   }
 #else  /*  !defined(CFG_EVENT_UNDOABLE)  */
 #define DELTA_DDD_VISIT_PRE_HEAP_PROCESS() {    \
@@ -116,7 +116,7 @@ uint8_t RECONS_ID;
     heap_set_position(heap, heap_pos);		\
   }
 #define DELTA_DDD_VISIT_HANDLE_EVENT(func) {    \
-    e = state_enabled_event(s, ST[curr].e);     \
+    e = state_event(s, ST[curr].e);             \
     t = state_succ_mem(s, e, heap);             \
     func(w, curr, t, depth - 1);                \
   }
@@ -235,7 +235,7 @@ void delta_ddd_create_trace
   }
   while(!list_is_empty(trace_ids)) {
     list_pick_last(trace_ids, &eid);
-    e = state_enabled_event(s, eid);
+    e = state_event(s, eid);
     event_exec(e, s);
     list_append(trace, &e);
   }
@@ -682,7 +682,7 @@ state_t delta_ddd_expand_dfs
     /*
      *  we have reached a leaf => we expand it
      */
-    en = state_enabled_events_mem(s, heap);
+    en = state_events_mem(s, heap);
 #if defined(CFG_ACTION_CHECK_SAFETY)
     if(state_check_property(s, en)) {
       if(!error_reported) {
@@ -861,16 +861,16 @@ void delta_ddd
    */
   for(w = 0; w < CFG_NO_WORKERS; w ++) {
     expand_heaps[w] =
-      bounded_heap_new("reconstruction", EXPAND_HEAP_SIZE);
+      bounded_heap_new(EXPAND_HEAP_SIZE);
     detect_heaps[w] =
-      bounded_heap_new("duplicate detection", DETECT_HEAP_SIZE);
+      bounded_heap_new(DETECT_HEAP_SIZE);
     candidates_heaps[w] =
-      evergrowing_heap_new("candidate set", 1024 * 1024);
+      evergrowing_heap_new(1024 * 1024);
 #if defined(CFG_EVENT_UNDOABLE)
     expand_evts_heaps[w] =
-      bounded_heap_new("reconstruction events", EXPAND_HEAP_SIZE);
+      bounded_heap_new(EXPAND_HEAP_SIZE);
     detect_evts_heaps[w] =
-      bounded_heap_new("duplicate detection events", DETECT_HEAP_SIZE);
+      bounded_heap_new(DETECT_HEAP_SIZE);
 #endif
   }
 

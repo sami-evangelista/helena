@@ -9,7 +9,6 @@
  */
 typedef struct {
   unsigned char type;
-  char * name;
   void * ptr;
   mem_size_t next;
   mem_size_t size;
@@ -18,17 +17,14 @@ typedef struct {
 typedef struct_bounded_heap_t * bounded_heap_t;
 
 void * bounded_heap_new
-(char * name,
- mem_size_t size) {
+(mem_size_t size) {
 #if defined(CFG_USE_HELENA_HEAPS)
   bounded_heap_t result;
   MALLOC(result, bounded_heap_t, sizeof(struct_bounded_heap_t));
-  MALLOC(result->name, char *, strlen(name) + 1);
   MALLOC(result->ptr, void *, size);
   result->type = BOUNDED_HEAP;
   result->next = 0;
   result->size = size;
-  strcpy(result->name, name);
   return result;
 #else
   return SYSTEM_HEAP;
@@ -37,7 +33,6 @@ void * bounded_heap_new
 
 bounded_heap_t bounded_heap_free
 (bounded_heap_t heap) {
-  free(heap->name);
   free(heap->ptr);
   free(heap);
 }
@@ -99,7 +94,6 @@ typedef struct_evergrowing_heap_block_t * evergrowing_heap_block_t;
 
 typedef struct {
   unsigned char type;
-  char * name;
   mem_size_t block_size;
   mem_size_t next;
   evergrowing_heap_block_t fst;
@@ -109,14 +103,11 @@ typedef struct {
 typedef struct_evergrowing_heap_t * evergrowing_heap_t;
 
 void * evergrowing_heap_new
-(char * name,
- mem_size_t block_size) {
+(mem_size_t block_size) {
 #if defined(CFG_USE_HELENA_HEAPS)
   evergrowing_heap_t result;
   MALLOC(result, evergrowing_heap_t, sizeof(struct_evergrowing_heap_t));
-  MALLOC(result->name, char *, strlen(name) + 1);
   result->type = EVERGROWING_HEAP;
-  strcpy(result->name, name);
   result->block_size = block_size;
   result->next = 0;
   result->last = result->fst = NULL;
@@ -141,7 +132,6 @@ void evergrowing_heap_free_blocks
 evergrowing_heap_t evergrowing_heap_free
 (evergrowing_heap_t heap) {
   evergrowing_heap_free_blocks(heap);
-  free(heap->name);  
   free(heap);
 }
 

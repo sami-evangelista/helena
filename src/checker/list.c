@@ -274,8 +274,8 @@ void list_serialise
  char * data,
  list_char_size_func_t char_size_func,
  list_serialise_func_t serialise_func) {
+  const list_size_t size = list->no_items;
   list_node_t ptr = list->first;
-  list_size_t size = list_size(list);
   uint32_t pos = sizeof(list_size_t);
 
   memcpy(data, &size, sizeof(list_size_t));
@@ -320,17 +320,17 @@ list_t list_unserialise
   return result;
 }
 
-list_iter_t list_get_iterator
+list_iter_t list_get_iter
 (list_t list) {
   return list->first;
 }
 
-list_iter_t list_iterator_next
+list_iter_t list_iter_next
 (list_iter_t it) {
   return it->next;
 }
 
-char list_iterator_at_end
+char list_iter_at_end
 (list_iter_t it) {
   if(it) {
     return 0;
@@ -339,7 +339,7 @@ char list_iterator_at_end
   }
 }
 
-void * list_iterator_item
+void * list_iter_item
 (list_iter_t it) {
   return it->item;
 }

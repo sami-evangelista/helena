@@ -48,10 +48,10 @@ void simulator () {
       if(list_is_empty(stack_evts)) {
 	printf("stack is empty\n");
       } else {
-	for(it = list_get_iterator(stack_evts);
-	    !list_iterator_at_end(it);
-	    it = list_iterator_next(it)) {
-	  e = * ((mevent_t *) list_iterator_item(it));
+	for(it = list_get_iter(stack_evts);
+	    !list_iter_at_end(it);
+	    it = list_iter_next(it)) {
+	  e = * ((mevent_t *) list_iter_item(it));
 	  mevent_print(e, stdout);
 	}
       }
@@ -71,7 +71,7 @@ void simulator () {
     } else if(!strncmp(cmd, "push ", 5)) {
       sscanf(cmd, "push %d", &i);
       list_top(stack, &s);
-      en = mstate_enabled_events(s);
+      en = mstate_events(s);
       if(check_error()) {
 	if(i < 1 || i > list_size(en)) {
 	  printf("error: state has %d enabled event(s)\n", list_size(en));
@@ -99,7 +99,7 @@ void simulator () {
       }
     } else if(!strcmp(cmd, "enabled")) {
       list_top(stack, &s);
-      en = mstate_enabled_events(s);
+      en = mstate_events(s);
       if(check_error()) {
         if(list_is_empty(en)) {
           printf("no enabled event\n");

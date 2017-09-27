@@ -723,7 +723,7 @@ package body Pn.Compiler.Enabling_Test is
       Gen_Check_Priority_Func(N, L);
       --=======================================================================
       Prototype := To_Ustring
-	("list_t mstate_enabled_events_mem (" & Nl &
+	("list_t mstate_events_mem (" & Nl &
 	   "   mstate_t s," & Nl &
 	   "   heap_t heap)");
       Plh(L, Prototype & ";");
@@ -744,25 +744,26 @@ package body Pn.Compiler.Enabling_Test is
       Plc(L, "}");
       --=======================================================================
       Prototype := To_Ustring
-	("list_t mstate_enabled_events (" & Nl &
+	("list_t mstate_events (" & Nl &
 	   "   mstate_t s)");
       Plh(L, Prototype & ";");
       Plc(L, Prototype & " {");
-      Plc(L, 1, "return mstate_enabled_events_mem (s, SYSTEM_HEAP);");
+      Plc(L, 1, "return mstate_events_mem (s, SYSTEM_HEAP);");
       Plc(L, "}");
       --=======================================================================
       Prototype := To_Ustring
-	("mevent_t mstate_enabled_event_mem (" & Nl &
+	("mevent_t mstate_event_mem (" & Nl &
 	   "   mstate_t s," & Nl &
 	   "   mevent_id_t id," & Nl &
 	   "   heap_t heap)");
       Plh(L, Prototype & ";");
       Plc(L, Prototype & " {");
       Plc(L, 1, "mevent_t result;");
+      Plc(L, 1, "result.id = id;");
       if not With_Priority(N) then
 	 Gen_Enabled_Events_Check(Post_Get_One_Enabled'Access);
       else
-	 Plc(L, 1, "list_t en = mstate_enabled_events_mem (s, heap);");
+	 Plc(L, 1, "list_t en = mstate_events_mem (s, heap);");
 	 Plc(L, 1, "list_nth(en, id, &result);");
 	 Plc(L, 1, "result = mevent_copy_mem(result, heap);");
 	 Plc(L, 1, "list_free(en);");
@@ -772,12 +773,12 @@ package body Pn.Compiler.Enabling_Test is
       Plc(L, "}");
       --=======================================================================
       Prototype := To_Ustring
-	("mevent_t mstate_enabled_event (" & Nl &
+	("mevent_t mstate_event (" & Nl &
 	   "   mstate_t s," & Nl &
 	   "   uint32_t id)");
       Plh(L, Prototype & ";");
       Plc(L, Prototype & " {");
-      Plc(L, 1, "return mstate_enabled_event_mem (s, id, SYSTEM_HEAP);");
+      Plc(L, 1, "return mstate_event_mem (s, id, SYSTEM_HEAP);");
       Plc(L, "}");
       --=======================================================================
       Prototype := "void " & Lib_Init_Func(Enabling_Test_Lib) & Nl & "()";

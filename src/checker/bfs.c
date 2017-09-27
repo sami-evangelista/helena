@@ -8,10 +8,22 @@
 #if defined(CFG_ALGO_BFS) || defined(CFG_ALGO_DBFS) || \
   defined(CFG_ALGO_FRONTIER)
 
+
+#if defined(CFG_POR)
+const bool_t POR = TRUE;
+#else
+const bool_t POR = FALSE;
+#endif
+#if defined(CFG_PROVISO)
+const bool_t PROVISO = TRUE;
+#else
+const bool_t PROVISO = FALSE;
+#endif
 storage_t S;
 bfs_queue_t Q;
 pthread_barrier_t B;
 bool_t TERM;
+
 
 worker_id_t bfs_thread_owner
 (hash_key_t h) {
@@ -122,17 +134,14 @@ void * bfs_worker
   storage_id_t id_succ;
   event_list_t en;
   worker_id_t x, y;
-  char heap_name[100];
-  bool_t fully_expanded;
   unsigned int arcs;
   heap_t heap;
   hash_key_t h;
   bfs_queue_item_t item, succ_item;
   event_t e;
-  bool_t is_new;
+  bool_t is_new, reduced;
   
-  sprintf(heap_name, "bfs heap of worker %d", w);
-  heap = bounded_heap_new(heap_name, 10 * 1024 * 1024);
+  heap = bounded_heap_new(10000);
   while(!TERM) {
     for(x = 0;
         x < bfs_queue_no_workers(Q) && context_keep_searching();
@@ -151,16 +160,11 @@ void * bfs_worker
         } else {
           s = storage_get_mem(S, item.id, w, heap);
         }
-        en = state_enabled_events_mem(s, heap);
-        en_size = list_size(en);
-        if(0 == en_size) {
-          context_incr_dead(w, 1);
+        if(POR) {
+          en = state_events_reduced_mem(s, &reduced, heap);
+        } else {
+          en = state_events_mem(s, heap);
         }
-#if defined(CFG_POR)
-        en_size = list_size(en);
-        state_reduced_set(s, en);
-        fully_expanded = (en_size == list_size(en)) ? TRUE : FALSE;
-#endif
 
         /**
          *  check the state property
@@ -216,15 +220,14 @@ void * bfs_worker
              *  state is reduced then the successor must be in the
              *  queue (i.e., cyan)
              */
-#if defined(CFG_POR) && defined(CFG_PROVISO)
-            if(!fully_expanded && !storage_get_any_cyan(S, id_succ)) {
-              fully_expanded = TRUE;
+            if(POR && PROVISO && reduced &&
+               !storage_get_any_cyan(S, id_succ)) {
+              reduced = FALSE;
               list_free(en);
               bfs_back_to_s();
-              en = state_enabled_events_mem(s, heap);
+              en = state_events_mem(s, heap);
               goto state_expansion;
             }
-#endif
           }
           bfs_back_to_s();
         }
@@ -235,6 +238,9 @@ void * bfs_worker
          *  the state leaves the queue => we unset its cyan bit and
          *  delete it from storage if algo is FRONTIER.
          */
+        if(0 == arcs) {
+          context_incr_dead(w, 1);
+        }
 	context_incr_arcs(w, arcs);
 	context_incr_visited(w, 1);
         context_incr_evts_exec(w, arcs);

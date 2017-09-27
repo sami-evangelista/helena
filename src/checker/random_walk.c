@@ -16,19 +16,16 @@ void * random_walk_worker
   int i;
   unsigned int seed = random_seed(w);
   unsigned int en_size;
-  char heap_name [100];
   heap_t heap;
   event_list_t trace, new_trace;
 
-  sprintf(heap_name, "random walk heap of worker %d", w);
-  heap = bounded_heap_new(heap_name, RW_HEAP_SIZE);
-
+  heap = bounded_heap_new(RW_HEAP_SIZE);
   while(context_keep_searching()) {
     heap_reset(heap);
     s = state_initial_mem(heap);
     trace = list_new(heap, sizeof(event_t), event_free_void);
     for(i = 0; i < CFG_RWALK_MAX_DEPTH && context_keep_searching(); i ++) {
-      en = state_enabled_events_mem(s, heap);
+      en = state_events_mem(s, heap);
       en_size = list_size(en);
 #if defined(CFG_ACTION_CHECK_SAFETY)
       if(state_check_property(s, en)) {
