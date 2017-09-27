@@ -646,7 +646,7 @@ package body Pn.Compiler.State is
       Plc(L, "}");
       --=======================================================================
       Prototype := To_Ustring
-        ("unsigned int mstate_char_width (" & Nl &
+        ("unsigned int mstate_char_size (" & Nl &
            "   mstate_t s)");
       Plh(L, Prototype & ";");
       Plc(L, Prototype & " {");

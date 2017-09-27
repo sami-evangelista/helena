@@ -70,7 +70,7 @@ void state_to_xml
 void state_serialise
 (state_t s,
  bit_vector_t v) {
-  unsigned int bsize = bstate_char_width ();
+  unsigned int bsize = bstate_char_size ();
   memcpy (v, &(s->b), bsize);
   mstate_serialise (s->m, v + bsize);
 }
@@ -78,7 +78,7 @@ void state_serialise
 state_t state_unserialise_mem
 (bit_vector_t v,
  heap_t heap) {
-  unsigned int bsize = bstate_char_width ();
+  unsigned int bsize = bstate_char_size ();
   state_t result = mem_alloc (heap, sizeof (struct_state_t)); 
   result->b = 0;
   memcpy (&(result->b), v, bsize);
@@ -96,7 +96,7 @@ bool_t state_cmp_vector
 (state_t s,
  bit_vector_t v) {
   bstate_t b = 0;
-  unsigned int bsize = bstate_char_width ();
+  unsigned int bsize = bstate_char_size ();
   memcpy (&b, v, bsize);
   if (s->b != b) {
     return FALSE;
@@ -104,9 +104,9 @@ bool_t state_cmp_vector
   return mstate_cmp_vector (s->m, v + bsize);
 }
 
-unsigned int state_char_width
+unsigned int state_char_size
 (state_t s) {
-  return bstate_char_width () + mstate_char_width (s->m);
+  return bstate_char_size () + mstate_char_size (s->m);
 }
 
 #endif

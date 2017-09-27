@@ -1,61 +1,46 @@
 #include "event.h"
 
-uint32_t mevent_list_char_width
+uint32_t mevent_char_size_void
+(void * e) {
+  return mevent_char_size(* ((mevent_t *) e));
+}
+
+void mevent_serialise_void
+(void * e,
+ char * data) {
+  return mevent_serialise(* ((mevent_t *) e), (bit_vector_t) data);
+}
+
+void mevent_unserialise_void
+(char * data,
+ heap_t heap,
+ void * item) {
+  mevent_t e = mevent_unserialise_mem(data, heap);
+  memcpy(item, &e, sizeof(mevent_t));
+}
+
+uint32_t mevent_list_char_size
 (list_t l) {
-  uint32_t result = sizeof(list_size_t);
-  list_iter_t it;
-  mevent_t e;
-  
-  for(it = list_get_iterator(l);
-      !list_iterator_at_end(it);
-      it = list_iterator_next(it)) {
-    e = * ((mevent_t *) list_iterator_item(it));
-    result += mevent_char_width(e);
-  }
-  return result;
+  return list_char_size(l, mevent_char_size_void);
 }
 
 void mevent_list_serialise
 (list_t l,
  bit_vector_t v) {
-  mevent_t e;
-  list_iter_t it;
-  list_size_t size = list_size(l);
-  uint32_t pos = 0;
-
-  memcpy(v, &size, sizeof(list_size_t));
-  pos = sizeof(list_size_t);
-  for(it = list_get_iterator(l);
-      !list_iterator_at_end(it);
-      it = list_iterator_next(it)) {
-    e = * ((mevent_t *) list_iterator_item(it));
-    mevent_serialise(e, v + pos);
-    pos += mevent_char_width(e);
-  }
+  list_serialise(l, v, mevent_char_size_void, mevent_serialise_void);
 }
 
 list_t mevent_list_unserialise
-(bit_vector_t v) {
+(bit_vector_t v) {  
   return mevent_list_unserialise_mem(v, SYSTEM_HEAP);
 }
 
 list_t mevent_list_unserialise_mem
 (bit_vector_t v,
  heap_t heap) {
-  list_t result;
-  uint32_t size, pos;
-  mevent_t e;
 
-  memcpy(&size, v, sizeof(list_size_t));
-  result = list_new(heap, sizeof(mevent_t), mevent_free_void);
-  pos = sizeof(list_size_t);
-  while(size) {
-    e = mevent_unserialise_mem(v + pos, heap);
-    pos += mevent_char_width(e);
-    list_append(result, &e);
-    size --;
-  }
-  return result;
+  return list_unserialise(heap, sizeof(mevent_t), mevent_free_void,
+                          v, mevent_char_size_void, mevent_unserialise_void);
 }
 
 #if defined(CFG_ACTION_CHECK_LTL)
@@ -141,10 +126,10 @@ bool_t event_are_independent
   assert(0);
 }
 
-unsigned int event_char_width
+unsigned int event_char_size
 (event_t e) {
-  return 1 + 2 * bstate_char_width() +
-   (e.dummy ? 0 : mevent_char_width(e.m));
+  return 1 + 2 * bstate_char_size() +
+   (e.dummy ? 0 : mevent_char_size(e.m));
 }
 
 void event_list_free
@@ -199,9 +184,9 @@ event_list_t event_list_unserialise
   return event_list_unserialise_mem(v, SYSTEM_HEAP);
 }
 
-unsigned int event_list_char_width
+unsigned int event_list_char_size
 (event_list_t en) {
-  return 1 +(en->b_size * sizeof(bevent_t)) + mevent_list_char_width(en->m);
+  return 1 +(en->b_size * sizeof(bevent_t)) + mevent_list_char_size(en->m);
 }
 
 event_list_t state_enabled_events
@@ -237,7 +222,7 @@ event_t event_unserialise_mem
 (bit_vector_t v,
  heap_t heap) {
   event_t result;
-  unsigned int bsize = bstate_char_width();
+  unsigned int bsize = bstate_char_size();
   result.b.from = 0;
   result.b.to = 0;
   memcpy(&(result.b.from), v, bsize);

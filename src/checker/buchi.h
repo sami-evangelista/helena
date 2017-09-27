@@ -31,7 +31,7 @@ void bstate_succs
  bstate_t * succs,
  unsigned int * no_succs);
 
-unsigned int bstate_char_width
+unsigned int bstate_char_size
 ();
 
 order_t bevent_cmp

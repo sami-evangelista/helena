@@ -533,7 +533,7 @@ void print_spin_buchi
   fprintf(f, "}\n");
 }
 
-unsigned int char_width
+unsigned int char_size
 (unsigned int n) {
   unsigned int result = 0;
   while (n) {
@@ -585,8 +585,8 @@ void print_C_buchi(FILE * f) {
   }
   n ++;
 
-  fprintf (f, "\nunsigned int bstate_char_width () {\n");
-  fprintf (f, "   return %d;\n", char_width (n));
+  fprintf (f, "\nunsigned int bstate_char_size() {\n");
+  fprintf (f, "   return %d;\n", char_size(n));
   fprintf (f, "}\n");
 
   fprintf (f, "\norder_t bevent_cmp\n");

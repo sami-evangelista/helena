@@ -13,7 +13,7 @@
 #include "prop.h"
 #include "state.h"
 
-uint32_t mevent_list_char_width
+uint32_t mevent_list_char_size
 (list_t l);
 
 void mevent_list_serialise
@@ -59,7 +59,7 @@ void event_undo(event_t e, state_t s);
 void event_to_xml(event_t e, FILE * f);
 order_t event_cmp(event_t e, event_t f);
 bool_t event_are_independent(event_t e, event_t f);
-unsigned int event_char_width(event_t e);
+unsigned int event_char_size(event_t e);
 void event_serialise(event_t e, bit_vector_t v);
 event_t event_unserialise(bit_vector_t v);
 event_t event_unserialise_mem(bit_vector_t v, heap_t heap);
@@ -74,7 +74,7 @@ state_t state_succ_mem(state_t s, event_t e, heap_t heap);
 state_t state_pred(state_t s, event_t e);
 state_t state_pred_mem(state_t s, event_t e, heap_t heap);
 
-unsigned int event_list_char_width(event_list_t en);
+unsigned int event_list_char_size(event_list_t en);
 void event_list_serialise(event_list_t en, bit_vector_t v);
 event_list_t event_list_unserialise(bit_vector_t v);
 event_list_t event_list_unserialise_mem(bit_vector_t v, heap_t heap);
@@ -102,7 +102,7 @@ typedef list_t event_list_t;
 #define event_to_xml mevent_to_xml
 #define event_cmp mevent_cmp
 #define event_are_independent mevent_are_independent
-#define event_char_width mevent_char_width
+#define event_char_size mevent_char_size
 #define event_serialise mevent_serialise
 #define event_unserialise mevent_unserialise
 #define event_unserialise_mem mevent_unserialise_mem
@@ -117,7 +117,7 @@ typedef list_t event_list_t;
 #define state_pred mstate_pred
 #define state_pred_mem mstate_pred_mem
 
-#define event_list_char_width mevent_list_char_width
+#define event_list_char_size mevent_list_char_size
 #define event_list_serialise mevent_list_serialise
 #define event_list_unserialise mevent_list_unserialise
 #define event_list_unserialise_mem mevent_list_unserialise_mem

@@ -65,7 +65,7 @@ bool_t state_cmp_vector
 (state_t s,
  bit_vector_t v);
 
-unsigned int state_char_width
+unsigned int state_char_size
 (state_t s);
 
 state_t state_initial_mem
@@ -101,7 +101,7 @@ typedef list_t state_list_t;
 #define state_serialise mstate_serialise
 #define state_unserialise mstate_unserialise
 #define state_unserialise_mem mstate_unserialise_mem
-#define state_char_width mstate_char_width
+#define state_char_size mstate_char_size
 #define state_cmp_vector mstate_cmp_vector
 
 #endif

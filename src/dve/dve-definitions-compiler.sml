@@ -190,7 +190,7 @@ in
 				  (Int.toString (!num)
 				   before (num := !num + 1))) }
 		systemEvents,
-     "uint32_t mevent_char_width(mevent_t e);",
+     "uint32_t mevent_char_size(mevent_t e);",
      "void mevent_free(mevent_t e);",
      "mevent_t mevent_copy(mevent_t e);",
      "mevent_t mevent_copy_mem(mevent_t e, heap_t h);",
@@ -198,7 +198,7 @@ in
      "mevent_id_t mevent_id(mevent_t e);"
      ],
      concatLines [
-     "uint32_t mevent_char_width(mevent_t e) {",
+     "uint32_t mevent_char_size(mevent_t e) {",
      "   return sizeof(mevent_t);",
      "}",
      "",

@@ -125,13 +125,13 @@ void dfs_stack_write
     item = block->items[i];
 
     /*  event list  */
-    w = event_list_char_width(item.en);
+    w = event_list_char_size(item.en);
     event_list_serialise(item.en, buffer);
     fwrite(&w, sizeof(unsigned int), 1, f);
     fwrite(buffer, w, 1, f);
 
     /*  last event  */
-    w = event_char_width(item.e);
+    w = event_char_size(item.e);
     event_serialise(item.e, buffer);
     fwrite(&w, sizeof(unsigned int), 1, f);
     fwrite(buffer, w, 1, f);
@@ -146,7 +146,7 @@ void dfs_stack_write
 
     /*  state  */
     if(stack->states_stored) {
-      len = state_char_width(item.s);
+      len = state_char_size(item.s);
       fwrite(&len, sizeof(int), 1, f);
       state_serialise(item.s, buffer);
       fwrite(buffer, len, 1, f);
@@ -399,7 +399,7 @@ void dfs_stack_create_trace
         item = stack->blocks[stack->current]->items[stack->top];
         if(item.e_set) {
           e = event_copy(item.e);
-          list_append(trace, &e);
+          list_prepend(trace, &e);
         }
         dfs_stack_pop(stack);
       }

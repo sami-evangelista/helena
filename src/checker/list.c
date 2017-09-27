@@ -98,6 +98,26 @@ void list_app
   }
 }
 
+void list_prepend
+(list_t list,
+ void * item) {
+  list_node_t ptr = mem_alloc(list->heap, sizeof(struct_list_node_t));
+  
+  ptr->item = mem_alloc(list->heap, list->sizeof_item);
+  memcpy(ptr->item, item, list->sizeof_item);
+  ptr->prev = NULL;
+  if(!list->first) {
+    ptr->next = NULL;
+    list->first = ptr;
+    list->last = ptr;
+  } else {
+    ptr->next = list->first;
+    list->first->prev = ptr;
+    list->first = ptr;
+  }
+  list->no_items ++;
+}
+
 void list_append
 (list_t list,
  void * item) {
@@ -236,9 +256,73 @@ void list_filter
   }
 }
 
+uint32_t list_char_size
+(list_t list,
+ list_char_size_func_t char_size_func) {
+  uint32_t result = sizeof(list_size_t);
+  list_node_t ptr = list->first;
+
+  while(ptr) {
+    result += char_size_func(ptr->item);
+    ptr = ptr->next;
+  }
+  return result;
+}
+
+void list_serialise
+(list_t list,
+ char * data,
+ list_char_size_func_t char_size_func,
+ list_serialise_func_t serialise_func) {
+  list_node_t ptr = list->first;
+  list_size_t size = list_size(list);
+  uint32_t pos = sizeof(list_size_t);
+
+  memcpy(data, &size, sizeof(list_size_t));
+  while(ptr) {
+    serialise_func(ptr->item, data + pos);
+    pos += char_size_func(ptr->item);
+    ptr = ptr->next;
+  }
+}
+
+list_t list_unserialise
+(heap_t heap,
+ uint32_t sizeof_item,
+ list_free_func_t free_func,
+ char * data,
+ list_char_size_func_t char_size_func,
+ list_unserialise_func_t unserialise_func) {
+  list_node_t ptr, prev = NULL;
+  list_t result = list_new(heap, sizeof_item, free_func);
+  uint32_t size, pos;
+
+  memcpy(&size, data, sizeof(list_size_t));
+  pos = sizeof(list_size_t);
+  result->no_items = size;
+  while(size) {
+    ptr = mem_alloc(heap, sizeof(struct_list_node_t));
+    if(!result->first) {
+      result->first = ptr;
+    }
+    if(prev) {
+      prev->next = ptr;
+    }
+    ptr->prev = prev;
+    ptr->next = NULL;
+    ptr->item = mem_alloc(heap, result->sizeof_item);
+    unserialise_func(data + pos, heap, ptr->item);
+    pos += char_size_func(ptr->item);
+    size --;
+    prev = ptr;
+  }
+  result->last = ptr;
+  return result;
+}
+
 list_iter_t list_get_iterator
-(list_t l) {
-  return l->first;
+(list_t list) {
+  return list->first;
 }
 
 list_iter_t list_iterator_next

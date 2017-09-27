@@ -317,7 +317,7 @@ package body Pn.Compiler.Event is
       end loop;
       --=======================================================================
       Prototype := To_Ustring
-	("unsigned int mevent_char_width" & Nl &
+	("unsigned int mevent_char_size" & Nl &
 	   "(mevent_t e)");
       Plh(L, Prototype & ";");
       Plc(L, Prototype & " {");

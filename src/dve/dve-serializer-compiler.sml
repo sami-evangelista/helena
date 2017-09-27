@@ -14,7 +14,7 @@ end = struct
 open DveCompilerUtils
 
 fun compileStateCharWidth (s: System.system, hFile, cFile) = let
-    val prot = "unsigned int mstate_char_width (mstate_t s)"
+    val prot = "unsigned int mstate_char_size (mstate_t s)"
     val body =
 	concatLines [
 	prot ^ " {",

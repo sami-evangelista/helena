@@ -211,7 +211,7 @@ void dbfs_comm_process_state
 (worker_id_t w,
  state_t s,
  hash_key_t h) {
-  const uint16_t len = state_char_width(s);
+  const uint16_t len = state_char_size(s);
   const int pe = dbfs_comm_state_owner(h);
   storage_id_t id;
   uint32_t no;

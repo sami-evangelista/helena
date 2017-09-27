@@ -262,7 +262,7 @@ bool_t delta_ddd_send_candidate
   c.content = DELTA_DDD_CAND_NEW;
   c.pred = pred;
   c.e = e;
-  c.width = state_char_width(s);
+  c.width = state_char_size(s);
   c.s = mem_alloc0(candidates_heaps[w], c.width);
   state_serialise(s, c.s);
   c.h = state_hash(s);

@@ -22,6 +22,9 @@ typedef struct struct_list_node_t * list_iter_t;
 typedef void (* list_free_func_t) (void *);
 typedef char (* list_pred_func_t) (void *, void *);
 typedef void (* list_app_func_t) (void *, void *);
+typedef uint32_t (* list_char_size_func_t) (void *);
+typedef void (* list_serialise_func_t) (void *, char *);
+typedef void (* list_unserialise_func_t) (char *, heap_t, void *);
 
 
 /**
@@ -81,6 +84,14 @@ void list_app
 
 
 /**
+ *  @brief list_prepend
+ */
+void list_prepend
+(list_t list,
+ void * item);
+
+
+/**
  *  @brief list_append
  */
 void list_append
@@ -132,10 +143,41 @@ void list_filter
 
 
 /**
+ *  @brief list_char_size
+ */
+uint32_t list_char_size
+(list_t list,
+ list_char_size_func_t char_size_func);
+
+
+/**
+ *  @brief list_serialise
+ */
+void list_serialise
+(list_t list,
+ char * data,
+ list_char_size_func_t char_size_func,
+ list_serialise_func_t serialise_func);
+
+
+/**
+ *  @brief list_unserialise
+ */
+
+list_t list_unserialise
+(heap_t heap,
+ uint32_t sizeof_item,
+ list_free_func_t free_func,
+ char * data,
+ list_char_size_func_t char_size_func,
+ list_unserialise_func_t unserialise_func);
+
+
+/**
  * @brief list_get_iterator
  */
 list_iter_t list_get_iterator
-(list_t l);
+(list_t list);
 
 
 /**
