@@ -288,7 +288,7 @@ class Config:
             W("#define CFG_HASH_COMPACTION\n")
 
         #  action to perform
-        W("#define CFG_ACTION_" + self.action + "\n")
+        W("#define CFG_ACTION_" + self.action.replace("-", "_") + "\n")
         if self.action == CHECK:
             W("#define CFG_PROPERTY \"" + self.prop + "\"\n")
             if self.propType == LTL:
