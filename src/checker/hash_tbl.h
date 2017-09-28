@@ -358,12 +358,4 @@ void hash_tbl_set_pred
  hash_tbl_id_t pred,
  uint8_t evt);
 
-
-/**
- * @brief hash_tbl_create_trace
- */
-void hash_tbl_create_trace
-(hash_tbl_t tbl,
- hash_tbl_id_t id);
-
 #endif

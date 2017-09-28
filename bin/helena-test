@@ -11,6 +11,7 @@ import sys
 
 def exitWithUsage(exitCode):
     print "helena-test input-dir output-dir"
+    print "helena-test output-dir"
     exit(exitCode)
 
 class Model:
@@ -19,18 +20,35 @@ class Model:
                     "--state-limit=1000000",
                     "--time-limit=60" ]
 
+    def __init__(self, modelFile, language, outDir):
+        self.language = language
+        self.outFile = None
+        self.check = False
+        self.ltl = False
+        self.modelFile = modelFile
+        self.outDir = outDir + os.sep + os.path.basename(self.modelFile)
+        self.functions = [ self.appendAction,
+                           self.appendAlgo,
+                           self.appendPartialOrder,
+                           self.appendHashCompaction,
+                           self.appendStateCaching,
+                           self.appendWorkers,
+                           self.launchHelena ]
+        self.testNum = 0
+        os.mkdir(self.outDir)
+
     def launchHelena(self, l, n):
         (model, _) = os.path.splitext(self.modelFile)
         d = self.outDir + os.sep
         md = d + "test-" + str(self.testNum)
-        args = "helena " + " ".join(l + self.defaultArgs) + \
+        cmd = "helena " + " ".join(l + self.defaultArgs) + \
                " --model-directory=" + md + " " + self.modelFile
-        print args
-        f = open(d + "test-" + str(self.testNum) + ".opt", "w")
-        f.write(" ".join(l))
+        print cmd
+        f = open(d + "test-" + str(self.testNum) + ".cmd", "w")
+        f.write(cmd)
         f.close()
         errFile = open(d + "test-" + str(self.testNum) + ".err", "w")
-        subprocess.call(args, stderr = errFile,
+        subprocess.call(cmd, stderr = errFile,
                         stdout = self.outFile, shell = True)
         errFile.close()
         if os.path.exists("report.xml"):
@@ -45,7 +63,8 @@ class Model:
             f = open(d + "test-" + str(self.testNum) + ".xml", "w")
             f.write("error")
             f.close()
-        shutil.rmtree(md)
+        if os.path.exists(md):
+            shutil.rmtree(md)
         self.testNum = self.testNum + 1
 
     def appendWorkers(self, l, n):
@@ -69,11 +88,13 @@ class Model:
         if "-A=dfs" in l or "-A=bfs" in l or "-A=frontier" in l:
             f(l + ["-H=1"], n + 1)
 
-    #  partial order reduction is available in DFS, BFS and FRONTIER
+    #  partial order reduction is available in DFS, BFS and FRONTIER and
+    #  disabled for DVE models (not yet implemented)
     def appendPartialOrder(self, l, n):
         f = self.functions[n + 1]
         f(l + ["-P=0"], n + 1)
-        if "-A=dfs" in l or "-A=bfs" in l or "-A=frontier" in l:
+        if ("-A=dfs" in l or "-A=bfs" in l or "-A=frontier" in l) \
+           and self.language != "DVE":
             f(l + ["-P=1"], n + 1)
 
     #  reachability graph generation is only available with algorithm DELTA-DDD
@@ -112,38 +133,67 @@ class Model:
         self.outFile = open(os.devnull, "w")
         self.appendAction([], 0)
 
-    def __init__(self, modelFile, outDir):
-        self.outFile = None
-        self.check = False
-        self.ltl = False
-        self.modelFile = modelFile
-        self.outDir = outDir + os.sep + os.path.basename(self.modelFile)
-        self.functions = [ self.appendAction,
-                           self.appendAlgo,
-                           self.appendPartialOrder,
-                           self.appendHashCompaction,
-                           self.appendStateCaching,
-                           self.appendWorkers,
-                           self.launchHelena ]
-        self.testNum = 0
-        os.mkdir(self.outDir)
+
+def analyseDir(d):
+    errors = []
+    num = 0
+    base = d + os.path.sep + "test-"
+    while os.path.isfile(base + str(num) + ".cmd"):
+        cmd = base + str(num) + ".cmd"
+        err = base + str(num) + ".err"
+        xml = base + str(num) + ".xml"
+        error = True
+        xmlError = True
+        if os.path.isfile(err):
+            error = os.stat(err).st_size != 0
+        if os.path.isfile(xml):
+            xmlContent = None
+            with open(xml, 'r') as f:
+                xmlContent = f.read()
+            xmlError = xmlContent == "error"
+        if error or xmlError:
+            with open(cmd, 'r') as f:
+                cmdContent = f.read()
+            errors.append(cmdContent)
+        num += 1
+    return errors
+
+def analyseResults(resultsDir):
+    errors = []
+    for(_, dirs, _) in os.walk(resultsDir):
+        for d in dirs:
+            errors += analyseDir(resultsDir + os.path.sep + d)
+        break
+    if len(errors) == 0:
+        print "*** no erroneous run found ***"
+    else:
+        print "*** " + str(len(errors)) + " erroneous run(s) found ***"
+        print "here are the 20 first ones:"
+        for err in errors[0:20]:
+            print err
         
 if __name__ == "__main__":
-    if len(sys.argv) != 3:
+    if len(sys.argv) not in [ 2, 3 ]:
         exitWithUsage(1)
-    inDir  = sys.argv[1]
-    outDir = sys.argv[2]
-    os.mkdir(outDir)
-    for(_, _, files) in os.walk(inDir):
-        for f in files:
-            (f, ext) = os.path.splitext(f)
-            if ext == ".lna":
-                (_, ext2) = os.path.splitext(f)
-                if ext2 != ".prop":
-                    m = Model(os.path.abspath(inDir + os.sep + f + ext), outDir)
-                    m.launchTest()
-            elif ext == ".dve":
-                m = Model(os.path.abspath(inDir + os.sep + f + ext), outDir)
-                m.launchTest()
-        break
+    elif len(sys.argv) == 2:
+        resultsDir = sys.argv[1]
+        analyseResults(resultsDir)
+    elif len(sys.argv) == 3:
+        inDir  = sys.argv[1]
+        outDir = sys.argv[2]
+        os.mkdir(outDir)
+        for(_, _, files) in os.walk(inDir):
+            for f in files:
+                (f, ext) = os.path.splitext(f)
+                if ext == ".lna":
+                    (_, ext2) = os.path.splitext(f)
+                    if ext2 != ".prop":
+                        m = Model(os.path.abspath(inDir + os.sep + f + ext),
+                                  "LNA", outDir)
+                        m.launchTest()
+                    elif ext == ".dve":
+                        m = Model(os.path.abspath(inDir + os.sep + f + ext),
+                                  "DVE", outDir)
+                        m.launchTest()
+            break
 exit(0)

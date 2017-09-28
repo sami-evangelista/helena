@@ -69,6 +69,7 @@ typedef hash_tbl_id_t storage_id_t;
 #define storage_gc                hash_tbl_gc
 #define storage_gc_all            hash_tbl_gc_all
 #define storage_gc_time           hash_tbl_gc_time
+#define storage_gc_barrier        hash_tbl_gc_barrier
 #define storage_has_attr          hash_tbl_has_attr
 #define storage_output_stats      hash_tbl_output_stats
 

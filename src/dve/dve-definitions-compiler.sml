@@ -244,7 +244,7 @@ in
     "typedef int32_t int_t;",
     "typedef uint8_t byte_t;",
     "typedef uint8_t proc_state_t;",
-    "typedef uint8_t mevent_t;",
+    "typedef uint16_t mevent_t;",
     "typedef mevent_t mevent_id_t;",
     "",
     "/*  event definition  */",
