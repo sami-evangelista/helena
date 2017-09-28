@@ -8,6 +8,16 @@
 
 #if defined(CFG_ALGO_DDFS) || defined(CFG_ALGO_DFS)
 
+#if defined(CFG_POR)
+const bool_t POR = TRUE;
+#else
+const bool_t POR = FALSE;
+#endif
+#if defined(CFG_PROVISO)
+const bool_t PROVISO = TRUE;
+#else
+const bool_t PROVISO = FALSE;
+#endif
 storage_t S;
 
 state_t dfs_recover_state
@@ -61,11 +71,7 @@ state_t dfs_main
   event_list_t en;
   storage_id_t id_top;
   hash_key_t h;
-#if defined(CFG_POR)
-  const bool_t filter = TRUE;
-#else
-  const bool_t filter = FALSE;
-#endif
+  const bool_t filter = POR;
 
   /*
    *  push the root state on the stack
@@ -111,12 +117,12 @@ state_t dfs_main
       /*
        *  check if proviso is verified.  if not we reexpand the state
        */
-#if defined(CFG_POR) && defined(CFG_PROVISO)
-      if(!dfs_stack_proviso(stack)) {
-        dfs_stack_compute_events(stack, now, FALSE);
-        goto loop_start;
+      if(POR && PROVISO) {
+        if(!dfs_stack_proviso(stack)) {
+          dfs_stack_compute_events(stack, now, FALSE);
+          goto loop_start;
+        }
       }
-#endif
 
       /*
        *  we check an ltl property => launch the red search if the
@@ -221,11 +227,9 @@ state_t dfs_main
        */
       if(!push) {
         now = dfs_recover_state(stack, now, w, heap);
-#if defined(CFG_POR) && defined(CFG_PROVISO)
-        if(storage_get_cyan(S, id, w)) {
+        if(POR && PROVISO && storage_get_cyan(S, id, w)) {
           dfs_stack_unset_proviso(stack);
         }
-#endif
       } else {
 
         /*

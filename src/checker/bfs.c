@@ -8,7 +8,6 @@
 #if defined(CFG_ALGO_BFS) || defined(CFG_ALGO_DBFS) || \
   defined(CFG_ALGO_FRONTIER)
 
-
 #if defined(CFG_POR)
 const bool_t POR = TRUE;
 #else
