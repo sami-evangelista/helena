@@ -5,6 +5,12 @@
 #include "prop.h"
 #include "workers.h"
 
+/**
+ *  TODO: bfs does not allow counter example reconstruction for now.
+ *  change this by adding a pointer to the predecessor + evenet id in
+ *  the hash table.
+ */
+
 #if defined(CFG_ALGO_BFS) || defined(CFG_ALGO_DBFS) || \
   defined(CFG_ALGO_FRONTIER)
 
@@ -234,8 +240,7 @@ void * bfs_worker
         list_free(en);
 
         /**
-         *  the state leaves the queue => we unset its cyan bit and
-         *  delete it from storage if algo is FRONTIER.
+         *  update some statistics
          */
         if(0 == arcs) {
           context_incr_dead(w, 1);
@@ -243,6 +248,11 @@ void * bfs_worker
 	context_incr_arcs(w, arcs);
 	context_incr_visited(w, 1);
         context_incr_evts_exec(w, arcs);
+
+        /**
+         *  the state leaves the queue => we unset its cyan bit and
+         *  delete it from storage if algo is FRONTIER.
+         */
         storage_set_cyan(S, item.id, w, FALSE);
 #if defined(CFG_ALGO_FRONTIER)
         storage_remove(S, w, item.id);
@@ -292,7 +302,7 @@ void bfs
     w = h % CFG_NO_WORKERS;
     item.id = id;
     item.s = s;
-    item.e_set = TRUE;
+    item.e_set = FALSE;
     bfs_queue_enqueue(Q, item, w, w);
     bfs_queue_switch_level(Q, w);
   }
