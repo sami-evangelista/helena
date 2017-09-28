@@ -3,8 +3,8 @@
 char is_independent_and_inferior
 (void * item,
  void * data) {
-  event_t e = * ((mevent_t *) item);
-  event_t f = * ((mevent_t *) data);
+  event_t e = * ((event_t *) item);
+  event_t f = * ((event_t *) data);
 
   if(event_are_independent(e, f) && (LESS == event_cmp(e, f))) {
     return TRUE;
