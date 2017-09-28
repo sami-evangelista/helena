@@ -227,6 +227,26 @@ package body Pn.Nodes.Places is
       return Result;
    end;
 
+   function Union
+     (P1: in Place_Vector;
+      P2: in Place_Vector) return Place_Vector is
+      Result: constant Place_Vector := New_Place_Vector;
+      V     : constant array(1..2) of Place_Vector := (P1, P2);
+      P     : Place_Vector;
+      Ith   : Place;
+   begin
+      for J in V'Range loop
+         P := V(J);
+         for I in PAP.First_Index(P.Places)..PAP.Last_Index(P.Places) loop
+            Ith := PAP.Ith(P.Places, I);
+            if not PAP.Contains(Result.Places, Ith) then
+               PAP.Append(Result.Places, Ith);
+            end if;
+         end loop;
+      end loop;
+      return Result;
+   end;
+
    procedure Generic_Delete_Places
      (P: in Place_Vector) is
       procedure Delete is new PAP.Generic_Delete(Predicate);

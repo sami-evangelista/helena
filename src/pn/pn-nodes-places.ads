@@ -168,6 +168,10 @@ package Pn.Nodes.Places is
      (P1: in Place_Vector;
       P2: in Place_Vector) return Place_Vector;
 
+   function Union
+     (P1: in Place_Vector;
+      P2: in Place_Vector) return Place_Vector;
+
    generic
       with function Predicate(P: in Place) return Boolean;
    procedure Generic_Delete_Places

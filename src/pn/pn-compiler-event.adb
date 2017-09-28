@@ -120,23 +120,23 @@ package body Pn.Compiler.Event is
    procedure Gen
      (N   : in Net;
       Path: in Ustring) is
-      Tid_Size : constant Natural := Bit_To_Encode_Tid(N);
-      Comment  : constant String := "This library implements events.";
-      Prototype: Ustring;
-      Id       : Ustring;
-      T        : Trans;
-      U        : Trans;
-      Pre_T    : Place_Vector;
-      Pre_U    : Place_Vector;
-      Inter    : Place_Vector;
-      Vl       : Var_List;
-      V        : Var;
-      C        : Cls;
-      Prio     : Expr;
-      El       : Expr_List;
-      L        : Library;
-      Mode     : Ustring;
-      Func_Name: Ustring;
+      Tid_Size  : constant Natural := Bit_To_Encode_Tid(N);
+      Comment   : constant String := "This library implements events.";
+      Prototype : Ustring;
+      Id        : Ustring;
+      T         : Trans;
+      U         : Trans;
+      T_Set     : Place_Vector;
+      U_Set     : Place_Vector;
+      Inter     : Place_Vector;
+      Vl        : Var_List;
+      V         : Var;
+      C         : Cls;
+      Prio      : Expr;
+      El        : Expr_List;
+      L         : Library;
+      Mode      : Ustring;
+      Func_Name : Ustring;
    begin
       Init_Library(Event_Lib, To_Ustring(Comment), Path, L);
       Plh(L, "#include ""domains.h""");
@@ -551,20 +551,26 @@ package body Pn.Compiler.Event is
 	    T := Ith_Trans(N, I);
 	    Plc(L, 1, "case " & Tid(T) & ":");
 	    Plc(L, 2, "switch (f.tid) {");
-	    Pre_T := Pre_Set(N, T);
+            T_Set := New_Place_Vector;
+            for A in Arc_Type loop
+               T_Set := Union(T_Set, Pre_Post_Set(N, T, A));
+            end loop;
 	    for J in 1..T_Size(N) loop
 	       U := Ith_Trans(N, J);
-	       Pre_U := Pre_Set(N, U);
-	       Inter := Intersect(Pre_U, Pre_T);
+               U_Set := New_Place_Vector;
+               for A in Arc_Type loop
+                  U_Set := Union(U_Set, Pre_Post_Set(N, U, A));
+               end loop;
+	       Inter := Intersect(T_Set, U_Set);
 	       if Is_Empty(Inter) then
 		  Plc(L, 2, "case " & Tid(U) & ": return TRUE;");
 	       end if;
-	       Free(Pre_U);
+	       Free(U_Set);
 	       Free(Inter);
 	    end loop;
 	    Plc(L, 2, "default: return FALSE;");
 	    Plc(L, 2, "}");
-	    Free(Pre_T);
+	    Free(T_Set);
 	 end loop;
 	 Plc(L, 1, "default: assert(0);");
 	 Plc(L, 1, "}");

@@ -215,6 +215,16 @@ in
      "",
      "mevent_id_t mevent_id(mevent_t e) {",
      "   return e;",
+     "}",
+     "",
+     "order_t mevent_cmp(mevent_t e, mevent_t f) {",
+     "   if(e < f) return LESS;",
+     "   if(e > f) return GREATER;",
+     "   return EQUAL;",
+     "}",
+     "",
+     "bool_t mevent_are_independent(mevent_t e, mevent_t f) {",
+     "   return FALSE;",
      "}"
     ])
 end

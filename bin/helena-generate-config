@@ -136,6 +136,7 @@ class Config:
         self.partialOrder = False
         self.stateCaching = False
         self.hashCompaction = False
+        self.edgeLean = False
         self.workers = 1
         self.capacity = 1
         self.candidateSetSize = 100000
@@ -307,6 +308,8 @@ class Config:
             if self.propType is not None and \
                self.propType != DEADLOCK:
                 W("#define CFG_PROVISO\n")
+        if self.edgeLean:
+            W("#define CFG_EDGE_LEAN\n")
                 
         #  parallel mode
         if self.workers > 1:

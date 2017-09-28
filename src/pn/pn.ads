@@ -727,7 +727,7 @@ private
       record
          V     : Var;     --  the variable
          V_Name: Ustring; --  name of the variable if the variable object is
-			  --  not known
+                          --  not known
          E     : Expr;    --  the value of the variable
       end record;
 

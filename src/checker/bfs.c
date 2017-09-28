@@ -24,6 +24,11 @@ const bool_t PROVISO = TRUE;
 #else
 const bool_t PROVISO = FALSE;
 #endif
+#if defined(CFG_EDGE_LEAN)
+const bool_t EDGE_LEAN = TRUE;
+#else
+const bool_t EDGE_LEAN = FALSE;
+#endif
 storage_t S;
 bfs_queue_t Q;
 pthread_barrier_t B;
@@ -61,11 +66,7 @@ void bfs_init_queue
 #else
   bool_t states_in_queue = TRUE;
 #endif
-#if defined(CFG_EDGE_LEAN)
-  bool_t events_in_queue = TRUE;
-#else
-  bool_t events_in_queue = FALSE;
-#endif
+  bool_t events_in_queue = EDGE_LEAN;
   
   Q = bfs_queue_new(no_workers, CFG_BFS_QUEUE_BLOCK_SIZE,
                     states_in_queue, events_in_queue);
@@ -165,11 +166,19 @@ void * bfs_worker
         } else {
           s = storage_get_mem(S, item.id, w, heap);
         }
+
+        /**
+         *  compute enabled events and apply reductions
+         */
         if(POR) {
           en = state_events_reduced_mem(s, &reduced, heap);
         } else {
           en = state_events_mem(s, heap);
         }
+        if(EDGE_LEAN && item.e_set) {
+          edge_lean_reduction(en, item.e);
+        }
+
 
         /**
          *  check the state property

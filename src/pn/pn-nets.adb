@@ -189,7 +189,7 @@ package body Pn.Nets is
          for J in 1..Size(N.T) loop
             Tj := Ith(N.T, J);
             if (not Is_Empty(Get_Arc_Label(N, A, Pi, Tj)) and then
-                not Contains(Result, Tj))
+                  not Contains(Result, Tj))
             then
                Append(Result, Tj);
             end if;

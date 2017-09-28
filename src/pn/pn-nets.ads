@@ -33,13 +33,6 @@ package Pn.Nets is
 
    type Net is access all Net_Record;
 
-   type Export_Result is
-     (Export_Error_In_Initial_Marking,
-      Export_Net_Too_Large,
-      Export_Infinite_Net,
-      Export_Io_Error,
-      Export_Success);
-
 
 
    --==========================================================================
