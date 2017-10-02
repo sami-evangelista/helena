@@ -141,13 +141,12 @@ void * bfs_worker
   event_list_t en;
   worker_id_t x, y;
   unsigned int arcs;
-  heap_t heap;
+  heap_t heap = local_heap_new();
   hash_key_t h;
   bfs_queue_item_t item, succ_item;
   event_t e;
   bool_t is_new, reduced;
   
-  heap = bounded_heap_new(10000);
   while(!TERM) {
     for(x = 0;
         x < bfs_queue_no_workers(Q) && context_keep_searching();

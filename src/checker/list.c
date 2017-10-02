@@ -63,7 +63,14 @@ list_size_t list_size
   return list->no_items;
 }
 
-void list_top
+void list_first
+(list_t list,
+ void * item) {
+  assert(list->first);
+  memcpy(item, list->first->item, list->sizeof_item);
+}
+
+void list_last
 (list_t list,
  void * item) {
   assert(list->last);

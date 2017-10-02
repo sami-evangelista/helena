@@ -234,10 +234,8 @@ class Config:
             W("#define CFG_MODEL_NAME \"" + model + "\"\n")
             W("#define CFG_LANGUAGE \"dve\"\n")
             W("#define CFG_LANGUAGE_DVE\n")
-        if self.inFileExt in [ ".lna", ".dve" ]:
-            W("#define CFG_USE_HELENA_HEAPS\n")
 
-        #  search algorithm
+        #  search algorithm and storage type
         W("#define CFG_ALGO_" + self.algo.replace("-", "_") + "\n")
         if self.algo == FRONTIER:
             W("#define CFG_HASH_STORAGE\n")

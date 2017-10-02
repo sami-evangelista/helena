@@ -10,31 +10,22 @@
 
 #include "common.h"
 
-#define SYSTEM_HEAP      NULL
-#define BOUNDED_HEAP     0
-#define EVERGROWING_HEAP 1
-#define HEAP_TYPES       2
+#define SYSTEM_HEAP NULL
+#define LOCAL_HEAP  0
 
 void init_heap
 ();
 
-typedef unsigned long long int mem_size_t;
+typedef uint64_t mem_size_t;
 
 typedef void * heap_t;
 
 
 /**
- * @brief bounded_heap_new
+ * @brief local_heap_new
  */
-heap_t bounded_heap_new
-(mem_size_t size);
-
-
-/**
- * @brief evergrowing_heap_new
- */
-heap_t evergrowing_heap_new
-(mem_size_t block_size);
+heap_t local_heap_new
+();
 
 
 /**
@@ -78,7 +69,7 @@ void heap_free
 /**
  * @brief heap_get_position
  */
-void * heap_get_position
+mem_size_t heap_get_position
 (heap_t heap);
 
 
@@ -87,20 +78,20 @@ void * heap_get_position
  */
 void heap_set_position
 (heap_t heap,
- void * pos);
-
-
-/**
- * @brief heap_space_left
- */
-mem_size_t heap_space_left
-(heap_t heap);
+ mem_size_t pos);
 
 
 /**
  * @brief heap_has_mem_free
  */
 bool_t heap_has_mem_free
+(heap_t heap);
+
+
+/**
+ * @brief heap_size
+ */
+mem_size_t heap_size
 (heap_t heap);
 
 #endif

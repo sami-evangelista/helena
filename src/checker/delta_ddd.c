@@ -78,10 +78,7 @@ bool_t error_reported;
 /*  alternating bit to know which states to expand  */
 uint8_t RECONS_ID;
 
-#define EXPAND_HEAP_SIZE (1024 * 1024)
-#define DETECT_HEAP_SIZE (1024 * 1024)
-
-#define DELTA_DDD_STATS
+#define MAX_LOCAL_HEAP_SIZE 100000
 
 #define DELTA_DDD_CAND_NEW  1
 #define DELTA_DDD_CAND_DEL  2
@@ -91,7 +88,7 @@ uint8_t RECONS_ID;
 
 #if defined(CFG_EVENT_UNDOABLE)
 #define DELTA_DDD_VISIT_PRE_HEAP_PROCESS() {    \
-    if(heap_space_left(heap) <= 81920) {	\
+    if(heap_size(heap) > MAX_LOCAL_HEAP_SIZE) {	\
       state_t copy = state_copy(s);		\
       heap_reset(heap);                         \
       s = state_copy_mem(copy, heap);		\
@@ -402,7 +399,7 @@ state_t delta_ddd_duplicate_detection_dfs
   heap_t heap_evts = detect_evts_heaps[w];
   state_t t;
   event_t e;
-  void * heap_pos;
+  mem_size_t heap_pos;
   delta_ddd_storage_id_t start, curr;
 
   DELTA_DDD_VISIT_PRE_HEAP_PROCESS();
@@ -665,7 +662,7 @@ state_t delta_ddd_expand_dfs
  unsigned int depth) {
   heap_t heap = expand_heaps[w];
   heap_t heap_evts = expand_evts_heaps[w];
-  void * heap_pos;
+  mem_size_t heap_pos;
   delta_ddd_storage_id_t start, curr;
   state_t t;
   event_t e;
@@ -860,17 +857,12 @@ void delta_ddd
    *  initialisation of the heaps
    */
   for(w = 0; w < CFG_NO_WORKERS; w ++) {
-    expand_heaps[w] =
-      bounded_heap_new(EXPAND_HEAP_SIZE);
-    detect_heaps[w] =
-      bounded_heap_new(DETECT_HEAP_SIZE);
-    candidates_heaps[w] =
-      evergrowing_heap_new(1024 * 1024);
+    expand_heaps[w] = local_heap_new();
+    detect_heaps[w] = local_heap_new();
+    candidates_heaps[w] = local_heap_new();
 #if defined(CFG_EVENT_UNDOABLE)
-    expand_evts_heaps[w] =
-      bounded_heap_new(EXPAND_HEAP_SIZE);
-    detect_evts_heaps[w] =
-      bounded_heap_new(DETECT_HEAP_SIZE);
+    expand_evts_heaps[w] = local_heap_new();
+    detect_evts_heaps[w] = local_heap_new();
 #endif
   }
 

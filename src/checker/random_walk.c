@@ -5,8 +5,6 @@
 
 #if defined(CFG_ALGO_RWALK)
 
-#define RW_HEAP_SIZE (CFG_RWALK_MAX_DEPTH * 1024)
-
 void * random_walk_worker
 (void * arg) {
   worker_id_t w = (worker_id_t) (long) arg;
@@ -19,7 +17,7 @@ void * random_walk_worker
   heap_t heap;
   event_list_t trace, new_trace;
 
-  heap = bounded_heap_new(RW_HEAP_SIZE);
+  heap = local_heap_new();
   while(context_keep_searching()) {
     heap_reset(heap);
     s = state_initial_mem(heap);

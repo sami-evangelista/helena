@@ -8,6 +8,8 @@
 
 #if defined(CFG_ALGO_DDFS) || defined(CFG_ALGO_DFS)
 
+#define DFS_HEAP_SIZE 100000
+
 #if defined(CFG_POR)
 const bool_t POR = TRUE;
 #else
@@ -101,7 +103,7 @@ state_t dfs_main
     /*
      *  reinitialise the heap if we do not have enough space
      */
-    if(heap_space_left(heap) <= 1024) {
+    if(heap_size(heap) >= DFS_HEAP_SIZE) {
       copy = state_copy(now);
       heap_reset(heap);
       now = state_copy_mem(copy, heap);
@@ -270,7 +272,7 @@ void * dfs_worker
   hash_key_t h;
   bool_t dummy;
   storage_id_t id;
-  heap_t heap = bounded_heap_new(1024 * 100);
+  heap_t heap = local_heap_new();
   state_t now = state_initial_mem(heap);
 #if defined(CFG_PARALLEL) || defined(CFG_DISTRIBUTED)
   bool_t shuffle = TRUE;

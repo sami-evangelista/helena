@@ -58,9 +58,17 @@ void list_free
 
 
 /**
- * @brief list_top
+ * @brief list_first
  */
-void list_top
+void list_first
+(list_t list,
+ void * item);
+
+
+/**
+ * @brief list_last
+ */
+void list_last
 (list_t list,
  void * item);
 

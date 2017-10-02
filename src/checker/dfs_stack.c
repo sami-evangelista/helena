@@ -5,14 +5,13 @@
 #if defined(CFG_ALGO_DFS) || defined(CFG_ALGO_DDFS)
 
 #define DFS_STACK_BLOCKS 2
-#define DFS_STACK_HEAP_SIZE(stack) (stack->block_size * 10000)
 
 typedef struct {
   storage_id_t id;
   event_list_t en;
   event_t e;
   bool_t e_set;
-  heap_t heap_pos;
+  mem_size_t heap_pos;
   bool_t prov_ok;
   bool_t fully_expanded;
   state_t s;
@@ -76,7 +75,7 @@ dfs_stack_t dfs_stack_new
   result->files = 0;
   result->seed = random_seed(id);
   for(i = 0; i < DFS_STACK_BLOCKS; i ++) {
-    result->heaps[i] = bounded_heap_new(DFS_STACK_HEAP_SIZE(result));
+    result->heaps[i] = local_heap_new();
     result->blocks[i] = dfs_stack_block_new(result->block_size);
   }
   return result;
@@ -222,7 +221,7 @@ void dfs_stack_push
       stack->blocks[1] = dfs_stack_block_new(stack->block_size);
       heap_free(stack->heaps[0]);
       stack->heaps[0] = stack->heaps[1];
-      stack->heaps[1] = bounded_heap_new(DFS_STACK_HEAP_SIZE(stack));
+      stack->heaps[1] = local_heap_new();
     }
     stack->current = 1;
     stack->top = 0;
