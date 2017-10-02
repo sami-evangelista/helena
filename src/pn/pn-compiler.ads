@@ -120,7 +120,6 @@ private
    Mappings_Lib        : constant Ustring := To_Ustring("mappings");
    Event_Lib           : constant Ustring := To_Ustring("mevent");
    Enabling_Test_Lib   : constant Ustring := To_Ustring("enabling_test");
-   Por_Lib             : constant Ustring := To_Ustring("por");
    Model_Lib           : constant Ustring := To_Ustring("model");
    Interfaces_File     : constant Ustring := To_Ustring("interfaces");
    Graph_Lib           : constant Ustring := To_Ustring("model_graph");

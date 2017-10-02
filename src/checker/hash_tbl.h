@@ -258,6 +258,16 @@ void hash_tbl_set_garbage
 
 
 /**
+ * @brief hash_tbl_set_pred
+ */
+void hash_tbl_set_pred
+(hash_tbl_t tbl,
+ hash_tbl_id_t id,
+ hash_tbl_id_t id_pred,
+ event_id_t evt);
+
+
+/**
  * @brief hash_tbl_ref
  */
 void hash_tbl_ref
@@ -349,13 +359,10 @@ bool_t hash_tbl_has_attr
 
 
 /**
- * @brief hash_tbl_set_pred
+ * @brief hash_tbl_get_trace
  */
-void hash_tbl_set_pred
+list_t hash_tbl_get_trace
 (hash_tbl_t tbl,
- hash_tbl_id_t id,
- bool_t pred_ok,
- hash_tbl_id_t pred,
- uint8_t evt);
+ hash_tbl_id_t id);
 
 #endif

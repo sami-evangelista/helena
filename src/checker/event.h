@@ -13,22 +13,23 @@
 #include "prop.h"
 #include "state.h"
 
+typedef list_t mevent_list_t;
 typedef list_t event_list_t;
 
 void mevent_free_void
 (void * data);
 
 uint32_t mevent_list_char_size
-(event_list_t l);
+(mevent_list_t l);
 
 void mevent_list_serialise
-(event_list_t l,
+(mevent_list_t l,
  bit_vector_t v);
 
-event_list_t mevent_list_unserialise
+mevent_list_t mevent_list_unserialise
 (bit_vector_t v);
 
-event_list_t mevent_list_unserialise_mem
+mevent_list_t mevent_list_unserialise_mem
 (bit_vector_t v,
  heap_t heap);
 

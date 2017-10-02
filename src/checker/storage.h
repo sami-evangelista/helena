@@ -18,6 +18,8 @@
 #define ATTR_RED      16
 #define ATTR_GARBAGE  32
 #define ATTR_REFS     64
+#define ATTR_PRED     128
+#define ATTR_EVT      256
 
 /*****
  *  storage used by delta-ddd algorithm
@@ -64,6 +66,7 @@ typedef hash_tbl_id_t storage_id_t;
 #define storage_set_red           hash_tbl_set_red
 #define storage_get_red           hash_tbl_get_red
 #define storage_set_garbage       hash_tbl_set_garbage
+#define storage_set_pred          hash_tbl_set_pred
 #define storage_ref               hash_tbl_ref
 #define storage_unref             hash_tbl_unref
 #define storage_gc                hash_tbl_gc
@@ -72,6 +75,7 @@ typedef hash_tbl_id_t storage_id_t;
 #define storage_gc_barrier        hash_tbl_gc_barrier
 #define storage_has_attr          hash_tbl_has_attr
 #define storage_output_stats      hash_tbl_output_stats
+#define storage_get_trace         hash_tbl_get_trace
 
 #endif
 

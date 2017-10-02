@@ -25,22 +25,22 @@ void mevent_unserialise_void
 }
 
 uint32_t mevent_list_char_size
-(event_list_t l) {
+(mevent_list_t l) {
   return list_char_size(l, mevent_char_size_void);
 }
 
 void mevent_list_serialise
-(event_list_t l,
+(mevent_list_t l,
  bit_vector_t v) {
   list_serialise(l, v, mevent_char_size_void, mevent_serialise_void);
 }
 
-event_list_t mevent_list_unserialise
+mevent_list_t mevent_list_unserialise
 (bit_vector_t v) {  
   return mevent_list_unserialise_mem(v, SYSTEM_HEAP);
 }
 
-event_list_t mevent_list_unserialise_mem
+mevent_list_t mevent_list_unserialise_mem
 (bit_vector_t v,
  heap_t heap) {
   return list_unserialise(heap, sizeof(mevent_t), mevent_free_void,

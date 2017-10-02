@@ -129,7 +129,6 @@ void context_init
 void context_output_trace
 (FILE * out) {
   event_t e;
-  unsigned int i = 0;
   state_t s = state_initial();
   list_size_t l;
 
@@ -389,7 +388,7 @@ void context_finalise
    ***/
   if(CTX->term_state == FAILURE) {
     fprintf(out, "<traceReport>\n");
-#if    defined(CFG_TRACE_STATE)
+#if defined(CFG_TRACE_STATE)
     fprintf(out, "<traceState>\n");
     state_to_xml(CTX->faulty_state, out);
     fprintf(out, "</traceState>\n");
@@ -450,7 +449,7 @@ void context_finalise
 void context_interruption_handler
 (int signal) {
   CTX->term_state = INTERRUPTION;
-  context_stop_search();
+  CTX->keep_searching = FALSE;
 }
 
 bool_t context_error
@@ -475,14 +474,25 @@ void context_stop_search
 
 void context_faulty_state
 (state_t s) {
+  pthread_mutex_lock(&CTX->ctx_mutex);
   if(CTX->keep_searching) {
-    pthread_mutex_lock(&CTX->ctx_mutex);
     CTX->faulty_state = state_copy(s);
     CTX->keep_searching = FALSE;
     CTX->term_state = FAILURE;
     CTX->faulty_state_found = TRUE;
-    pthread_mutex_unlock(&CTX->ctx_mutex);
   }
+  pthread_mutex_unlock(&CTX->ctx_mutex);
+}
+
+void context_set_trace
+(event_list_t trace) {
+  pthread_mutex_lock(&CTX->ctx_mutex);
+  if(CTX->keep_searching) {
+    CTX->trace = trace;
+    CTX->keep_searching = FALSE;
+    CTX->term_state = FAILURE;
+  }
+  pthread_mutex_unlock(&CTX->ctx_mutex);
 }
 
 storage_t context_storage
@@ -508,11 +518,7 @@ pthread_t * context_workers
 void context_set_termination_state
 (termination_state_t term_state) {
   CTX->term_state = term_state;
-}
-
-void context_set_trace
-(event_list_t trace) {
-  CTX->trace = trace;
+  CTX->keep_searching = FALSE;
 }
 
 uint64_t context_visited

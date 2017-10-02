@@ -9,6 +9,8 @@
 #define ATTR_RED_POS(tbl)      (tbl->attr_pos[4])
 #define ATTR_GARBAGE_POS(tbl)  (tbl->attr_pos[5])
 #define ATTR_REFS_POS(tbl)     (tbl->attr_pos[6])
+#define ATTR_PRED_POS(tbl)     (tbl->attr_pos[7])
+#define ATTR_EVT_POS(tbl)      (tbl->attr_pos[8])
 
 #define ATTR_CHAR_LEN_WIDTH 16
 #define ATTR_CYAN_WIDTH     1
@@ -17,8 +19,10 @@
 #define ATTR_RED_WIDTH      1
 #define ATTR_GARBAGE_WIDTH  1
 #define ATTR_REFS_WIDTH     8
+#define ATTR_PRED_WIDTH     (CHAR_BIT * sizeof(hash_tbl_id_t))
+#define ATTR_EVT_WIDTH      (CHAR_BIT * sizeof(event_id_t))
 
-#define NO_ATTRS 7
+#define NO_ATTRS 9
 
 typedef uint8_t bucket_status_t;
 
@@ -79,7 +83,9 @@ hash_tbl_t hash_tbl_new
                                            ATTR_PINK_WIDTH * no_workers,
                                            ATTR_RED_WIDTH,
                                            ATTR_GARBAGE_WIDTH,
-                                           ATTR_REFS_WIDTH };
+                                           ATTR_REFS_WIDTH,
+                                           ATTR_PRED_WIDTH,
+                                           ATTR_EVT_WIDTH };
   uint32_t attrs_bit_size = 0;
   uint64_t i;
   hash_tbl_t result;
@@ -156,6 +162,10 @@ hash_tbl_t hash_tbl_default_new
   uint32_t attrs = 0;
   uint16_t no_workers;
 
+  /**
+   *  check which attributes are enabled according to the
+   *  configuration
+   */
 #if !defined(CFG_HASH_COMPACTION)
   attrs |= ATTR_CHAR_LEN;
 #endif
@@ -170,6 +180,10 @@ hash_tbl_t hash_tbl_default_new
 #endif
 #if defined(CFG_STATE_CACHING)
   attrs |= ATTR_REFS;
+#endif
+#if defined(CFG_ALGO_BFS)
+  attrs |= ATTR_PRED;
+  attrs |= ATTR_EVT;
 #endif
 
 #if defined(CFG_HASH_COMPACTION)
@@ -247,11 +261,11 @@ void hash_tbl_insert_real
  hash_tbl_id_t * id,
  hash_key_t * h,
  bool_t h_set) {
-  uint32_t i, trials = 0;
+  uint32_t trials = 0;
   bit_stream_t bits;
   hash_tbl_id_t pos, del_pos;
   bit_vector_t se_other;
-  bool_t found, garbage, del_found = FALSE;
+  bool_t found, del_found = FALSE;
   uint8_t b, curr = BUCKET_EMPTY;
 
   /**
@@ -616,6 +630,21 @@ void hash_tbl_set_garbage
   }
 }
 
+void hash_tbl_set_pred
+(hash_tbl_t tbl,
+ hash_tbl_id_t id,
+ hash_tbl_id_t id_pred,
+ event_id_t evt) {
+  assert(hash_tbl_has_attr(tbl, ATTR_PRED) &&
+         hash_tbl_has_attr(tbl, ATTR_EVT));
+  hash_tbl_set_attr(tbl, id, ATTR_PRED_POS(tbl),
+                    ATTR_PRED_WIDTH, (uint64_t) id_pred);
+  hash_tbl_set_attr(tbl, id, ATTR_EVT_POS(tbl),
+                    ATTR_EVT_WIDTH, (uint64_t) evt);
+  id_pred = hash_tbl_get_attr(tbl, id, ATTR_PRED_POS(tbl),
+                              ATTR_PRED_WIDTH);
+}
+
 void hash_tbl_remove
 (hash_tbl_t tbl,
  worker_id_t w,
@@ -917,4 +946,20 @@ void hash_tbl_output_stats
   fprintf(out, "<stateComparisons>%llu</stateComparisons>\n",
           large_sum(tbl->state_cmps, tbl->no_workers));
   fprintf(out, "</hashTableStatistics>\n");
+}
+
+list_t hash_tbl_get_trace
+(hash_tbl_t tbl,
+ hash_tbl_id_t id) {
+  hash_tbl_id_t id_pred;
+  event_id_t evt;
+  list_t result = list_new(SYSTEM_HEAP, sizeof(event_id_t), NULL);
+  
+  while(id != (id_pred = hash_tbl_get_attr(tbl, id, ATTR_PRED_POS(tbl),
+                                           ATTR_PRED_WIDTH))) {
+    evt = hash_tbl_get_attr(tbl, id, ATTR_EVT_POS(tbl), ATTR_EVT_WIDTH);
+    list_prepend(result, &evt);
+    id = id_pred;
+  }
+  return result;
 }

@@ -589,6 +589,64 @@ package body Pn.Compiler.Event is
       end if;
       Plc(L, "}");
       --=======================================================================
+      declare
+         generic
+            with function Test(T: in Trans) return Boolean;
+         procedure Generic_Gen_Tid_Test_Func;
+         procedure Generic_Gen_Tid_Test_Func is
+            T   : Trans;
+            Cond: Ustring := Null_String;
+         begin
+            Plc(L, 1, "switch (e.tid) {");
+            for I in 1..T_Size(N) loop
+               T := Ith_Trans(N, I);
+               Pc(L, 2, "case " & Tid(T) & ": return ");
+               if(Test(T)) then
+                  Plc(L, "TRUE;");
+               else
+                  Plc(L, "FALSE;");
+               end if;
+            end loop;
+            Plc(L, 1, "default: assert(0);");
+            Plc(L, 1, "}");
+         end;
+         procedure Gen_Is_Safe is new Generic_Gen_Tid_Test_Func(Is_Safe);
+         procedure Gen_Is_Visible is new Generic_Gen_Tid_Test_Func(Is_Visible);
+      begin
+         Prototype := To_Ustring
+           ("bool_t mevent_is_safe" & Nl &
+              "(mevent_t e)");
+         Plh(L, Prototype & ";");
+         Plc(L, Prototype & " {");
+         if With_Priority(N) then
+            Plc(L, 1, "return FALSE;");
+         else
+            Gen_Is_Safe;
+         end if;
+         Plc(L, "}");
+         Prototype := To_Ustring
+           ("bool_t mevent_is_visible" & Nl &
+              "(mevent_t e)");
+         Plh(L, Prototype & ";");
+         Plc(L, Prototype & " {");
+         Gen_Is_Visible;
+         Plc(L, "}");
+      end;
+      --=======================================================================
+      Prototype := To_Ustring
+	("unsigned int mevent_safe_set (" & Nl &
+	   "   mevent_t e)");
+      Plh(L, Prototype & ";");
+      Plc(L, Prototype & " {");
+      Plc(L, 1, "switch(e.tid) {");
+      for I in 1..T_Size(N) loop
+         T := Ith_Trans(N, I);
+	 Plc(L, 1, "case " & Tid(T) & ": return " & Get_Safe_Set(T) & ";");
+      end loop;
+      Plc(L, 1, "default: assert(0);");
+      Plc(L, 1, "}");
+      Plc(L, "}");
+      --=======================================================================
       End_Library(L);
    end;
 

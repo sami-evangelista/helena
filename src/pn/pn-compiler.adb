@@ -16,7 +16,6 @@ with
   Pn.Compiler.Interfaces,
   Pn.Compiler.Mappings,
   Pn.Compiler.Model,
-  Pn.Compiler.Por,
   Pn.Compiler.Util,
   Pn.Compiler.State;
 
@@ -38,7 +37,6 @@ use
   Pn.Compiler.Interfaces,
   Pn.Compiler.Mappings,
   Pn.Compiler.Model,
-  Pn.Compiler.Por,
   Pn.Compiler.Util,
   Pn.Compiler.State;
 
@@ -89,7 +87,6 @@ package body Pn.Compiler is
       Event.Gen(N, Path);
       Mappings.Gen(N, Path);
       Enabling_Test.Gen(N, Path);
-      Por.Gen(N, Path);
       Domains.Gen(N, Path);
       Model.Gen(N, Path);
       Graph.Gen(N, Path);
@@ -103,7 +100,6 @@ package body Pn.Compiler is
       Put_Line(F, Mappings_Lib);
       Put_Line(F, Event_Lib);
       Put_Line(F, Enabling_Test_Lib);
-      Put_Line(F, Por_Lib);
       Put_Line(F, Model_Lib);
       Put_Line(F, Graph_Lib);
       Put_Line(F, Interfaces_File);

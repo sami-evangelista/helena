@@ -202,8 +202,6 @@ state_t dfs_main
        */
 #if defined(CFG_ACTION_CHECK_LTL)
       if(!blue && (id == id_seed)) {
-        context_stop_search();
-        context_set_termination_state(FAILURE);
         dfs_stack_create_trace(blue_stack, red_stack);
         break;
       }

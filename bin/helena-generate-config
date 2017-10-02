@@ -136,7 +136,7 @@ class Config:
         self.partialOrder = False
         self.stateCaching = False
         self.hashCompaction = False
-        self.edgeLean = False
+        self.edgeLean = True
         self.workers = 1
         self.capacity = 1
         self.candidateSetSize = 100000
@@ -193,7 +193,6 @@ class Config:
             self.partialOrder = False
         elif self.algo == BFS:
             self.stateCaching = False
-            self.traceType = STATE
         elif self.algo == DDFS:
             self.partialOrder = False
             self.stateCaching = False

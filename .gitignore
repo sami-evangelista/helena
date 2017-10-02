@@ -5,8 +5,8 @@ bin/helena-generate-dve
 bin/helena-generate-interface
 bin/helena-generate-property
 bin/helena-ltl2ba
-.gitignore
+examples/dve
 releases
 src/obj
+src/ltl2ba/*.o
 tests
-examples/dve

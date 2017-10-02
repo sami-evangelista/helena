@@ -404,7 +404,6 @@ package body Pn.Compiler.State is
       Plh(L, Prototype & ";");
       Plc(L, Prototype & " {");
       Plc(L, 1, "order_t cmp;");
-      Plc(L, 1, Place_Dom_Type(P) & " cp, cq;");
       Plc(L, 1, T & " lp = p->list, lq = q.list;");
       Plc(L, 1, T & " pred = NULL, lnew;");
       Plc(L, 1, "while (lq) {");
@@ -661,7 +660,6 @@ package body Pn.Compiler.State is
       Plh(L, Prototype & ";");
       Plc(L, Prototype & " {");
       Plc(L, 1, "bit_stream_t vec;");
-      Plc(L, 1, "unsigned int idx;");
       Plc(L, 1, "bit_stream_init(vec, v);");
       Plc(L, 1, "unsigned int ne = mstate_non_empty_places (s);");
       Plc(L, 1, Bit_Stream_Set_Func(Non_Empty_Size) & "(vec, ne);");
@@ -684,9 +682,8 @@ package body Pn.Compiler.State is
       Plc(L, Prototype & " {");
       Plc(L, 1, "mstate_t result;");
       Plc(L, 1, "unsigned int ne;");
-      Plc(L, 1, "unsigned int idx;");
       Plc(L, 1, "pl_id_t pid;");
-      Plc(L, 1, "bit_stream_t vec, lvec;");
+      Plc(L, 1, "bit_stream_t vec;");
       Plc(L, 1, "bit_stream_init(vec, v);");
       Plc(L, 1, Bit_Stream_Get_Func(Non_Empty_Size) & "(vec, ne);");
       Plc(L, 1, "mstate_init (result, heap);");
@@ -720,9 +717,9 @@ package body Pn.Compiler.State is
            "   bit_vector_t v)");
       Plh(L, Prototype & ";");
       Plc(L, Prototype & " {");
-      Plc(L, 1, "unsigned int ne, i = 0, idx;");
+      Plc(L, 1, "unsigned int ne, i = 0;");
       Plc(L, 1, "pl_id_t pid;");
-      Plc(L, 1, "bit_stream_t bits, lbits;");
+      Plc(L, 1, "bit_stream_t bits;");
       Plc(L, 1, "bit_stream_init(bits, v);");
       Plc(L, 1, Bit_Stream_Get_Func(Non_Empty_Size) & " (bits, ne);");
       Plc(L, 1, "if (mstate_non_empty_places (s) != ne) return FALSE;");

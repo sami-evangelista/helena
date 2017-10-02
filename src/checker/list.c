@@ -81,7 +81,7 @@ void list_nth
 (list_t list,
  list_index_t n,
  void * item) {
-  list_node_t ptr = list->first, next;
+  list_node_t ptr = list->first;
   list_index_t i = n;
   
   while(i) {
@@ -97,7 +97,7 @@ void list_app
 (list_t list,
  list_app_func_t app_func,
  void * data) {
-  list_node_t ptr = list->first, next;
+  list_node_t ptr = list->first;
 
   while(ptr) {
     app_func(ptr->item, data);

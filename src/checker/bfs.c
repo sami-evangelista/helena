@@ -3,32 +3,40 @@
 #include "context.h"
 #include "dbfs_comm.h"
 #include "prop.h"
+#include "reduction.h"
 #include "workers.h"
-
-/**
- *  TODO: bfs does not allow counter example reconstruction for now.
- *  change this by adding a pointer to the predecessor + evenet id in
- *  the hash table.
- */
 
 #if defined(CFG_ALGO_BFS) || defined(CFG_ALGO_DBFS) || \
   defined(CFG_ALGO_FRONTIER)
 
+const bool_t WITH_TRACE =
+#if defined(CFG_ACTION_CHECK_SAFETY) && defined(CFG_ALGO_BFS)
+  TRUE
+#else
+  FALSE
+#endif
+  ;
+const bool_t POR = 
 #if defined(CFG_POR)
-const bool_t POR = TRUE;
+  TRUE
 #else
-const bool_t POR = FALSE;
+  FALSE
 #endif
+  ;
+const bool_t PROVISO =
 #if defined(CFG_PROVISO)
-const bool_t PROVISO = TRUE;
+  TRUE
 #else
-const bool_t PROVISO = FALSE;
+  FALSE
 #endif
+  ;
+const bool_t EDGE_LEAN =
 #if defined(CFG_EDGE_LEAN)
-const bool_t EDGE_LEAN = TRUE;
+  TRUE
 #else
-const bool_t EDGE_LEAN = FALSE;
+  FALSE
 #endif
+  ;
 storage_t S;
 bfs_queue_t Q;
 pthread_barrier_t B;
@@ -39,7 +47,6 @@ worker_id_t bfs_thread_owner
 (hash_key_t h) {
   uint8_t result = 0;
   int i;
-  uint16_t move = 0;
   
   for(i = 0; i < sizeof(hash_key_t); i++) {
     result += (h >> (i * 8)) & 0xff;
@@ -123,6 +130,25 @@ void bfs_terminate_level
 #endif
 }
 
+void bfs_report_trace
+(storage_id_t id) {
+  list_t trace = list_new(SYSTEM_HEAP, sizeof(event_t), event_free_void);
+  list_t trace_id = storage_get_trace(S, id);
+  list_iter_t it;
+  state_t s = state_initial();
+  event_t e;
+  
+  for(it = list_get_iter(trace_id);
+      !list_iter_at_end(it);
+      it = list_iter_next(it)) {
+    e = state_event(s, * ((event_id_t *) list_iter_item(it)));
+    event_exec(e, s);
+    list_append(trace, &e);
+  }
+  state_free(s);
+  list_free(trace_id);
+  context_set_trace(trace);
+}
 
 #if defined(CFG_EVENT_UNDOABLE)
 #define bfs_back_to_s() {event_undo(e, s);}
@@ -135,7 +161,6 @@ void * bfs_worker
   const worker_id_t w = (worker_id_t) (unsigned long int) arg;
   const bool_t states_in_queue = bfs_queue_states_stored(Q);
   uint32_t levels = 0;
-  unsigned int l, en_size;
   state_t s, succ;
   storage_id_t id_succ;
   event_list_t en;
@@ -167,15 +192,12 @@ void * bfs_worker
         }
 
         /**
-         *  compute enabled events and apply reductions
+         *  compute enabled events and apply POR
          */
         if(POR) {
           en = state_events_reduced_mem(s, &reduced, heap);
         } else {
           en = state_events_mem(s, heap);
-        }
-        if(EDGE_LEAN && item.e_set) {
-          edge_lean_reduction(en, item.e);
         }
 
 
@@ -184,10 +206,22 @@ void * bfs_worker
          */
 #if defined(CFG_ACTION_CHECK_SAFETY)
         if(state_check_property(s, en)) {
-          context_faulty_state(s);
+          if(WITH_TRACE) {
+            bfs_report_trace(item.id);
+          } else {
+            context_faulty_state(s);
+          }
         }
 #endif
-    
+        
+        /**
+         *  apply edge lean reduction after checking state property
+         *  (EDGE-LEAN may remove all enabled events)
+         */
+        if(EDGE_LEAN && item.e_set) {
+          edge_lean_reduction(en, item.e);
+        }
+
         /**
          *  expand the current state and put its unprocessed
          *  successors in the queue
@@ -226,12 +260,15 @@ void * bfs_worker
             succ_item.e_set = TRUE;
             succ_item.e = e;
             bfs_queue_enqueue(Q, succ_item, w, y);
+            if(WITH_TRACE) {
+              storage_set_pred(S, succ_item.id, item.id, event_id(e));
+            }
           } else {
 
             /**
              *  if the successor state is not new and if the current
              *  state is reduced then the successor must be in the
-             *  queue (i.e., cyan)
+             *  queue (i.e., cyan for some worker)
              */
             if(POR && PROVISO && reduced &&
                !storage_get_any_cyan(S, id_succ)) {
@@ -285,7 +322,6 @@ void bfs
   bool_t is_new;
   storage_id_t id;
   worker_id_t w;
-  void * dummy;
   hash_key_t h;
   bool_t enqueue = TRUE;
   bfs_queue_item_t item;
@@ -311,6 +347,9 @@ void bfs
     item.id = id;
     item.s = s;
     item.e_set = FALSE;
+    if(WITH_TRACE) {
+      storage_set_pred(S, id, id, 0);
+    }
     bfs_queue_enqueue(Q, item, w, w);
     bfs_queue_switch_level(Q, w);
   }

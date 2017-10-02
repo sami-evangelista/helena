@@ -7,7 +7,6 @@ void * observer_start
   float time = 0;
   struct timeval now;
   float mem;
-  int i;
   uint64_t visited;
   uint64_t stored;
   char name[100];
@@ -35,19 +34,16 @@ void * observer_start
      */
 #if defined(CFG_MEMORY_LIMITED) && defined(CFG_MAX_MEMORY)
     if(mem > CFG_MAX_MEMORY) {
-      context_stop_search();
       context_set_termination_state(MEMORY_EXHAUSTED);
     }
 #endif
 #if defined(CFG_TIME_LIMITED) && defined(CFG_MAX_TIME)
     if(time > (float) CFG_MAX_TIME) {
-      context_stop_search();
       context_set_termination_state(TIME_ELAPSED);
     }
 #endif
 #if defined(CFG_STATE_LIMITED) && defined(CFG_MAX_STATE)
     if(visited > CFG_MAX_STATE) {
-      context_stop_search();
       context_set_termination_state(STATE_LIMIT_REACHED);
     }
 #endif
