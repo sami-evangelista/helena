@@ -1,3 +1,4 @@
+#include "config.h"
 #include "simulator.h"
 #include "list.h"
 #include "state.h"
@@ -5,17 +6,17 @@
 
 #if defined(CFG_ACTION_SIMULATE)
 
-bool_t check_error () {
-  if (!glob_error_msg) {
+bool_t check_error() {
+  if(!context_error_raised()) {
     return TRUE;
   } else {
-    printf ("model error: %s\n", glob_error_msg);
-    flush_error ();
+    printf("model error: %s\n", context_error());
+    context_flush_error();
     return FALSE;
   }
 }
 
-void simulator () {
+void simulator() {
   unsigned int i;
   bool_t loop = TRUE;
   char * cmd = NULL;

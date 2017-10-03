@@ -53,4 +53,11 @@ void comm_shmem_get
  int pe,
  worker_id_t w);
 
+
+/**
+ * @brief comm_shmem_me
+ */
+int comm_shmem_me
+();
+
 #endif

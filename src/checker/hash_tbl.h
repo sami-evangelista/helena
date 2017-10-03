@@ -18,6 +18,7 @@
 #include "state.h"
 #include "event.h"
 #include "heap.h"
+#include "config.h"
 
 #if !defined(CFG_HASH_COMPACTION)
 #define STORAGE_STATE_RECOVERABLE

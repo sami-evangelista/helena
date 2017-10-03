@@ -1,4 +1,5 @@
 #include "bfs_queue.h"
+#include "config.h"
 
 #if defined(CFG_ALGO_BFS) || defined(CFG_ALGO_DBFS) || \
   defined(CFG_ALGO_FRONTIER)
@@ -226,4 +227,5 @@ void bfs_queue_switch_level
   }
 }
 
-#endif  /*  defined(CFG_ALGO_BFS) || defined(CFG_ALGO_FRONTIER)  */
+#endif  /*  defined(CFG_ALGO_BFS) || defined(CFG_ALGO_DBFS) ||
+            defined(CFG_ALGO_FRONTIER) */

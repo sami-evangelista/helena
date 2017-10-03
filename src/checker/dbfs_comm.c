@@ -1,7 +1,10 @@
+#include "config.h"
 #include "dbfs_comm.h"
 #include "comm_shmem.h"
 
 #if defined(CFG_ALGO_DBFS)
+
+#include "shmem.h"
 
 #define COMM_WAIT_TIME_MS       2
 #define WORKER_WAIT_TIME_MS     1

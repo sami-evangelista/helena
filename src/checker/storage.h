@@ -10,6 +10,7 @@
 
 #include "hash_tbl.h"
 #include "delta_ddd.h"
+#include "config.h"
 
 #define ATTR_CHAR_LEN 1
 #define ATTR_CYAN     2

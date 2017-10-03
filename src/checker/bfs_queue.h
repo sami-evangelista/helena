@@ -29,6 +29,7 @@ typedef struct {
 
 /**
  * @typedef bfs_queue_t
+ * @brief the BFS queue type
  */
 typedef struct struct_bfs_queue_t * bfs_queue_t;
 
@@ -58,28 +59,28 @@ bool_t bfs_queue_is_empty
 
 
 /**
- * @brief bfs_queue_free
+ * @brief free the queue q
  */
 void bfs_queue_free
 (bfs_queue_t q);
 
 
 /**
- * @brief bfs_queue_size
+ * @brief get the size of queue q
  */
 uint64_t bfs_queue_size
 (bfs_queue_t q);
 
 
 /**
- * @brief bfs_queue_no_workers
+ * @brief return the number of threads having access to the queue
  */
 uint16_t bfs_queue_no_workers
 (bfs_queue_t q);
 
 
 /**
- * @brief bfs_queue_slot_is_empty
+ * @brief check if the next slot (from, to) is empty
  */
 bool_t bfs_queue_slot_is_empty
 (bfs_queue_t q,
@@ -88,7 +89,7 @@ bool_t bfs_queue_slot_is_empty
 
 
 /**
- * @brief bfs_queue_enqueue
+ * @brief enqueue item in the next slot (from, to)
  */
 void bfs_queue_enqueue
 (bfs_queue_t  q,
@@ -98,7 +99,7 @@ void bfs_queue_enqueue
 
 
 /**
- * @brief bfs_queue_dequeue
+ * @brief dequeue an item from the current slot (from, to)
  */
 bfs_queue_item_t bfs_queue_dequeue
 (bfs_queue_t q,
@@ -107,7 +108,7 @@ bfs_queue_item_t bfs_queue_dequeue
 
 
 /**
- * @brief bfs_queue_switch_level
+ * @brief swap all next slots (from, w) by next slots (from, w)
  */
 void bfs_queue_switch_level
 (bfs_queue_t q,

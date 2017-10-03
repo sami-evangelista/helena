@@ -12,6 +12,7 @@
 #include "heap.h"
 #include "prop.h"
 #include "state.h"
+#include "config.h"
 
 typedef list_t mevent_list_t;
 typedef list_t event_list_t;

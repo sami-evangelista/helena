@@ -30,10 +30,4 @@
 #include "signal.h"
 #include "stdint.h"
 
-#include "config.h"
-
-#if defined(CFG_DISTRIBUTED)
-#include "shmem.h"
-#endif
-
 #endif

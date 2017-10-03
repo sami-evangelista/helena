@@ -1,10 +1,12 @@
 #include "common.h"
 #include "context.h"
+#include "config.h"
+
+int crc32_tab[256];
 
 void init_common
 () {
   unsigned int i = 0;
-  glob_error_msg = NULL;
   crc32_tab[i++] = 0x00000000;
   crc32_tab[i++] = 0x77073096;
   crc32_tab[i++] = 0xee0e612c;
@@ -331,38 +333,6 @@ uint32_t random_int
   return *seed;
 }
 
-bool_t raise_error
-(char * msg) {
-#if defined(CFG_ACTION_SIMULATE)
-  if(!glob_error_msg) {
-    glob_error_msg = mem_alloc(SYSTEM_HEAP, sizeof(char) * strlen(msg) + 1);
-    strcpy(glob_error_msg, msg);
-  }
-  return TRUE;
-#else
-  return context_error(msg);
-#endif
-}
-
-void flush_error
-() {
-#if defined(CFG_ACTION_SIMULATE)
-  if(glob_error_msg) {
-    mem_free(SYSTEM_HEAP, glob_error_msg);
-    glob_error_msg = NULL;
-  }
-#endif
-}
-
-FILE * open_graph_file
-() {
-  FILE * result = NULL;
-#if defined(CFG_ACTION_BUILD_GRAPH)
-  result = fopen(CFG_GRAPH_FILE, "w");
-#endif
-  return result;
-}
-
 uint64_t large_sum
 (uint64_t * array,
  unsigned int nb) {
@@ -371,23 +341,6 @@ uint64_t large_sum
   for(i = 0; i < nb; i ++) {
     result += array[i];
   }
-  return result;
-}
-
-uint32_t worker_global_id
-(worker_id_t w) {
-  return proc_id() * CFG_NO_WORKERS + w;
-}
-
-uint32_t proc_id
-() {
-  uint32_t result;
-  
-#if defined(CFG_DISTRIBUTED)
-  result = shmem_my_pe();
-#else
-  result = 0;
-#endif
   return result;
 }
 
@@ -403,4 +356,9 @@ float mem_usage() {
   }
   fclose(f);
   return (float) size / 1024.0;
+}
+
+bool_t raise_error
+(char * msg) {
+  context_error(msg);
 }

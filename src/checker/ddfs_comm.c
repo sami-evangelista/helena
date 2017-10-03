@@ -1,7 +1,10 @@
+#include "config.h"
 #include "ddfs_comm.h"
 #include "comm_shmem.h"
 
 #if defined(CFG_ALGO_DDFS)
+
+#include "shmem.h"
 
 #define MAX_BOX_SIZE      100000
 #define PUBLISH_PERIOD_MS 10

@@ -1,5 +1,6 @@
 #include "bfs.h"
 #include "bfs_queue.h"
+#include "config.h"
 #include "context.h"
 #include "dbfs_comm.h"
 #include "prop.h"

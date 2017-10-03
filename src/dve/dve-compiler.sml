@@ -39,7 +39,8 @@ fun compile (inFile, path, checks, errStream) = let
 	end
 	val hFile = createFile "model.h" [ "includes.h",
 					   "common.h",
-					   "heap.h" ]
+					   "heap.h",
+					   "config.h" ]
 	val cFile = createFile "model.c" [ "model.h" ]
 	val sys = DveSimplifier.simplify sys
 	fun printComment comment = let

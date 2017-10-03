@@ -1,28 +1,26 @@
 #include "context.h"
 #include "observer.h"
+#include "config.h"
+#include "comm_shmem.h"
 
 typedef struct {
   unsigned int no_workers;
   char * error_msg;
-  unsigned int errors;
   termination_state_t term_state;
   FILE * graph_file;
   storage_t storage;
   bool_t keep_searching;
+  bool_t error_raised;
   struct timeval start_time;
   struct timeval end_time;
 
-  /*
-   *  for the trace context
-   */
+  /*  for the trace context  */
   bool_t faulty_state_found;
   state_t faulty_state;
   event_list_t trace;
   pthread_mutex_t ctx_mutex;
 
-  /*
-   *  statistics field
-   */
+  /*  statistics field  */
   uint64_t * states_accepting;
   uint64_t * states_visited;
   uint64_t * states_dead;
@@ -39,9 +37,7 @@ typedef struct {
   float comp_time;
   uint64_t distributed_barrier_time;
 
-  /*
-   *  threads
-   */
+  /*  threads  */
   pthread_t observer;
   pthread_t * workers;
 } struct_context_t;
@@ -55,7 +51,12 @@ void context_init
   unsigned int i;
 
   CTX = mem_alloc(SYSTEM_HEAP, sizeof(struct_context_t));
+  
+  CTX->error_msg = NULL;
+  CTX->error_raised = FALSE;
 
+#if !defined(CFG_ACTION_SIMULATE)
+  
   /*
    *  initialisation of statistic related fields
    */
@@ -98,8 +99,6 @@ void context_init
   CTX->storage = storage_new();
   CTX->faulty_state_found = FALSE;
   CTX->trace = NULL;
-  CTX->error_msg = NULL;
-  CTX->errors = 0;
   CTX->keep_searching = TRUE;
   gettimeofday(&CTX->start_time, NULL);
   CTX->graph_file = NULL;
@@ -116,13 +115,10 @@ void context_init
   /*
    *  launch the observer thread
    */
-#if defined(CFG_WITH_OBSERVER)
   pthread_create(&CTX->observer, NULL, &observer_start, (void *) CTX);
-#else
-  CTX->observer = NULL;
-#endif
   CTX->workers = mem_alloc(SYSTEM_HEAP, sizeof(pthread_t) * CTX->no_workers);
   pthread_mutex_init(&CTX->ctx_mutex, NULL);
+#endif
 }
 
 
@@ -156,12 +152,6 @@ void context_output_trace
 }
 
 
-
-/*****
- *
- *  Function: context_finalise
- *
- *****/
 void context_finalise
 () {
   FILE * out;
@@ -178,15 +168,14 @@ void context_finalise
   size_t n = 0;
   int i;
   
+#if !defined(CFG_ACTION_SIMULATE)
   if(NULL != CTX->graph_file) {
     fclose(CTX->graph_file);
   }
   CTX->keep_searching = FALSE;
   gettimeofday(&CTX->end_time, NULL);
   CTX->exec_time = duration(CTX->start_time, CTX->end_time);
-#if defined(CFG_WITH_OBSERVER)
   pthread_join(CTX->observer, &dummy);
-#endif
 #if defined(CFG_DISTRIBUTED)
   sprintf(file_name, "%s.%d", CFG_REPORT_FILE, proc_id());
   out = fopen(file_name, "w");
@@ -243,7 +232,7 @@ void context_finalise
     fprintf(out, "error"); break;
   }
   fprintf(out, "</searchResult>\n");
-  if(CTX->term_state == ERROR) {
+  if(CTX->term_state == ERROR && CTX->error_raised) {
     fprintf(out, "<errorMessage>%s</errorMessage>\n", CTX->error_msg);
   }
 #if defined(CFG_ALGO_DFS)
@@ -432,9 +421,6 @@ void context_finalise
   free(CTX->state_cmps);
   free(CTX->bytes_sent);
   storage_free(CTX->storage);
-  if(CTX->error_msg) {
-    free(CTX->error_msg);
-  }
   free(CTX->workers);
   if(CTX->trace) {
     list_free(CTX->trace);
@@ -442,7 +428,12 @@ void context_finalise
   if(CTX->faulty_state_found) {
     state_free(CTX->faulty_state);
   }
-  pthread_mutex_destroy(&CTX->ctx_mutex);
+  pthread_mutex_destroy(&CTX->ctx_mutex);  
+#endif /*  !defined(CFG_ACTION_SIMULATE) */
+  
+  if(CTX->error_raised) {
+    free(CTX->error_msg);
+  }
   free(CTX);
 }
 
@@ -450,21 +441,6 @@ void context_interruption_handler
 (int signal) {
   CTX->term_state = INTERRUPTION;
   CTX->keep_searching = FALSE;
-}
-
-bool_t context_error
-(char * msg) {
-  if(CTX->term_state != ERROR) {
-    CTX->term_state = ERROR;
-    if(!CTX->error_msg) {
-      CTX->error_msg = mem_alloc(SYSTEM_HEAP, sizeof(char) * strlen(msg) + 1);
-      strcpy(CTX->error_msg, msg);
-    }
-    CTX->errors = 1;
-    CTX->keep_searching = FALSE;
-  }
-  CTX->keep_searching = FALSE;
-  return TRUE;
 }
 
 void context_stop_search
@@ -533,8 +509,12 @@ struct timeval context_start_time
 
 FILE * context_open_graph_file
 () {
-  CTX->graph_file = open_graph_file();
-  return CTX->graph_file;
+  FILE * result = NULL;
+#if defined(CFG_ACTION_BUILD_GRAPH)
+  CTX->graph_file = fopen(CFG_GRAPH_FILE, "w");
+  result = CTX->graph_file;
+#endif
+  return result;
 }
 
 FILE * context_graph_file
@@ -622,4 +602,56 @@ void context_incr_evts_exec_dd
 (worker_id_t w,
  int no) {
   CTX->evts_exec_dd[w] += no;
+}
+
+void context_error
+(char * msg) {
+  if(CTX->error_raised) {
+    free(CTX->error_msg);
+  }
+  CTX->error_msg = mem_alloc(SYSTEM_HEAP, sizeof(char) * strlen(msg) + 1);
+  strcpy(CTX->error_msg, msg);
+#if !defined(CFG_ACTION_SIMULATE)
+  CTX->term_state = ERROR;
+  CTX->keep_searching = FALSE;
+#endif
+  CTX->error_raised = TRUE;
+}
+
+void context_flush_error
+() {
+#if defined(CFG_ACTION_SIMULATE)
+  if(CTX->error_raised) {
+    mem_free(SYSTEM_HEAP, CTX->error_msg);
+  }
+  CTX->error_msg = NULL;
+#endif
+  CTX->error_raised = FALSE;
+}
+
+bool_t context_error_raised
+() {
+  return CTX->error_raised;
+}
+
+char * context_error_msg
+() {
+  return CTX->error_msg;
+}
+
+uint32_t context_global_worker_id
+(worker_id_t w) {
+  return context_proc_id() * CFG_NO_WORKERS + w;
+}
+
+uint32_t context_proc_id
+() {
+  uint32_t result;
+  
+#if defined(CFG_DISTRIBUTED)
+  result = comm_shmem_me();
+#else
+  result = 0;
+#endif
+  return result;
 }

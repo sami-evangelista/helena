@@ -578,8 +578,8 @@ package body Pn.Compiler.Event is
       Plc(L, "}");
       --=======================================================================
       Prototype := To_Ustring
-	("priority_t mevent_priority (" & Nl &
-	   "   mevent_t e)");
+	("int mevent_priority" & Nl &
+	   "(mevent_t e)");
       Plh(L, Prototype & ";");
       Plc(L, Prototype & " {");
       if With_Priority(N) then

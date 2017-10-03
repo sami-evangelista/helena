@@ -1,3 +1,4 @@
+#include "config.h"
 #include "delta_ddd.h"
 #include "prop.h"
 #include "graph.h"

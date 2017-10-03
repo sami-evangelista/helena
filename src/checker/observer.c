@@ -1,3 +1,4 @@
+#include "config.h"
 #include "observer.h"
 #include "context.h"
 #include "storage.h"

@@ -19,8 +19,17 @@ void context_init
 void context_finalise
 ();
 
-bool_t context_error
+void context_error
 (char * msg);
+
+bool_t context_error_raised
+();
+
+char * context_error_msg
+();
+
+void context_flush_error
+();
 
 void context_interruption_handler
 (int signal);
@@ -106,5 +115,11 @@ void context_update_max_states_stored
 
 void context_update_max_mem_used
 (float mem);
+
+uint32_t context_global_worker_id
+(worker_id_t w);
+
+uint32_t context_proc_id
+();
 
 #endif

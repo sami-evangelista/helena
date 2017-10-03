@@ -1,6 +1,7 @@
 #include "dfs_stack.h"
 #include "model.h"
 #include "context.h"
+#include "reduction.h"
 
 #if defined(CFG_ALGO_DFS) || defined(CFG_ALGO_DDFS)
 
@@ -289,7 +290,8 @@ event_list_t dfs_stack_top_events
 event_list_t dfs_stack_compute_events
 (dfs_stack_t stack,
  state_t s,
- bool_t filter) {
+ bool_t filter,
+ event_t * e) {
   heap_t h = stack->heaps[stack->current];
   event_list_t result;
   dfs_stack_item_t item = stack->blocks[stack->current]->items[stack->top];
@@ -314,6 +316,9 @@ event_list_t dfs_stack_compute_events
     item.prov_ok = TRUE;
     item.fully_expanded = TRUE;
 #endif
+  }
+  if(e != NULL) {
+    edge_lean_reduction(result, *e);
   }
   item.en = result;
   stack->blocks[stack->current]->items[stack->top] = item;

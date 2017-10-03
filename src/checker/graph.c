@@ -1,5 +1,6 @@
 #include "graph.h"
 #include "model.h"
+#include "config.h"
 
 #if defined(CFG_MODEL_HAS_GRAPH_ROUTINES)
 #include "model_graph.h"

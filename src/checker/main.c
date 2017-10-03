@@ -1,3 +1,4 @@
+#include "config.h"
 #include "context.h"
 #include "dfs.h"
 #include "bfs.h"
@@ -21,6 +22,18 @@ int main
   init_model();
 
   /*
+   *  initialisation of the context
+   */
+  context_init(CFG_NO_WORKERS);
+  for(i = 1; i < argc; i += 2) {
+    if(0 == strcmp(argv[i], "comp-time")) {
+      float comp_time;
+      sscanf(argv[i + 1], "%f", &comp_time);
+      context_set_comp_time(comp_time);
+    }
+  }
+
+  /*
    *  simulation mode
    */
 #if defined(CFG_ACTION_SIMULATE)
@@ -33,18 +46,6 @@ int main
    *  normal mode
    */
   printf("Running...\n");
-
-  /*
-   *  initialisation of the context
-   */
-  context_init(CFG_NO_WORKERS);
-  for(i = 1; i < argc; i += 2) {
-    if(0 == strcmp(argv[i], "comp-time")) {
-      float comp_time;
-      sscanf(argv[i + 1], "%f", &comp_time);
-      context_set_comp_time(comp_time);
-    }
-  }
 
   /*
    *  catch SIGINT by changing the context state

@@ -1,7 +1,9 @@
 #include "comm_shmem.h"
+#include "config.h"
 #include "context.h"
 
 #if defined(CFG_DISTRIBUTED)
+#include "shmem.h"
 
 void comm_shmem_init
 () {
@@ -45,6 +47,11 @@ void comm_shmem_finalize
     shmem_free(heap);
   }
   shmem_finalize();
+}
+
+int comm_shmem_me
+() {
+  return shmem_my_pe();
 }
 
 #endif

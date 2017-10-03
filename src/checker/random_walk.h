@@ -10,6 +10,9 @@
 
 #include "includes.h"
 
+/**
+ * @brief Launch the random walk algorithm.
+ */
 void random_walk
 ();
 

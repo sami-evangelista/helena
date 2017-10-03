@@ -1,3 +1,4 @@
+#include "config.h"
 #include "hash_tbl.h"
 #include "context.h"
 #include "bit_stream.h"

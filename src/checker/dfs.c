@@ -1,25 +1,38 @@
+#include "config.h"
 #include "dfs.h"
 #include "model.h"
 #include "storage.h"
 #include "dfs_stack.h"
 #include "ddfs_comm.h"
 #include "prop.h"
+#include "reduction.h"
 #include "workers.h"
 
 #if defined(CFG_ALGO_DDFS) || defined(CFG_ALGO_DFS)
 
 #define DFS_HEAP_SIZE 100000
 
+const bool_t POR = 
 #if defined(CFG_POR)
-const bool_t POR = TRUE;
+  TRUE
 #else
-const bool_t POR = FALSE;
+  FALSE
 #endif
+  ;
+const bool_t PROVISO = 
 #if defined(CFG_PROVISO)
-const bool_t PROVISO = TRUE;
+  TRUE
 #else
-const bool_t PROVISO = FALSE;
+  FALSE
 #endif
+  ;
+const bool_t EDGE_LEAN = 
+#if defined(CFG_EDGE_LEAN)
+  TRUE
+#else
+  FALSE
+#endif
+  ;
 storage_t S;
 
 state_t dfs_recover_state
@@ -69,6 +82,7 @@ state_t dfs_main
   dfs_stack_t stack = blue ? blue_stack : red_stack;
   state_t copy;
   event_t e;
+  event_t * e_ref;
   bool_t is_new;
   event_list_t en;
   storage_id_t id_top;
@@ -80,7 +94,7 @@ state_t dfs_main
    */
   storage_ref(S, w, id);
   dfs_stack_push(stack, id, now);
-  en = dfs_stack_compute_events(stack, now, filter);
+  en = dfs_stack_compute_events(stack, now, filter, NULL);
   if(blue) {
     storage_set_cyan(S, id, w, TRUE);
   } else {
@@ -101,7 +115,7 @@ state_t dfs_main
     storage_gc(S, w);
     
     /*
-     *  reinitialise the heap if we do not have enough space
+     *  reinitialise the heap if its current size exceeds DFS_HEAP_SIZE
      */
     if(heap_size(heap) >= DFS_HEAP_SIZE) {
       copy = state_copy(now);
@@ -121,7 +135,7 @@ state_t dfs_main
        */
       if(POR && PROVISO) {
         if(!dfs_stack_proviso(stack)) {
-          dfs_stack_compute_events(stack, now, FALSE);
+          dfs_stack_compute_events(stack, now, FALSE, NULL);
           goto loop_start;
         }
       }
@@ -243,7 +257,12 @@ state_t dfs_main
          *  color on it
          */
         dfs_stack_push(stack, id, now);
-    	en = dfs_stack_compute_events(stack, now, filter);
+        if(EDGE_LEAN) {
+          e_ref = &e;
+        } else {
+          e_ref = NULL;
+        }
+        en = dfs_stack_compute_events(stack, now, filter, e_ref);
         if(blue) {
           storage_set_cyan(S, id, w, TRUE);
         } else {
@@ -266,7 +285,7 @@ state_t dfs_main
 void * dfs_worker
 (void * arg) {
   worker_id_t w = (worker_id_t) (unsigned long int) arg;
-  uint32_t wid = worker_global_id(w);
+  uint32_t wid = context_global_worker_id(w);
   hash_key_t h;
   bool_t dummy;
   storage_id_t id;

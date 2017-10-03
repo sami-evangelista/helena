@@ -170,11 +170,12 @@ package body Pn.Compiler is
                              Path     => To_String(Path),
                              Lib      => Lib,
                              Included => (1 => To_Ustring("includes"),
-					  2 => To_Ustring("interfaces"),
-					  3 => To_Ustring("heap"),
-					  4 => Util_Lib,
-					  5 => To_Ustring("common"),
-					  6 => To_Ustring("bit_stream")));
+					  2 => To_Ustring("config"),
+					  3 => To_Ustring("interfaces"),
+					  4 => To_Ustring("heap"),
+					  5 => Util_Lib,
+					  6 => To_Ustring("common"),
+					  7 => To_Ustring("bit_stream")));
    end;
 
    procedure Init_Library

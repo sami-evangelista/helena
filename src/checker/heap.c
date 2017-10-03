@@ -1,9 +1,9 @@
 #include "heap.h"
 #include "list.h"
 
-#define LOCAL_HEAP_BLOCK_SIZE 10000
+#define LOCAL_HEAP_BLOCK_SIZE 100000
 
-#define HEAP_TYPES 2
+#define HEAP_TYPES 1
 
 #define MALLOC(ptr, ptr_type, size) {           \
     assert(ptr = (ptr_type) malloc(size));      \
@@ -12,59 +12,56 @@
 typedef struct {
   void * data;
   mem_size_t next;
-} struct_local_heap_block_t;
-
-typedef struct_local_heap_block_t * local_heap_block_t;
+  mem_size_t first;
+} local_heap_block_t;
 
 typedef struct {
   unsigned char type;
   mem_size_t block_size;  
-  list_t blocks;
-  local_heap_block_t current;
-  list_iter_t it;
+  local_heap_block_t * blocks;
+  uint32_t current;
+  uint32_t no_blocks;
   mem_size_t pos;
 } struct_local_heap_t;
 
 typedef struct_local_heap_t * local_heap_t;
 
-void local_heap_block_free
-(void * data) {
-  local_heap_block_t block = (local_heap_block_t) data;
-
-  free(block->data);
-}
-
 heap_t local_heap_new
 () {
   local_heap_t result;
-  struct_local_heap_block_t block;
+  local_heap_block_t block;
   
   MALLOC(result, local_heap_t, sizeof(struct_local_heap_t));
+  MALLOC(result->blocks, local_heap_block_t *, sizeof(local_heap_block_t));
   result->type = LOCAL_HEAP;
   result->pos = 0;
   result->block_size = LOCAL_HEAP_BLOCK_SIZE;
-  result->blocks = list_new(SYSTEM_HEAP, sizeof(struct_local_heap_block_t),
-                            local_heap_block_free);
-  MALLOC(block.data, void *, result->block_size);
-  block.next = 0;
-  list_append(result->blocks, &block);
-  result->it = list_get_iter(result->blocks);
-  result->current = list_iter_item(result->it);
+  result->current = 0;
+  result->no_blocks = 1;
+  
+  MALLOC(result->blocks[0].data, void *, result->block_size);
+  result->blocks[0].first = 0;
+  result->blocks[0].next = 0;
   return result;
 }
 
 local_heap_t local_heap_free
 (local_heap_t heap) {
-  list_free(heap->blocks);
+  int i;
+
+  for(i = 0; i < heap->no_blocks; i ++) {
+    free(heap->blocks[i].data);
+  }
+  free(heap->blocks);
   free(heap);
 }
 
 void local_heap_reset
 (local_heap_t heap) {
-  heap->it = list_get_iter(heap->blocks);
-  heap->current = list_iter_item(heap->it);
-  heap->current->next = 0;
+  heap->current = 0;
   heap->pos = 0;
+  heap->blocks[0].first = 0;
+  heap->blocks[0].next = 0;
 }
 
 mem_size_t local_heap_size
@@ -75,31 +72,34 @@ mem_size_t local_heap_size
 void * local_heap_mem_alloc
 (local_heap_t heap,
  mem_size_t size) {
-  list_iter_t it;
+  int i;
   void * result;
-  struct_local_heap_block_t block;
+  local_heap_block_t * block = &(heap->blocks[heap->current]);
+  local_heap_block_t * new_blocks;
 
   assert(size <= heap->block_size);
-  if(heap->current->next + size <= heap->block_size) {
-    result = heap->current->data + heap->current->next;
-    heap->current->next += size;
-  } else {
-    heap->it = list_iter_next(heap->it);
-    if(!list_iter_at_end(heap->it)) {
-      heap->current = list_iter_item(heap->it);
-      heap->current->next = 0;
-    } else {
-      block.next = 0;
-      MALLOC(block.data, void *, heap->block_size);
-      list_append(heap->blocks, &block);
-      for(it = list_get_iter(heap->blocks);
-          !list_iter_at_end(list_iter_next(it));
-          it = list_iter_next(it));
-      heap->it = it;
-      heap->current = list_iter_item(heap->it);
+  if(block->next + size > heap->block_size) {
+    heap->current ++;
+    if(heap->current == heap->no_blocks) {
+      MALLOC(new_blocks, local_heap_block_t *,
+             (heap->no_blocks * 2) * sizeof(local_heap_block_t));
+      for(i = 0; i < heap->no_blocks; i ++) {
+        new_blocks[i] = heap->blocks[i];
+      }
+      heap->no_blocks *= 2;
+      for(; i < heap->no_blocks; i ++) {
+        MALLOC(new_blocks[i].data, void *, heap->block_size);
+      }
+      free(heap->blocks);
+      heap->blocks = new_blocks;
     }
-    result = local_heap_mem_alloc(heap, size);
+    block = &(heap->blocks[heap->current]);
+    block->first = (heap->blocks[heap->current - 1].first +
+                    heap->blocks[heap->current - 1].next);
+    block->next = 0;
   }
+  result = block->data + block->next;
+  block->next += size;
   heap->pos += size;
   return result;
 }
@@ -112,26 +112,16 @@ mem_size_t local_heap_get_position
 void local_heap_set_position
 (local_heap_t heap,
  mem_size_t pos) {
+  int i;
   list_iter_t it;
   bool_t found = FALSE;
   local_heap_block_t block;
   mem_size_t current = 0;
 
-  for(it = list_get_iter(heap->blocks);
-      !list_iter_at_end(it);
-      it = list_iter_next(it)) {
-    block = list_iter_item(it);
-    if(pos - current > block->next) {
-      current += block->next;
-    } else {
-      found = TRUE;
-      heap->it = it;
-      heap->current = block;
-      heap->current->next = pos - current;
-      break;
-    }
-  }
-  assert(found);
+  for(i = heap->current; i >= 0 && heap->blocks[i].first > pos; i --);
+  assert(i >= 0);
+  heap->current = i;
+  heap->blocks[i].next = pos - heap->blocks[i].first;
   heap->pos = pos;
 }
 

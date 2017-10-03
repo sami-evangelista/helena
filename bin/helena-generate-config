@@ -110,6 +110,7 @@ def printHelp():
     print "Reduction techniques"
     print "  -H   --hash-compaction"
     print "  -P   --partial-order[={0|1}]"
+    print "  -E   --edge-lean[={0|1}]"
     print "  -S   --state-caching[={0|1}]"
     print ""
     print "Search limits"
@@ -136,14 +137,12 @@ class Config:
         self.partialOrder = False
         self.stateCaching = False
         self.hashCompaction = False
-        self.edgeLean = True
+        self.edgeLean = False
         self.workers = 1
         self.capacity = 1
-        self.candidateSetSize = 100000
         self.memoryLimit = 0
         self.timeLimit = 0
         self.stateLimit = 0
-        self.hashSize = 22
         self.algo = DFS
         self.traceType = FULL
         self.directory = None
@@ -158,10 +157,12 @@ class Config:
         self.propositions = []
         self.parameters = []
         self.ddfsCommStrat = []
+        self.hashSize = 22
         self.bfsQueueBlockSize = 10000
         self.dfsStackBlockSize = 10000
         self.rwalkMaxDepth = 1000
         self.shmemHeapSize = 1000000
+        self.candidateSetSize = 100000
         self.stateCachingGcThreshold = 50
         self.stateCachingGcRatio = 0.01
 
@@ -218,7 +219,6 @@ class Config:
         W("#define CFG_REPORT_FILE \"report.xml\"\n")
         W("#define CFG_RG_REPORT_FILE \"rg-report.xml\"\n")
         W("#define CFG_GRAPH_FILE \"graph.dat\"\n")
-        W("#define CFG_WITH_OBSERVER\n")
         W("#define CFG_DATE \"" + \
           now.strftime("%B, %d, %Y at %H:%M:%S") + "\"\n")
         W("#define CFG_FILE_PATH \"" + os.path.realpath(self.inFile) + "\"\n")
@@ -383,6 +383,8 @@ class Config:
             #  boolean options
             elif opt in [ "-P", "--partial-order" ]:
                 self.partialOrder = (val is None) or val == "1"
+            elif opt in [ "-E", "--edge-lean" ]:
+                self.edgeLean = (val is None) or val == "1"
             elif opt in [ "-r", "--run-time-checks" ]:
                 self.runTimeChecks = (val is None) or val == "1"
             elif opt in [ "-S", "--state-caching" ]:

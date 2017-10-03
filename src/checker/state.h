@@ -11,6 +11,7 @@
 #include "model.h"
 #include "heap.h"
 #include "prop.h"
+#include "config.h"
 
 typedef list_t state_list_t;
 
