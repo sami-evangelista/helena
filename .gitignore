@@ -8,5 +8,7 @@ bin/helena-ltl2ba
 examples/dve
 releases
 src/obj
+src/checker/latex
+src/checker/html
 src/ltl2ba/*.o
 tests
