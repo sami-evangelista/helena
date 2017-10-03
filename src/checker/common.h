@@ -12,14 +12,14 @@
 
 
 /**
- * @brief initialise some data
+ * @brief Initialise some data.
  */
 void init_common
 ();
 
 
 /**
- * @brief free data initialised by init_common
+ * @brief Free data initialised by init_common.
  */
 void free_common
 ();
@@ -99,50 +99,56 @@ typedef struct {
 
 
 /**
- * @brief return a seed to generate random numbers
+ * @brief atomic compare-and-swap
+ */
+#define CAS(val, old, new) (__sync_bool_compare_and_swap((val), (old), (new)))
+
+
+/**
+ * @brief Return a seed to generate random numbers.
  */
 rseed_t random_seed
 (worker_id_t w);
 
 
 /**
- * @brief return a random integer and update the seed
+ * @brief Return a random integer and update the seed.
  */
 uint32_t random_int
 (rseed_t * seed);
 
 
 /**
- * @brief initialise an helena timer
+ * @brief Initialise an helena timer.
  */
 void lna_timer_init
 (lna_timer_t * t);
 
 
 /**
- * @brief start the helena timer
+ * @brief Start the helena timer.
  */
 void lna_timer_start
 (lna_timer_t * t);
 
 
 /**
- * @brief stop the helena timer
+ * @brief Stop the helena timer.
  */
 void lna_timer_stop
 (lna_timer_t * t);
 
 
 /**
- * @brief get the timer value, i.e., # of micro-seconds between the
- *        start and stop of the timer
+ * @brief Get the timer value, i.e., # of micro-seconds between the
+ *        start and stop of the timer.
  */
 uint64_t lna_timer_value
 (lna_timer_t t);
 
 
 /**
- * @brief get the duration in micro-seconds between two time values
+ * @brief Get the duration in micro-seconds between two time values.
  */
 uint64_t duration
 (struct timeval t0,
@@ -150,7 +156,7 @@ uint64_t duration
 
 
 /**
- * @brief return a hash value for vector v of length len
+ * @brief Return a hash value for vector v of length len.
  */
 hash_key_t bit_vector_hash
 (bit_vector_t v,
@@ -158,15 +164,15 @@ hash_key_t bit_vector_hash
 
 
 /**
- * @brief raise an error : stop the search and set the error message
- *        of the global context
+ * @brief Raise an error : stop the search and set the error message
+ *        of the global context.
  */
 bool_t raise_error
 (char * msg);
 
 
 /**
- * @brief return the sum of the nb first elements of array
+ * @brief Return the sum of the nb first elements of array.
  */
 uint64_t large_sum
 (uint64_t * array,
@@ -174,15 +180,10 @@ uint64_t large_sum
 
 
 /**
- * @brief return memory usage of the current process as a % of
- *        available memory
+ * @brief Return memory usage of the current process as a % of
+ *        available memory.
  */
 float mem_usage
 ();
-
-/**
- * @brief atomic compare-and-swap
- */
-#define CAS(val, old, new) (__sync_bool_compare_and_swap((val), (old), (new)))
 
 #endif

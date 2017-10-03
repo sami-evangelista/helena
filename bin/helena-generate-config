@@ -215,7 +215,6 @@ class Config:
         W("#ifndef LIB_CONFIG\n")
         W("#define LIB_CONFIG\n")
         W("\n")
-        W("#define CFG_MODEL_CONFIG\n")
         W("#define CFG_REPORT_FILE \"report.xml\"\n")
         W("#define CFG_RG_REPORT_FILE \"rg-report.xml\"\n")
         W("#define CFG_GRAPH_FILE \"graph.dat\"\n")

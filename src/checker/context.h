@@ -1,6 +1,6 @@
 /**
  * @file context.h
- * @brief Implementation of the context produced after a search.
+ * @brief Implementation of the context of a search.
  * @date 12 sep 2017
  * @author Sami Evangelista
  */
@@ -13,21 +13,48 @@
 #include "event.h"
 #include "storage.h"
 
+
+/**
+ * @brief Context initialisation.
+ */
 void context_init
 (unsigned int no_workers);
 
+
+/**
+ * @brief Context finalisation.
+ */
 void context_finalise
 ();
 
+
+/**
+ * @brief Raise an error: stop the search and set the termination
+ *        state.  This does not apply for simulation mode.  No effect
+ *        if an error has already been raised.
+ */
 void context_error
 (char * msg);
 
+
+/**
+ * @brief Check if an error has been raised.
+ */
 bool_t context_error_raised
 ();
 
+
+/**
+ * @brief Return the error message of the error raised, NULL if no
+ *        error raised.
+ */
 char * context_error_msg
 ();
 
+
+/**
+ * @brief Cancel the last error raised.
+ */
 void context_flush_error
 ();
 
