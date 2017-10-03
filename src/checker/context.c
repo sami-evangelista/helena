@@ -177,7 +177,7 @@ void context_finalise
   CTX->exec_time = duration(CTX->start_time, CTX->end_time);
   pthread_join(CTX->observer, &dummy);
 #if defined(CFG_DISTRIBUTED)
-  sprintf(file_name, "%s.%d", CFG_REPORT_FILE, proc_id());
+  sprintf(file_name, "%s.%d", CFG_REPORT_FILE, context_proc_id());
   out = fopen(file_name, "w");
 #else
   out = fopen(CFG_REPORT_FILE, "w");
@@ -403,7 +403,7 @@ void context_finalise
 #if defined(CFG_DISTRIBUTED)
   out = fopen(file_name, "r");
   while(getline(&buf, &n, out) != -1) {
-    printf("[xml-%d] %s", proc_id(), buf);
+    printf("[xml-%d] %s", context_proc_id(), buf);
   }
   free(buf);
   fclose(out);
