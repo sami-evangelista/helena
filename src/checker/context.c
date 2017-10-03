@@ -13,6 +13,9 @@ typedef struct {
   bool_t error_raised;
   struct timeval start_time;
   struct timeval end_time;
+  unsigned long cpu_total;
+  unsigned long utime;
+  unsigned long stime;
 
   /*  for the trace context  */
   bool_t faulty_state_found;
@@ -111,6 +114,7 @@ void context_init
 #else
   CTX->term_state = SEARCH_TERMINATED;
 #endif
+  cpu_usage(&CTX->cpu_total, &CTX->utime, &CTX->stime);
 
   /*
    *  launch the observer thread
@@ -654,4 +658,9 @@ uint32_t context_proc_id
   result = 0;
 #endif
   return result;
+}
+
+float context_cpu_usage
+() {
+  return cpu_usage(&CTX->cpu_total, &CTX->utime, &CTX->stime);
 }

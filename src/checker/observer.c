@@ -10,9 +10,15 @@ void * observer_start
   float mem;
   uint64_t visited;
   uint64_t stored;
-  char name[100];
-
+  char name[100], pref[100];
+  
+  setlocale(LC_NUMERIC, "");
+#if defined(CFG_DISTRIBUTED)
   gethostname(name, 1024);
+  sprintf(pref, "[%s:%d] ", name, getpid());
+#else
+  pref[0] = 0;
+#endif
   while(context_keep_searching()) {
     sleep(1);
     gettimeofday(&now, NULL);
@@ -22,13 +28,12 @@ void * observer_start
     context_update_max_mem_used(mem);
     visited = context_visited();
     time = ((float) duration(context_start_time(), now)) / 1000000.0;
-#if defined(CFG_DISTRIBUTED)
-    printf("[%s:%d] ", name, getpid());    
-#endif
-    printf("St.:%11llu stored,", stored);
-    printf("%10llu processed. ", visited);
-    printf("Mem.:%8.1f MB. ", mem);
-    printf("Time:%8.2f s.\n", time);
+    printf("%sStates stored   :%'11llu\n", pref, stored);
+    printf("%sStates processed:%'11llu\n", pref, visited);
+    printf("%sMemory usage    :   %8.1f MB.\n", pref, mem);
+    printf("%sTime elapsed    :   %8.2f s.\n", pref, time);
+    printf("%sCPU usage       :   %8.2f %c\n\n",
+           pref, context_cpu_usage(), '%');
         
     /*
      *  check for limits

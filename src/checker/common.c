@@ -347,15 +347,64 @@ uint64_t large_sum
 float mem_usage() {
   float result = 0.0;
   FILE * f;
-  char buf[30];
+  char name[30];
   unsigned int size = 0;
-  snprintf(buf, 30, "/proc/%u/statm", (unsigned) getpid());
-  f = fopen(buf, "r");
+  
+  snprintf(name, 30, "/proc/%u/statm", (unsigned) getpid());
+  f = fopen(name, "r");
   if(f) {
     fscanf(f, "%u", &size);
   }
   fclose(f);
   return (float) size / 1024.0;
+}
+
+unsigned long cpu_total
+() {
+  FILE * file;
+  char * line, * word;
+  long unsigned int len, val, result = 0;
+  
+  file = fopen("/proc/stat", "r");
+  if(file) {
+    line = NULL;
+    getline(&line, &len, file);
+    word = strtok(line, " ");
+    while (word != NULL) {
+      sscanf(word, "%u", &val);
+      result += val;
+      word = strtok(NULL, " ");
+    }
+    free(word);
+    free(line);
+  }
+  fclose(file);
+  return result;
+}
+
+float cpu_usage
+(unsigned long * total,
+ unsigned long * utime,
+ unsigned long * stime) {
+  const unsigned long total_before = *total;
+  const unsigned long utime_before = *utime;
+  const unsigned long stime_before = *stime;
+  float result = 0.0;
+  FILE * file;
+  char name[30];
+  
+  snprintf(name, 30, "/proc/%u/stat", (unsigned) getpid());
+  *total = cpu_total();
+  file = fopen(name, "r");
+  if(file) {
+    fscanf(file, "%*d %*s %*c %*d %*d %*d %*d %*d %*u %*u %*u %*u %*u");
+    fscanf(file, "%lu %lu", utime, stime);
+  }
+  fclose(file);
+  result = 100.0 *
+    ((float) ((*utime) + (*stime) - utime_before - stime_before)) /
+    ((float) ((*total) - total_before));
+  return result;
 }
 
 bool_t raise_error

@@ -149,4 +149,7 @@ uint32_t context_global_worker_id
 uint32_t context_proc_id
 ();
 
+float context_cpu_usage
+();
+
 #endif

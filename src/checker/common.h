@@ -186,4 +186,13 @@ uint64_t large_sum
 float mem_usage
 ();
 
+
+/**
+ * @brief Return CPU usage of the current process as a %.
+ */
+float cpu_usage
+(unsigned long * total,
+ unsigned long * utime,
+ unsigned long * stime);
+
 #endif
