@@ -191,9 +191,9 @@ if __name__ == "__main__":
                         m = Model(os.path.abspath(inDir + os.sep + f + ext),
                                   "LNA", outDir)
                         m.launchTest()
-                    elif ext == ".dve":
-                        m = Model(os.path.abspath(inDir + os.sep + f + ext),
-                                  "DVE", outDir)
-                        m.launchTest()
+                elif ext == ".dve":
+                    m = Model(os.path.abspath(inDir + os.sep + f + ext),
+                              "DVE", outDir)
+                    m.launchTest()
             break
 exit(0)
