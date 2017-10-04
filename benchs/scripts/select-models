@@ -8,14 +8,14 @@ then
     exit 1
 fi
 
-(cat stats-lna.txt | while read m s params
+(cat stats-lna.txt | while read m s t l params
     do
 	if [ $s -ge $1 -a $s -le $2 ]
 	then
 	    echo $m" lna "$s" "$params
 	fi
     done
-    cat stats-dve.txt | while read m s X
+    cat stats-dve.txt | while read m s t l
     do
         if [ $s -ge $1 -a $s -le $2 ]
         then

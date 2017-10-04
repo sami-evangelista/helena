@@ -12,3 +12,4 @@ src/checker/latex
 src/checker/html
 src/ltl2ba/*.o
 tests
+*~

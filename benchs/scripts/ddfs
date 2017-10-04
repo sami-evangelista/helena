@@ -1,0 +1,61 @@
+#!/bin/bash
+
+MAXW=8
+
+export PATH=$HOME/helena/bin:$PATH
+
+if [ -z "$OAR_NODEFILE" ]
+then
+    hosts=""
+    for N in $(seq 1 $MAXW)
+    do
+	hosts=$hosts" localhost"
+    done
+else
+    hosts=$(cat $OAR_NODEFILE | sort -u)
+fi
+
+minStates=100000000
+maxStates=1000000000
+outDir=out/ddfs
+mkdir -p $outDir &> /dev/null
+scripts/select-models $minStates $maxStates \
+    | while read m lang st opt
+      do
+	  echo $m - $st states
+	  hashSize=21
+	  size=1048576
+	  while [ $size -lt $st -a $hashSize != 30 ]
+	  do
+	      hashSize=$((hashSize + 1))
+	      size=$((size * 2))
+	  done
+	  f=$(scripts/get-file $m $lang)
+	  param=$(scripts/format-parameters $opt)
+	  for N in $(seq 1 $MAXW)
+	  do
+	      xml=$out/$m
+	      if [ "$opt" != "" ]
+	      then
+		  xml=$xml-$(echo $opt | tr " " "-")
+	      fi
+	      xml=$xml-$N.xml
+	      if [ ! -e $xml ]
+	      then
+		  cmd="helena --hash-size=$hashSize "$param
+		  if [ $N -gt 1 ]
+		  then
+		      echo $hosts | tr ' ' '\n' | head -$N \
+			  | while read host
+			    do
+			      echo "$host --max-slots=1"
+			    done > machinefile
+		      cmd=$cmd" --algo=ddfs --machinefile=machinefile"
+		  else
+		      cmd=$cmd" --algo=dfs"
+		  fi
+		  cmd=$cmd" --report-file="$xml" $m"
+		  echo $cmd
+	      fi
+	  done
+      done
