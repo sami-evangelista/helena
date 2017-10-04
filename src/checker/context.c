@@ -39,6 +39,7 @@ typedef struct {
   float max_mem_used;
   float comp_time;
   uint64_t distributed_barrier_time;
+  float avg_cpu_usage;
 
   /*  threads  */
   pthread_t observer;
@@ -97,6 +98,7 @@ void context_init
   CTX->states_max_stored = 0;
   CTX->comp_time = 0.0;
   CTX->distributed_barrier_time = 0;
+  CTX->avg_cpu_usage = 0.0;
 
   CTX->no_workers = no_workers;
   CTX->storage = storage_new();
@@ -115,11 +117,11 @@ void context_init
   CTX->term_state = SEARCH_TERMINATED;
 #endif
   cpu_usage(&CTX->cpu_total, &CTX->utime, &CTX->stime);
-
+  
   /*
    *  launch the observer thread
    */
-  pthread_create(&CTX->observer, NULL, &observer_start, (void *) CTX);
+  pthread_create(&CTX->observer, NULL, &observer_worker, (void *) CTX);
   CTX->workers = mem_alloc(SYSTEM_HEAP, sizeof(pthread_t) * CTX->no_workers);
   pthread_mutex_init(&CTX->ctx_mutex, NULL);
 #endif
@@ -208,7 +210,7 @@ void context_finalise
   fprintf(out, "</infoReport>\n");
 
   /**
-   *  search context
+   *  search report
    ***/
   fprintf(out, "<searchReport>\n");
 #if defined(CFG_PROPERTY)
@@ -276,7 +278,7 @@ void context_finalise
   fprintf(out, "</searchReport>\n");
 
   /**
-   *  statistics context
+   *  statistics report
    ***/
   fprintf(out, "<statisticsReport>\n");
   
@@ -359,6 +361,9 @@ void context_finalise
   fprintf(out, "<otherStatistics>\n");
   fprintf(out, "<maxMemoryUsed>%.1f</maxMemoryUsed>\n",
           CTX->max_mem_used);
+  if(CTX->avg_cpu_usage > 0) {
+    fprintf(out, "<avgCPUUsage>%.2f</avgCPUUsage>\n", CTX->avg_cpu_usage);
+  }
   fprintf(out, "<eventsExecuted>%llu</eventsExecuted>\n",
           large_sum(CTX->evts_exec, CTX->no_workers));
 #if defined(CFG_ALGO_DELTA_DDD)
@@ -373,14 +378,14 @@ void context_finalise
 	  (unsigned int)(1.0 * sum_processed / (CTX->exec_time / 1000000.0)));
 #endif
 #if defined(CFG_DISTRIBUTED)
-  fprintf(out, "<bytesSend>%llu</bytesSend>\n",
+  fprintf(out, "<bytesSent>%llu</bytesSent>\n",
 	  large_sum(CTX->bytes_sent, CTX->no_workers + 1));
 #endif
   fprintf(out, "</otherStatistics>\n");
   fprintf(out, "</statisticsReport>\n");
 
   /**
-   *  trace context
+   *  trace report
    ***/
   if(CTX->term_state == FAILURE) {
     fprintf(out, "<traceReport>\n");
@@ -666,4 +671,9 @@ uint32_t context_proc_id
 float context_cpu_usage
 () {
   return cpu_usage(&CTX->cpu_total, &CTX->utime, &CTX->stime);
+}
+
+void context_set_avg_cpu_usage
+(float avg_cpu_usage) {
+  CTX->avg_cpu_usage = avg_cpu_usage;
 }

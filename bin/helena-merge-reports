@@ -54,7 +54,8 @@ def mergeReports(refDoc, docs):
                            ("statesMaxStored", True),
                            ("statesStored", True),
                            ("statesTerminal", False),
-                           ("bytesSend", True) ]:
+                           ("bytesSend", True),
+                           ("avgCPUUsage", False) ]:
         mergeNode(node, doSum, refDoc, docs)
 
 def exitWithError(errMsg):

@@ -152,4 +152,7 @@ uint32_t context_proc_id
 float context_cpu_usage
 ();
 
+void context_set_avg_cpu_usage
+(float avg_cpu_usage);
+
 #endif

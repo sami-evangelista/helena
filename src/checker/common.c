@@ -362,21 +362,14 @@ float mem_usage() {
 unsigned long cpu_total
 () {
   FILE * file;
-  char * line, * word;
-  long unsigned int len, val, result = 0;
+  long unsigned int n0, n1, n2, n3, n4, n5, n6, n7, n8, n9, result;
   
   file = fopen("/proc/stat", "r");
   if(file) {
-    line = NULL;
-    getline(&line, &len, file);
-    word = strtok(line, " ");
-    while (word != NULL) {
-      sscanf(word, "%u", &val);
-      result += val;
-      word = strtok(NULL, " ");
-    }
-    free(word);
-    free(line);
+    fscanf(file, "%*s %llu %llu %llu %llu %llu %llu %llu %llu %llu %llu",
+           &n0, &n1, &n2, &n3, &n4, &n5, &n6, &n7, &n8, &n9);
+    result = n0 + n1 + n2 + n3 + n4 + n5 + n6 + n7 + n8 + n9;
+    
   }
   fclose(file);
   return result;

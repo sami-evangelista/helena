@@ -57,27 +57,21 @@ void ddfs_comm_process_explored_state
    *  if a communication strategy has been set we check if the state
    *  must be sent
    */
-#if defined(CFG_DDFS_COMM_STRAT)
-  bool_t process = TRUE;
 #if defined(CFG_DDFS_COMM_STRAT_MINE)
-  if(storage_get_hash(S, id) % PES != ME) {
-    assert(0);
+  if(storage_get_hash(S, id) % PES = ME) {
     return;
   }
 #endif
 #if defined(CFG_DDFS_COMM_STRAT_DEGREE)
   if(list_size(en) < CFG_DDFS_COMM_STRAT_DEGREE) {
-    assert(0);
     return;
   }
 #endif
 #if defined(CFG_DDFS_COMM_STRAT_K)
   BUF.k[w] ++;
   if(BUF.k[w] < CFG_DDFS_COMM_STRAT_K) {
-    assert(0);
     return;
   }
-#endif
   BUF.k[w] = 0;
 #endif
 
@@ -167,7 +161,8 @@ void * ddfs_comm_worker
 	nanosleep(&WAIT_TIME, NULL);
       }
       comm_shmem_put(H + pref.char_len, BUF.buffer[w], BUF.char_len[w], ME,
-                     my_worker_id);
+              my_worker_id);
+      /*memcpy(H + pref.char_len, BUF.buffer[w], BUF.char_len[w]);*/
       pref.char_len += BUF.char_len[w];
       pref.size += BUF.size[w];
       BUF.char_len[w] = 0;
@@ -223,7 +218,7 @@ void * ddfs_comm_worker
           pos += sizeof(bool_t);
         }
           
-        /*  get length  */
+        /*  get state vector char length  */
         memcpy(&s_char_len, pos, sizeof(uint16_t));
         pos += sizeof(uint16_t);
             

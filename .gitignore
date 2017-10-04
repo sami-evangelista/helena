@@ -5,7 +5,7 @@ bin/helena-generate-dve
 bin/helena-generate-interface
 bin/helena-generate-property
 bin/helena-ltl2ba
-examples/dve
+examples/beem
 releases
 src/obj
 src/checker/latex

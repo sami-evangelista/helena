@@ -6,17 +6,21 @@ export PATH=$HOME/helena/bin:$PATH
 
 if [ -z "$OAR_NODEFILE" ]
 then
-    hosts=""
     for N in $(seq 1 $MAXW)
     do
-	hosts=$hosts" localhost"
-    done
+	echo localhost
+    done > machinefile
 else
-    hosts=$(cat $OAR_NODEFILE | sort -u)
+    cat $OAR_NODEFILE | sort -u \
+	| while read host
+    do
+	echo "$host max-slots=1"
+    done > machinefile
 fi
+cat machinefile
 
-minStates=100000000
-maxStates=1000000000
+minStates=10000000
+maxStates=100000000
 outDir=out/ddfs
 mkdir -p $outDir &> /dev/null
 scripts/select-models $minStates $maxStates \
@@ -32,9 +36,9 @@ scripts/select-models $minStates $maxStates \
 	  done
 	  f=$(scripts/get-file $m $lang)
 	  param=$(scripts/format-parameters $opt)
-	  for N in $(seq 1 $MAXW)
+	  for N in $(seq 2 $MAXW)
 	  do
-	      xml=$out/$m
+	      xml=$outDir/$m
 	      if [ "$opt" != "" ]
 	      then
 		  xml=$xml-$(echo $opt | tr " " "-")
@@ -45,17 +49,15 @@ scripts/select-models $minStates $maxStates \
 		  cmd="helena --hash-size=$hashSize "$param
 		  if [ $N -gt 1 ]
 		  then
-		      echo $hosts | tr ' ' '\n' | head -$N \
-			  | while read host
-			    do
-			      echo "$host --max-slots=1"
-			    done > machinefile
-		      cmd=$cmd" --algo=ddfs --machinefile=machinefile"
+		      head -$N machinefile > mf
+                      cat mf
+		      cmd=$cmd" --algo=ddfs --machine-file=mf"
 		  else
 		      cmd=$cmd" --algo=dfs"
 		  fi
-		  cmd=$cmd" --report-file="$xml" $m"
+		  cmd=$cmd" --progress=no-report --report-file="$xml" $f"
 		  echo $cmd
+                  eval $cmd &> /dev/null
 	      fi
 	  done
       done

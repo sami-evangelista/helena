@@ -138,7 +138,8 @@ statistics = {
     "eventsExecutedExpansion"   : "   for state expansion    ",
     "eventExecPerSecond"        : "Event execution rate      ",
     "maxMemoryUsed"             : "Max. memory used          ",
-    "bytesSend"                 : "Bytes send                " }
+    "bytesSent"                 : "Bytes sent                ",
+    "avgCPUUsage"               : "Average CPU Usage         " }
 statisticsUnits = {
     "searchTime"                : "s.",
     "duplicateDetectionTime"    : "s.",
@@ -148,7 +149,8 @@ statisticsUnits = {
     "distributedBarrierTime"    : "s. (for the communication thread)",
     "eventExecPerSecond"        : "exec. / s.",
     "maxMemoryUsed"             : "MB",
-    "stateVectorSize"           : "bytes" }
+    "stateVectorSize"           : "bytes",
+    "avgCPUUsage"               : "%" }
 statisticsCategories = {
     "timeStatistics"            : "Time statistics",
     "modelStatistics"           : "Model statistics",

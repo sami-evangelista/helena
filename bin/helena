@@ -24,7 +24,6 @@ propertyGenerator=helena-generate-property
 bitStreamGenerator=helena-generate-bit-stream
 reporter=helena-report
 reportsMerger=helena-merge-reports
-preProc=helena-pp
 
 xmlReportFile=report.xml
 xmlReportTmpFile=report.xml.tmp
@@ -440,13 +439,13 @@ launchChecker
 
 #####
 #  reporting
-[ $progressLevel -lt 4 ] && exit 0
 if [ -e $(getModelDir)/$xmlReportFile ]
 then
     if [ ! -z "$reportFile" ]
     then
 	cp $(getModelDir)/$xmlReportFile $reportFile
     fi
+    [ $progressLevel -lt 4 ] && exit 0
     checkExecutable $reporter
     $reporter $(getModelDir)/$xmlReportFile
 fi

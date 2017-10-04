@@ -13,11 +13,11 @@
 
 
 /**
- * @brief Launches the observer thread.
+ * @brief Code of the observer thread.
  * @param arg - ignored
  * @return always NULL
  */
-void * observer_start
+void * observer_worker
 (void * arg);
 
 #endif
