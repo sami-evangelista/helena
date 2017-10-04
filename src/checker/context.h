@@ -85,7 +85,7 @@ void context_set_termination_state
 void context_set_trace
 (event_list_t trace);
 
-uint64_t context_visited
+uint64_t context_processed
 ();
 
 struct timeval context_start_time
@@ -125,7 +125,7 @@ void context_incr_accepting
 (worker_id_t w,
  int no);
 
-void context_incr_visited
+void context_incr_processed
 (worker_id_t w,
  int no);
 

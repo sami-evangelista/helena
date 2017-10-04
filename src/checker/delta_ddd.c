@@ -704,7 +704,7 @@ state_t delta_ddd_expand_dfs
     }
     context_incr_arcs(w, en_size);
     context_incr_evts_exec(w, en_size);
-    context_incr_visited(w, 1);
+    context_incr_processed(w, 1);
 
     /*
      *  perform duplicate detection if the candidate set is full

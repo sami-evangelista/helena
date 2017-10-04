@@ -178,7 +178,7 @@ state_t dfs_main
       /*
        *  and finally pop the state
        */
-      context_incr_visited(w, 1);
+      context_incr_processed(w, 1);
       dfs_stack_pop(stack);
       if(dfs_stack_size(stack)) {
         now = dfs_recover_state(stack, now, w, heap);

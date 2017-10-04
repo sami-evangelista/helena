@@ -292,7 +292,7 @@ void * bfs_worker
           context_incr_dead(w, 1);
         }
 	context_incr_arcs(w, arcs);
-	context_incr_visited(w, 1);
+	context_incr_processed(w, 1);
         context_incr_evts_exec(w, arcs);
 
         /**

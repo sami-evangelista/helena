@@ -4,7 +4,7 @@
 #include "bfs.h"
 #include "delta_ddd.h"
 #include "simulator.h"
-#include "random_walk.h"
+#include "rwalk.h"
 #include "graph.h"
 #include "bit_stream.h"
 
@@ -63,7 +63,7 @@ int main
 #elif defined(CFG_ALGO_DELTA_DDD)
   delta_ddd();
 #elif defined(CFG_ALGO_RWALK)
-  random_walk();
+  rwalk();
 #endif
 
   context_finalise();

@@ -8,11 +8,10 @@ void * observer_start
   float time = 0;
   struct timeval now;
   float mem;
-  uint64_t visited;
+  uint64_t processed;
   uint64_t stored;
   char name[100], pref[100];
   
-  setlocale(LC_NUMERIC, "");
 #if defined(CFG_DISTRIBUTED)
   gethostname(name, 1024);
   sprintf(pref, "[%s:%d] ", name, getpid());
@@ -26,12 +25,12 @@ void * observer_start
     mem = mem_usage();
     context_update_max_states_stored(stored);
     context_update_max_mem_used(mem);
-    visited = context_visited();
+    processed = context_processed();
     time = ((float) duration(context_start_time(), now)) / 1000000.0;
-    printf("%sStates stored   :%'11llu\n", pref, stored);
-    printf("%sStates processed:%'11llu\n", pref, visited);
-    printf("%sMemory usage    :   %8.1f MB.\n", pref, mem);
     printf("%sTime elapsed    :   %8.2f s.\n", pref, time);
+    printf("%sStates stored   :%'11llu\n", pref, stored);
+    printf("%sStates processed:%'11llu\n", pref, processed);
+    printf("%sMemory usage    :   %8.1f MB.\n", pref, mem);
     printf("%sCPU usage       :   %8.2f %c\n\n",
            pref, context_cpu_usage(), '%');
         
@@ -49,7 +48,7 @@ void * observer_start
     }
 #endif
 #if defined(CFG_STATE_LIMITED) && defined(CFG_MAX_STATE)
-    if(visited > CFG_MAX_STATE) {
+    if(processed > CFG_MAX_STATE) {
       context_set_termination_state(STATE_LIMIT_REACHED);
     }
 #endif

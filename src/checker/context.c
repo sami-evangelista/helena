@@ -25,7 +25,7 @@ typedef struct {
 
   /*  statistics field  */
   uint64_t * states_accepting;
-  uint64_t * states_visited;
+  uint64_t * states_processed;
   uint64_t * states_dead;
   uint64_t * arcs;
   uint64_t * evts_exec;
@@ -63,7 +63,7 @@ void context_init
   /*
    *  initialisation of statistic related fields
    */
-  CTX->states_visited =
+  CTX->states_processed =
     mem_alloc(SYSTEM_HEAP, no_workers * sizeof(uint64_t));
   CTX->states_dead =
     mem_alloc(SYSTEM_HEAP, no_workers * sizeof(uint64_t));
@@ -80,7 +80,7 @@ void context_init
   CTX->bytes_sent =
     mem_alloc(SYSTEM_HEAP, (no_workers + 1) * sizeof(uint64_t));
   for(i = 0; i < no_workers; i ++) {
-    CTX->states_visited[i] = 0;
+    CTX->states_processed[i] = 0;
     CTX->states_accepting[i] = 0;
     CTX->states_dead[i] = 0;
     CTX->arcs[i] = 0;
@@ -161,11 +161,11 @@ void context_finalise
   FILE * out;
   void * dummy;
   uint64_t ssize;
-  uint64_t sum_visited;
-  uint64_t min_visited;
-  uint64_t max_visited;
-  uint64_t avg_visited;
-  uint64_t dev_visited;
+  uint64_t sum_processed;
+  uint64_t min_processed;
+  uint64_t max_processed;
+  uint64_t avg_processed;
+  uint64_t dev_processed;
   worker_id_t w;
   char name[1024], file_name[1024];
   char * buf = NULL;
@@ -313,26 +313,29 @@ void context_finalise
   fprintf(out, "<statesStored>%llu</statesStored>\n", ssize);
   fprintf(out, "<statesMaxStored>%llu</statesMaxStored>\n",
 	  (ssize > CTX->states_max_stored) ? ssize : CTX->states_max_stored);
-  sum_visited = large_sum(CTX->states_visited, CTX->no_workers);
-  fprintf(out, "<statesExpanded>%llu</statesExpanded>\n", sum_visited);
+  sum_processed = large_sum(CTX->states_processed, CTX->no_workers);
+  fprintf(out, "<statesProcessed>%llu</statesProcessed>\n", sum_processed);
 #if defined(CFG_PARALLEL)
-  min_visited = CTX->states_visited[0];
-  max_visited = CTX->states_visited[0];
-  avg_visited = sum_visited / CFG_NO_WORKERS;
-  dev_visited = 0;
+  min_processed = CTX->states_processed[0];
+  max_processed = CTX->states_processed[0];
+  avg_processed = sum_processed / CFG_NO_WORKERS;
+  dev_processed = 0;
   for(w = 1; w < CFG_NO_WORKERS; w ++) {
-    if(CTX->states_visited[w] > max_visited) {
-      max_visited = CTX->states_visited[w];
-    } else if(CTX->states_visited[w] < min_visited) {
-      min_visited = CTX->states_visited[w];
+    if(CTX->states_processed[w] > max_processed) {
+      max_processed = CTX->states_processed[w];
+    } else if(CTX->states_processed[w] < min_processed) {
+      min_processed = CTX->states_processed[w];
     }
-    dev_visited += (CTX->states_visited[w] - avg_visited)
-      * (CTX->states_visited[w] - avg_visited);
+    dev_processed += (CTX->states_processed[w] - avg_processed)
+      * (CTX->states_processed[w] - avg_processed);
   }
-  dev_visited = sqrt(dev_visited / CFG_NO_WORKERS);
-  fprintf(out, "<statesExpandedMin>%llu</statesExpandedMin>\n", min_visited);
-  fprintf(out, "<statesExpandedMax>%llu</statesExpandedMax>\n", max_visited);
-  fprintf(out, "<statesExpandedDev>%llu</statesExpandedDev>\n", dev_visited);
+  dev_processed = sqrt(dev_processed / CFG_NO_WORKERS);
+  fprintf(out, "<statesProcessedMin>%llu</statesProcessedMin>\n",
+          min_processed);
+  fprintf(out, "<statesProcessedMax>%llu</statesProcessedMax>\n",
+          max_processed);
+  fprintf(out, "<statesProcessedDev>%llu</statesProcessedDev>\n",
+          dev_processed);
 #endif
 #if defined(CFG_ACTION_CHECK_LTL)
   fprintf(out, "<statesAccepting>%llu</statesAccepting>\n",
@@ -367,7 +370,7 @@ void context_finalise
 #endif
 #if defined(CFG_ALGO_RWALK)
   fprintf(out, "<eventExecPerSecond>%d</eventExecPerSecond>\n",
-	  (unsigned int)(1.0 * sum_visited / (CTX->exec_time / 1000000.0)));
+	  (unsigned int)(1.0 * sum_processed / (CTX->exec_time / 1000000.0)));
 #endif
 #if defined(CFG_DISTRIBUTED)
   fprintf(out, "<bytesSend>%llu</bytesSend>\n",
@@ -416,7 +419,7 @@ void context_finalise
   /**
    *  free everything
    */
-  free(CTX->states_visited);
+  free(CTX->states_processed);
   free(CTX->states_dead);
   free(CTX->states_accepting);
   free(CTX->arcs);
@@ -501,9 +504,9 @@ void context_set_termination_state
   CTX->keep_searching = FALSE;
 }
 
-uint64_t context_visited
+uint64_t context_processed
 () {
-  return large_sum(CTX->states_visited, CTX->no_workers);
+  return large_sum(CTX->states_processed, CTX->no_workers);
 }
 
 struct timeval context_start_time
@@ -590,10 +593,10 @@ void context_incr_accepting
   CTX->states_accepting[w] += no;
 }
 
-void context_incr_visited
+void context_incr_processed
 (worker_id_t w,
  int no) {
-  CTX->states_visited[w] += no;
+  CTX->states_processed[w] += no;
 }
 
 void context_incr_evts_exec

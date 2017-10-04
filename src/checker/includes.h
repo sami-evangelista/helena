@@ -29,6 +29,5 @@
 #include "semaphore.h"
 #include "signal.h"
 #include "stdint.h"
-#include "locale.h"
 
 #endif

@@ -1,11 +1,11 @@
-#include "random_walk.h"
+#include "rwalk.h"
 #include "context.h"
 #include "prop.h"
 #include "workers.h"
 
 #if defined(CFG_ALGO_RWALK)
 
-void * random_walk_worker
+void * rwalk_worker
 (void * arg) {
   worker_id_t w = (worker_id_t) (long) arg;
   state_t s;
@@ -46,7 +46,7 @@ void * random_walk_worker
         list_append(trace, &e);
       }
       context_incr_evts_exec(w, 1);
-      context_incr_visited(w, 1);
+      context_incr_processed(w, 1);
       context_incr_arcs(w, en_size);
       list_free(en);
       if(0 == en_size) {
@@ -60,9 +60,9 @@ void * random_walk_worker
   heap_free(heap);
 }
 
-void random_walk
+void rwalk
 () {
-  launch_and_wait_workers(&random_walk_worker);
+  launch_and_wait_workers(&rwalk_worker);
 }
 
 #endif  /*  defined(CFG_ALGO_RWALK)  */
