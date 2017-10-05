@@ -1,0 +1,26 @@
+#!/bin/python
+
+import sys
+
+if len(sys.argv) < 2:
+    print 'error: missing $1 = operator'
+    exit(1)
+if len(sys.argv) < 3:
+    print 'error: missing $2 = list'
+    exit(1)
+if len(sys.argv) > 3:
+    print 'error: ' + sys.argv[3] + ': unexpected argument'
+    exit(1)
+
+op = sys.argv[1]
+l = map(lambda x: float(x), sys.argv[2].split(","))
+result = l[0]
+for i in l[1:]:
+    if op == "min" and i < result:
+        result = i
+    elif op == "max" and i > result:
+        result = i
+    elif op == "sum":
+        result += i
+print result
+exit(0)

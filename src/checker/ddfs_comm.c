@@ -14,6 +14,8 @@
 #define BUFFER_WORKER_SIZE (CFG_SYM_HEAP_SIZE / CFG_NO_WORKERS)
 #define BUCKET_OK          1
 #define BUCKET_WRITE       2
+#define LOCK_AVAILABLE     1
+#define LOCK_TAKEN         2
 
 
 typedef struct {
@@ -33,6 +35,7 @@ ddfs_comm_buffers_t BUF;
 storage_t S;
 pthread_t PROD;
 pthread_t CONS[CFG_NO_COMM_WORKERS];
+uint8_t LOCK[MAX_PES];
 int PES;
 int ME;
 
@@ -209,16 +212,15 @@ void * ddfs_comm_consumer
 
     /**
      * get states put by remote PEs in their heap and put these in my
-     * local storage.  if N is the number of consumer thread, each
-     * consumer thread w get states produced by PEs w, w + N, w + 2N,
-     * ...
+     * local storage
      */
-    for(pe = c; pe < PES; pe += CFG_NO_COMM_WORKERS) {
-      if(ME != pe) {
+    for(pe = 0; pe < PES; pe ++) {
+      if(ME != pe && CAS(&LOCK[pe], LOCK_AVAILABLE, LOCK_TAKEN)) {
         comm_shmem_get(&remote_data, &PUB_DATA,
                        sizeof(pub_data_t), pe, c);
         if(remote_data.produced[ME]) {
           comm_shmem_get(buffer, H, remote_data.char_len, pe, c);
+          comm_shmem_put(&PUB_DATA.produced[ME], &f, sizeof(bool_t), pe, c);
           pos = buffer;
           while(remote_data.size --) {
 
@@ -260,8 +262,8 @@ void * ddfs_comm_consumer
               storage_set_garbage(S, w, sid, TRUE);
             }
           }
-          comm_shmem_put(&PUB_DATA.produced[ME], &f, sizeof(bool_t), pe, c);
         }
+        LOCK[pe] = LOCK_AVAILABLE;
       }
     }
   }
@@ -275,6 +277,7 @@ void ddfs_comm_start
   int i = 0;
 
   for(i = 0; i < MAX_PES; i ++) {
+    LOCK[i] = LOCK_AVAILABLE;
     PUB_DATA.produced[i] = FALSE;
   }
   

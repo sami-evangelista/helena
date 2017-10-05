@@ -1,3 +1,5 @@
+*~
+benchs/out
 bin/helena-generate
 bin/helena-generate-bit-stream
 bin/helena-generate-checker
@@ -12,4 +14,3 @@ src/checker/latex
 src/checker/html
 src/ltl2ba/*.o
 tests
-*~

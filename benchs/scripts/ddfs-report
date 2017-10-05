@@ -1,0 +1,47 @@
+#!/bin/bash
+
+MAX=8
+
+echo -n "set terminal png;
+set output \"ddfs.png\";
+set xtics 1;
+set xrange [1:$MAX];
+set yrange [1:$MAX];
+set key rmargin font \",8\" box;
+set lmargin 4;
+plot x with lines linestyle 1 title \"optimal\"" > plot
+lp=1
+ls -1 out/ddfs/*xml | \
+    awk -F'_N' '{print $1}' | \
+    awk -F'/' '{print $NF}' | \
+    sort -u | \
+    while read m
+    do
+        echo $m
+        dat=out/ddfs/$m.dat
+        for N in $(seq 1 $MAX)
+        do
+            f=out/ddfs/$m"_N"$N.xml
+            if [ -f "$f" ]
+            then
+                l=$(scripts/get-stat $f searchTime)
+                res=$(scripts/list-op max $l)
+            elif [ $N = 1 ]
+            then
+                 break
+            fi
+            if [ $N = 1 ]
+            then
+                ref=$res
+                echo 1 1
+            else
+                echo $N $(echo "scale = 2 ; $ref / $res" | bc)
+            fi
+        done > $dat
+        m=$(echo $m | sed 's/_/-/g')
+        echo -n ", \"$dat\" title \"$m\" with lp ls "$lp >> plot
+        lp=$((lp + 1))
+    done
+echo ";" >> plot
+cat plot | gnuplot
+rm plot
