@@ -14,13 +14,25 @@ file = sys.argv[1]
 stat = sys.argv[2]
 
 try:
-    doc = parse (file)
-    l = doc.getElementsByTagName (stat)
+    doc = parse(file)
+    l = doc.getElementsByTagName(stat)
     if len (l) == 0:
         print "stat not found:", stat
         exit (1)
     else:
-        print l[0].childNodes[0].nodeValue
+        li = l[0].getElementsByTagName("item")
+        if len(li) == 0:
+            print l[0].childNodes[0].nodeValue
+        else:
+            first = True
+            s = ""
+            for item in li:
+                if first:
+                    first = False
+                else:
+                    s += ","
+                s += item.childNodes[0].nodeValue
+            print s
 except IOError, err:
     print err
     exit (1)

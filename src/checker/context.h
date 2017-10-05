@@ -18,7 +18,7 @@
  * @brief Context initialisation.
  */
 void context_init
-(unsigned int no_workers);
+();
 
 
 /**
@@ -107,7 +107,7 @@ void context_update_bfs_levels
 (unsigned int bfs_levels);
 
 void context_increase_bytes_sent
-(worker_id_t w,
+(comm_worker_id_t w,
  uint32_t bytes);
 
 void context_increase_distributed_barrier_time

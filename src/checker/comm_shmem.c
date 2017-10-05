@@ -26,8 +26,17 @@ void comm_shmem_put
  int size,
  int pe,
  worker_id_t w) {
-  context_increase_bytes_sent(w, size);
-  shmem_putmem(dst, src, size, pe);
+  
+  /**
+   * NOTE: shmem_put fails on local PE in some cases.  we do
+   * memcpy instead which seems equivalent.
+   */
+  if(pe == shmem_my_pe()) {
+    memcpy(dst, src, size);
+  } else {
+    context_increase_bytes_sent(w, size);
+    shmem_putmem(dst, src, size, pe);
+  }
 }
 
 void comm_shmem_get

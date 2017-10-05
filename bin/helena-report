@@ -77,8 +77,9 @@ generalInfos = {
     "filePath"                  : "File path       ",
     "host"                      : "Host machine    " }
 searchInfos = {
-    "workers"                   : "Working threads  ",
-    "errorMessage"              : "Error message    " }
+    "workers"                   : "Exploration threads  ",
+    "commWorkers"               : "Communication threads",
+    "errorMessage"              : "Error message        " }
 terminationStates = {
     "searchTerminated"          : "Search terminated",
     "stateLimitReached"         : "State limit reached",
@@ -187,15 +188,15 @@ def printSearchReport(r):
     for e in r.childNodes:
         name = e.nodeName
         if name == "searchResult":
-            print "    Termination state: " + \
-                getBasicNodeValue(e, formatSearchResult, 23)
+            print "    Termination state    : " + \
+                getBasicNodeValue(e, formatSearchResult, 27)
         elif name in algorithms:
-            print "    Algorithm used   : " + algorithms[name]
+            print "    Algorithm used       : " + algorithms[name]
         elif name in searchInfos:
             print "    " + searchInfos[name] + ": " + \
                 getBasicNodeValue(e, noFormat)
         elif name == "searchOptions":
-            pref = "    Options          : "
+            pref = "    Options              : "
             for o in [ o for o in e.childNodes if o.nodeName in options ]:
                 name = o.nodeName
                 line = pref + options[name]
@@ -203,7 +204,7 @@ def printSearchReport(r):
                     f = optionsWithVal[o.nodeName]
                     line += f(o.childNodes[0].nodeValue)
                 print line
-                pref = "                       "
+                pref = "                           "
                     
 
 def printStatisticsReport(r):

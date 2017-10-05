@@ -17,7 +17,6 @@ else
 	echo "$host max-slots=1"
     done > machinefile
 fi
-cat machinefile
 
 minStates=10000000
 maxStates=100000000
@@ -50,7 +49,6 @@ scripts/select-models $minStates $maxStates \
 		  if [ $N -gt 1 ]
 		  then
 		      head -$N machinefile > mf
-                      cat mf
 		      cmd=$cmd" --algo=ddfs --machine-file=mf"
 		  else
 		      cmd=$cmd" --algo=dfs"

@@ -200,7 +200,7 @@ hash_tbl_t hash_tbl_default_new
   gc_ratio = 0;
 #endif
 #if defined(CFG_DISTRIBUTED)
-  no_workers = CFG_NO_WORKERS + 1;
+  no_workers = CFG_NO_WORKERS + CFG_NO_COMM_WORKERS;
 #else
   no_workers = CFG_NO_WORKERS;
 #endif

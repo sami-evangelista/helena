@@ -4,21 +4,17 @@
 
 #if defined(CFG_ALGO_DDFS)
 
+#include "ddfs_comm.h"
 #include "shmem.h"
 
-#define PUBLISH_PERIOD_MS  10
-#define BUFFER_SIZE        (CFG_SYM_HEAP_SIZE - sizeof(heap_prefix_t))
-#define BUFFER_WORKER_SIZE (BUFFER_SIZE / CFG_NO_WORKERS)
+#define MAX_PES            100
+#define PRODUCE_PERIOD_MS  10
+#define CONSUME_PERIOD_MS  4
+
+#define BUFFER_WORKER_SIZE (CFG_SYM_HEAP_SIZE / CFG_NO_WORKERS)
 #define BUCKET_OK          1
 #define BUCKET_WRITE       2
 
-#include "ddfs_comm.h"
-
-typedef struct {
-  bool_t   terminated;  /*  has all workers of the PE terminated  */
-  uint32_t size; /*  number of states published by the PE  */
-  uint32_t char_len; /*  total number of characters put by the PE  */
-} heap_prefix_t;
 
 typedef struct {
   uint8_t status[CFG_NO_WORKERS];
@@ -29,19 +25,28 @@ typedef struct {
   uint16_t k[CFG_NO_WORKERS];
 } ddfs_comm_buffers_t;
 
-const struct timespec PUBLISH_PERIOD = { 0, PUBLISH_PERIOD_MS * 1000000 };
+const struct timespec PRODUCE_PERIOD = { 0, PRODUCE_PERIOD_MS * 1000000 };
+const struct timespec CONSUME_PERIOD = { 0, CONSUME_PERIOD_MS * 1000000 };
 const struct timespec WAIT_TIME = { 0, 10 };
 
 ddfs_comm_buffers_t BUF;
 storage_t S;
-pthread_t W;
+pthread_t PROD;
+pthread_t CONS[CFG_NO_COMM_WORKERS];
 int PES;
 int ME;
 
+typedef struct {
+  uint32_t size;
+  uint32_t char_len;
+  bool_t produced[MAX_PES];
+} pub_data_t;
+
 /**
- *  the symmetric heap
+ *  the symmetric heap and shared static data
  */
 void * H;
+static pub_data_t PUB_DATA;
 
 void ddfs_comm_process_explored_state
 (worker_id_t w,
@@ -126,13 +131,69 @@ void ddfs_comm_process_explored_state
   }
 }
 
-void * ddfs_comm_worker
+void * ddfs_comm_producer
 (void * arg) {
-  const worker_id_t my_worker_id = CFG_NO_WORKERS;
-  int i, pe;
+  int pe;
   worker_id_t w;
-  bool_t loop = TRUE;
-  heap_prefix_t pref,  pref_other[PES];
+  uint64_t size = 0, char_len = 0;
+  const worker_id_t my_worker_id = CFG_NO_WORKERS;
+  
+  while(context_keep_searching()) {
+    nanosleep(&PRODUCE_PERIOD, NULL);
+
+    /**
+     *  wait that all other pes have consumed my states
+     */
+    for(pe = 0; pe < PES; pe ++) {
+      if(pe != ME) {
+        while(PUB_DATA.produced[pe] && context_keep_searching()) {
+          nanosleep(&CONSUME_PERIOD, NULL);
+        }
+      }
+    }
+
+    /**
+     *  put in my local heap states produced by my workers
+     */
+    char_len = 0;
+    size = 0;
+    for(w = 0; w < CFG_NO_WORKERS; w ++) {
+      
+      /*  wait for the bucket of thread w to be ready  */
+      while(!CAS(&BUF.status[w], BUCKET_OK, BUCKET_WRITE)) {
+	nanosleep(&WAIT_TIME, NULL);
+      }
+
+      /*  copy the buffer of worker w to my local  heap  */
+      comm_shmem_put(H + char_len, BUF.buffer[w],
+                     BUF.char_len[w], ME, my_worker_id);
+      char_len += BUF.char_len[w];
+      size += BUF.size[w];
+
+      /*  reset the buffer of worker w and make it available  */
+      BUF.char_len[w] = 0;
+      BUF.size[w] = 0;
+      BUF.full[w] = FALSE;
+      BUF.status[w] = BUCKET_OK;
+    }
+    
+    /*  notify other PEs that I have produced some states  */
+    PUB_DATA.size = size;
+    PUB_DATA.char_len = char_len;
+    for(pe = 0; pe < PES; pe ++) {
+      if(pe != ME) {
+        PUB_DATA.produced[pe] = TRUE;
+      }
+    }
+  }
+}
+
+void * ddfs_comm_consumer
+(void * arg) {
+  const comm_worker_id_t c = (comm_worker_id_t) (uint64_t) arg;
+  const worker_id_t w = c + CFG_NO_WORKERS;
+  bool_t f = FALSE;
+  int pe;
   void * pos;
   uint16_t s_char_len, len;
   storage_id_t sid;
@@ -140,104 +201,66 @@ void * ddfs_comm_worker
   bool_t red = FALSE, blue = FALSE, is_new;
   char buffer[CFG_SYM_HEAP_SIZE];
   hash_key_t h;
+  pub_data_t remote_data;
   
-  pref.terminated = FALSE;
-  while(loop) {
+  while(context_keep_searching()) {
     
-    nanosleep(&PUBLISH_PERIOD, NULL);
+    nanosleep(&CONSUME_PERIOD, NULL);
 
     /**
-     *  1st step: put every state of the local buffers in the
-     *  symmetrical heap
+     * get states put by remote PEs in their heap and put these in my
+     * local storage.  if N is the number of consumer thread, each
+     * consumer thread w get states produced by PEs w, w + N, w + 2N,
+     * ...
      */
-    comm_shmem_barrier();
-    pref.size = 0;
-    pref.char_len = sizeof(heap_prefix_t);
-    pref.terminated = !context_keep_searching();
-    for(w = 0; w < CFG_NO_WORKERS; w ++) {
-      
-      /*  wait for the bucket of thread w to be ready  */
-      while(!CAS(&BUF.status[w], BUCKET_OK, BUCKET_WRITE)) {
-	nanosleep(&WAIT_TIME, NULL);
-      }
-      comm_shmem_put(H + pref.char_len, BUF.buffer[w], BUF.char_len[w], ME,
-              my_worker_id);
-      /*memcpy(H + pref.char_len, BUF.buffer[w], BUF.char_len[w]);*/
-      pref.char_len += BUF.char_len[w];
-      pref.size += BUF.size[w];
-      BUF.char_len[w] = 0;
-      BUF.size[w] = 0;
-      BUF.full[w] = FALSE;
-      BUF.status[w] = BUCKET_OK;
-    }
-    pref.char_len -= sizeof(heap_prefix_t);
-    
-    /*  put my prefix in my local heap  */
-    comm_shmem_put(H, &pref, sizeof(heap_prefix_t), ME, my_worker_id);
-
-    /**
-     *  2nd step: get all the states sent py remote PEs
-     */
-    comm_shmem_barrier();
-    
-    /*  first read the heap prefixes of all remote PEs  */
-    loop = !pref.terminated;
-    for(pe = 0; pe < PES ; pe ++) {
+    for(pe = c; pe < PES; pe += CFG_NO_COMM_WORKERS) {
       if(ME != pe) {
-        comm_shmem_get(&pref_other[pe], H, sizeof(heap_prefix_t), pe,
-                       my_worker_id);
-        if(!pref_other[pe].terminated) {
-          loop = TRUE;
-        }
-      }
-    }
+        comm_shmem_get(&remote_data, &PUB_DATA,
+                       sizeof(pub_data_t), pe, c);
+        if(remote_data.produced[ME]) {
+          comm_shmem_get(buffer, H, remote_data.char_len, pe, c);
+          pos = buffer;
+          while(remote_data.size --) {
 
-    /*  get states put by remote PEs in their heap and put these in my
-        local storage */
-    for(pe = 0; pe < PES ; pe ++) {
-      if(ME == pe) continue;
-
-      comm_shmem_get(buffer, H + sizeof(heap_prefix_t),
-                     pref_other[pe].char_len, pe, my_worker_id);
-      pos = buffer;
-      for(i = 0; i < pref_other[pe].size; i++) {
-
-        /*  get hash value  */
-        memcpy(&h, pos, sizeof(hash_key_t));
-        pos += sizeof(hash_key_t);
+            /*  get hash value  */
+            memcpy(&h, pos, sizeof(hash_key_t));
+            pos += sizeof(hash_key_t);
                     
-        /*  get blue attribute  */
-        if(storage_has_attr(S, ATTR_BLUE)) {
-          memcpy(&blue, pos, sizeof(bool_t));
-          pos += sizeof(bool_t);
-        }
+            /*  get blue attribute  */
+            if(storage_has_attr(S, ATTR_BLUE)) {
+              memcpy(&blue, pos, sizeof(bool_t));
+              pos += sizeof(bool_t);
+            }
           
-        /*  get red attribute  */
-        if(storage_has_attr(S, ATTR_RED)) {
-          memcpy(&red, pos, sizeof(bool_t));
-          pos += sizeof(bool_t);
-        }
+            /*  get red attribute  */
+            if(storage_has_attr(S, ATTR_RED)) {
+              memcpy(&red, pos, sizeof(bool_t));
+              pos += sizeof(bool_t);
+            }
           
-        /*  get state vector char length  */
-        memcpy(&s_char_len, pos, sizeof(uint16_t));
-        pos += sizeof(uint16_t);
+            /*  get state vector char length  */
+            memcpy(&s_char_len, pos, sizeof(uint16_t));
+            pos += sizeof(uint16_t);
             
-        /*  get the state  */
-        storage_insert_serialised(S, pos, s_char_len,
-                                  h, my_worker_id, &is_new, &sid);
-        pos += s_char_len;
+            /*  get state vector and insert it  */
+            storage_insert_serialised(S, pos, s_char_len,
+                                      h, w, &is_new, &sid);
+            pos += s_char_len;
           
-        /*  set the blue and red attribute of the state  */
-        if(blue && storage_has_attr(S, ATTR_BLUE)) {
-          storage_set_blue(S, sid, TRUE);
-        }
-        if(red && storage_has_attr(S, ATTR_RED)) {
-          storage_set_red(S, sid, TRUE);
-        }
+            /*  set the blue and red attribute of the state  */
+            if(blue && storage_has_attr(S, ATTR_BLUE)) {
+              storage_set_blue(S, sid, TRUE);
+            }
+            if(red && storage_has_attr(S, ATTR_RED)) {
+              storage_set_red(S, sid, TRUE);
+            }
 
-        /*  if the state is new it may be garbage collected  */
-        if(is_new && storage_has_attr(S, ATTR_GARBAGE)) {
-          storage_set_garbage(S, my_worker_id, sid, TRUE);
+            /*  if the state is new it may be garbage collected  */
+            if(is_new && storage_has_attr(S, ATTR_GARBAGE)) {
+              storage_set_garbage(S, w, sid, TRUE);
+            }
+          }
+          comm_shmem_put(&PUB_DATA.produced[ME], &f, sizeof(bool_t), pe, c);
         }
       }
     }
@@ -248,13 +271,19 @@ void * ddfs_comm_worker
 void ddfs_comm_start
 () {
   worker_id_t w;
-  pthread_t worker;
+  comm_worker_id_t c;
+  int i = 0;
 
+  for(i = 0; i < MAX_PES; i ++) {
+    PUB_DATA.produced[i] = FALSE;
+  }
+  
   /*  shmem and symmetrical heap initialisation  */
   comm_shmem_init();
   H = shmem_malloc(CFG_SYM_HEAP_SIZE * shmem_n_pes());
   PES = shmem_n_pes();
   ME = shmem_my_pe();
+  assert(PES <= MAX_PES);
   
   S = context_storage();
   for(w = 0; w < CFG_NO_WORKERS; w ++) {
@@ -265,15 +294,22 @@ void ddfs_comm_start
     BUF.k[w] = 0;
   }
 
-  /*  launch the communicator thread  */
-  pthread_create(&W, NULL, &ddfs_comm_worker, NULL);
+  /*  launch the producer and consumer threads  */
+  pthread_create(&PROD, NULL, &ddfs_comm_producer, NULL);
+  for(c = 0; c < CFG_NO_COMM_WORKERS; c ++) {
+    pthread_create(&CONS[c], NULL, &ddfs_comm_consumer, (void *) (long) c);
+  }
 }
 
 void ddfs_comm_end
 () {
+  comm_worker_id_t c;
   void * dummy;
 
-  pthread_join(W, &dummy);
+  pthread_join(PROD, &dummy);
+  for(c = 0; c < CFG_NO_COMM_WORKERS; c ++) {
+    pthread_join(CONS[c], &dummy);
+  }
   comm_shmem_finalize(H);
 }
 

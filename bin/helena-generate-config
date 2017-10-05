@@ -103,6 +103,7 @@ def printHelp():
     #print "  -A   --algo={BFS|DBFS|DFS|DDFS|FRONTIER|DELTA-DDD|RWALK}"
     print "  -t   --hash-size=H"
     print "  -W   --workers=WORKERS"
+    print "  -C   --comm-workers=WORKERS"
     print "  -cs  --candidate-set-size=N"
     #print "  -dc  --ddfs-comm-strategy={K<N>|M|D<N>} ... {K<N>|M|D<N>}"
     #print "  -mf  --machine-file=FILE"
@@ -139,6 +140,7 @@ class Config:
         self.hashCompaction = False
         self.edgeLean = False
         self.workers = 1
+        self.commWorkers = 1
         self.capacity = 1
         self.memoryLimit = 0
         self.timeLimit = 0
@@ -324,6 +326,7 @@ class Config:
             ("HASH_SIZE_BITS ", self.hashSize),
             ("HASH_SIZE_M ", pow(2, self.hashSize) - 1),
             ("NO_WORKERS ", self.workers),
+            ("NO_COMM_WORKERS ", self.commWorkers),
             ("RWALK_MAX_DEPTH ", self.rwalkMaxDepth),
             ("STATE_CACHING_GC_THRESHOLD ", self.stateCachingGcThreshold),
             ("STATE_CACHING_GC_RATIO ", self.stateCachingGcRatio),
@@ -394,6 +397,8 @@ class Config:
             #  numerical options
             elif opt in [ "-W", "--workers" ]:
                 recognized = self.handleNumericalOption("workers", val)
+            elif opt in [ "-C", "--comm-workers" ]:
+                recognized = self.handleNumericalOption("commWorkers", val)
             elif opt in [ "-a", "--capacity" ]:
                 recognized = self.handleNumericalOption("capacity", val)
             elif opt in [ "-cs", "--candidate-set-size" ]:

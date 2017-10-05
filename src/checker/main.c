@@ -24,7 +24,7 @@ int main
   /*
    *  initialisation of the context
    */
-  context_init(CFG_NO_WORKERS);
+  context_init();
   for(i = 1; i < argc; i += 2) {
     if(0 == strcmp(argv[i], "comp-time")) {
       float comp_time;

@@ -5,6 +5,7 @@
 
 typedef struct {
   unsigned int no_workers;
+  unsigned int no_comm_workers;
   char * error_msg;
   termination_state_t term_state;
   FILE * graph_file;
@@ -51,9 +52,11 @@ typedef struct_context_t * context_t;
 context_t CTX;
 
 void context_init
-(unsigned int no_workers) {
+() {
   unsigned int i;
-
+  unsigned int no_workers = CFG_NO_WORKERS;
+  unsigned int no_comm_workers = CFG_NO_COMM_WORKERS;
+  
   CTX = mem_alloc(SYSTEM_HEAP, sizeof(struct_context_t));
   
   CTX->error_msg = NULL;
@@ -79,7 +82,7 @@ void context_init
   CTX->state_cmps =
     mem_alloc(SYSTEM_HEAP, no_workers * sizeof(uint64_t));
   CTX->bytes_sent =
-    mem_alloc(SYSTEM_HEAP, (no_workers + 1) * sizeof(uint64_t));
+    mem_alloc(SYSTEM_HEAP, no_comm_workers * sizeof(uint64_t));
   for(i = 0; i < no_workers; i ++) {
     CTX->states_processed[i] = 0;
     CTX->states_accepting[i] = 0;
@@ -89,7 +92,7 @@ void context_init
     CTX->evts_exec_dd[i] = 0;
     CTX->state_cmps[i] = 0;
   }
-  for(i = 0; i < no_workers + 1; i ++) {
+  for(i = 0; i < no_comm_workers; i ++) {
     CTX->bytes_sent[i] = 0;
   }
   CTX->bfs_levels = 0;
@@ -101,6 +104,7 @@ void context_init
   CTX->avg_cpu_usage = 0.0;
 
   CTX->no_workers = no_workers;
+  CTX->no_comm_workers = no_comm_workers;
   CTX->storage = storage_new();
   CTX->faulty_state_found = FALSE;
   CTX->trace = NULL;
@@ -254,8 +258,9 @@ void context_finalise
 #elif defined(CFG_ALGO_DELTA_DDD)
   fprintf(out, "<parallelDDDD/>\n");
 #endif
-#if defined(CFG_NO_WORKERS)
-  fprintf(out, "<workers>%d</workers>\n", CFG_NO_WORKERS);
+  fprintf(out, "<workers>%d</workers>\n", CTX->no_workers);
+#if defined(CFG_DISTRIBUTED)
+  fprintf(out, "<commWorkers>%d</commWorkers>\n", CTX->no_comm_workers);
 #endif
   fprintf(out, "<searchOptions>\n");
 #if defined(CFG_HASH_STORAGE) || defined(CFG_DELTA_DDD_STORAGE)
@@ -379,7 +384,7 @@ void context_finalise
 #endif
 #if defined(CFG_DISTRIBUTED)
   fprintf(out, "<bytesSent>%llu</bytesSent>\n",
-	  large_sum(CTX->bytes_sent, CTX->no_workers + 1));
+	  large_sum(CTX->bytes_sent, CTX->no_comm_workers));
 #endif
   fprintf(out, "</otherStatistics>\n");
   fprintf(out, "</statisticsReport>\n");
@@ -556,7 +561,7 @@ void context_update_bfs_levels
 }
 
 void context_increase_bytes_sent
-(worker_id_t w,
+(comm_worker_id_t w,
  uint32_t bytes) {
   CTX->bytes_sent[w] += bytes;
 }
