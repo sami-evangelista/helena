@@ -3,13 +3,21 @@
 MAX=8
 
 echo -n "set terminal png;
-set output \"ddfs.png\";
+set output \"ddfs-time.png\";
 set xtics 1;
 set xrange [1:$MAX];
-set yrange [1:$MAX];
+set yrange [0.75:$MAX];
 set key rmargin font \",8\" box;
 set lmargin 4;
-plot x with lines linestyle 1 title \"optimal\"" > plot
+plot x with lines linestyle 1 lw 2 lc rgb '#000000' title \"optimal\"" > plotT
+echo -n "set terminal png;
+set output \"ddfs-visited.png\";
+set xtics 1;
+set xrange [1:$MAX];
+set yrange [0:1];
+set key rmargin font \",8\" box;
+set lmargin 4;
+plot 1/x with lines linestyle 1 lw 2 lc rgb '#000000' title \"optimal\"" > plotV
 lp=1
 ls -1 out/ddfs/*xml | \
     awk -F'_N' '{print $1}' | \
@@ -18,30 +26,45 @@ ls -1 out/ddfs/*xml | \
     while read m
     do
         echo $m
-        dat=out/ddfs/$m.dat
+        datT=out/ddfs/$m.time.dat
+        datV=out/ddfs/$m.visited.dat
+        echo > $datT
+        echo > $datV
         for N in $(seq 1 $MAX)
         do
             f=out/ddfs/$m"_N"$N.xml
             if [ -f "$f" ]
             then
                 l=$(scripts/get-stat $f searchTime)
-                res=$(scripts/list-op max $l)
+                resT=$(scripts/list-op min $l)
+                l=$(scripts/get-stat $f statesStored)
+                st=$(echo "scale=1;"$(scripts/list-op max $l) "/1000000" | bc)
+                l=$(scripts/get-stat $f statesProcessed) 
+                resV=$(scripts/list-op max $l)
             elif [ $N = 1 ]
             then
                  break
             fi
             if [ $N = 1 ]
             then
-                ref=$res
-                echo 1 1
+                refT=$resT
+                refV=$resV
+                echo 1 1 >> $datT
+                echo 1 1 >> $datV
             else
-                echo $N $(echo "scale = 2 ; $ref / $res" | bc)
+                echo $N $(echo "scale = 2 ; $refT / $resT" | bc) >> $datT
+                echo $N $(echo "scale = 2 ; $resV / $refV" | bc) >> $datV
             fi
-        done > $dat
+        done
         m=$(echo $m | sed 's/_/-/g')
-        echo -n ", \"$dat\" title \"$m\" with lp ls "$lp >> plot
+        echo -n ", \"$datT\" title \"$m (${st}E6 st.)\" with lp ls "$lp >> plotT
+        echo -n ", \"$datV\" title \"$m (${st}E6 st.)\" with lp ls "$lp >> plotV
         lp=$((lp + 1))
     done
-echo ";" >> plot
-cat plot | gnuplot
-rm plot
+for l in V T
+do
+    echo ";" >> plot$l
+    cat plot$l
+    cat plot$l | gnuplot
+    rm plot$l
+done
