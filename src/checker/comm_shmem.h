@@ -39,8 +39,7 @@ void comm_shmem_put
 (void * dst,
  void * src,
  int size,
- int pe,
- worker_id_t w);
+ int pe);
 
 
 /**
@@ -50,8 +49,7 @@ void comm_shmem_get
 (void * dst,
  void * src,
  int size,
- int pe,
- worker_id_t w);
+ int pe);
 
 
 /**
@@ -59,5 +57,19 @@ void comm_shmem_get
  */
 int comm_shmem_me
 ();
+
+
+/**
+ * @brief comm_shmem_pes
+ */
+int comm_shmem_pes
+();
+
+
+/**
+ * @brief comm_shmem_malloc
+ */
+void * comm_shmem_malloc
+(int size);
 
 #endif

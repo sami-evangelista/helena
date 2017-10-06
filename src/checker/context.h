@@ -107,8 +107,7 @@ void context_update_bfs_levels
 (unsigned int bfs_levels);
 
 void context_increase_bytes_sent
-(comm_worker_id_t w,
- uint32_t bytes);
+(uint32_t bytes);
 
 void context_increase_distributed_barrier_time
 (float time);

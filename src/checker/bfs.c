@@ -10,6 +10,8 @@
 #if defined(CFG_ALGO_BFS) || defined(CFG_ALGO_DBFS) || \
   defined(CFG_ALGO_FRONTIER)
 
+#define BFS_DEBUG_XXX
+
 const bool_t WITH_TRACE =
 #if defined(CFG_ACTION_CHECK_SAFETY) && defined(CFG_ALGO_BFS)
   TRUE
@@ -41,7 +43,6 @@ const bool_t EDGE_LEAN =
 storage_t S;
 bfs_queue_t Q;
 pthread_barrier_t B;
-bool_t TERM;
 
 
 worker_id_t bfs_thread_owner
@@ -65,7 +66,7 @@ void bfs_wait_barrier
 void bfs_init_queue
 () {
 #if defined(CFG_ALGO_DBFS)
-  uint16_t no_workers = CFG_NO_WORKERS + 1;
+  uint16_t no_workers = CFG_NO_WORKERS + CFG_NO_COMM_WORKERS;
 #else
   uint16_t no_workers = CFG_NO_WORKERS;
 #endif
@@ -80,8 +81,10 @@ void bfs_init_queue
                     states_in_queue, events_in_queue);
 }
 
-void bfs_terminate_level
+bool_t bfs_terminate_level
 (worker_id_t w) {
+  bool_t result;
+  
 #if defined(CFG_ALGO_DBFS)
   
   /**
@@ -96,14 +99,27 @@ void bfs_terminate_level
    *  that tells us whether the search is finished or not.
    */
   dbfs_comm_send_all_pending_states(w);
+#if defined(BFS_DEBUG)
+  printf("[%d,w%d] at barrier 0\n", context_proc_id(), w);
+#endif
   bfs_wait_barrier();
   if(0 == w) {
     dbfs_comm_notify_level_termination();
   }
+#if defined(BFS_DEBUG)
+  printf("[%d,w%d] at barrier 1\n", context_proc_id(), w);
+#endif
   dbfs_comm_local_barrier();
   bfs_queue_switch_level(Q, w);
+#if defined(BFS_DEBUG)
+  printf("[%d,w%d] at barrier 2\n", context_proc_id(), w);
+#endif
   bfs_wait_barrier();
-  TERM = dbfs_comm_global_termination();
+  result = dbfs_comm_global_termination();
+#if defined(BFS_DEBUG)
+  printf("[%d,w%d] termination result = %d\n", context_proc_id(), w, result);
+#endif
+  
 #else
   
   /**
@@ -117,7 +133,7 @@ void bfs_terminate_level
   bfs_queue_switch_level(Q, w);
   bfs_wait_barrier();
   if(0 == w) {
-    TERM = !context_keep_searching() || bfs_queue_is_empty(Q);
+    result = !context_keep_searching() || bfs_queue_is_empty(Q);
   }
   bfs_wait_barrier();
 #endif
@@ -129,6 +145,7 @@ void bfs_terminate_level
 #if defined(CFG_ALGO_FRONTIER)
   storage_gc_all(S, w);
 #endif
+  return result;
 }
 
 void bfs_report_trace
@@ -171,12 +188,13 @@ void * bfs_worker
   hash_key_t h;
   bfs_queue_item_t item, succ_item;
   event_t e;
-  bool_t is_new, reduced;
+  bool_t is_new, reduced, termination = FALSE;
   
-  while(!TERM) {
-    for(x = 0;
-        x < bfs_queue_no_workers(Q) && context_keep_searching();
-        x ++) {
+  while(!termination) {
+#if defined(BFS_DEBUG)
+    printf("[%d,w%d] at BFS level %d\n", context_proc_id(), w, levels);
+#endif
+    for(x = 0; x < bfs_queue_no_workers(Q) && context_keep_searching(); x ++) {
       while(!bfs_queue_slot_is_empty(Q, x, w) && context_keep_searching()) {
         
         /**
@@ -310,11 +328,14 @@ void * bfs_worker
      *  all states in the current queue has been processed => initiate
      *  level termination processing
      */
-    bfs_terminate_level(w);
+    termination = bfs_terminate_level(w);
     levels ++;
   }
   heap_free(heap);
   context_update_bfs_levels(levels);
+#if defined(BFS_DEBUG)
+  printf("[%d,w%d] terminated\n", context_proc_id(), w);
+#endif
 }
 
 void bfs
@@ -334,7 +355,6 @@ void bfs
   dbfs_comm_start(Q);
 #endif
 
-  TERM = FALSE;
   pthread_barrier_init(&B, NULL, CFG_NO_WORKERS);
   
 #if defined(CFG_ALGO_DBFS)
@@ -357,6 +377,9 @@ void bfs
   state_free(s);
 
   launch_and_wait_workers(&bfs_worker);
+#if defined(BFS_DEBUG)
+  printf("[%d] all workers terminated\n", context_proc_id());
+#endif
 
   bfs_queue_free(Q);
 

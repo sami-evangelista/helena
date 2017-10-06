@@ -59,12 +59,4 @@ uint64_t delta_ddd_storage_barrier_time
 uint64_t delta_ddd_storage_dd_time
 (delta_ddd_storage_t storage);
 
-
-/**
- * @brief delta_ddd_storage_output_stats
- */
-void delta_ddd_storage_output_stats
-(delta_ddd_storage_t storage,
- FILE * out);
-
 #endif

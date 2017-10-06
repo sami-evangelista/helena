@@ -318,14 +318,6 @@ uint64_t hash_tbl_gc_time
 
 
 /**
- * @brief hash_tbl_output_stats
- */
-void hash_tbl_output_stats
-(hash_tbl_t tbl,
- FILE * out);
-
-
-/**
  * @brief hash_tbl_fold
  */
 void hash_tbl_fold

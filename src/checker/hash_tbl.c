@@ -38,7 +38,6 @@ struct struct_hash_tbl_t {
   pthread_barrier_t barrier;
   heap_t heap;
   int64_t * size;
-  uint64_t * state_cmps;
   rseed_t * seeds;
   hash_key_t * hash;
   bucket_status_t * update_status;
@@ -113,7 +112,6 @@ hash_tbl_t hash_tbl_new
   result->hash_size = hash_size;
   result->heap = SYSTEM_HEAP;
   result->size = mem_alloc(SYSTEM_HEAP, no_workers * sizeof(uint64_t));
-  result->state_cmps = mem_alloc(SYSTEM_HEAP, no_workers * sizeof(uint64_t));
   result->seeds = mem_alloc(SYSTEM_HEAP, no_workers * sizeof(uint32_t));
   result->hash = mem_alloc(SYSTEM_HEAP, hash_size * sizeof(hash_key_t));
   result->status = mem_alloc(SYSTEM_HEAP, hash_size * sizeof(bucket_status_t));
@@ -135,7 +133,6 @@ hash_tbl_t hash_tbl_new
   }
   for(w = 0; w < result->no_workers; w ++) {
     result->size[w] = 0;
-    result->state_cmps[w] = 0;
     result->seeds[w] = random_seed(w);
     result->no_garbages[w] = 0;
     result->max_garbages[w] = 0;
@@ -229,7 +226,6 @@ void hash_tbl_free
     }
   }
   mem_free(SYSTEM_HEAP, tbl->size);
-  mem_free(SYSTEM_HEAP, tbl->state_cmps);
   mem_free(SYSTEM_HEAP, tbl->seeds);
   mem_free(SYSTEM_HEAP, tbl->hash);
   mem_free(SYSTEM_HEAP, tbl->status);
@@ -369,7 +365,6 @@ void hash_tbl_insert_real
       del_found = TRUE;
       del_pos = pos;
     } else if(tbl->status[pos] == BUCKET_READY) {
-      tbl->state_cmps[w] ++;
       found = (tbl->hash[pos] == (*h));
       if(found && !tbl->hash_compaction) {
         se_other = tbl->state[pos] + tbl->attrs_char_size;
@@ -938,15 +933,6 @@ void hash_tbl_set_heap
 (hash_tbl_t tbl,
  heap_t h) {
   tbl->heap = h;
-}
-
-void hash_tbl_output_stats
-(hash_tbl_t tbl,
- FILE * out) {
-  fprintf(out, "<hashTableStatistics>\n");
-  fprintf(out, "<stateComparisons>%llu</stateComparisons>\n",
-          large_sum(tbl->state_cmps, tbl->no_workers));
-  fprintf(out, "</hashTableStatistics>\n");
 }
 
 list_t hash_tbl_get_trace

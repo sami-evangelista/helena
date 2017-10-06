@@ -7,6 +7,7 @@
 #include "rwalk.h"
 #include "graph.h"
 #include "bit_stream.h"
+#include "comm_shmem.h"
 
 int main
 (int argc,
@@ -33,19 +34,16 @@ int main
     }
   }
 
-  /*
-   *  simulation mode
-   */
+  
 #if defined(CFG_ACTION_SIMULATE)
   
   simulator();
 
 #else
 
-  /*
-   *  normal mode
-   */
-  printf("Running...\n");
+#if defined CFG_DISTRIBUTED
+  comm_shmem_init();
+#endif
 
   /*
    *  catch SIGINT by changing the context state
@@ -77,7 +75,6 @@ int main
 #if defined(CFG_ACTION_BUILD_GRAPH)
   graph_make_report(CFG_GRAPH_FILE, CFG_RG_REPORT_FILE, NULL);
 #endif
-  printf("done.\n");
 
 #endif
 

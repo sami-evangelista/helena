@@ -31,8 +31,7 @@ typedef struct {
   uint64_t * arcs;
   uint64_t * evts_exec;
   uint64_t * evts_exec_dd;
-  uint64_t * state_cmps;
-  uint64_t * bytes_sent;
+  uint64_t bytes_sent;
   uint64_t exec_time;
   uint64_t states_max_stored;
   unsigned int bfs_levels;
@@ -79,10 +78,6 @@ void context_init
     mem_alloc(SYSTEM_HEAP, no_workers * sizeof(uint64_t));
   CTX->evts_exec_dd =
     mem_alloc(SYSTEM_HEAP, no_workers * sizeof(uint64_t));
-  CTX->state_cmps =
-    mem_alloc(SYSTEM_HEAP, no_workers * sizeof(uint64_t));
-  CTX->bytes_sent =
-    mem_alloc(SYSTEM_HEAP, no_comm_workers * sizeof(uint64_t));
   for(i = 0; i < no_workers; i ++) {
     CTX->states_processed[i] = 0;
     CTX->states_accepting[i] = 0;
@@ -90,11 +85,8 @@ void context_init
     CTX->arcs[i] = 0;
     CTX->evts_exec[i] = 0;
     CTX->evts_exec_dd[i] = 0;
-    CTX->state_cmps[i] = 0;
   }
-  for(i = 0; i < no_comm_workers; i ++) {
-    CTX->bytes_sent[i] = 0;
-  }
+  CTX->bytes_sent = 0;
   CTX->bfs_levels = 0;
   CTX->bfs_levels_ok = FALSE;
   CTX->max_mem_used = 0.0;
@@ -120,6 +112,9 @@ void context_init
 #else
   CTX->term_state = SEARCH_TERMINATED;
 #endif
+  CTX->cpu_total = 0;
+  CTX->utime = 0;
+  CTX->stime = 0;
   cpu_usage(&CTX->cpu_total, &CTX->utime, &CTX->stime);
   
   /*
@@ -177,15 +172,19 @@ void context_finalise
   char * buf = NULL;
   size_t n = 0;
   int i;
-  
+
 #if !defined(CFG_ACTION_SIMULATE)
   if(NULL != CTX->graph_file) {
     fclose(CTX->graph_file);
   }
   CTX->keep_searching = FALSE;
+  pthread_join(CTX->observer, &dummy);
   gettimeofday(&CTX->end_time, NULL);
   CTX->exec_time = duration(CTX->start_time, CTX->end_time);
-  pthread_join(CTX->observer, &dummy);
+
+  /**
+   *  make the report
+   */
 #if defined(CFG_DISTRIBUTED)
   sprintf(file_name, "%s.%d", CFG_REPORT_FILE, context_proc_id());
   out = fopen(file_name, "w");
@@ -193,10 +192,6 @@ void context_finalise
   out = fopen(CFG_REPORT_FILE, "w");
 #endif
   fprintf(out, "<helenaReport>\n");
-
-  /**
-   *  info context
-   ***/
   fprintf(out, "<infoReport>\n");
   fprintf(out, "<model>%s</model>\n", model_name());
   model_xml_parameters(out);
@@ -212,10 +207,6 @@ void context_finalise
   gethostname(name, 1024);
   fprintf(out, "<host>%s (pid = %d)</host>\n", name, getpid());
   fprintf(out, "</infoReport>\n");
-
-  /**
-   *  search report
-   ***/
   fprintf(out, "<searchReport>\n");
 #if defined(CFG_PROPERTY)
   fprintf(out, "<property>%s</property>\n", CFG_PROPERTY);
@@ -281,16 +272,8 @@ void context_finalise
 #endif
   fprintf(out, "</searchOptions>\n");
   fprintf(out, "</searchReport>\n");
-
-  /**
-   *  statistics report
-   ***/
   fprintf(out, "<statisticsReport>\n");
-  
-  /*  model */
   model_xml_statistics(out);
-  
-  /*  time  */
   fprintf(out, "<timeStatistics>\n");
   if(CTX->comp_time > 0) {
     fprintf(out, "<compilationTime>%.2f</compilationTime>\n", CTX->comp_time);
@@ -313,8 +296,6 @@ void context_finalise
 	  storage_gc_time(CTX->storage) / 1000000.0);
 #endif
   fprintf(out, "</timeStatistics>\n");
-  
-  /*  reachability graph  */
   fprintf(out, "<graphStatistics>\n");
   ssize = storage_size(CTX->storage);
   fprintf(out, "<statesStored>%llu</statesStored>\n", ssize);
@@ -356,13 +337,6 @@ void context_finalise
     fprintf(out, "<bfsLevels>%u</bfsLevels>\n", CTX->bfs_levels);
   }
   fprintf(out, "</graphStatistics>\n");
-  
-  /*  storage statistics  */
-#if defined(CFG_HASH_STORAGE) || defined(CFG_DELTA_DDD_STORAGE)
-  storage_output_stats(CTX->storage, out);
-#endif
-  
-  /*  others  */
   fprintf(out, "<otherStatistics>\n");
   fprintf(out, "<maxMemoryUsed>%.1f</maxMemoryUsed>\n",
           CTX->max_mem_used);
@@ -383,15 +357,10 @@ void context_finalise
 	  (unsigned int)(1.0 * sum_processed / (CTX->exec_time / 1000000.0)));
 #endif
 #if defined(CFG_DISTRIBUTED)
-  fprintf(out, "<bytesSent>%llu</bytesSent>\n",
-	  large_sum(CTX->bytes_sent, CTX->no_comm_workers));
+  fprintf(out, "<bytesSent>%llu</bytesSent>\n", CTX->bytes_sent);
 #endif
   fprintf(out, "</otherStatistics>\n");
   fprintf(out, "</statisticsReport>\n");
-
-  /**
-   *  trace report
-   ***/
   if(CTX->term_state == FAILURE) {
     fprintf(out, "<traceReport>\n");
 #if defined(CFG_TRACE_STATE)
@@ -413,7 +382,7 @@ void context_finalise
   fclose(out);
 
   /**
-   *  in distributed mode the context file must be printed to the
+   *  in distributed mode the report file must be printed to the
    *  standard output so that it can be sent to the main process.  we
    *  prefix each line with [xml-PID]
    */
@@ -435,8 +404,6 @@ void context_finalise
   free(CTX->arcs);
   free(CTX->evts_exec);
   free(CTX->evts_exec_dd);
-  free(CTX->state_cmps);
-  free(CTX->bytes_sent);
   storage_free(CTX->storage);
   free(CTX->workers);
   if(CTX->trace) {
@@ -561,9 +528,8 @@ void context_update_bfs_levels
 }
 
 void context_increase_bytes_sent
-(comm_worker_id_t w,
- uint32_t bytes) {
-  CTX->bytes_sent[w] += bytes;
+(uint32_t bytes) {
+  CTX->bytes_sent += bytes;
 }
 
 void context_increase_distributed_barrier_time

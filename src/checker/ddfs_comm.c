@@ -4,9 +4,6 @@
 
 #if defined(CFG_ALGO_DDFS)
 
-#include "ddfs_comm.h"
-#include "shmem.h"
-
 #define MAX_PES            100
 #define PRODUCE_PERIOD_MS  10
 #define CONSUME_PERIOD_MS  4
@@ -168,8 +165,7 @@ void * ddfs_comm_producer
       }
 
       /*  copy the buffer of worker w to my local  heap  */
-      comm_shmem_put(H + char_len, BUF.buffer[w],
-                     BUF.char_len[w], ME, my_worker_id);
+      comm_shmem_put(H + char_len, BUF.buffer[w], BUF.char_len[w], ME);
       char_len += BUF.char_len[w];
       size += BUF.size[w];
 
@@ -216,11 +212,10 @@ void * ddfs_comm_consumer
      */
     for(pe = 0; pe < PES; pe ++) {
       if(ME != pe && CAS(&LOCK[pe], LOCK_AVAILABLE, LOCK_TAKEN)) {
-        comm_shmem_get(&remote_data, &PUB_DATA,
-                       sizeof(pub_data_t), pe, c);
+        comm_shmem_get(&remote_data, &PUB_DATA, sizeof(pub_data_t), pe);
         if(remote_data.produced[ME]) {
-          comm_shmem_get(buffer, H, remote_data.char_len, pe, c);
-          comm_shmem_put(&PUB_DATA.produced[ME], &f, sizeof(bool_t), pe, c);
+          comm_shmem_get(buffer, H, remote_data.char_len, pe);
+          comm_shmem_put(&PUB_DATA.produced[ME], &f, sizeof(bool_t), pe);
           pos = buffer;
           while(remote_data.size --) {
 
@@ -282,10 +277,9 @@ void ddfs_comm_start
   }
   
   /*  shmem and symmetrical heap initialisation  */
-  comm_shmem_init();
-  H = shmem_malloc(CFG_SYM_HEAP_SIZE * shmem_n_pes());
-  PES = shmem_n_pes();
-  ME = shmem_my_pe();
+  PES = comm_shmem_pes();
+  ME = comm_shmem_me();
+  H = comm_shmem_malloc(CFG_SYM_HEAP_SIZE * PES);
   assert(PES <= MAX_PES);
   
   S = context_storage();

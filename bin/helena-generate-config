@@ -94,6 +94,7 @@ def printHelp():
     print "  -V   --version"
     print "  -v   --verbose"
     print "  -g   --progress={no-compile|no-check|no-report}"
+    print "  -b   --observer=[={0|1}]"
     print "  -N   --action={EXPLORE|SIMULATE|BUILD-GRAPH|CHECK-prop}"
     print "  -p   --property-file=FILE"
     print "  -md  --model-directory=DIRECTORY"
@@ -101,9 +102,9 @@ def printHelp():
     print "Search and storage options"
     print "  -A   --algo={BFS|DFS|FRONTIER|DELTA-DDD|RWALK}"
     #print "  -A   --algo={BFS|DBFS|DFS|DDFS|FRONTIER|DELTA-DDD|RWALK}"
-    print "  -t   --hash-size=H"
-    print "  -W   --workers=WORKERS"
-    print "  -C   --comm-workers=WORKERS"
+    print "  -t   --hash-size=N"
+    print "  -W   --workers=N"
+    print "  -C   --comm-workers=N"
     print "  -cs  --candidate-set-size=N"
     #print "  -dc  --ddfs-comm-strategy={K<N>|M|D<N>} ... {K<N>|M|D<N>}"
     #print "  -mf  --machine-file=FILE"
@@ -124,7 +125,7 @@ def printHelp():
     print "  -a   --capacity=N"
     print "  -r   --run-time-checks[={0|1}]"
     print "  -L   --link=OBJECT-FILE"
-    print "  -m   --parameter=p=i"
+    print "  -m   --parameter=p=N"
     print ""
     print "Output"
     print "  -o   --report-file=FILE-NAME"
@@ -135,6 +136,7 @@ class Config:
     def __init__(self):
         self.verbose = False
         self.version = False
+        self.withObserver = True
         self.partialOrder = False
         self.stateCaching = False
         self.hashCompaction = False
@@ -233,7 +235,9 @@ class Config:
             if model == "": model = "model"
             W("#define CFG_MODEL_NAME \"" + model + "\"\n")
             W("#define CFG_LANGUAGE \"dve\"\n")
-            W("#define CFG_LANGUAGE_DVE\n")
+            W("#define CFG_LANGUAGE_DVE\n"),
+        if self.withObserver:
+            W("#define CFG_WITH_OBSERVER\n")
 
         #  search algorithm and storage type
         W("#define CFG_ALGO_" + self.algo.replace("-", "_") + "\n")
@@ -383,6 +387,8 @@ class Config:
                 exit(0)
                 
             #  boolean options
+            elif opt in [ "-b", "--observer" ]:
+                self.withObserver = (val is None) or val == "1"
             elif opt in [ "-P", "--partial-order" ]:
                 self.partialOrder = (val is None) or val == "1"
             elif opt in [ "-E", "--edge-lean" ]:

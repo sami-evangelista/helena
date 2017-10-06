@@ -13,11 +13,14 @@ void * observer_worker
   char name[100], pref[100];
   int n = 0;
   
+#ifdef CFG_WITH_OBSERVER
 #if defined(CFG_DISTRIBUTED)
   gethostname(name, 1024);
   sprintf(pref, "[%s:%d] ", name, getpid());
 #else
   pref[0] = 0;
+#endif
+  printf("%sRunning...\n", pref);
 #endif
   while(context_keep_searching()) {
     n ++;
@@ -33,11 +36,13 @@ void * observer_worker
     context_update_max_mem_used(mem);
     processed = context_processed();
     time = ((float) duration(context_start_time(), now)) / 1000000.0;
-    printf("%sTime elapsed    :   %8.2f s.\n", pref, time);
+#ifdef CFG_WITH_OBSERVER
+    printf("\n%sTime elapsed    :   %8.2f s.\n", pref, time);
     printf("%sStates stored   :%'11llu\n", pref, stored);
     printf("%sStates processed:%'11llu\n", pref, processed);
     printf("%sMemory usage    :   %8.1f MB.\n", pref, mem);
-    printf("%sCPU usage       :   %8.2f %c\n\n", pref, cpu, '%');
+    printf("%sCPU usage       :   %8.2f %c\n", pref, cpu, '%');
+#endif
         
     /*
      *  check for limits
@@ -61,5 +66,8 @@ void * observer_worker
   if(cpu_avg != 0) {
     context_set_avg_cpu_usage(cpu_avg);
   }
+#ifdef CFG_WITH_OBSERVER
+  printf("%sdone.\n", pref);
+#endif
   return NULL;
 }

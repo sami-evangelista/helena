@@ -5,6 +5,8 @@
 #if defined(CFG_DISTRIBUTED)
 #include "shmem.h"
 
+#define COMM_SHMEM_DEBUG_XXX
+
 void comm_shmem_init
 () {
   shmem_init();
@@ -24,8 +26,7 @@ void comm_shmem_put
 (void * dst,
  void * src,
  int size,
- int pe,
- worker_id_t w) {
+ int pe) {
   
   /**
    * NOTE: shmem_put fails on local PE in some cases.  we do
@@ -34,8 +35,14 @@ void comm_shmem_put
   if(pe == shmem_my_pe()) {
     memcpy(dst, src, size);
   } else {
-    context_increase_bytes_sent(w, size);
+#if defined(COMM_SHMEM_DEBUG)
+    printf("[%d,%d] put at %p to %d\n", shmem_my_pe(), w, dst, pe);
+#endif
+    context_increase_bytes_sent(size);
     shmem_putmem(dst, src, size, pe);
+#if defined(COMM_SHMEM_DEBUG)
+    printf("[%d,%d] put at %p to %d done\n", shmem_my_pe(), w, dst, pe);
+#endif
   }
 }
 
@@ -43,10 +50,19 @@ void comm_shmem_get
 (void * dst,
  void * src,
  int size,
- int pe,
- worker_id_t w) {
-  context_increase_bytes_sent(w, size);
-  shmem_getmem(dst, src, size, pe);
+ int pe) {
+  if(pe == shmem_my_pe()) {
+    memcpy(dst, src, size);
+  } else {
+#if defined(COMM_SHMEM_DEBUG)
+    printf("[%d,%d] get adr %p from %d\n", shmem_my_pe(), w, dst, pe);
+#endif
+    context_increase_bytes_sent(size);
+    shmem_getmem(dst, src, size, pe);
+#if defined(COMM_SHMEM_DEBUG)
+    printf("[%d,%d] get adr %p from %d done\n", shmem_my_pe(), w, dst, pe);
+#endif
+  }
 }
 
 void comm_shmem_finalize
@@ -61,6 +77,16 @@ void comm_shmem_finalize
 int comm_shmem_me
 () {
   return shmem_my_pe();
+}
+
+int comm_shmem_pes
+() {
+  return shmem_n_pes();
+}
+
+void * comm_shmem_malloc
+(int size) {
+  return shmem_malloc(size);
 }
 
 #endif

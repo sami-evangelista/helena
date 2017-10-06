@@ -204,11 +204,6 @@ uint64_t delta_ddd_storage_size
   return result;
 }
 
-void delta_ddd_storage_output_stats
-(delta_ddd_storage_t storage,
- FILE * out) {
-}
-
 
 
 /*****
