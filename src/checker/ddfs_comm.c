@@ -5,8 +5,9 @@
 #if defined(CFG_ALGO_DDFS)
 
 #define MAX_PES            100
-#define PRODUCE_PERIOD_MS  10
-#define CONSUME_PERIOD_MS  4
+#define PRODUCE_PERIOD_MS  20
+#define CONSUME_PERIOD_MS  5
+#define CONSUME_WAIT_MS    1
 
 #define BUFFER_WORKER_SIZE (CFG_SYM_HEAP_SIZE / CFG_NO_WORKERS)
 #define BUCKET_OK          1
@@ -26,13 +27,14 @@ typedef struct {
 
 const struct timespec PRODUCE_PERIOD = { 0, PRODUCE_PERIOD_MS * 1000000 };
 const struct timespec CONSUME_PERIOD = { 0, CONSUME_PERIOD_MS * 1000000 };
+const struct timespec CONSUME_WAIT_TIME = { 0, CONSUME_WAIT_MS * 1000000 };
 const struct timespec WAIT_TIME = { 0, 10 };
 
 ddfs_comm_buffers_t BUF;
 storage_t S;
 pthread_t PROD;
 pthread_t CONS[CFG_NO_COMM_WORKERS];
-uint8_t LOCK[MAX_PES];
+uint8_t LOCK;
 int PES;
 int ME;
 
@@ -45,7 +47,7 @@ typedef struct {
 /**
  *  the symmetric heap and shared static data
  */
-void * H;
+static H[CFG_SYM_HEAP_SIZE];
 static pub_data_t PUB_DATA;
 
 void ddfs_comm_process_explored_state
@@ -80,7 +82,7 @@ void ddfs_comm_process_explored_state
   BUF.k[w] = 0;
 #endif
 
-  /*
+  /**
    *  put the state of worker w in its buffer
    */
   if(!BUF.full[w] && CAS(&BUF.status[w], BUCKET_OK, BUCKET_WRITE)) {
@@ -211,11 +213,17 @@ void * ddfs_comm_consumer
      * local storage
      */
     for(pe = 0; pe < PES; pe ++) {
-      if(ME != pe && CAS(&LOCK[pe], LOCK_AVAILABLE, LOCK_TAKEN)) {
-        comm_shmem_get(&remote_data, &PUB_DATA, sizeof(pub_data_t), pe);
-        if(remote_data.produced[ME]) {
+      if(ME != pe) {
+	while(!CAS(&LOCK, LOCK_AVAILABLE, LOCK_TAKEN)) {
+	  nanosleep(&CONSUME_WAIT_TIME, NULL);
+	}
+	comm_shmem_get(&remote_data, &PUB_DATA, sizeof(pub_data_t), pe);
+        if(!remote_data.produced[ME]) {
+	  LOCK = LOCK_AVAILABLE;
+	} else {
           comm_shmem_get(buffer, H, remote_data.char_len, pe);
           comm_shmem_put(&PUB_DATA.produced[ME], &f, sizeof(bool_t), pe);
+	  LOCK = LOCK_AVAILABLE;
           pos = buffer;
           while(remote_data.size --) {
 
@@ -258,7 +266,6 @@ void * ddfs_comm_consumer
             }
           }
         }
-        LOCK[pe] = LOCK_AVAILABLE;
       }
     }
   }
@@ -272,14 +279,13 @@ void ddfs_comm_start
   int i = 0;
 
   for(i = 0; i < MAX_PES; i ++) {
-    LOCK[i] = LOCK_AVAILABLE;
+    LOCK = LOCK_AVAILABLE;
     PUB_DATA.produced[i] = FALSE;
   }
   
   /*  shmem and symmetrical heap initialisation  */
   PES = comm_shmem_pes();
   ME = comm_shmem_me();
-  H = comm_shmem_malloc(CFG_SYM_HEAP_SIZE * PES);
   assert(PES <= MAX_PES);
   
   S = context_storage();
@@ -307,7 +313,7 @@ void ddfs_comm_end
   for(c = 0; c < CFG_NO_COMM_WORKERS; c ++) {
     pthread_join(CONS[c], &dummy);
   }
-  comm_shmem_finalize(H);
+  comm_shmem_finalize(NULL);
 }
 
 #endif  /*  defined(CFG_ALGO_DDFS)  */

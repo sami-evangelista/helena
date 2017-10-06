@@ -1,5 +1,5 @@
 #!/bin/bash
-#OAR -l nodes=8,walltime=10:00:00
+#OAR -l nodes=8,walltime=00:30:00
 #OAR -p ib='QDR'
 #OAR -t allow_classic_ssh
 #OAR -n dist-helena
@@ -63,7 +63,12 @@ scripts/select-models $minStates $maxStates \
 		  if [ $N -gt 1 ]
 		  then
 		      head -$N machinefile > mf
-                      cmd=$cmd" --algo=ddfs --machine-file=mf"
+		      C=$(($N / 4))
+		      if [ $(($N % 4)) != 0 ]
+		      then
+			  C=$(($C + 1))
+		      fi
+		      cmd=$cmd" --algo=ddfs --machine-file=mf --comm-workers="$C
 		  else
 		      cmd=$cmd" --algo=dfs"
 		  fi
