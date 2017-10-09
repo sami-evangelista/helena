@@ -3,17 +3,15 @@
 #include "context.h"
 #include "bit_stream.h"
 
-#define ATTR_CHAR_LEN_POS(tbl) (tbl->attr_pos[0])
-#define ATTR_CYAN_POS(tbl)     (tbl->attr_pos[1])
-#define ATTR_BLUE_POS(tbl)     (tbl->attr_pos[2])
-#define ATTR_PINK_POS(tbl)     (tbl->attr_pos[3])
-#define ATTR_RED_POS(tbl)      (tbl->attr_pos[4])
-#define ATTR_GARBAGE_POS(tbl)  (tbl->attr_pos[5])
-#define ATTR_REFS_POS(tbl)     (tbl->attr_pos[6])
-#define ATTR_PRED_POS(tbl)     (tbl->attr_pos[7])
-#define ATTR_EVT_POS(tbl)      (tbl->attr_pos[8])
+#define ATTR_CYAN_POS(tbl)     (tbl->attr_pos[0])
+#define ATTR_BLUE_POS(tbl)     (tbl->attr_pos[1])
+#define ATTR_PINK_POS(tbl)     (tbl->attr_pos[2])
+#define ATTR_RED_POS(tbl)      (tbl->attr_pos[3])
+#define ATTR_GARBAGE_POS(tbl)  (tbl->attr_pos[4])
+#define ATTR_REFS_POS(tbl)     (tbl->attr_pos[5])
+#define ATTR_PRED_POS(tbl)     (tbl->attr_pos[6])
+#define ATTR_EVT_POS(tbl)      (tbl->attr_pos[7])
 
-#define ATTR_CHAR_LEN_WIDTH 16
 #define ATTR_CYAN_WIDTH     1
 #define ATTR_BLUE_WIDTH     1
 #define ATTR_PINK_WIDTH     1
@@ -23,7 +21,7 @@
 #define ATTR_PRED_WIDTH     (CHAR_BIT * sizeof(hash_tbl_id_t))
 #define ATTR_EVT_WIDTH      (CHAR_BIT * sizeof(event_id_t))
 
-#define NO_ATTRS 9
+#define NO_ATTRS 8
 
 typedef uint8_t bucket_status_t;
 
@@ -42,8 +40,9 @@ struct struct_hash_tbl_t {
   hash_key_t * hash;
   bucket_status_t * update_status;
   bucket_status_t * status;
-  bit_vector_t hc_state;
+  bit_vector_t hc_attrs;
   bit_vector_t * state;
+  uint16_t * state_len;
   hash_tbl_id_t ** garbages;
   uint64_t * no_garbages;
   uint64_t * max_garbages;
@@ -64,7 +63,7 @@ const struct timespec SLEEP_TIME = { 0, 1 };
 
 #define BIT_STREAM_INIT_ON_ATTRS(tbl, id, bits) {                       \
     if(tbl->hash_compaction) {                                          \
-      bit_stream_init(bits, tbl->hc_state + id * tbl->attrs_char_size); \
+      bit_stream_init(bits, tbl->hc_attrs + id * tbl->attrs_char_size); \
     } else {                                                            \
       bit_stream_init(bits, tbl->state[id]);                            \
     }                                                                   \
@@ -77,8 +76,7 @@ hash_tbl_t hash_tbl_new
  uint8_t gc_threshold,
  float gc_ratio,
  uint32_t attrs) {
-  const uint32_t attrs_width[NO_ATTRS] = { ATTR_CHAR_LEN_WIDTH,
-                                           ATTR_CYAN_WIDTH * no_workers,
+  const uint32_t attrs_width[NO_ATTRS] = { ATTR_CYAN_WIDTH * no_workers,
                                            ATTR_BLUE_WIDTH,
                                            ATTR_PINK_WIDTH * no_workers,
                                            ATTR_RED_WIDTH,
@@ -125,11 +123,12 @@ hash_tbl_t hash_tbl_new
                                   no_workers * sizeof(uint64_t));
   result->done = mem_alloc(SYSTEM_HEAP, no_workers * sizeof(bool_t));
   if(hash_compaction) {
-    result->hc_state = mem_alloc(SYSTEM_HEAP,
+    result->hc_attrs = mem_alloc(SYSTEM_HEAP,
                                  hash_size * result->attrs_char_size);
-    memset(result->hc_state, 0, hash_size * result->attrs_char_size);
+    memset(result->hc_attrs, 0, hash_size * result->attrs_char_size);
   } else {
     result->state = mem_alloc(SYSTEM_HEAP, hash_size * sizeof(bit_vector_t));
+    result->state_len = mem_alloc(SYSTEM_HEAP, hash_size * sizeof(uint16_t));
   }
   for(w = 0; w < result->no_workers; w ++) {
     result->size[w] = 0;
@@ -144,6 +143,7 @@ hash_tbl_t hash_tbl_new
     result->status[i] = BUCKET_EMPTY;
     if(!hash_compaction) {
       result->state[i] = NULL;
+      result->state_len[i] = 0;
     }
   }
   result->gc_time = 0;
@@ -164,9 +164,6 @@ hash_tbl_t hash_tbl_default_new
    *  check which attributes are enabled according to the
    *  configuration
    */
-#if !defined(CFG_HASH_COMPACTION)
-  attrs |= ATTR_CHAR_LEN;
-#endif
   attrs |= ATTR_CYAN;
   attrs |= ATTR_BLUE;
 #if defined(CFG_ACTION_CHECK_LTL)
@@ -211,7 +208,7 @@ void hash_tbl_free
   worker_id_t w;
 
   if(tbl->hash_compaction) {
-    mem_free(SYSTEM_HEAP, tbl->hc_state);
+    mem_free(SYSTEM_HEAP, tbl->hc_attrs);
   } else {
     for(i = 0; i < tbl->hash_size; i++) {
       if(tbl->state[i]) {
@@ -219,6 +216,7 @@ void hash_tbl_free
       }
     }
     mem_free(SYSTEM_HEAP, tbl->state);
+    mem_free(SYSTEM_HEAP, tbl->state_len);
   }
   for(w = 0; w < tbl->no_workers; w ++) {
     if(tbl->garbages[w]) {
@@ -269,10 +267,8 @@ void hash_tbl_insert_real
    *  compute the hash value
    */
   if(tbl->hash_compaction) {
-    if(NULL == se) {
+    if(NULL == se && !h_set) {
       (*h) = state_hash(*s);
-    } else {
-      assert(h_set);
     }
   } else {
     if(!h_set) {
@@ -321,11 +317,7 @@ void hash_tbl_insert_real
           } else {
             memcpy(tbl->state[pos] + tbl->attrs_char_size, se, se_char_len);
           }
-          if(hash_tbl_has_attr(tbl, ATTR_CHAR_LEN)) {
-            bit_stream_init(bits, tbl->state[pos]);
-            bit_stream_move(bits, ATTR_CHAR_LEN_POS(tbl));
-            bit_stream_set(bits, se_char_len, ATTR_CHAR_LEN_WIDTH);
-          }
+          tbl->state_len[pos] = se_char_len;
         }
         tbl->hash[pos] = *h;
         tbl->status[pos] = BUCKET_READY;
@@ -653,16 +645,9 @@ void hash_tbl_get_serialised
  hash_tbl_id_t id,
  bit_vector_t * s,
  uint16_t * size) {
-  if(tbl->hash_compaction) {
-    memcpy(*s, &tbl->hash[id], sizeof(hash_key_t));
-    (*size) = sizeof(hash_key_t);
-  } else {
-    assert(hash_tbl_has_attr(tbl, ATTR_CHAR_LEN));
-    (*s) = tbl->state[id] + tbl->attrs_char_size;
-    (*size) = (uint16_t) hash_tbl_get_attr(tbl, id,
-                                           ATTR_CHAR_LEN_POS(tbl),
-                                           ATTR_CHAR_LEN_WIDTH);
-  }
+  assert(!tbl->hash_compaction);
+  (*s) = tbl->state[id] + tbl->attrs_char_size;
+  (*size) = tbl->state_len[id];
 }
 
 void hash_tbl_change_refs
@@ -764,7 +749,7 @@ uint64_t hash_tbl_gc_real
            */
           tbl->update_status[id] = BUCKET_READY;
           if(tbl->hash_compaction) {
-            memset(tbl->hc_state + id * tbl->attrs_char_size,
+            memset(tbl->hc_attrs + id * tbl->attrs_char_size,
                    0, tbl->attrs_char_size);
           } else {
             mem_free(tbl->heap, tbl->state[id]);
@@ -922,8 +907,7 @@ void hash_tbl_fold_serialised
     if(tbl->status[pos] == BUCKET_READY) {
       s = tbl->state[pos] + tbl->attrs_char_size;
       h = tbl->hash[pos];
-      l = hash_tbl_get_attr(tbl, pos, ATTR_CHAR_LEN_POS(tbl),
-                            ATTR_CHAR_LEN_WIDTH);
+      l = tbl->state_len[pos];
       f(s, l, h, data);
     }
   }

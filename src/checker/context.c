@@ -174,13 +174,13 @@ void context_finalise
   int i;
 
 #if !defined(CFG_ACTION_SIMULATE)
+  gettimeofday(&CTX->end_time, NULL);
+  CTX->exec_time = duration(CTX->start_time, CTX->end_time);
+  CTX->keep_searching = FALSE;
+  pthread_join(CTX->observer, &dummy);
   if(NULL != CTX->graph_file) {
     fclose(CTX->graph_file);
   }
-  CTX->keep_searching = FALSE;
-  pthread_join(CTX->observer, &dummy);
-  gettimeofday(&CTX->end_time, NULL);
-  CTX->exec_time = duration(CTX->start_time, CTX->end_time);
 
   /**
    *  make the report

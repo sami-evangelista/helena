@@ -12,15 +12,14 @@
 #include "delta_ddd.h"
 #include "config.h"
 
-#define ATTR_CHAR_LEN 1
-#define ATTR_CYAN     2
-#define ATTR_BLUE     4
-#define ATTR_PINK     8
-#define ATTR_RED      16
-#define ATTR_GARBAGE  32
-#define ATTR_REFS     64
-#define ATTR_PRED     128
-#define ATTR_EVT      256
+#define ATTR_CYAN     1
+#define ATTR_BLUE     2
+#define ATTR_PINK     4
+#define ATTR_RED      8
+#define ATTR_GARBAGE  16
+#define ATTR_REFS     32
+#define ATTR_PRED     64
+#define ATTR_EVT      128
 
 /*****
  *  storage used by delta-ddd algorithm

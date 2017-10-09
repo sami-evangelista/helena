@@ -12,27 +12,6 @@
 
 #define DFS_HEAP_SIZE 100000
 
-const bool_t POR = 
-#if defined(CFG_POR)
-  TRUE
-#else
-  FALSE
-#endif
-  ;
-const bool_t PROVISO = 
-#if defined(CFG_PROVISO)
-  TRUE
-#else
-  FALSE
-#endif
-  ;
-const bool_t EDGE_LEAN = 
-#if defined(CFG_EDGE_LEAN)
-  TRUE
-#else
-  FALSE
-#endif
-  ;
 storage_t S;
 
 state_t dfs_recover_state
@@ -77,6 +56,9 @@ state_t dfs_main
  bool_t blue,
  dfs_stack_t blue_stack,
  dfs_stack_t red_stack) {
+  const bool_t por = cfg_por();
+  const bool_t proviso = cfg_proviso();
+  const bool_t edge_lean = cfg_edge_lean();
   storage_id_t id_seed;
   bool_t push;
   dfs_stack_t stack = blue ? blue_stack : red_stack;
@@ -87,14 +69,13 @@ state_t dfs_main
   event_list_t en;
   storage_id_t id_top;
   hash_key_t h;
-  const bool_t filter = POR;
 
   /*
    *  push the root state on the stack
    */
   storage_ref(S, w, id);
   dfs_stack_push(stack, id, now);
-  en = dfs_stack_compute_events(stack, now, filter, NULL);
+  en = dfs_stack_compute_events(stack, now, por, NULL);
   if(blue) {
     storage_set_cyan(S, id, w, TRUE);
   } else {
@@ -133,7 +114,7 @@ state_t dfs_main
       /*
        *  check if proviso is verified.  if not we reexpand the state
        */
-      if(POR && PROVISO) {
+      if(por && proviso) {
         if(!dfs_stack_proviso(stack)) {
           dfs_stack_compute_events(stack, now, FALSE, NULL);
           goto loop_start;
@@ -241,7 +222,7 @@ state_t dfs_main
        */
       if(!push) {
         now = dfs_recover_state(stack, now, w, heap);
-        if(POR && PROVISO && storage_get_cyan(S, id, w)) {
+        if(por && proviso && storage_get_cyan(S, id, w)) {
           dfs_stack_unset_proviso(stack);
         }
       } else {
@@ -257,12 +238,12 @@ state_t dfs_main
          *  color on it
          */
         dfs_stack_push(stack, id, now);
-        if(EDGE_LEAN) {
+        if(edge_lean) {
           e_ref = &e;
         } else {
           e_ref = NULL;
         }
-        en = dfs_stack_compute_events(stack, now, filter, e_ref);
+        en = dfs_stack_compute_events(stack, now, por, e_ref);
         if(blue) {
           storage_set_cyan(S, id, w, TRUE);
         } else {

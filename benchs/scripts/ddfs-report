@@ -19,10 +19,19 @@ set key outside vertical center bottom font \",8\" box;
 set lmargin 4;
 set size ratio 0.5;
 plot 1/x with lines linestyle 1 lw 2 lc rgb '#000000' title \"optimal\"" > plotV
+echo -n "set terminal png size 600, 900;
+set output \"ddfs-cpu.png\";
+set xtics 1;
+set xrange [1:$MAX];
+set yrange [0:$((MAX / 2))];
+set key outside vertical center bottom font \",8\" box;
+set lmargin 4;
+set size ratio 0.5;
+plot 1 title '' with dots lc rgb '#000000'" > plotC
 for i in $(seq 1 $MAX)
 do
-    echo -n ", $i title '' with dots lc rgb '#000000'" >> plotV
     echo -n ", $i title '' with dots lc rgb '#000000'" >> plotT
+    echo -n ", $i title '' with dots lc rgb '#000000'" >> plotC
 done
 lp=1
 ls -1 out/ddfs/*xml | \
@@ -34,8 +43,10 @@ ls -1 out/ddfs/*xml | \
         echo $m
         datT=out/ddfs/$m.time.dat
         datV=out/ddfs/$m.visited.dat
+        datC=out/ddfs/$m.cpu.dat
         echo > $datT
         echo > $datV
+        echo > $datC
         for N in $(seq 1 $MAX)
         do
             f=out/ddfs/$m"_N"$N.xml
@@ -47,6 +58,8 @@ ls -1 out/ddfs/*xml | \
                 st=$(echo "scale=1;"$(scripts/list-op max $l) "/1000000" | bc)
                 l=$(scripts/get-stat $f statesProcessed) 
                 resV=$(scripts/list-op max $l)
+                l=$(scripts/get-stat $f avgCPUUsage) 
+                resC=$(scripts/list-op max $l)
             elif [ $N = 1 ]
             then
                 break
@@ -55,19 +68,23 @@ ls -1 out/ddfs/*xml | \
             then
                 refT=$resT
                 refV=$resV
+                refC=$resC
                 echo 1 1 >> $datT
                 echo 1 1 >> $datV
+                echo 1 1 >> $datC
             else
                 echo $N $(echo "scale = 2 ; $refT / $resT" | bc) >> $datT
                 echo $N $(echo "scale = 2 ; $resV / $refV" | bc) >> $datV
+                echo $N $(echo "scale = 2 ; $resC / $refC" | bc) >> $datC
             fi
         done
         m=$(echo $m | sed 's/_/-/g')
         echo -n ", \"$datT\" title \"$m (${st}E6 st.)\" with lp ls "$lp >> plotT
         echo -n ", \"$datV\" title \"$m (${st}E6 st.)\" with lp ls "$lp >> plotV
+        echo -n ", \"$datC\" title \"$m (${st}E6 st.)\" with lp ls "$lp >> plotC
         lp=$((lp + 1))
     done
-for l in V T
+for l in V T C
 do
     echo ";" >> plot$l
     cat plot$l

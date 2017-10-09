@@ -19,7 +19,6 @@ int main
    */
   init_heap();
   init_bit_stream();
-  init_common();
   init_model();
 
   /*

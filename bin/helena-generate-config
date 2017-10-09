@@ -216,6 +216,7 @@ class Config:
         f = self.openFile("config.h", "w")
         W = f.write
         now = datetime.now()
+        W("#include \"common.h\"\n")
         W("#ifndef LIB_CONFIG\n")
         W("#define LIB_CONFIG\n")
         W("\n")
@@ -236,8 +237,6 @@ class Config:
             W("#define CFG_MODEL_NAME \"" + model + "\"\n")
             W("#define CFG_LANGUAGE \"dve\"\n")
             W("#define CFG_LANGUAGE_DVE\n"),
-        if self.withObserver:
-            W("#define CFG_WITH_OBSERVER\n")
 
         #  search algorithm and storage type
         W("#define CFG_ALGO_" + self.algo.replace("-", "_") + "\n")
@@ -271,25 +270,6 @@ class Config:
         elif self.algo == RWALK:
             pass
 
-        #  state caching
-        if self.stateCaching:
-            W("#define CFG_STATE_CACHING\n")
-
-        #  search limits
-        if self.memoryLimit != 0:
-            W("#define CFG_MEMORY_LIMITED\n")
-            W("#define CFG_MAX_MEMORY " + str(self.memoryLimit) + "\n")
-        if self.timeLimit != 0:
-            W("#define CFG_TIME_LIMITED\n")
-            W("#define CFG_MAX_TIME " + str(self.timeLimit) + "\n")
-        if self.stateLimit != 0:
-            W("#define CFG_STATE_LIMITED\n")
-            W("#define CFG_MAX_STATE " + str(self.stateLimit) + "\n")
-
-        #  hash compaction
-        if self.hashCompaction:
-            W("#define CFG_HASH_COMPACTION\n")
-
         #  action to perform
         W("#define CFG_ACTION_" + self.action.replace("-", "_") + "\n")
         if self.action == CHECK:
@@ -301,27 +281,22 @@ class Config:
             elif self.propType == DEADLOCK:
                 W("#define CFG_ACTION_CHECK_SAFETY\n")
 
-        #  trace mode
-        W("#define CFG_TRACE_" + self.traceType + "\n")
+        syms = [
+            ("STATE_CACHING", self.stateCaching),
+            ("DISTRIBUTED", self.algo in [ DBFS, DDFS ]),
+            ("PARALLEL", self.workers > 1),
+            ("EDGE_LEAN", self.edgeLean),
+            ("POR", self.partialOrder),
+            ("PROVISO", self.partialOrder and self.propType is not None and \
+             self.propType != DEADLOCK),
+            ("HASH_COMPACTION", self.hashCompaction),
+            ("MEMORY_LIMITED", self.memoryLimit != 0),
+            ("TIME_LIMITED", self.timeLimit != 0),
+            ("STATE_LIMITED", self.stateLimit != 0),
+            ("TRACE_" + self.traceType, True),
+            ("WITH_OBSERVER", self.withObserver)
+        ]
 
-        #  partial order reduction
-        if self.partialOrder:
-            W("#define CFG_POR\n")
-            if self.propType is not None and \
-               self.propType != DEADLOCK:
-                W("#define CFG_PROVISO\n")
-        if self.edgeLean:
-            W("#define CFG_EDGE_LEAN\n")
-                
-        #  parallel mode
-        if self.workers > 1:
-            W("#define CFG_PARALLEL\n")
-
-        #  distributed mode
-        if self.algo in [ DBFS, DDFS ]:
-            W("#define CFG_DISTRIBUTED\n")
-
-        #  other parameters
         params = [
             ("BFS_QUEUE_BLOCK_SIZE ", self.bfsQueueBlockSize),
             ("DELTA_DDD_CAND_SET_SIZE ", self.candidateSetSize),
@@ -334,12 +309,34 @@ class Config:
             ("RWALK_MAX_DEPTH ", self.rwalkMaxDepth),
             ("STATE_CACHING_GC_THRESHOLD ", self.stateCachingGcThreshold),
             ("STATE_CACHING_GC_RATIO ", self.stateCachingGcRatio),
-            ("SYM_HEAP_SIZE ", self.shmemHeapSize)
+            ("SYM_HEAP_SIZE ", self.shmemHeapSize),
+            ("MAX_MEMORY ", self.memoryLimit),
+            ("MAX_TIME ", self.timeLimit),
+            ("MAX_STATE ", self.stateLimit)
         ]
+        
+        for s in [s for (s, c) in syms if c ]:
+            W("#define CFG_" + s + "\n")
         for (p, v) in params:
             W("#define CFG_" + p + " " + str(v) + "\n")
 
+        for (s, c) in syms:
+            W("bool_t cfg_" + s.lower() + "\n();\n")
+
         W("\n#endif  /*  LIB_CONFIG  */\n")
+        f.close()
+
+        f = self.openFile("config.c", "w")
+        W = f.write
+        W("#include \"config.h\"\n")
+        for (s, c) in syms:
+            W("bool_t cfg_" + s.lower() + "\n() {\n")
+            W("   return ")
+            if c:
+                W("TRUE")
+            else:
+                W("FALSE")
+            W(";\n}\n");
         f.close()
 
     def handleNumericalOption(self, attr, val):

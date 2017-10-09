@@ -19,27 +19,6 @@ const bool_t WITH_TRACE =
   FALSE
 #endif
   ;
-const bool_t POR = 
-#if defined(CFG_POR)
-  TRUE
-#else
-  FALSE
-#endif
-  ;
-const bool_t PROVISO =
-#if defined(CFG_PROVISO)
-  TRUE
-#else
-  FALSE
-#endif
-  ;
-const bool_t EDGE_LEAN =
-#if defined(CFG_EDGE_LEAN)
-  TRUE
-#else
-  FALSE
-#endif
-  ;
 storage_t S;
 bfs_queue_t Q;
 pthread_barrier_t B;
@@ -75,7 +54,7 @@ void bfs_init_queue
 #else
   bool_t states_in_queue = TRUE;
 #endif
-  bool_t events_in_queue = EDGE_LEAN;
+  bool_t events_in_queue = cfg_edge_lean();
   
   Q = bfs_queue_new(no_workers, CFG_BFS_QUEUE_BLOCK_SIZE,
                     states_in_queue, events_in_queue);
@@ -178,6 +157,9 @@ void * bfs_worker
 (void * arg) {
   const worker_id_t w = (worker_id_t) (unsigned long int) arg;
   const bool_t states_in_queue = bfs_queue_states_stored(Q);
+  const bool_t por = cfg_por();
+  const bool_t proviso = cfg_proviso();
+  const bool_t edge_lean = cfg_edge_lean();
   uint32_t levels = 0;
   state_t s, succ;
   storage_id_t id_succ;
@@ -213,7 +195,7 @@ void * bfs_worker
         /**
          *  compute enabled events and apply POR
          */
-        if(POR) {
+        if(por) {
           en = state_events_reduced_mem(s, &reduced, heap);
         } else {
           en = state_events_mem(s, heap);
@@ -237,7 +219,7 @@ void * bfs_worker
          *  apply edge lean reduction after checking state property
          *  (EDGE-LEAN may remove all enabled events)
          */
-        if(EDGE_LEAN && item.e_set) {
+        if(edge_lean && item.e_set) {
           edge_lean_reduction(en, item.e);
         }
 
@@ -289,8 +271,8 @@ void * bfs_worker
              *  state is reduced then the successor must be in the
              *  queue (i.e., cyan for some worker)
              */
-            if(POR && PROVISO && reduced &&
-               !storage_get_any_cyan(S, id_succ)) {
+            if(por && proviso && reduced &&
+	       !storage_get_any_cyan(S, id_succ)) {
               reduced = FALSE;
               list_free(en);
               bfs_back_to_s();

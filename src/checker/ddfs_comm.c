@@ -32,6 +32,7 @@ const struct timespec WAIT_TIME = { 0, 10 };
 
 ddfs_comm_buffers_t BUF;
 storage_t S;
+uint16_t BASE_LEN;
 pthread_t PROD;
 pthread_t CONS[CFG_NO_COMM_WORKERS];
 uint8_t LOCK;
@@ -86,12 +87,15 @@ void ddfs_comm_process_explored_state
    *  put the state of worker w in its buffer
    */
   if(!BUF.full[w] && CAS(&BUF.status[w], BUCKET_OK, BUCKET_WRITE)) {
-    storage_get_serialised(S, id, &s, &s_char_len);
-    len = sizeof(hash_key_t)
-      + (storage_has_attr(S, ATTR_BLUE) ? sizeof(bool_t) : 0)
-      + (storage_has_attr(S, ATTR_RED) ? sizeof(bool_t) : 0)
-      + sizeof(uint16_t)
-      + s_char_len;
+    if(cfg_hash_compaction()) {
+      h = storage_get_hash(S, id);
+    } else {
+      storage_get_serialised(S, id, &s, &s_char_len);
+    }
+    len = BASE_LEN;
+    if(!cfg_hash_compaction()) {
+      len += sizeof(uint16_t) + s_char_len;
+    }
     if(len + BUF.char_len[w] > BUFFER_WORKER_SIZE) {
       BUF.full[w] = TRUE;
     } else {
@@ -120,15 +124,15 @@ void ddfs_comm_process_explored_state
         memcpy(pos, &red, sizeof(bool_t));
         pos += sizeof(bool_t);
       }
-          
-      /*  char length  */
-      memcpy(pos, &s_char_len, sizeof(uint16_t));
-      pos += sizeof(uint16_t);
-          
-      /*  state vector  */
-      memcpy(pos, s, s_char_len);
-      pos += s_char_len;
-    }    
+
+      /*  char length and state vector */
+      if(!cfg_hash_compaction()) {
+	memcpy(pos, &s_char_len, sizeof(uint16_t));
+	pos += sizeof(uint16_t);
+	memcpy(pos, s, s_char_len);
+	pos += s_char_len;
+      }
+    }
     BUF.status[w] = BUCKET_OK;
   }
 }
@@ -242,16 +246,22 @@ void * ddfs_comm_consumer
               memcpy(&red, pos, sizeof(bool_t));
               pos += sizeof(bool_t);
             }
-          
-            /*  get state vector char length  */
-            memcpy(&s_char_len, pos, sizeof(uint16_t));
-            pos += sizeof(uint16_t);
+       
+	    if(cfg_hash_compaction()) {
+	      storage_insert_serialised(S, pos, s_char_len,
+					h, w, &is_new, &sid);
+	    } else {
+	    
+	      /*  get state vector char length  */
+	      memcpy(&s_char_len, pos, sizeof(uint16_t));
+	      pos += sizeof(uint16_t);
             
-            /*  get state vector and insert it  */
-            storage_insert_serialised(S, pos, s_char_len,
-                                      h, w, &is_new, &sid);
-            pos += s_char_len;
-          
+	      /*  get state vector and insert it  */
+	      storage_insert_serialised(S, pos, s_char_len,
+		h, w, &is_new, &sid);
+	      pos += s_char_len;
+	    }
+
             /*  set the blue and red attribute of the state  */
             if(blue && storage_has_attr(S, ATTR_BLUE)) {
               storage_set_blue(S, sid, TRUE);
@@ -277,11 +287,6 @@ void ddfs_comm_start
   worker_id_t w;
   comm_worker_id_t c;
   int i = 0;
-
-  for(i = 0; i < MAX_PES; i ++) {
-    LOCK = LOCK_AVAILABLE;
-    PUB_DATA.produced[i] = FALSE;
-  }
   
   /*  shmem and symmetrical heap initialisation  */
   PES = comm_shmem_pes();
@@ -295,6 +300,13 @@ void ddfs_comm_start
     BUF.char_len[w] = 0;
     BUF.full[w] = FALSE;
     BUF.k[w] = 0;
+  }
+  BASE_LEN = sizeof(hash_key_t)
+    + (storage_has_attr(S, ATTR_BLUE) ? sizeof(bool_t) : 0)
+    + (storage_has_attr(S, ATTR_RED) ? sizeof(bool_t) : 0);
+  for(i = 0; i < MAX_PES; i ++) {
+    LOCK = LOCK_AVAILABLE;
+    PUB_DATA.produced[i] = FALSE;
   }
 
   /*  launch the producer and consumer threads  */

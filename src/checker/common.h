@@ -12,20 +12,6 @@
 
 
 /**
- * @brief Initialise some data.
- */
-void init_common
-();
-
-
-/**
- * @brief Free data initialised by init_common.
- */
-void free_common
-();
-
-
-/**
  * @typedef termination_state_t
  * @brief possible termination states of helena
  */
