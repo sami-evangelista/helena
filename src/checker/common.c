@@ -284,7 +284,7 @@ float cpu_usage
   result = 100.0 *
     ((float) ((*utime) + (*stime) - utime_before - stime_before)) /
     ((float) ((*total) - total_before));
-  return result;
+  return result * sysconf(_SC_NPROCESSORS_ONLN);
 }
 
 bool_t raise_error

@@ -1,6 +1,17 @@
 #!/bin/bash
 
-MAX=8
+MAX=$1
+HC=$2
+
+[ "$MAX" = "" ] && echo "missing \$1 = MAX # of nodes" && exit 1
+[ "$HC" = "" ] && echo "missing \$2 = hash-compaction (0/1)" && exit 1
+
+if [ "$HC" = 1 ]
+then
+    outDir=out/ddfs-hc
+else
+    outDir=out/ddfs
+fi
 
 echo -n "set terminal png size 600, 900;
 set output \"ddfs-time.png\";
@@ -34,22 +45,22 @@ do
     echo -n ", $i title '' with dots lc rgb '#000000'" >> plotC
 done
 lp=1
-ls -1 out/ddfs/*xml | \
+ls -1 $outDir/*xml | \
     awk -F'_N' '{print $1}' | \
     awk -F'/' '{print $NF}' | \
     sort -u | \
     while read m
     do
         echo $m
-        datT=out/ddfs/$m.time.dat
-        datV=out/ddfs/$m.visited.dat
-        datC=out/ddfs/$m.cpu.dat
+        datT=$outDir/$m.time.dat
+        datV=$outDir/$m.visited.dat
+        datC=$outDir/$m.cpu.dat
         echo > $datT
         echo > $datV
         echo > $datC
         for N in $(seq 1 $MAX)
         do
-            f=out/ddfs/$m"_N"$N.xml
+            f=$outDir/$m"_N"$N.xml
             if [ -f "$f" ]
             then
                 l=$(scripts/get-stat $f searchTime)
@@ -59,7 +70,7 @@ ls -1 out/ddfs/*xml | \
                 l=$(scripts/get-stat $f statesProcessed) 
                 resV=$(scripts/list-op max $l)
                 l=$(scripts/get-stat $f avgCPUUsage) 
-                resC=$(scripts/list-op max $l)
+                resC=$(scripts/list-op sum $l)
             elif [ $N = 1 ]
             then
                 break
@@ -68,14 +79,13 @@ ls -1 out/ddfs/*xml | \
             then
                 refT=$resT
                 refV=$resV
-                refC=$resC
                 echo 1 1 >> $datT
                 echo 1 1 >> $datV
                 echo 1 1 >> $datC
             else
                 echo $N $(echo "scale = 2 ; $refT / $resT" | bc) >> $datT
                 echo $N $(echo "scale = 2 ; $resV / $refV" | bc) >> $datV
-                echo $N $(echo "scale = 2 ; $resC / $refC" | bc) >> $datC
+                echo $N $(echo "scale = 2 ; ($resC * 100) / $N" | bc) >> $datC
             fi
         done
         m=$(echo $m | sed 's/_/-/g')
