@@ -8,13 +8,13 @@ HC=$2
 
 if [ "$HC" = 1 ]
 then
-    outDir=out/ddfs-hc
+    outDir=out/dbfs-hc
 else
-    outDir=out/ddfs
+    outDir=out/dbfs
 fi
 
 echo -n "set terminal png size 600, 900;
-set output \"ddfs-time.png\";
+set output \"dbfs-time.png\";
 set xtics 1;
 set xrange [1:$MAX];
 set yrange [0.75:$MAX];
@@ -22,16 +22,7 @@ set key outside vertical center bottom font \",8\" box;
 set lmargin 4;
 plot x with lines linestyle 1 lw 2 lc rgb '#000000' title \"optimal\"" > plotT
 echo -n "set terminal png size 600, 900;
-set output \"ddfs-visited.png\";
-set xtics 1;
-set xrange [1:$MAX];
-set yrange [0:1];
-set key outside vertical center bottom font \",8\" box;
-set lmargin 4;
-set size ratio 0.5;
-plot 1/x with lines linestyle 1 lw 2 lc rgb '#000000' title \"optimal\"" > plotV
-echo -n "set terminal png size 600, 900;
-set output \"ddfs-cpu.png\";
+set output \"dbfs-cpu.png\";
 set xtics 1;
 set xrange [1:$MAX];
 set yrange [0:$((MAX / 2))];
@@ -66,9 +57,7 @@ ls -1 $outDir/*xml | \
                 l=$(scripts/get-stat $f searchTime)
                 resT=$(scripts/list-op min $l)
                 l=$(scripts/get-stat $f statesStored)
-                st=$(echo "scale=1;"$(scripts/list-op max $l) "/1000000" | bc)
-                l=$(scripts/get-stat $f statesProcessed) 
-                resV=$(scripts/list-op max $l)
+                st=$(scripts/list-op sum $l)
                 l=$(scripts/get-stat $f avgCPUUsage) 
                 resC=$(scripts/list-op sum $l)
             elif [ $N = 1 ]
@@ -77,24 +66,27 @@ ls -1 $outDir/*xml | \
             fi
             if [ $N = 1 ]
             then
+		refSt=$st
                 refT=$resT
                 refV=$resV
                 echo 1 1 >> $datT
                 echo 1 1 >> $datV
                 echo 1 1 >> $datC
             else
+		if [ $refSt != $st ]
+		then
+		    echo erreur N=$N, ref=$refSt, st=$st
+		fi
                 echo $N $(echo "scale = 2 ; $refT / $resT" | bc) >> $datT
-                echo $N $(echo "scale = 2 ; $resV / $refV" | bc) >> $datV
                 echo $N $(echo "scale = 2 ; $resC / ($N * 100)" | bc) >> $datC
             fi
         done
         m=$(echo $m | sed 's/_/-/g')
         echo -n ", \"$datT\" title \"$m (${st}E6 st.)\" with lp ls "$lp >> plotT
-        echo -n ", \"$datV\" title \"$m (${st}E6 st.)\" with lp ls "$lp >> plotV
         echo -n ", \"$datC\" title \"$m (${st}E6 st.)\" with lp ls "$lp >> plotC
         lp=$((lp + 1))
     done
-for l in V T C
+for l in T C
 do
     echo ";" >> plot$l
     cat plot$l
