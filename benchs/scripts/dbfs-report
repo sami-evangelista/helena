@@ -58,8 +58,10 @@ ls -1 $outDir/*xml | \
                 resT=$(scripts/list-op min $l)
                 l=$(scripts/get-stat $f statesStored)
                 st=$(scripts/list-op sum $l)
-                l=$(scripts/get-stat $f avgCPUUsage) 
+                l=$(scripts/get-stat $f avgCPUUsage)
                 resC=$(scripts/list-op sum $l)
+		l=$(scripts/get-stat $f arcs)
+		tr=$(scripts/list-op sum $l)
             elif [ $N = 1 ]
             then
                 break
@@ -82,8 +84,11 @@ ls -1 $outDir/*xml | \
             fi
         done
         m=$(echo $m | sed 's/_/-/g')
-        echo -n ", \"$datT\" title \"$m (${st}E6 st.)\" with lp ls "$lp >> plotT
-        echo -n ", \"$datC\" title \"$m (${st}E6 st.)\" with lp ls "$lp >> plotC
+	S=$(echo "scale = 1 ; $st/1000000" | bc)
+	T=$(echo "scale = 1 ; $tr/1000000" | bc)
+	t="$m (|S|=${S}E6, |T|=${T}E6)"
+        echo -n ", \"$datT\" title \"$t\" with lp ls "$lp >> plotT
+        echo -n ", \"$datC\" title \"$t\" with lp ls "$lp >> plotC
         lp=$((lp + 1))
     done
 for l in T C

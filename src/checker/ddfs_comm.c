@@ -9,7 +9,7 @@
 #define CONSUME_PERIOD_MS  5
 #define CONSUME_WAIT_MS    1
 
-#define BUFFER_WORKER_SIZE (CFG_SYM_HEAP_SIZE / CFG_NO_WORKERS)
+#define BUFFER_WORKER_SIZE (CFG_SHMEM_HEAP_SIZE / CFG_NO_WORKERS)
 #define BUCKET_OK          1
 #define BUCKET_WRITE       2
 #define LOCK_AVAILABLE     1
@@ -48,7 +48,7 @@ typedef struct {
 /**
  *  the symmetric heap and shared static data
  */
-static H[CFG_SYM_HEAP_SIZE];
+static H[CFG_SHMEM_HEAP_SIZE];
 static pub_data_t PUB_DATA;
 
 void ddfs_comm_process_explored_state
@@ -204,7 +204,7 @@ void * ddfs_comm_consumer
   storage_id_t sid;
   bit_vector_t s;
   bool_t red = FALSE, blue = FALSE, is_new;
-  char buffer[CFG_SYM_HEAP_SIZE];
+  char buffer[CFG_SHMEM_HEAP_SIZE];
   hash_key_t h;
   pub_data_t remote_data;
   

@@ -33,9 +33,9 @@ bfs_queue_t Q;
 pthread_t CW[CFG_NO_COMM_WORKERS];
 heap_t COMM_HEAPS[CFG_NO_COMM_WORKERS];
 worker_buffers_t BUF;
-uint32_t SYM_HEAP_SIZE;
-uint32_t SYM_HEAP_SIZE_WORKER;
-uint32_t SYM_HEAP_SIZE_PE;
+uint32_t SHMEM_HEAP_SIZE;
+uint32_t SHMEM_HEAP_SIZE_WORKER;
+uint32_t SHMEM_HEAP_SIZE_PE;
 int PES;
 int ME;
 
@@ -62,7 +62,7 @@ bool_t REMOTE_TERM[MAX_PES];
 static bool_t H_TERM = FALSE;
 static buffer_data_t H_DATA[CFG_NO_WORKERS][MAX_PES];
 static uint64_t H_QUEUE_SIZE = 0;
-static char H[CFG_SYM_HEAP_SIZE];
+static char H[CFG_SHMEM_HEAP_SIZE];
 
 
 void dbfs_comm_init_term_data
@@ -171,13 +171,13 @@ void dbfs_comm_send_buffer
 (worker_id_t w,
  int pe) {
   buffer_data_t data;
-  char buffer[SYM_HEAP_SIZE_WORKER];
+  char buffer[SHMEM_HEAP_SIZE_WORKER];
   buffer_serialisation_data_t buf;
 
 #if defined(DBFS_COMM_DEBUG)
   assert(hash_tbl_size(BUF.states[w][pe]) <= WORKER_STATE_BUFFER_LEN);
   assert(pe != ME);
-  assert(BUF.len[w][pe] < SYM_HEAP_SIZE_WORKER);
+  assert(BUF.len[w][pe] < SHMEM_HEAP_SIZE_WORKER);
 #endif
   
   /**
@@ -188,7 +188,7 @@ void dbfs_comm_send_buffer
   /**
    * send my states to the remote PE
    */
-  memset(buffer, 0, SYM_HEAP_SIZE_WORKER);
+  memset(buffer, 0, SHMEM_HEAP_SIZE_WORKER);
   buf.pos = 0;
   buf.buffer = buffer;
   hash_tbl_fold_serialised(BUF.states[w][pe], &dbfs_comm_fill_buffer, &buf);
@@ -273,7 +273,7 @@ void dbfs_comm_process_state
    * the buffer content to the remote pe
    */
   if((BUF.len[w][pe] + sizeof(hash_key_t) + sizeof(uint16_t) + len >
-      SYM_HEAP_SIZE_WORKER)
+      SHMEM_HEAP_SIZE_WORKER)
      || (hash_tbl_size(BUF.states[w][pe]) == WORKER_STATE_BUFFER_LEN)) {
     dbfs_comm_send_buffer(w, pe);
   }
@@ -297,7 +297,7 @@ void dbfs_comm_worker_process_incoming_states
   bool_t states_received = TRUE, is_new;
   hash_key_t h;
   buffer_data_t data;
-  char buffer[SYM_HEAP_SIZE_WORKER];
+  char buffer[SHMEM_HEAP_SIZE_WORKER];
   storage_id_t sid;
   bfs_queue_item_t item;
   state_t s;
@@ -308,7 +308,7 @@ void dbfs_comm_worker_process_incoming_states
     pos = 0;
     for(pe = 0; pe < PES; pe ++) {
       if(pe != ME) {
-        for(x = 0; x < CFG_NO_WORKERS; x ++, pos += SYM_HEAP_SIZE_WORKER) {
+        for(x = 0; x < CFG_NO_WORKERS; x ++, pos += SHMEM_HEAP_SIZE_WORKER) {
           pthread_mutex_lock(&DBFS_MUTEX);
           if(0 == H_DATA[x][pe].no_states) {
             pthread_mutex_unlock(&DBFS_MUTEX);
@@ -473,9 +473,9 @@ void dbfs_comm_start
   /* shmem initialisation */
   PES = comm_shmem_pes();
   ME = comm_shmem_me();
-  SYM_HEAP_SIZE_WORKER = CFG_SYM_HEAP_SIZE / ((PES) * CFG_NO_WORKERS);
-  SYM_HEAP_SIZE_PE = CFG_NO_WORKERS * SYM_HEAP_SIZE_WORKER;
-  SYM_HEAP_SIZE = SYM_HEAP_SIZE_PE * (PES);
+  SHMEM_HEAP_SIZE_WORKER = CFG_SHMEM_HEAP_SIZE / ((PES) * CFG_NO_WORKERS);
+  SHMEM_HEAP_SIZE_PE = CFG_NO_WORKERS * SHMEM_HEAP_SIZE_WORKER;
+  SHMEM_HEAP_SIZE = SHMEM_HEAP_SIZE_PE * (PES);
   assert(PES <= MAX_PES);
 
   /* initialise global variables */
@@ -493,9 +493,9 @@ void dbfs_comm_start
     BUF.heaps[w] = mem_alloc(SYSTEM_HEAP, sizeof(heap_t) * PES);
   }
   for(pe = 0; pe < PES; pe ++) {
-    remote_pos = ME * SYM_HEAP_SIZE_PE;
+    remote_pos = ME * SHMEM_HEAP_SIZE_PE;
     if(ME > pe) {
-      remote_pos -= SYM_HEAP_SIZE_PE;
+      remote_pos -= SHMEM_HEAP_SIZE_PE;
     }
     for(w = 0; w < CFG_NO_WORKERS; w ++) {
       H_DATA[w][pe].len = 0;
@@ -507,7 +507,7 @@ void dbfs_comm_start
         BUF.states[w][pe] = NULL;
         BUF.heaps[w][pe] = local_heap_new();
         dbfs_comm_reinit_buffer(w, pe);
-        remote_pos += SYM_HEAP_SIZE_WORKER;
+        remote_pos += SHMEM_HEAP_SIZE_WORKER;
       }
     }
   }

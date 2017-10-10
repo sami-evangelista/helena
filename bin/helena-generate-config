@@ -106,6 +106,7 @@ def printHelp():
     print "  -W   --workers=N"
     print "  -C   --comm-workers=N"
     print "  -cs  --candidate-set-size=N"
+    print "  -hs  --shmem-heap-size=N"
     #print "  -dc  --ddfs-comm-strategy={K<N>|M|D<N>} ... {K<N>|M|D<N>}"
     #print "  -mf  --machine-file=FILE"
     print ""
@@ -216,7 +217,6 @@ class Config:
         f = self.openFile("config.h", "w")
         W = f.write
         now = datetime.now()
-        W("#include \"common.h\"\n")
         W("#ifndef LIB_CONFIG\n")
         W("#define LIB_CONFIG\n")
         W("\n")
@@ -228,28 +228,14 @@ class Config:
         W("#define CFG_FILE_PATH \"" + os.path.realpath(self.inFile) + "\"\n")
         if self.inFileExt == ".lna":
             W("#define CFG_LANGUAGE \"helena\"\n")
-            W("#define CFG_LANGUAGE_LNA\n")
-            W("#define CFG_EVENT_UNDOABLE\n")
-            W("#define CFG_MODEL_HAS_GRAPH_ROUTINES\n")
         elif self.inFileExt == ".dve":
             (model, _) = os.path.splitext(os.path.basename(self.inFile))
             if model == "": model = "model"
             W("#define CFG_MODEL_NAME \"" + model + "\"\n")
             W("#define CFG_LANGUAGE \"dve\"\n")
-            W("#define CFG_LANGUAGE_DVE\n"),
 
-        #  search algorithm and storage type
-        W("#define CFG_ALGO_" + self.algo.replace("-", "_") + "\n")
-        if self.algo == FRONTIER:
-            W("#define CFG_HASH_STORAGE\n")
-        elif self.algo == BFS:
-            W("#define CFG_HASH_STORAGE\n")
-        elif self.algo == DFS:
-            W("#define CFG_HASH_STORAGE\n")
-        elif self.algo == DBFS:
-            W("#define CFG_HASH_STORAGE\n")
-        elif self.algo == DDFS:
-            W("#define CFG_HASH_STORAGE\n")
+        #  communication strategy of DDFS
+        if self.algo == DDFS:
             if len(self.ddfsCommStrat) > 0:
                 W("#define CFG_DDFS_COMM_STRAT\n")                
             K = False
@@ -265,21 +251,10 @@ class Config:
                 elif strat == "M" and not M:
                     W("#define CFG_DDFS_COMM_STRAT_MINE\n")
                     M = True
-        elif self.algo == DELTA_DDD:
-            W("#define CFG_DELTA_DDD_STORAGE\n")
-        elif self.algo == RWALK:
-            pass
 
-        #  action to perform
-        W("#define CFG_ACTION_" + self.action.replace("-", "_") + "\n")
+        #  property analysed
         if self.action == CHECK:
             W("#define CFG_PROPERTY \"" + self.prop + "\"\n")
-            if self.propType == LTL:
-                W("#define CFG_ACTION_CHECK_LTL\n")
-            elif self.propType == STATE:
-                W("#define CFG_ACTION_CHECK_SAFETY\n")
-            elif self.propType == DEADLOCK:
-                W("#define CFG_ACTION_CHECK_SAFETY\n")
 
         syms = [
             ("STATE_CACHING", self.stateCaching),
@@ -287,56 +262,76 @@ class Config:
             ("PARALLEL", self.workers > 1),
             ("EDGE_LEAN", self.edgeLean),
             ("POR", self.partialOrder),
-            ("PROVISO", self.partialOrder and self.propType is not None and \
-             self.propType != DEADLOCK),
+            ("PROVISO", self.partialOrder and self.propType is not None
+             and self.propType != DEADLOCK),
             ("HASH_COMPACTION", self.hashCompaction),
             ("MEMORY_LIMITED", self.memoryLimit != 0),
             ("TIME_LIMITED", self.timeLimit != 0),
             ("STATE_LIMITED", self.stateLimit != 0),
             ("TRACE_" + self.traceType, True),
-            ("WITH_OBSERVER", self.withObserver)
+            ("WITH_OBSERVER", self.withObserver),
+            ("HASH_STORAGE", self.algo not in [ DELTA_DDD, RWALK ]),
+            ("DELTA_DDD_STORAGE", self.algo == DELTA_DDD),
+            ("ACTION_EXPLORE", self.action == EXPLORE),
+            ("ACTION_SIMULATE", self.action == SIMULATE),
+            ("ACTION_BUILD_GRAPH", self.action == BUILD_GRAPH),
+            ("ACTION_CHECK", self.action == CHECK),
+            ("ACTION_CHECK_LTL",
+             self.action == CHECK and self.propType == LTL),
+            ("ACTION_CHECK_SAFETY",
+             self.action == CHECK and self.propType in [ STATE, DEADLOCK]),
+            ("ALGO_BFS", self.algo == BFS),
+            ("ALGO_DFS", self.algo == DFS),
+            ("ALGO_DBFS", self.algo == DBFS),
+            ("ALGO_DDFS", self.algo == DDFS),
+            ("ALGO_FRONTIER", self.algo == FRONTIER),
+            ("ALGO_RWALK", self.algo == RWALK),
+            ("ALGO_DELTA_DDD", self.algo == DELTA_DDD),
+            ("LANGUAGE_LNA", self.inFileExt == ".lna"),
+            ("EVENT_UNDOABLE", self.inFileExt == ".lna"),
+            ("MODEL_HAS_GRAPH_ROUTINES", self.inFileExt == ".lna"),
+            ("LANGUAGE_DVE", self.inFileExt == ".dve")
         ]
 
         params = [
-            ("BFS_QUEUE_BLOCK_SIZE ", self.bfsQueueBlockSize),
-            ("DELTA_DDD_CAND_SET_SIZE ", self.candidateSetSize),
-            ("DFS_STACK_BLOCK_SIZE ", self.dfsStackBlockSize),
-            ("HASH_SIZE ", pow(2, self.hashSize)),
-            ("HASH_SIZE_BITS ", self.hashSize),
-            ("HASH_SIZE_M ", pow(2, self.hashSize) - 1),
-            ("NO_WORKERS ", self.workers),
-            ("NO_COMM_WORKERS ", self.commWorkers),
-            ("RWALK_MAX_DEPTH ", self.rwalkMaxDepth),
-            ("STATE_CACHING_GC_THRESHOLD ", self.stateCachingGcThreshold),
-            ("STATE_CACHING_GC_RATIO ", self.stateCachingGcRatio),
-            ("SYM_HEAP_SIZE ", self.shmemHeapSize),
-            ("MAX_MEMORY ", self.memoryLimit),
-            ("MAX_TIME ", self.timeLimit),
-            ("MAX_STATE ", self.stateLimit)
+            ("BFS_QUEUE_BLOCK_SIZE", self.bfsQueueBlockSize),
+            ("DELTA_DDD_CAND_SET_SIZE", self.candidateSetSize),
+            ("DFS_STACK_BLOCK_SIZE", self.dfsStackBlockSize),
+            ("HASH_SIZE", pow(2, self.hashSize)),
+            ("HASH_SIZE_BITS", self.hashSize),
+            ("HASH_SIZE_M", pow(2, self.hashSize) - 1),
+            ("NO_WORKERS", self.workers),
+            ("NO_COMM_WORKERS", self.commWorkers),
+            ("RWALK_MAX_DEPTH", self.rwalkMaxDepth),
+            ("STATE_CACHING_GC_THRESHOLD", self.stateCachingGcThreshold),
+            ("STATE_CACHING_GC_RATIO", self.stateCachingGcRatio),
+            ("SHMEM_HEAP_SIZE", self.shmemHeapSize),
+            ("MAX_MEMORY", self.memoryLimit),
+            ("MAX_TIME", self.timeLimit),
+            ("MAX_STATE", self.stateLimit)
         ]
         
         for s in [s for (s, c) in syms if c ]:
             W("#define CFG_" + s + "\n")
         for (p, v) in params:
             W("#define CFG_" + p + " " + str(v) + "\n")
-
+        W("\n")
         for (s, c) in syms:
-            W("bool_t cfg_" + s.lower() + "\n();\n")
+            W("char cfg_" + s.lower() + "();\n")
 
         W("\n#endif  /*  LIB_CONFIG  */\n")
         f.close()
 
         f = self.openFile("config.c", "w")
         W = f.write
-        W("#include \"config.h\"\n")
+        W("#include \"config.h\"\n\n")
         for (s, c) in syms:
-            W("bool_t cfg_" + s.lower() + "\n() {\n")
-            W("   return ")
+            W("char cfg_" + s.lower() + "() { return ")
             if c:
-                W("TRUE")
+                W("1")
             else:
-                W("FALSE")
-            W(";\n}\n");
+                W("0")
+            W("; }\n");
         f.close()
 
     def handleNumericalOption(self, attr, val):
@@ -407,6 +402,8 @@ class Config:
             elif opt in [ "-cs", "--candidate-set-size" ]:
                 recognized = self.handleNumericalOption("candidateSetSize",
                                                         val)
+            elif opt in [ "-hs", "--shmem-heap-size" ]:
+                recognized = self.handleNumericalOption("shmemHeapSize", val)
             elif opt in [ "-t", "--hash-size" ]:
                 recognized = self.handleNumericalOption("hashSize", val)
                 if self.hashSize > 32:

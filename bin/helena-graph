@@ -40,8 +40,10 @@ def getNodeValue(name, root = None):
     return e.childNodes[0].nodeValue
 
 def divide(num, den):
-    if den == 0: return "--"
-    else: return str(num / den)
+    if den == 0:
+        return "--"
+    else:
+        return str("{0:.2f}".format(float(num) / float(den)))
 
 if len(sys.argv) != 3:
     print "usage: helena-graph model-name  out-file"
