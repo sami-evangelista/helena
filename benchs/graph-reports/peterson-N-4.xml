@@ -1,0 +1,3411 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<state-space-info>
+
+<model>peterson</model>
+<language>helena</language>
+<date>October, 10, 2017 at 11:27:15</date>
+<filePath>/home/sami/git/helena/examples/peterson.lna</filePath>
+<modelParameters><modelParameter><modelParameterName>N</modelParameterName><modelParameterValue>4</modelParameterValue></modelParameter></modelParameters><states>3407946</states>
+<edges>13631784</edges>
+
+<bfs-info>
+<levels>130</levels>
+<max-level>94138</max-level>
+<back-level-edges>2614120</back-level-edges>
+<max-back-level-edge>55</max-back-level-edge>
+<avg-back-level-edge>9.98</avg-back-level-edge>
+<bfs-levels>
+<level id="0"><states>1</states><edges>4</edges></level>
+<level id="1"><states>4</states><edges>16</edges></level>
+<level id="2"><states>10</states><edges>40</edges></level>
+<level id="3"><states>20</states><edges>80</edges></level>
+<level id="4"><states>41</states><edges>164</edges></level>
+<level id="5"><states>92</states><edges>368</edges></level>
+<level id="6"><states>188</states><edges>752</edges></level>
+<level id="7"><states>344</states><edges>1376</edges></level>
+<level id="8"><states>585</states><edges>2340</edges></level>
+<level id="9"><states>933</states><edges>3732</edges></level>
+<level id="10"><states>1410</states><edges>5640</edges></level>
+<level id="11"><states>2032</states><edges>8128</edges></level>
+<level id="12"><states>2818</states><edges>11272</edges></level>
+<level id="13"><states>3809</states><edges>15236</edges></level>
+<level id="14"><states>5036</states><edges>20144</edges></level>
+<level id="15"><states>6536</states><edges>26144</edges></level>
+<level id="16"><states>8353</states><edges>33412</edges></level>
+<level id="17"><states>10507</states><edges>42028</edges></level>
+<level id="18"><states>13021</states><edges>52084</edges></level>
+<level id="19"><states>15877</states><edges>63508</edges></level>
+<level id="20"><states>18993</states><edges>75972</edges></level>
+<level id="21"><states>22291</states><edges>89164</edges></level>
+<level id="22"><states>25667</states><edges>102668</edges></level>
+<level id="23"><states>28999</states><edges>115996</edges></level>
+<level id="24"><states>32200</states><edges>128800</edges></level>
+<level id="25"><states>35149</states><edges>140596</edges></level>
+<level id="26"><states>37726</states><edges>150904</edges></level>
+<level id="27"><states>39797</states><edges>159188</edges></level>
+<level id="28"><states>41167</states><edges>164668</edges></level>
+<level id="29"><states>41729</states><edges>166916</edges></level>
+<level id="30"><states>41439</states><edges>165756</edges></level>
+<level id="31"><states>40274</states><edges>161096</edges></level>
+<level id="32"><states>38304</states><edges>153216</edges></level>
+<level id="33"><states>35615</states><edges>142460</edges></level>
+<level id="34"><states>32351</states><edges>129404</edges></level>
+<level id="35"><states>28727</states><edges>114908</edges></level>
+<level id="36"><states>24954</states><edges>99816</edges></level>
+<level id="37"><states>21256</states><edges>85024</edges></level>
+<level id="38"><states>17816</states><edges>71264</edges></level>
+<level id="39"><states>14789</states><edges>59156</edges></level>
+<level id="40"><states>12309</states><edges>49236</edges></level>
+<level id="41"><states>10449</states><edges>41796</edges></level>
+<level id="42"><states>9257</states><edges>37028</edges></level>
+<level id="43"><states>8713</states><edges>34852</edges></level>
+<level id="44"><states>8735</states><edges>34940</edges></level>
+<level id="45"><states>9221</states><edges>36884</edges></level>
+<level id="46"><states>10021</states><edges>40084</edges></level>
+<level id="47"><states>11011</states><edges>44044</edges></level>
+<level id="48"><states>12086</states><edges>48344</edges></level>
+<level id="49"><states>13135</states><edges>52540</edges></level>
+<level id="50"><states>14098</states><edges>56392</edges></level>
+<level id="51"><states>14920</states><edges>59680</edges></level>
+<level id="52"><states>15579</states><edges>62316</edges></level>
+<level id="53"><states>16083</states><edges>64332</edges></level>
+<level id="54"><states>16439</states><edges>65756</edges></level>
+<level id="55"><states>16711</states><edges>66844</edges></level>
+<level id="56"><states>16953</states><edges>67812</edges></level>
+<level id="57"><states>17226</states><edges>68904</edges></level>
+<level id="58"><states>17615</states><edges>70460</edges></level>
+<level id="59"><states>18146</states><edges>72584</edges></level>
+<level id="60"><states>18850</states><edges>75400</edges></level>
+<level id="61"><states>19753</states><edges>79012</edges></level>
+<level id="62"><states>20827</states><edges>83308</edges></level>
+<level id="63"><states>22043</states><edges>88172</edges></level>
+<level id="64"><states>23378</states><edges>93512</edges></level>
+<level id="65"><states>24825</states><edges>99300</edges></level>
+<level id="66"><states>26391</states><edges>105564</edges></level>
+<level id="67"><states>28091</states><edges>112364</edges></level>
+<level id="68"><states>29974</states><edges>119896</edges></level>
+<level id="69"><states>32111</states><edges>128444</edges></level>
+<level id="70"><states>34576</states><edges>138304</edges></level>
+<level id="71"><states>37418</states><edges>149672</edges></level>
+<level id="72"><states>40740</states><edges>162960</edges></level>
+<level id="73"><states>44672</states><edges>178688</edges></level>
+<level id="74"><states>49269</states><edges>197076</edges></level>
+<level id="75"><states>54542</states><edges>218168</edges></level>
+<level id="76"><states>60318</states><edges>241272</edges></level>
+<level id="77"><states>66334</states><edges>265336</edges></level>
+<level id="78"><states>72395</states><edges>289580</edges></level>
+<level id="79"><states>78216</states><edges>312864</edges></level>
+<level id="80"><states>83511</states><edges>334044</edges></level>
+<level id="81"><states>88021</states><edges>352084</edges></level>
+<level id="82"><states>91462</states><edges>365848</edges></level>
+<level id="83"><states>93568</states><edges>374272</edges></level>
+<level id="84"><states>94138</states><edges>376552</edges></level>
+<level id="85"><states>93176</states><edges>372704</edges></level>
+<level id="86"><states>90747</states><edges>362988</edges></level>
+<level id="87"><states>86905</states><edges>347620</edges></level>
+<level id="88"><states>81755</states><edges>327020</edges></level>
+<level id="89"><states>75439</states><edges>301756</edges></level>
+<level id="90"><states>68257</states><edges>273028</edges></level>
+<level id="91"><states>60640</states><edges>242560</edges></level>
+<level id="92"><states>52992</states><edges>211968</edges></level>
+<level id="93"><states>45702</states><edges>182808</edges></level>
+<level id="94"><states>39126</states><edges>156504</edges></level>
+<level id="95"><states>33543</states><edges>134172</edges></level>
+<level id="96"><states>29169</states><edges>116676</edges></level>
+<level id="97"><states>26097</states><edges>104388</edges></level>
+<level id="98"><states>24297</states><edges>97188</edges></level>
+<level id="99"><states>23583</states><edges>94332</edges></level>
+<level id="100"><states>23724</states><edges>94896</edges></level>
+<level id="101"><states>24489</states><edges>97956</edges></level>
+<level id="102"><states>25521</states><edges>102084</edges></level>
+<level id="103"><states>26562</states><edges>106248</edges></level>
+<level id="104"><states>27435</states><edges>109740</edges></level>
+<level id="105"><states>27915</states><edges>111660</edges></level>
+<level id="106"><states>27897</states><edges>111588</edges></level>
+<level id="107"><states>27339</states><edges>109356</edges></level>
+<level id="108"><states>26184</states><edges>104736</edges></level>
+<level id="109"><states>24480</states><edges>97920</edges></level>
+<level id="110"><states>22347</states><edges>89388</edges></level>
+<level id="111"><states>19881</states><edges>79524</edges></level>
+<level id="112"><states>17217</states><edges>68868</edges></level>
+<level id="113"><states>14520</states><edges>58080</edges></level>
+<level id="114"><states>11919</states><edges>47676</edges></level>
+<level id="115"><states>9516</states><edges>38064</edges></level>
+<level id="116"><states>7380</states><edges>29520</edges></level>
+<level id="117"><states>5535</states><edges>22140</edges></level>
+<level id="118"><states>4008</states><edges>16032</edges></level>
+<level id="119"><states>2808</states><edges>11232</edges></level>
+<level id="120"><states>1896</states><edges>7584</edges></level>
+<level id="121"><states>1227</states><edges>4908</edges></level>
+<level id="122"><states>762</states><edges>3048</edges></level>
+<level id="123"><states>453</states><edges>1812</edges></level>
+<level id="124"><states>258</states><edges>1032</edges></level>
+<level id="125"><states>141</states><edges>564</edges></level>
+<level id="126"><states>69</states><edges>276</edges></level>
+<level id="127"><states>30</states><edges>120</edges></level>
+<level id="128"><states>12</states><edges>48</edges></level>
+<level id="129"><states>3</states><edges>12</edges></level>
+</bfs-levels>
+<back-level-lengths>
+<length id="0">0.0000</length>
+<length id="1">0.0000</length>
+<length id="2">0.0000</length>
+<length id="3">41.6116</length>
+<length id="4">0.0000</length>
+<length id="5">0.0000</length>
+<length id="6">13.0152</length>
+<length id="7">11.7824</length>
+<length id="8">0.0000</length>
+<length id="9">0.0000</length>
+<length id="10">7.6729</length>
+<length id="11">3.4026</length>
+<length id="12">0.0000</length>
+<length id="13">0.0000</length>
+<length id="14">11.4499</length>
+<length id="15">0.0000</length>
+<length id="16">0.0000</length>
+<length id="17">0.0000</length>
+<length id="18">0.0000</length>
+<length id="19">0.0000</length>
+<length id="20">0.0000</length>
+<length id="21">0.0000</length>
+<length id="22">0.3005</length>
+<length id="23">0.0000</length>
+<length id="24">0.0000</length>
+<length id="25">0.3813</length>
+<length id="26">0.6569</length>
+<length id="27">0.0000</length>
+<length id="28">0.0000</length>
+<length id="29">4.3862</length>
+<length id="30">0.0000</length>
+<length id="31">0.0000</length>
+<length id="32">0.0000</length>
+<length id="33">0.0000</length>
+<length id="34">0.0000</length>
+<length id="35">0.0000</length>
+<length id="36">0.0000</length>
+<length id="37">0.2277</length>
+<length id="38">0.0000</length>
+<length id="39">0.0000</length>
+<length id="40">0.1227</length>
+<length id="41">0.2333</length>
+<length id="42">0.0000</length>
+<length id="43">0.0000</length>
+<length id="44">0.5772</length>
+<length id="45">0.0000</length>
+<length id="46">0.0000</length>
+<length id="47">0.0000</length>
+<length id="48">0.0000</length>
+<length id="49">0.0000</length>
+<length id="50">0.0000</length>
+<length id="51">0.0000</length>
+<length id="52">0.0000</length>
+<length id="53">0.0000</length>
+<length id="54">0.0000</length>
+<length id="55">4.1796</length>
+</back-level-lengths>
+</bfs-info>
+
+<degrees>
+<avg>4.0000</avg>
+<max-in>16</max-in>
+<max-out>4</max-out>
+<degree id="0"><in>0</in><out>0</out></degree>
+<degree id="1"><in>13066</in><out>0</out></degree>
+<degree id="2"><in>214530</in><out>0</out></degree>
+<degree id="3"><in>982239</in><out>0</out></degree>
+<degree id="4"><in>1398462</in><out>3407946</out></degree>
+<degree id="5"><in>437053</in><out>0</out></degree>
+<degree id="6"><in>218332</in><out>0</out></degree>
+<degree id="7"><in>69878</in><out>0</out></degree>
+<degree id="8"><in>38540</in><out>0</out></degree>
+<degree id="9"><in>13020</in><out>0</out></degree>
+<degree id="10"><in>15206</in><out>0</out></degree>
+<degree id="11"><in>5094</in><out>0</out></degree>
+<degree id="12"><in>1894</in><out>0</out></degree>
+<degree id="13"><in>496</in><out>0</out></degree>
+<degree id="14"><in>123</in><out>0</out></degree>
+<degree id="15"><in>10</in><out>0</out></degree>
+<degree id="16"><in>3</in><out>0</out></degree>
+</degrees>
+
+<scc-info>
+<count>459677</count>
+<trivial>97181</trivial>
+<terminal>6</terminal>
+<largest>18920</largest>
+</scc-info>
+
+<dfs-info>
+<stack-size id="3407">0.0930</stack-size>
+<stack-size id="6814">0.1009</stack-size>
+<stack-size id="10221">0.1011</stack-size>
+<stack-size id="13628">0.1052</stack-size>
+<stack-size id="17035">0.0996</stack-size>
+<stack-size id="20442">0.0481</stack-size>
+<stack-size id="23849">0.1144</stack-size>
+<stack-size id="27256">0.1131</stack-size>
+<stack-size id="30663">0.1130</stack-size>
+<stack-size id="34070">0.1203</stack-size>
+<stack-size id="37477">0.1060</stack-size>
+<stack-size id="40884">0.0599</stack-size>
+<stack-size id="44291">0.1246</stack-size>
+<stack-size id="47698">0.1242</stack-size>
+<stack-size id="51105">0.1234</stack-size>
+<stack-size id="54512">0.1325</stack-size>
+<stack-size id="57919">0.0047</stack-size>
+<stack-size id="61326">0.0992</stack-size>
+<stack-size id="64733">0.0946</stack-size>
+<stack-size id="68140">0.0941</stack-size>
+<stack-size id="71547">0.0972</stack-size>
+<stack-size id="74954">0.0937</stack-size>
+<stack-size id="78361">0.0013</stack-size>
+<stack-size id="81768">0.0624</stack-size>
+<stack-size id="85175">0.1145</stack-size>
+<stack-size id="88582">0.1141</stack-size>
+<stack-size id="91989">0.1159</stack-size>
+<stack-size id="95396">0.1116</stack-size>
+<stack-size id="98803">0.0107</stack-size>
+<stack-size id="102210">0.0982</stack-size>
+<stack-size id="105617">0.1065</stack-size>
+<stack-size id="109024">0.1075</stack-size>
+<stack-size id="112431">0.1156</stack-size>
+<stack-size id="115838">0.1027</stack-size>
+<stack-size id="119245">0.0014</stack-size>
+<stack-size id="122652">0.0011</stack-size>
+<stack-size id="126059">0.0013</stack-size>
+<stack-size id="129466">0.0005</stack-size>
+<stack-size id="132873">0.0016</stack-size>
+<stack-size id="136280">0.0012</stack-size>
+<stack-size id="139687">0.0018</stack-size>
+<stack-size id="143094">0.0010</stack-size>
+<stack-size id="146501">0.0004</stack-size>
+<stack-size id="149908">0.0018</stack-size>
+<stack-size id="153315">0.0009</stack-size>
+<stack-size id="156722">0.0008</stack-size>
+<stack-size id="160129">0.0005</stack-size>
+<stack-size id="163536">0.0009</stack-size>
+<stack-size id="166943">0.0007</stack-size>
+<stack-size id="170350">0.0009</stack-size>
+<stack-size id="173757">0.0009</stack-size>
+<stack-size id="177164">0.0009</stack-size>
+<stack-size id="180571">0.0009</stack-size>
+<stack-size id="183978">0.0028</stack-size>
+<stack-size id="187385">0.0021</stack-size>
+<stack-size id="190792">0.0002</stack-size>
+<stack-size id="194199">0.0007</stack-size>
+<stack-size id="197606">0.0004</stack-size>
+<stack-size id="201013">0.0019</stack-size>
+<stack-size id="204420">0.0016</stack-size>
+<stack-size id="207827">0.0020</stack-size>
+<stack-size id="211234">0.0015</stack-size>
+<stack-size id="214641">0.0023</stack-size>
+<stack-size id="218048">0.0027</stack-size>
+<stack-size id="221455">0.0020</stack-size>
+<stack-size id="224862">0.0028</stack-size>
+<stack-size id="228269">0.0023</stack-size>
+<stack-size id="231676">0.0036</stack-size>
+<stack-size id="235083">0.0038</stack-size>
+<stack-size id="238490">0.0036</stack-size>
+<stack-size id="241897">0.0040</stack-size>
+<stack-size id="245304">0.0042</stack-size>
+<stack-size id="248711">0.0039</stack-size>
+<stack-size id="252118">0.0046</stack-size>
+<stack-size id="255525">0.0055</stack-size>
+<stack-size id="258932">0.0039</stack-size>
+<stack-size id="262339">0.0036</stack-size>
+<stack-size id="265746">0.0043</stack-size>
+<stack-size id="269153">0.0042</stack-size>
+<stack-size id="272560">0.0037</stack-size>
+<stack-size id="275967">0.0028</stack-size>
+<stack-size id="279374">0.0040</stack-size>
+<stack-size id="282781">0.0027</stack-size>
+<stack-size id="286188">0.0036</stack-size>
+<stack-size id="289595">0.0029</stack-size>
+<stack-size id="293002">0.0050</stack-size>
+<stack-size id="296409">0.0037</stack-size>
+<stack-size id="299816">0.0027</stack-size>
+<stack-size id="303223">0.0030</stack-size>
+<stack-size id="306630">0.0028</stack-size>
+<stack-size id="310037">0.0026</stack-size>
+<stack-size id="313444">0.0044</stack-size>
+<stack-size id="316851">0.0035</stack-size>
+<stack-size id="320258">0.0043</stack-size>
+<stack-size id="323665">0.0026</stack-size>
+<stack-size id="327072">0.0026</stack-size>
+<stack-size id="330479">0.0031</stack-size>
+<stack-size id="333886">0.0037</stack-size>
+<stack-size id="337293">0.0040</stack-size>
+<stack-size id="340700">0.0032</stack-size>
+<stack-size id="344107">0.0047</stack-size>
+<stack-size id="347514">0.0027</stack-size>
+<stack-size id="350921">0.0032</stack-size>
+<stack-size id="354328">0.0033</stack-size>
+<stack-size id="357735">0.0033</stack-size>
+<stack-size id="361142">0.0041</stack-size>
+<stack-size id="364549">0.0033</stack-size>
+<stack-size id="367956">0.0034</stack-size>
+<stack-size id="371363">0.0028</stack-size>
+<stack-size id="374770">0.0031</stack-size>
+<stack-size id="378177">0.0030</stack-size>
+<stack-size id="381584">0.0030</stack-size>
+<stack-size id="384991">0.0025</stack-size>
+<stack-size id="388398">0.0031</stack-size>
+<stack-size id="391805">0.0063</stack-size>
+<stack-size id="395212">0.0031</stack-size>
+<stack-size id="398619">0.0027</stack-size>
+<stack-size id="402026">0.0030</stack-size>
+<stack-size id="405433">0.0042</stack-size>
+<stack-size id="408840">0.0063</stack-size>
+<stack-size id="412247">0.0044</stack-size>
+<stack-size id="415654">0.0050</stack-size>
+<stack-size id="419061">0.0045</stack-size>
+<stack-size id="422468">0.0050</stack-size>
+<stack-size id="425875">0.0031</stack-size>
+<stack-size id="429282">0.0038</stack-size>
+<stack-size id="432689">0.0039</stack-size>
+<stack-size id="436096">0.0027</stack-size>
+<stack-size id="439503">0.0036</stack-size>
+<stack-size id="442910">0.0061</stack-size>
+<stack-size id="446317">0.0036</stack-size>
+<stack-size id="449724">0.0038</stack-size>
+<stack-size id="453131">0.0040</stack-size>
+<stack-size id="456538">0.0040</stack-size>
+<stack-size id="459945">0.0035</stack-size>
+<stack-size id="463352">0.0040</stack-size>
+<stack-size id="466759">0.0035</stack-size>
+<stack-size id="470166">0.0035</stack-size>
+<stack-size id="473573">0.0055</stack-size>
+<stack-size id="476980">0.0050</stack-size>
+<stack-size id="480387">0.0050</stack-size>
+<stack-size id="483794">0.0043</stack-size>
+<stack-size id="487201">0.0043</stack-size>
+<stack-size id="490608">0.0040</stack-size>
+<stack-size id="494015">0.0048</stack-size>
+<stack-size id="497422">0.0042</stack-size>
+<stack-size id="500829">0.0050</stack-size>
+<stack-size id="504236">0.0053</stack-size>
+<stack-size id="507643">0.0047</stack-size>
+<stack-size id="511050">0.0051</stack-size>
+<stack-size id="514457">0.0041</stack-size>
+<stack-size id="517864">0.0044</stack-size>
+<stack-size id="521271">0.0049</stack-size>
+<stack-size id="524678">0.0046</stack-size>
+<stack-size id="528085">0.0058</stack-size>
+<stack-size id="531492">0.0052</stack-size>
+<stack-size id="534899">0.0050</stack-size>
+<stack-size id="538306">0.0048</stack-size>
+<stack-size id="541713">0.0052</stack-size>
+<stack-size id="545120">0.0053</stack-size>
+<stack-size id="548527">0.0053</stack-size>
+<stack-size id="551934">0.0051</stack-size>
+<stack-size id="555341">0.0054</stack-size>
+<stack-size id="558748">0.0046</stack-size>
+<stack-size id="562155">0.0047</stack-size>
+<stack-size id="565562">0.0051</stack-size>
+<stack-size id="568969">0.0059</stack-size>
+<stack-size id="572376">0.0054</stack-size>
+<stack-size id="575783">0.0047</stack-size>
+<stack-size id="579190">0.0048</stack-size>
+<stack-size id="582597">0.0048</stack-size>
+<stack-size id="586004">0.0053</stack-size>
+<stack-size id="589411">0.0053</stack-size>
+<stack-size id="592818">0.0043</stack-size>
+<stack-size id="596225">0.0049</stack-size>
+<stack-size id="599632">0.0049</stack-size>
+<stack-size id="603039">0.0064</stack-size>
+<stack-size id="606446">0.0060</stack-size>
+<stack-size id="609853">0.0058</stack-size>
+<stack-size id="613260">0.0049</stack-size>
+<stack-size id="616667">0.0059</stack-size>
+<stack-size id="620074">0.0052</stack-size>
+<stack-size id="623481">0.0045</stack-size>
+<stack-size id="626888">0.0055</stack-size>
+<stack-size id="630295">0.0053</stack-size>
+<stack-size id="633702">0.0057</stack-size>
+<stack-size id="637109">0.0044</stack-size>
+<stack-size id="640516">0.0049</stack-size>
+<stack-size id="643923">0.0042</stack-size>
+<stack-size id="647330">0.0041</stack-size>
+<stack-size id="650737">0.0052</stack-size>
+<stack-size id="654144">0.0052</stack-size>
+<stack-size id="657551">0.0056</stack-size>
+<stack-size id="660958">0.0052</stack-size>
+<stack-size id="664365">0.0066</stack-size>
+<stack-size id="667772">0.0047</stack-size>
+<stack-size id="671179">0.0074</stack-size>
+<stack-size id="674586">0.0047</stack-size>
+<stack-size id="677993">0.0043</stack-size>
+<stack-size id="681400">0.0065</stack-size>
+<stack-size id="684807">0.0046</stack-size>
+<stack-size id="688214">0.0044</stack-size>
+<stack-size id="691621">0.0045</stack-size>
+<stack-size id="695028">0.0047</stack-size>
+<stack-size id="698435">0.0043</stack-size>
+<stack-size id="701842">0.0050</stack-size>
+<stack-size id="705249">0.0049</stack-size>
+<stack-size id="708656">0.0056</stack-size>
+<stack-size id="712063">0.0065</stack-size>
+<stack-size id="715470">0.0052</stack-size>
+<stack-size id="718877">0.0058</stack-size>
+<stack-size id="722284">0.0059</stack-size>
+<stack-size id="725691">0.0055</stack-size>
+<stack-size id="729098">0.0049</stack-size>
+<stack-size id="732505">0.0052</stack-size>
+<stack-size id="735912">0.0064</stack-size>
+<stack-size id="739319">0.0057</stack-size>
+<stack-size id="742726">0.0067</stack-size>
+<stack-size id="746133">0.0059</stack-size>
+<stack-size id="749540">0.0055</stack-size>
+<stack-size id="752947">0.0066</stack-size>
+<stack-size id="756354">0.0068</stack-size>
+<stack-size id="759761">0.0047</stack-size>
+<stack-size id="763168">0.0041</stack-size>
+<stack-size id="766575">0.0061</stack-size>
+<stack-size id="769982">0.0067</stack-size>
+<stack-size id="773389">0.0045</stack-size>
+<stack-size id="776796">0.0054</stack-size>
+<stack-size id="780203">0.0047</stack-size>
+<stack-size id="783610">0.0048</stack-size>
+<stack-size id="787017">0.0060</stack-size>
+<stack-size id="790424">0.0056</stack-size>
+<stack-size id="793831">0.0045</stack-size>
+<stack-size id="797238">0.0045</stack-size>
+<stack-size id="800645">0.0061</stack-size>
+<stack-size id="804052">0.0060</stack-size>
+<stack-size id="807459">0.0047</stack-size>
+<stack-size id="810866">0.0057</stack-size>
+<stack-size id="814273">0.0053</stack-size>
+<stack-size id="817680">0.0045</stack-size>
+<stack-size id="821087">0.0063</stack-size>
+<stack-size id="824494">0.0054</stack-size>
+<stack-size id="827901">0.0056</stack-size>
+<stack-size id="831308">0.0065</stack-size>
+<stack-size id="834715">0.0075</stack-size>
+<stack-size id="838122">0.0054</stack-size>
+<stack-size id="841529">0.0056</stack-size>
+<stack-size id="844936">0.0057</stack-size>
+<stack-size id="848343">0.0056</stack-size>
+<stack-size id="851750">0.0053</stack-size>
+<stack-size id="855157">0.0051</stack-size>
+<stack-size id="858564">0.0055</stack-size>
+<stack-size id="861971">0.0062</stack-size>
+<stack-size id="865378">0.0055</stack-size>
+<stack-size id="868785">0.0055</stack-size>
+<stack-size id="872192">0.0055</stack-size>
+<stack-size id="875599">0.0055</stack-size>
+<stack-size id="879006">0.0046</stack-size>
+<stack-size id="882413">0.0046</stack-size>
+<stack-size id="885820">0.0046</stack-size>
+<stack-size id="889227">0.0051</stack-size>
+<stack-size id="892634">0.0053</stack-size>
+<stack-size id="896041">0.0045</stack-size>
+<stack-size id="899448">0.0050</stack-size>
+<stack-size id="902855">0.0051</stack-size>
+<stack-size id="906262">0.0049</stack-size>
+<stack-size id="909669">0.0048</stack-size>
+<stack-size id="913076">0.0043</stack-size>
+<stack-size id="916483">0.0047</stack-size>
+<stack-size id="919890">0.0054</stack-size>
+<stack-size id="923297">0.0070</stack-size>
+<stack-size id="926704">0.0057</stack-size>
+<stack-size id="930111">0.0046</stack-size>
+<stack-size id="933518">0.0056</stack-size>
+<stack-size id="936925">0.0053</stack-size>
+<stack-size id="940332">0.0053</stack-size>
+<stack-size id="943739">0.0053</stack-size>
+<stack-size id="947146">0.0073</stack-size>
+<stack-size id="950553">0.0064</stack-size>
+<stack-size id="953960">0.0053</stack-size>
+<stack-size id="957367">0.0057</stack-size>
+<stack-size id="960774">0.0059</stack-size>
+<stack-size id="964181">0.0059</stack-size>
+<stack-size id="967588">0.0055</stack-size>
+<stack-size id="970995">0.0058</stack-size>
+<stack-size id="974402">0.0058</stack-size>
+<stack-size id="977809">0.0049</stack-size>
+<stack-size id="981216">0.0066</stack-size>
+<stack-size id="984623">0.0072</stack-size>
+<stack-size id="988030">0.0052</stack-size>
+<stack-size id="991437">0.0064</stack-size>
+<stack-size id="994844">0.0058</stack-size>
+<stack-size id="998251">0.0055</stack-size>
+<stack-size id="1001658">0.0060</stack-size>
+<stack-size id="1005065">0.0066</stack-size>
+<stack-size id="1008472">0.0054</stack-size>
+<stack-size id="1011879">0.0067</stack-size>
+<stack-size id="1015286">0.0059</stack-size>
+<stack-size id="1018693">0.0066</stack-size>
+<stack-size id="1022100">0.0059</stack-size>
+<stack-size id="1025507">0.0063</stack-size>
+<stack-size id="1028914">0.0066</stack-size>
+<stack-size id="1032321">0.0074</stack-size>
+<stack-size id="1035728">0.0064</stack-size>
+<stack-size id="1039135">0.0066</stack-size>
+<stack-size id="1042542">0.0065</stack-size>
+<stack-size id="1045949">0.0055</stack-size>
+<stack-size id="1049356">0.0082</stack-size>
+<stack-size id="1052763">0.0053</stack-size>
+<stack-size id="1056170">0.0058</stack-size>
+<stack-size id="1059577">0.0070</stack-size>
+<stack-size id="1062984">0.0064</stack-size>
+<stack-size id="1066391">0.0072</stack-size>
+<stack-size id="1069798">0.0066</stack-size>
+<stack-size id="1073205">0.0071</stack-size>
+<stack-size id="1076612">0.0069</stack-size>
+<stack-size id="1080019">0.0068</stack-size>
+<stack-size id="1083426">0.0070</stack-size>
+<stack-size id="1086833">0.0058</stack-size>
+<stack-size id="1090240">0.0062</stack-size>
+<stack-size id="1093647">0.0060</stack-size>
+<stack-size id="1097054">0.0073</stack-size>
+<stack-size id="1100461">0.0071</stack-size>
+<stack-size id="1103868">0.0064</stack-size>
+<stack-size id="1107275">0.0066</stack-size>
+<stack-size id="1110682">0.0059</stack-size>
+<stack-size id="1114089">0.0065</stack-size>
+<stack-size id="1117496">0.0065</stack-size>
+<stack-size id="1120903">0.0063</stack-size>
+<stack-size id="1124310">0.0068</stack-size>
+<stack-size id="1127717">0.0076</stack-size>
+<stack-size id="1131124">0.0071</stack-size>
+<stack-size id="1134531">0.0073</stack-size>
+<stack-size id="1137938">0.0059</stack-size>
+<stack-size id="1141345">0.0065</stack-size>
+<stack-size id="1144752">0.0062</stack-size>
+<stack-size id="1148159">0.0066</stack-size>
+<stack-size id="1151566">0.0060</stack-size>
+<stack-size id="1154973">0.0062</stack-size>
+<stack-size id="1158380">0.0070</stack-size>
+<stack-size id="1161787">0.0071</stack-size>
+<stack-size id="1165194">0.0067</stack-size>
+<stack-size id="1168601">0.0065</stack-size>
+<stack-size id="1172008">0.0067</stack-size>
+<stack-size id="1175415">0.0064</stack-size>
+<stack-size id="1178822">0.0060</stack-size>
+<stack-size id="1182229">0.0057</stack-size>
+<stack-size id="1185636">0.0063</stack-size>
+<stack-size id="1189043">0.0063</stack-size>
+<stack-size id="1192450">0.0072</stack-size>
+<stack-size id="1195857">0.0058</stack-size>
+<stack-size id="1199264">0.0059</stack-size>
+<stack-size id="1202671">0.0057</stack-size>
+<stack-size id="1206078">0.0061</stack-size>
+<stack-size id="1209485">0.0063</stack-size>
+<stack-size id="1212892">0.0073</stack-size>
+<stack-size id="1216299">0.0067</stack-size>
+<stack-size id="1219706">0.0075</stack-size>
+<stack-size id="1223113">0.0067</stack-size>
+<stack-size id="1226520">0.0072</stack-size>
+<stack-size id="1229927">0.0076</stack-size>
+<stack-size id="1233334">0.0075</stack-size>
+<stack-size id="1236741">0.0072</stack-size>
+<stack-size id="1240148">0.0079</stack-size>
+<stack-size id="1243555">0.0067</stack-size>
+<stack-size id="1246962">0.0070</stack-size>
+<stack-size id="1250369">0.0083</stack-size>
+<stack-size id="1253776">0.0073</stack-size>
+<stack-size id="1257183">0.0079</stack-size>
+<stack-size id="1260590">0.0061</stack-size>
+<stack-size id="1263997">0.0068</stack-size>
+<stack-size id="1267404">0.0064</stack-size>
+<stack-size id="1270811">0.0065</stack-size>
+<stack-size id="1274218">0.0076</stack-size>
+<stack-size id="1277625">0.0081</stack-size>
+<stack-size id="1281032">0.0087</stack-size>
+<stack-size id="1284439">0.0086</stack-size>
+<stack-size id="1287846">0.0081</stack-size>
+<stack-size id="1291253">0.0062</stack-size>
+<stack-size id="1294660">0.0070</stack-size>
+<stack-size id="1298067">0.0078</stack-size>
+<stack-size id="1301474">0.0068</stack-size>
+<stack-size id="1304881">0.0070</stack-size>
+<stack-size id="1308288">0.0072</stack-size>
+<stack-size id="1311695">0.0068</stack-size>
+<stack-size id="1315102">0.0066</stack-size>
+<stack-size id="1318509">0.0064</stack-size>
+<stack-size id="1321916">0.0066</stack-size>
+<stack-size id="1325323">0.0068</stack-size>
+<stack-size id="1328730">0.0077</stack-size>
+<stack-size id="1332137">0.0060</stack-size>
+<stack-size id="1335544">0.0074</stack-size>
+<stack-size id="1338951">0.0064</stack-size>
+<stack-size id="1342358">0.0072</stack-size>
+<stack-size id="1345765">0.0063</stack-size>
+<stack-size id="1349172">0.0064</stack-size>
+<stack-size id="1352579">0.0068</stack-size>
+<stack-size id="1355986">0.0059</stack-size>
+<stack-size id="1359393">0.0067</stack-size>
+<stack-size id="1362800">0.0059</stack-size>
+<stack-size id="1366207">0.0072</stack-size>
+<stack-size id="1369614">0.0067</stack-size>
+<stack-size id="1373021">0.0067</stack-size>
+<stack-size id="1376428">0.0070</stack-size>
+<stack-size id="1379835">0.0072</stack-size>
+<stack-size id="1383242">0.0069</stack-size>
+<stack-size id="1386649">0.0075</stack-size>
+<stack-size id="1390056">0.0060</stack-size>
+<stack-size id="1393463">0.0068</stack-size>
+<stack-size id="1396870">0.0070</stack-size>
+<stack-size id="1400277">0.0065</stack-size>
+<stack-size id="1403684">0.0071</stack-size>
+<stack-size id="1407091">0.0074</stack-size>
+<stack-size id="1410498">0.0072</stack-size>
+<stack-size id="1413905">0.0068</stack-size>
+<stack-size id="1417312">0.0072</stack-size>
+<stack-size id="1420719">0.0070</stack-size>
+<stack-size id="1424126">0.0060</stack-size>
+<stack-size id="1427533">0.0065</stack-size>
+<stack-size id="1430940">0.0063</stack-size>
+<stack-size id="1434347">0.0059</stack-size>
+<stack-size id="1437754">0.0056</stack-size>
+<stack-size id="1441161">0.0064</stack-size>
+<stack-size id="1444568">0.0063</stack-size>
+<stack-size id="1447975">0.0065</stack-size>
+<stack-size id="1451382">0.0063</stack-size>
+<stack-size id="1454789">0.0068</stack-size>
+<stack-size id="1458196">0.0063</stack-size>
+<stack-size id="1461603">0.0059</stack-size>
+<stack-size id="1465010">0.0068</stack-size>
+<stack-size id="1468417">0.0061</stack-size>
+<stack-size id="1471824">0.0064</stack-size>
+<stack-size id="1475231">0.0068</stack-size>
+<stack-size id="1478638">0.0072</stack-size>
+<stack-size id="1482045">0.0064</stack-size>
+<stack-size id="1485452">0.0059</stack-size>
+<stack-size id="1488859">0.0070</stack-size>
+<stack-size id="1492266">0.0067</stack-size>
+<stack-size id="1495673">0.0061</stack-size>
+<stack-size id="1499080">0.0070</stack-size>
+<stack-size id="1502487">0.0073</stack-size>
+<stack-size id="1505894">0.0066</stack-size>
+<stack-size id="1509301">0.0064</stack-size>
+<stack-size id="1512708">0.0065</stack-size>
+<stack-size id="1516115">0.0065</stack-size>
+<stack-size id="1519522">0.0067</stack-size>
+<stack-size id="1522929">0.0066</stack-size>
+<stack-size id="1526336">0.0092</stack-size>
+<stack-size id="1529743">0.0092</stack-size>
+<stack-size id="1533150">0.0069</stack-size>
+<stack-size id="1536557">0.0074</stack-size>
+<stack-size id="1539964">0.0070</stack-size>
+<stack-size id="1543371">0.0066</stack-size>
+<stack-size id="1546778">0.0074</stack-size>
+<stack-size id="1550185">0.0081</stack-size>
+<stack-size id="1553592">0.0087</stack-size>
+<stack-size id="1556999">0.0067</stack-size>
+<stack-size id="1560406">0.0061</stack-size>
+<stack-size id="1563813">0.0065</stack-size>
+<stack-size id="1567220">0.0071</stack-size>
+<stack-size id="1570627">0.0067</stack-size>
+<stack-size id="1574034">0.0063</stack-size>
+<stack-size id="1577441">0.0061</stack-size>
+<stack-size id="1580848">0.0065</stack-size>
+<stack-size id="1584255">0.0065</stack-size>
+<stack-size id="1587662">0.0068</stack-size>
+<stack-size id="1591069">0.0065</stack-size>
+<stack-size id="1594476">0.0065</stack-size>
+<stack-size id="1597883">0.0074</stack-size>
+<stack-size id="1601290">0.0068</stack-size>
+<stack-size id="1604697">0.0069</stack-size>
+<stack-size id="1608104">0.0062</stack-size>
+<stack-size id="1611511">0.0068</stack-size>
+<stack-size id="1614918">0.0099</stack-size>
+<stack-size id="1618325">0.0073</stack-size>
+<stack-size id="1621732">0.0066</stack-size>
+<stack-size id="1625139">0.0080</stack-size>
+<stack-size id="1628546">0.0072</stack-size>
+<stack-size id="1631953">0.0068</stack-size>
+<stack-size id="1635360">0.0071</stack-size>
+<stack-size id="1638767">0.0075</stack-size>
+<stack-size id="1642174">0.0072</stack-size>
+<stack-size id="1645581">0.0077</stack-size>
+<stack-size id="1648988">0.0067</stack-size>
+<stack-size id="1652395">0.0068</stack-size>
+<stack-size id="1655802">0.0067</stack-size>
+<stack-size id="1659209">0.0072</stack-size>
+<stack-size id="1662616">0.0069</stack-size>
+<stack-size id="1666023">0.0067</stack-size>
+<stack-size id="1669430">0.0071</stack-size>
+<stack-size id="1672837">0.0077</stack-size>
+<stack-size id="1676244">0.0080</stack-size>
+<stack-size id="1679651">0.0098</stack-size>
+<stack-size id="1683058">0.0077</stack-size>
+<stack-size id="1686465">0.0072</stack-size>
+<stack-size id="1689872">0.0084</stack-size>
+<stack-size id="1693279">0.0082</stack-size>
+<stack-size id="1696686">0.0074</stack-size>
+<stack-size id="1700093">0.0068</stack-size>
+<stack-size id="1703500">0.0077</stack-size>
+<stack-size id="1706907">0.0080</stack-size>
+<stack-size id="1710314">0.0070</stack-size>
+<stack-size id="1713721">0.0077</stack-size>
+<stack-size id="1717128">0.0079</stack-size>
+<stack-size id="1720535">0.0076</stack-size>
+<stack-size id="1723942">0.0075</stack-size>
+<stack-size id="1727349">0.0073</stack-size>
+<stack-size id="1730756">0.0072</stack-size>
+<stack-size id="1734163">0.0075</stack-size>
+<stack-size id="1737570">0.0081</stack-size>
+<stack-size id="1740977">0.0080</stack-size>
+<stack-size id="1744384">0.0079</stack-size>
+<stack-size id="1747791">0.0084</stack-size>
+<stack-size id="1751198">0.0093</stack-size>
+<stack-size id="1754605">0.0067</stack-size>
+<stack-size id="1758012">0.0067</stack-size>
+<stack-size id="1761419">0.0082</stack-size>
+<stack-size id="1764826">0.0077</stack-size>
+<stack-size id="1768233">0.0079</stack-size>
+<stack-size id="1771640">0.0078</stack-size>
+<stack-size id="1775047">0.0077</stack-size>
+<stack-size id="1778454">0.0083</stack-size>
+<stack-size id="1781861">0.0081</stack-size>
+<stack-size id="1785268">0.0090</stack-size>
+<stack-size id="1788675">0.0089</stack-size>
+<stack-size id="1792082">0.0079</stack-size>
+<stack-size id="1795489">0.0085</stack-size>
+<stack-size id="1798896">0.0074</stack-size>
+<stack-size id="1802303">0.0077</stack-size>
+<stack-size id="1805710">0.0084</stack-size>
+<stack-size id="1809117">0.0082</stack-size>
+<stack-size id="1812524">0.0076</stack-size>
+<stack-size id="1815931">0.0083</stack-size>
+<stack-size id="1819338">0.0078</stack-size>
+<stack-size id="1822745">0.0079</stack-size>
+<stack-size id="1826152">0.0081</stack-size>
+<stack-size id="1829559">0.0081</stack-size>
+<stack-size id="1832966">0.0080</stack-size>
+<stack-size id="1836373">0.0077</stack-size>
+<stack-size id="1839780">0.0079</stack-size>
+<stack-size id="1843187">0.0077</stack-size>
+<stack-size id="1846594">0.0078</stack-size>
+<stack-size id="1850001">0.0077</stack-size>
+<stack-size id="1853408">0.0075</stack-size>
+<stack-size id="1856815">0.0077</stack-size>
+<stack-size id="1860222">0.0086</stack-size>
+<stack-size id="1863629">0.0081</stack-size>
+<stack-size id="1867036">0.0088</stack-size>
+<stack-size id="1870443">0.0078</stack-size>
+<stack-size id="1873850">0.0100</stack-size>
+<stack-size id="1877257">0.0087</stack-size>
+<stack-size id="1880664">0.0092</stack-size>
+<stack-size id="1884071">0.0081</stack-size>
+<stack-size id="1887478">0.0075</stack-size>
+<stack-size id="1890885">0.0081</stack-size>
+<stack-size id="1894292">0.0080</stack-size>
+<stack-size id="1897699">0.0083</stack-size>
+<stack-size id="1901106">0.0074</stack-size>
+<stack-size id="1904513">0.0088</stack-size>
+<stack-size id="1907920">0.0075</stack-size>
+<stack-size id="1911327">0.0079</stack-size>
+<stack-size id="1914734">0.0074</stack-size>
+<stack-size id="1918141">0.0078</stack-size>
+<stack-size id="1921548">0.0077</stack-size>
+<stack-size id="1924955">0.0079</stack-size>
+<stack-size id="1928362">0.0078</stack-size>
+<stack-size id="1931769">0.0078</stack-size>
+<stack-size id="1935176">0.0080</stack-size>
+<stack-size id="1938583">0.0085</stack-size>
+<stack-size id="1941990">0.0089</stack-size>
+<stack-size id="1945397">0.0087</stack-size>
+<stack-size id="1948804">0.0099</stack-size>
+<stack-size id="1952211">0.0089</stack-size>
+<stack-size id="1955618">0.0089</stack-size>
+<stack-size id="1959025">0.0100</stack-size>
+<stack-size id="1962432">0.0089</stack-size>
+<stack-size id="1965839">0.0082</stack-size>
+<stack-size id="1969246">0.0084</stack-size>
+<stack-size id="1972653">0.0102</stack-size>
+<stack-size id="1976060">0.0088</stack-size>
+<stack-size id="1979467">0.0094</stack-size>
+<stack-size id="1982874">0.0099</stack-size>
+<stack-size id="1986281">0.0080</stack-size>
+<stack-size id="1989688">0.0081</stack-size>
+<stack-size id="1993095">0.0080</stack-size>
+<stack-size id="1996502">0.0083</stack-size>
+<stack-size id="1999909">0.0073</stack-size>
+<stack-size id="2003316">0.0076</stack-size>
+<stack-size id="2006723">0.0081</stack-size>
+<stack-size id="2010130">0.0086</stack-size>
+<stack-size id="2013537">0.0078</stack-size>
+<stack-size id="2016944">0.0079</stack-size>
+<stack-size id="2020351">0.0090</stack-size>
+<stack-size id="2023758">0.0088</stack-size>
+<stack-size id="2027165">0.0087</stack-size>
+<stack-size id="2030572">0.0086</stack-size>
+<stack-size id="2033979">0.0087</stack-size>
+<stack-size id="2037386">0.0089</stack-size>
+<stack-size id="2040793">0.0091</stack-size>
+<stack-size id="2044200">0.0081</stack-size>
+<stack-size id="2047607">0.0078</stack-size>
+<stack-size id="2051014">0.0079</stack-size>
+<stack-size id="2054421">0.0081</stack-size>
+<stack-size id="2057828">0.0088</stack-size>
+<stack-size id="2061235">0.0071</stack-size>
+<stack-size id="2064642">0.0083</stack-size>
+<stack-size id="2068049">0.0085</stack-size>
+<stack-size id="2071456">0.0085</stack-size>
+<stack-size id="2074863">0.0083</stack-size>
+<stack-size id="2078270">0.0077</stack-size>
+<stack-size id="2081677">0.0074</stack-size>
+<stack-size id="2085084">0.0080</stack-size>
+<stack-size id="2088491">0.0082</stack-size>
+<stack-size id="2091898">0.0091</stack-size>
+<stack-size id="2095305">0.0095</stack-size>
+<stack-size id="2098712">0.0088</stack-size>
+<stack-size id="2102119">0.0094</stack-size>
+<stack-size id="2105526">0.0077</stack-size>
+<stack-size id="2108933">0.0082</stack-size>
+<stack-size id="2112340">0.0080</stack-size>
+<stack-size id="2115747">0.0085</stack-size>
+<stack-size id="2119154">0.0086</stack-size>
+<stack-size id="2122561">0.0094</stack-size>
+<stack-size id="2125968">0.0085</stack-size>
+<stack-size id="2129375">0.0085</stack-size>
+<stack-size id="2132782">0.0085</stack-size>
+<stack-size id="2136189">0.0082</stack-size>
+<stack-size id="2139596">0.0080</stack-size>
+<stack-size id="2143003">0.0083</stack-size>
+<stack-size id="2146410">0.0092</stack-size>
+<stack-size id="2149817">0.0091</stack-size>
+<stack-size id="2153224">0.0083</stack-size>
+<stack-size id="2156631">0.0085</stack-size>
+<stack-size id="2160038">0.0077</stack-size>
+<stack-size id="2163445">0.0077</stack-size>
+<stack-size id="2166852">0.0086</stack-size>
+<stack-size id="2170259">0.0087</stack-size>
+<stack-size id="2173666">0.0079</stack-size>
+<stack-size id="2177073">0.0077</stack-size>
+<stack-size id="2180480">0.0080</stack-size>
+<stack-size id="2183887">0.0090</stack-size>
+<stack-size id="2187294">0.0089</stack-size>
+<stack-size id="2190701">0.0081</stack-size>
+<stack-size id="2194108">0.0074</stack-size>
+<stack-size id="2197515">0.0089</stack-size>
+<stack-size id="2200922">0.0084</stack-size>
+<stack-size id="2204329">0.0085</stack-size>
+<stack-size id="2207736">0.0082</stack-size>
+<stack-size id="2211143">0.0078</stack-size>
+<stack-size id="2214550">0.0080</stack-size>
+<stack-size id="2217957">0.0079</stack-size>
+<stack-size id="2221364">0.0082</stack-size>
+<stack-size id="2224771">0.0077</stack-size>
+<stack-size id="2228178">0.0077</stack-size>
+<stack-size id="2231585">0.0077</stack-size>
+<stack-size id="2234992">0.0078</stack-size>
+<stack-size id="2238399">0.0087</stack-size>
+<stack-size id="2241806">0.0083</stack-size>
+<stack-size id="2245213">0.0084</stack-size>
+<stack-size id="2248620">0.0080</stack-size>
+<stack-size id="2252027">0.0090</stack-size>
+<stack-size id="2255434">0.0083</stack-size>
+<stack-size id="2258841">0.0078</stack-size>
+<stack-size id="2262248">0.0087</stack-size>
+<stack-size id="2265655">0.0085</stack-size>
+<stack-size id="2269062">0.0090</stack-size>
+<stack-size id="2272469">0.0080</stack-size>
+<stack-size id="2275876">0.0090</stack-size>
+<stack-size id="2279283">0.0085</stack-size>
+<stack-size id="2282690">0.0093</stack-size>
+<stack-size id="2286097">0.0089</stack-size>
+<stack-size id="2289504">0.0087</stack-size>
+<stack-size id="2292911">0.0089</stack-size>
+<stack-size id="2296318">0.0091</stack-size>
+<stack-size id="2299725">0.0087</stack-size>
+<stack-size id="2303132">0.0092</stack-size>
+<stack-size id="2306539">0.0096</stack-size>
+<stack-size id="2309946">0.0096</stack-size>
+<stack-size id="2313353">0.0101</stack-size>
+<stack-size id="2316760">0.0082</stack-size>
+<stack-size id="2320167">0.0079</stack-size>
+<stack-size id="2323574">0.0083</stack-size>
+<stack-size id="2326981">0.0085</stack-size>
+<stack-size id="2330388">0.0081</stack-size>
+<stack-size id="2333795">0.0077</stack-size>
+<stack-size id="2337202">0.0089</stack-size>
+<stack-size id="2340609">0.0082</stack-size>
+<stack-size id="2344016">0.0082</stack-size>
+<stack-size id="2347423">0.0081</stack-size>
+<stack-size id="2350830">0.0086</stack-size>
+<stack-size id="2354237">0.0087</stack-size>
+<stack-size id="2357644">0.0098</stack-size>
+<stack-size id="2361051">0.0086</stack-size>
+<stack-size id="2364458">0.0082</stack-size>
+<stack-size id="2367865">0.0082</stack-size>
+<stack-size id="2371272">0.0085</stack-size>
+<stack-size id="2374679">0.0089</stack-size>
+<stack-size id="2378086">0.0095</stack-size>
+<stack-size id="2381493">0.0075</stack-size>
+<stack-size id="2384900">0.0073</stack-size>
+<stack-size id="2388307">0.0082</stack-size>
+<stack-size id="2391714">0.0082</stack-size>
+<stack-size id="2395121">0.0085</stack-size>
+<stack-size id="2398528">0.0093</stack-size>
+<stack-size id="2401935">0.0084</stack-size>
+<stack-size id="2405342">0.0080</stack-size>
+<stack-size id="2408749">0.0085</stack-size>
+<stack-size id="2412156">0.0082</stack-size>
+<stack-size id="2415563">0.0074</stack-size>
+<stack-size id="2418970">0.0074</stack-size>
+<stack-size id="2422377">0.0077</stack-size>
+<stack-size id="2425784">0.0087</stack-size>
+<stack-size id="2429191">0.0088</stack-size>
+<stack-size id="2432598">0.0086</stack-size>
+<stack-size id="2436005">0.0082</stack-size>
+<stack-size id="2439412">0.0084</stack-size>
+<stack-size id="2442819">0.0078</stack-size>
+<stack-size id="2446226">0.0077</stack-size>
+<stack-size id="2449633">0.0087</stack-size>
+<stack-size id="2453040">0.0086</stack-size>
+<stack-size id="2456447">0.0085</stack-size>
+<stack-size id="2459854">0.0077</stack-size>
+<stack-size id="2463261">0.0080</stack-size>
+<stack-size id="2466668">0.0081</stack-size>
+<stack-size id="2470075">0.0077</stack-size>
+<stack-size id="2473482">0.0082</stack-size>
+<stack-size id="2476889">0.0086</stack-size>
+<stack-size id="2480296">0.0082</stack-size>
+<stack-size id="2483703">0.0081</stack-size>
+<stack-size id="2487110">0.0086</stack-size>
+<stack-size id="2490517">0.0107</stack-size>
+<stack-size id="2493924">0.0081</stack-size>
+<stack-size id="2497331">0.0085</stack-size>
+<stack-size id="2500738">0.0096</stack-size>
+<stack-size id="2504145">0.0091</stack-size>
+<stack-size id="2507552">0.0083</stack-size>
+<stack-size id="2510959">0.0092</stack-size>
+<stack-size id="2514366">0.0080</stack-size>
+<stack-size id="2517773">0.0084</stack-size>
+<stack-size id="2521180">0.0085</stack-size>
+<stack-size id="2524587">0.0088</stack-size>
+<stack-size id="2527994">0.0100</stack-size>
+<stack-size id="2531401">0.0089</stack-size>
+<stack-size id="2534808">0.0082</stack-size>
+<stack-size id="2538215">0.0085</stack-size>
+<stack-size id="2541622">0.0087</stack-size>
+<stack-size id="2545029">0.0091</stack-size>
+<stack-size id="2548436">0.0092</stack-size>
+<stack-size id="2551843">0.0085</stack-size>
+<stack-size id="2555250">0.0088</stack-size>
+<stack-size id="2558657">0.0069</stack-size>
+<stack-size id="2562064">0.0063</stack-size>
+<stack-size id="2565471">0.0063</stack-size>
+<stack-size id="2568878">0.0061</stack-size>
+<stack-size id="2572285">0.0078</stack-size>
+<stack-size id="2575692">0.0079</stack-size>
+<stack-size id="2579099">0.0074</stack-size>
+<stack-size id="2582506">0.0073</stack-size>
+<stack-size id="2585913">0.0074</stack-size>
+<stack-size id="2589320">0.0075</stack-size>
+<stack-size id="2592727">0.0080</stack-size>
+<stack-size id="2596134">0.0089</stack-size>
+<stack-size id="2599541">0.0085</stack-size>
+<stack-size id="2602948">0.0084</stack-size>
+<stack-size id="2606355">0.0083</stack-size>
+<stack-size id="2609762">0.0088</stack-size>
+<stack-size id="2613169">0.0066</stack-size>
+<stack-size id="2616576">0.0065</stack-size>
+<stack-size id="2619983">0.0062</stack-size>
+<stack-size id="2623390">0.0062</stack-size>
+<stack-size id="2626797">0.0087</stack-size>
+<stack-size id="2630204">0.0060</stack-size>
+<stack-size id="2633611">0.0064</stack-size>
+<stack-size id="2637018">0.0068</stack-size>
+<stack-size id="2640425">0.0066</stack-size>
+<stack-size id="2643832">0.0074</stack-size>
+<stack-size id="2647239">0.0072</stack-size>
+<stack-size id="2650646">0.0073</stack-size>
+<stack-size id="2654053">0.0064</stack-size>
+<stack-size id="2657460">0.0064</stack-size>
+<stack-size id="2660867">0.0070</stack-size>
+<stack-size id="2664274">0.0074</stack-size>
+<stack-size id="2667681">0.0065</stack-size>
+<stack-size id="2671088">0.0070</stack-size>
+<stack-size id="2674495">0.0073</stack-size>
+<stack-size id="2677902">0.0069</stack-size>
+<stack-size id="2681309">0.0068</stack-size>
+<stack-size id="2684716">0.0071</stack-size>
+<stack-size id="2688123">0.0072</stack-size>
+<stack-size id="2691530">0.0042</stack-size>
+<stack-size id="2694937">0.0051</stack-size>
+<stack-size id="2698344">0.0053</stack-size>
+<stack-size id="2701751">0.0055</stack-size>
+<stack-size id="2705158">0.0061</stack-size>
+<stack-size id="2708565">0.0053</stack-size>
+<stack-size id="2711972">0.0051</stack-size>
+<stack-size id="2715379">0.0062</stack-size>
+<stack-size id="2718786">0.0066</stack-size>
+<stack-size id="2722193">0.0070</stack-size>
+<stack-size id="2725600">0.0070</stack-size>
+<stack-size id="2729007">0.0057</stack-size>
+<stack-size id="2732414">0.0054</stack-size>
+<stack-size id="2735821">0.0059</stack-size>
+<stack-size id="2739228">0.0067</stack-size>
+<stack-size id="2742635">0.0066</stack-size>
+<stack-size id="2746042">0.0048</stack-size>
+<stack-size id="2749449">0.0052</stack-size>
+<stack-size id="2752856">0.0049</stack-size>
+<stack-size id="2756263">0.0050</stack-size>
+<stack-size id="2759670">0.0062</stack-size>
+<stack-size id="2763077">0.0042</stack-size>
+<stack-size id="2766484">0.0044</stack-size>
+<stack-size id="2769891">0.0047</stack-size>
+<stack-size id="2773298">0.0051</stack-size>
+<stack-size id="2776705">0.0042</stack-size>
+<stack-size id="2780112">0.0053</stack-size>
+<stack-size id="2783519">0.0050</stack-size>
+<stack-size id="2786926">0.0055</stack-size>
+<stack-size id="2790333">0.0050</stack-size>
+<stack-size id="2793740">0.0049</stack-size>
+<stack-size id="2797147">0.0042</stack-size>
+<stack-size id="2800554">0.0046</stack-size>
+<stack-size id="2803961">0.0060</stack-size>
+<stack-size id="2807368">0.0057</stack-size>
+<stack-size id="2810775">0.0051</stack-size>
+<stack-size id="2814182">0.0048</stack-size>
+<stack-size id="2817589">0.0040</stack-size>
+<stack-size id="2820996">0.0056</stack-size>
+<stack-size id="2824403">0.0064</stack-size>
+<stack-size id="2827810">0.0052</stack-size>
+<stack-size id="2831217">0.0047</stack-size>
+<stack-size id="2834624">0.0047</stack-size>
+<stack-size id="2838031">0.0045</stack-size>
+<stack-size id="2841438">0.0055</stack-size>
+<stack-size id="2844845">0.0047</stack-size>
+<stack-size id="2848252">0.0055</stack-size>
+<stack-size id="2851659">0.0048</stack-size>
+<stack-size id="2855066">0.0046</stack-size>
+<stack-size id="2858473">0.0049</stack-size>
+<stack-size id="2861880">0.0055</stack-size>
+<stack-size id="2865287">0.0051</stack-size>
+<stack-size id="2868694">0.0048</stack-size>
+<stack-size id="2872101">0.0059</stack-size>
+<stack-size id="2875508">0.0051</stack-size>
+<stack-size id="2878915">0.0067</stack-size>
+<stack-size id="2882322">0.0051</stack-size>
+<stack-size id="2885729">0.0053</stack-size>
+<stack-size id="2889136">0.0054</stack-size>
+<stack-size id="2892543">0.0060</stack-size>
+<stack-size id="2895950">0.0050</stack-size>
+<stack-size id="2899357">0.0054</stack-size>
+<stack-size id="2902764">0.0055</stack-size>
+<stack-size id="2906171">0.0049</stack-size>
+<stack-size id="2909578">0.0057</stack-size>
+<stack-size id="2912985">0.0049</stack-size>
+<stack-size id="2916392">0.0056</stack-size>
+<stack-size id="2919799">0.0056</stack-size>
+<stack-size id="2923206">0.0053</stack-size>
+<stack-size id="2926613">0.0051</stack-size>
+<stack-size id="2930020">0.0060</stack-size>
+<stack-size id="2933427">0.0051</stack-size>
+<stack-size id="2936834">0.0061</stack-size>
+<stack-size id="2940241">0.0052</stack-size>
+<stack-size id="2943648">0.0048</stack-size>
+<stack-size id="2947055">0.0067</stack-size>
+<stack-size id="2950462">0.0058</stack-size>
+<stack-size id="2953869">0.0057</stack-size>
+<stack-size id="2957276">0.0066</stack-size>
+<stack-size id="2960683">0.0068</stack-size>
+<stack-size id="2964090">0.0045</stack-size>
+<stack-size id="2967497">0.0061</stack-size>
+<stack-size id="2970904">0.0055</stack-size>
+<stack-size id="2974311">0.0043</stack-size>
+<stack-size id="2977718">0.0043</stack-size>
+<stack-size id="2981125">0.0053</stack-size>
+<stack-size id="2984532">0.0058</stack-size>
+<stack-size id="2987939">0.0060</stack-size>
+<stack-size id="2991346">0.0049</stack-size>
+<stack-size id="2994753">0.0051</stack-size>
+<stack-size id="2998160">0.0059</stack-size>
+<stack-size id="3001567">0.0026</stack-size>
+<stack-size id="3004974">0.0027</stack-size>
+<stack-size id="3008381">0.0032</stack-size>
+<stack-size id="3011788">0.0041</stack-size>
+<stack-size id="3015195">0.0046</stack-size>
+<stack-size id="3018602">0.0028</stack-size>
+<stack-size id="3022009">0.0036</stack-size>
+<stack-size id="3025416">0.0028</stack-size>
+<stack-size id="3028823">0.0034</stack-size>
+<stack-size id="3032230">0.0045</stack-size>
+<stack-size id="3035637">0.0033</stack-size>
+<stack-size id="3039044">0.0025</stack-size>
+<stack-size id="3042451">0.0033</stack-size>
+<stack-size id="3045858">0.0038</stack-size>
+<stack-size id="3049265">0.0037</stack-size>
+<stack-size id="3052672">0.0027</stack-size>
+<stack-size id="3056079">0.0028</stack-size>
+<stack-size id="3059486">0.0030</stack-size>
+<stack-size id="3062893">0.0029</stack-size>
+<stack-size id="3066300">0.0035</stack-size>
+<stack-size id="3069707">0.0029</stack-size>
+<stack-size id="3073114">0.0028</stack-size>
+<stack-size id="3076521">0.0036</stack-size>
+<stack-size id="3079928">0.0032</stack-size>
+<stack-size id="3083335">0.0037</stack-size>
+<stack-size id="3086742">0.0029</stack-size>
+<stack-size id="3090149">0.0040</stack-size>
+<stack-size id="3093556">0.0033</stack-size>
+<stack-size id="3096963">0.0045</stack-size>
+<stack-size id="3100370">0.0042</stack-size>
+<stack-size id="3103777">0.0043</stack-size>
+<stack-size id="3107184">0.0042</stack-size>
+<stack-size id="3110591">0.0040</stack-size>
+<stack-size id="3113998">0.0048</stack-size>
+<stack-size id="3117405">0.0039</stack-size>
+<stack-size id="3120812">0.0045</stack-size>
+<stack-size id="3124219">0.0037</stack-size>
+<stack-size id="3127626">0.0037</stack-size>
+<stack-size id="3131033">0.0046</stack-size>
+<stack-size id="3134440">0.0044</stack-size>
+<stack-size id="3137847">0.0035</stack-size>
+<stack-size id="3141254">0.0032</stack-size>
+<stack-size id="3144661">0.0036</stack-size>
+<stack-size id="3148068">0.0028</stack-size>
+<stack-size id="3151475">0.0026</stack-size>
+<stack-size id="3154882">0.0026</stack-size>
+<stack-size id="3158289">0.0023</stack-size>
+<stack-size id="3161696">0.0033</stack-size>
+<stack-size id="3165103">0.0033</stack-size>
+<stack-size id="3168510">0.0028</stack-size>
+<stack-size id="3171917">0.0043</stack-size>
+<stack-size id="3175324">0.0041</stack-size>
+<stack-size id="3178731">0.0026</stack-size>
+<stack-size id="3182138">0.0028</stack-size>
+<stack-size id="3185545">0.0026</stack-size>
+<stack-size id="3188952">0.0037</stack-size>
+<stack-size id="3192359">0.0030</stack-size>
+<stack-size id="3195766">0.0034</stack-size>
+<stack-size id="3199173">0.0048</stack-size>
+<stack-size id="3202580">0.0032</stack-size>
+<stack-size id="3205987">0.0036</stack-size>
+<stack-size id="3209394">0.0040</stack-size>
+<stack-size id="3212801">0.0035</stack-size>
+<stack-size id="3216208">0.0034</stack-size>
+<stack-size id="3219615">0.0035</stack-size>
+<stack-size id="3223022">0.0035</stack-size>
+<stack-size id="3226429">0.0037</stack-size>
+<stack-size id="3229836">0.0039</stack-size>
+<stack-size id="3233243">0.0033</stack-size>
+<stack-size id="3236650">0.0040</stack-size>
+<stack-size id="3240057">0.0038</stack-size>
+<stack-size id="3243464">0.0035</stack-size>
+<stack-size id="3246871">0.0036</stack-size>
+<stack-size id="3250278">0.0037</stack-size>
+<stack-size id="3253685">0.0036</stack-size>
+<stack-size id="3257092">0.0040</stack-size>
+<stack-size id="3260499">0.0038</stack-size>
+<stack-size id="3263906">0.0046</stack-size>
+<stack-size id="3267313">0.0024</stack-size>
+<stack-size id="3270720">0.0035</stack-size>
+<stack-size id="3274127">0.0025</stack-size>
+<stack-size id="3277534">0.0034</stack-size>
+<stack-size id="3280941">0.0023</stack-size>
+<stack-size id="3284348">0.0035</stack-size>
+<stack-size id="3287755">0.0038</stack-size>
+<stack-size id="3291162">0.0030</stack-size>
+<stack-size id="3294569">0.0027</stack-size>
+<stack-size id="3297976">0.0035</stack-size>
+<stack-size id="3301383">0.0022</stack-size>
+<stack-size id="3304790">0.0028</stack-size>
+<stack-size id="3308197">0.0028</stack-size>
+<stack-size id="3311604">0.0028</stack-size>
+<stack-size id="3315011">0.0032</stack-size>
+<stack-size id="3318418">0.0025</stack-size>
+<stack-size id="3321825">0.0032</stack-size>
+<stack-size id="3325232">0.0030</stack-size>
+<stack-size id="3328639">0.0041</stack-size>
+<stack-size id="3332046">0.0043</stack-size>
+<stack-size id="3335453">0.0029</stack-size>
+<stack-size id="3338860">0.0031</stack-size>
+<stack-size id="3342267">0.0036</stack-size>
+<stack-size id="3345674">0.0041</stack-size>
+<stack-size id="3349081">0.0036</stack-size>
+<stack-size id="3352488">0.0033</stack-size>
+<stack-size id="3355895">0.0031</stack-size>
+<stack-size id="3359302">0.0031</stack-size>
+<stack-size id="3362709">0.0030</stack-size>
+<stack-size id="3366116">0.0032</stack-size>
+<stack-size id="3369523">0.0036</stack-size>
+<stack-size id="3372930">0.0031</stack-size>
+<stack-size id="3376337">0.0034</stack-size>
+<stack-size id="3379744">0.0031</stack-size>
+<stack-size id="3383151">0.0028</stack-size>
+<stack-size id="3386558">0.0032</stack-size>
+<stack-size id="3389965">0.0035</stack-size>
+<stack-size id="3393372">0.0036</stack-size>
+<stack-size id="3396779">0.0035</stack-size>
+<stack-size id="3400186">0.0031</stack-size>
+<stack-size id="3403593">0.0031</stack-size>
+<stack-size id="3407000">0.0029</stack-size>
+<max-stack>4545</max-stack>
+<front-edges>3407945</front-edges>
+<back-edges>1151290</back-edges>
+<cross-edges>9072549</cross-edges>
+<shortest-cycle>4</shortest-cycle>
+</dfs-info>
+
+<model-info><placeBounds><placeBound><place>idle</place><minCard>0</minCard><maxCard>4</maxCard><minMult>0</minMult><maxMult>4</maxMult></placeBound><placeBound><place>want_section</place><minCard>4</minCard><maxCard>4</maxCard><minMult>4</minMult><maxMult>4</maxMult></placeBound><placeBound><place>turn</place><minCard>3</minCard><maxCard>3</maxCard><minMult>3</minMult><maxMult>3</maxMult></placeBound><placeBound><place>ask_for_section</place><minCard>0</minCard><maxCard>4</maxCard><minMult>0</minMult><maxMult>4</maxMult></placeBound><placeBound><place>test_turn</place><minCard>0</minCard><maxCard>4</maxCard><minMult>0</minMult><maxMult>4</maxMult></placeBound><placeBound><place>begin_loop</place><minCard>0</minCard><maxCard>4</maxCard><minMult>0</minMult><maxMult>4</maxMult></placeBound><placeBound><place>end_turn</place><minCard>0</minCard><maxCard>3</maxCard><minMult>0</minMult><maxMult>3</maxMult></placeBound><placeBound><place>test_identity</place><minCard>0</minCard><maxCard>4</maxCard><minMult>0</minMult><maxMult>4</maxMult></placeBound><placeBound><place>cs</place><minCard>0</minCard><maxCard>1</maxCard><minMult>0</minMult><maxMult>1</maxMult></placeBound><placeBound><place>test_alone</place><minCard>0</minCard><maxCard>4</maxCard><minMult>0</minMult><maxMult>4</maxMult></placeBound><placeBound><place>is_end_loop</place><minCard>0</minCard><maxCard>4</maxCard><minMult>0</minMult><maxMult>4</maxMult></placeBound></placeBounds><possibleTokens><possibleTokensPlace><place>idle</place><token><mult>1</mult><exprList><num>0</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>2</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>3</num>
+</exprList></token>
+</possibleTokensPlace><possibleTokensPlace><place>want_section</place><token><mult>1</mult><exprList><num>0</num>
+<enum>false</enum>
+</exprList></token>
+<token><mult>1</mult><exprList><num>0</num>
+<enum>true</enum>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<enum>false</enum>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<enum>true</enum>
+</exprList></token>
+<token><mult>1</mult><exprList><num>2</num>
+<enum>false</enum>
+</exprList></token>
+<token><mult>1</mult><exprList><num>2</num>
+<enum>true</enum>
+</exprList></token>
+<token><mult>1</mult><exprList><num>3</num>
+<enum>false</enum>
+</exprList></token>
+<token><mult>1</mult><exprList><num>3</num>
+<enum>true</enum>
+</exprList></token>
+</possibleTokensPlace><possibleTokensPlace><place>turn</place><token><mult>1</mult><exprList><num>0</num>
+<num>0</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>0</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>0</num>
+<num>2</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>0</num>
+<num>3</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<num>0</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<num>2</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<num>3</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>2</num>
+<num>0</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>2</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>2</num>
+<num>2</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>2</num>
+<num>3</num>
+</exprList></token>
+</possibleTokensPlace><possibleTokensPlace><place>ask_for_section</place><token><mult>1</mult><exprList><num>0</num>
+<num>0</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>0</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>0</num>
+<num>2</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<num>0</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<num>2</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>2</num>
+<num>0</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>2</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>2</num>
+<num>2</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>3</num>
+<num>0</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>3</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>3</num>
+<num>2</num>
+</exprList></token>
+</possibleTokensPlace><possibleTokensPlace><place>test_turn</place><token><mult>1</mult><exprList><num>0</num>
+<num>0</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>0</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>0</num>
+<num>2</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<num>0</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<num>2</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>2</num>
+<num>0</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>2</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>2</num>
+<num>2</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>3</num>
+<num>0</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>3</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>3</num>
+<num>2</num>
+</exprList></token>
+</possibleTokensPlace><possibleTokensPlace><place>begin_loop</place><token><mult>1</mult><exprList><num>0</num>
+<num>0</num>
+<num>0</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>0</num>
+<num>0</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>0</num>
+<num>0</num>
+<num>2</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>0</num>
+<num>0</num>
+<num>3</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>0</num>
+<num>1</num>
+<num>0</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>0</num>
+<num>1</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>0</num>
+<num>1</num>
+<num>2</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>0</num>
+<num>1</num>
+<num>3</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>0</num>
+<num>2</num>
+<num>0</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>0</num>
+<num>2</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>0</num>
+<num>2</num>
+<num>2</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>0</num>
+<num>2</num>
+<num>3</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<num>0</num>
+<num>0</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<num>0</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<num>0</num>
+<num>2</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<num>0</num>
+<num>3</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<num>1</num>
+<num>0</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<num>1</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<num>1</num>
+<num>2</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<num>1</num>
+<num>3</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<num>2</num>
+<num>0</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<num>2</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<num>2</num>
+<num>2</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<num>2</num>
+<num>3</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>2</num>
+<num>0</num>
+<num>0</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>2</num>
+<num>0</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>2</num>
+<num>0</num>
+<num>2</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>2</num>
+<num>0</num>
+<num>3</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>2</num>
+<num>1</num>
+<num>0</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>2</num>
+<num>1</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>2</num>
+<num>1</num>
+<num>2</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>2</num>
+<num>1</num>
+<num>3</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>2</num>
+<num>2</num>
+<num>0</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>2</num>
+<num>2</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>2</num>
+<num>2</num>
+<num>2</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>2</num>
+<num>2</num>
+<num>3</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>3</num>
+<num>0</num>
+<num>0</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>3</num>
+<num>0</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>3</num>
+<num>0</num>
+<num>2</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>3</num>
+<num>0</num>
+<num>3</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>3</num>
+<num>1</num>
+<num>0</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>3</num>
+<num>1</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>3</num>
+<num>1</num>
+<num>2</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>3</num>
+<num>1</num>
+<num>3</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>3</num>
+<num>2</num>
+<num>0</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>3</num>
+<num>2</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>3</num>
+<num>2</num>
+<num>2</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>3</num>
+<num>2</num>
+<num>3</num>
+</exprList></token>
+</possibleTokensPlace><possibleTokensPlace><place>end_turn</place><token><mult>1</mult><exprList><num>0</num>
+<num>0</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>0</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>0</num>
+<num>2</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<num>0</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<num>2</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>2</num>
+<num>0</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>2</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>2</num>
+<num>2</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>3</num>
+<num>0</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>3</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>3</num>
+<num>2</num>
+</exprList></token>
+</possibleTokensPlace><possibleTokensPlace><place>test_identity</place><token><mult>1</mult><exprList><num>0</num>
+<num>0</num>
+<num>0</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>0</num>
+<num>0</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>0</num>
+<num>0</num>
+<num>2</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>0</num>
+<num>0</num>
+<num>3</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>0</num>
+<num>1</num>
+<num>0</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>0</num>
+<num>1</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>0</num>
+<num>1</num>
+<num>2</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>0</num>
+<num>1</num>
+<num>3</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>0</num>
+<num>2</num>
+<num>0</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>0</num>
+<num>2</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>0</num>
+<num>2</num>
+<num>2</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>0</num>
+<num>2</num>
+<num>3</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<num>0</num>
+<num>0</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<num>0</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<num>0</num>
+<num>2</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<num>0</num>
+<num>3</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<num>1</num>
+<num>0</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<num>1</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<num>1</num>
+<num>2</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<num>1</num>
+<num>3</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<num>2</num>
+<num>0</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<num>2</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<num>2</num>
+<num>2</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<num>2</num>
+<num>3</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>2</num>
+<num>0</num>
+<num>0</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>2</num>
+<num>0</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>2</num>
+<num>0</num>
+<num>2</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>2</num>
+<num>0</num>
+<num>3</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>2</num>
+<num>1</num>
+<num>0</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>2</num>
+<num>1</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>2</num>
+<num>1</num>
+<num>2</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>2</num>
+<num>1</num>
+<num>3</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>2</num>
+<num>2</num>
+<num>0</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>2</num>
+<num>2</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>2</num>
+<num>2</num>
+<num>2</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>2</num>
+<num>2</num>
+<num>3</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>3</num>
+<num>0</num>
+<num>0</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>3</num>
+<num>0</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>3</num>
+<num>0</num>
+<num>2</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>3</num>
+<num>0</num>
+<num>3</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>3</num>
+<num>1</num>
+<num>0</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>3</num>
+<num>1</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>3</num>
+<num>1</num>
+<num>2</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>3</num>
+<num>1</num>
+<num>3</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>3</num>
+<num>2</num>
+<num>0</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>3</num>
+<num>2</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>3</num>
+<num>2</num>
+<num>2</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>3</num>
+<num>2</num>
+<num>3</num>
+</exprList></token>
+</possibleTokensPlace><possibleTokensPlace><place>cs</place><token><mult>1</mult><exprList><num>0</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>2</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>3</num>
+</exprList></token>
+</possibleTokensPlace><possibleTokensPlace><place>test_alone</place><token><mult>1</mult><exprList><num>0</num>
+<num>0</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>0</num>
+<num>0</num>
+<num>2</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>0</num>
+<num>0</num>
+<num>3</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>0</num>
+<num>1</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>0</num>
+<num>1</num>
+<num>2</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>0</num>
+<num>1</num>
+<num>3</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>0</num>
+<num>2</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>0</num>
+<num>2</num>
+<num>2</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>0</num>
+<num>2</num>
+<num>3</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<num>0</num>
+<num>0</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<num>0</num>
+<num>2</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<num>0</num>
+<num>3</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<num>1</num>
+<num>0</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<num>1</num>
+<num>2</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<num>1</num>
+<num>3</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<num>2</num>
+<num>0</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<num>2</num>
+<num>2</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<num>2</num>
+<num>3</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>2</num>
+<num>0</num>
+<num>0</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>2</num>
+<num>0</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>2</num>
+<num>0</num>
+<num>3</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>2</num>
+<num>1</num>
+<num>0</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>2</num>
+<num>1</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>2</num>
+<num>1</num>
+<num>3</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>2</num>
+<num>2</num>
+<num>0</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>2</num>
+<num>2</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>2</num>
+<num>2</num>
+<num>3</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>3</num>
+<num>0</num>
+<num>0</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>3</num>
+<num>0</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>3</num>
+<num>0</num>
+<num>2</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>3</num>
+<num>1</num>
+<num>0</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>3</num>
+<num>1</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>3</num>
+<num>1</num>
+<num>2</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>3</num>
+<num>2</num>
+<num>0</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>3</num>
+<num>2</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>3</num>
+<num>2</num>
+<num>2</num>
+</exprList></token>
+</possibleTokensPlace><possibleTokensPlace><place>is_end_loop</place><token><mult>1</mult><exprList><num>0</num>
+<num>0</num>
+<num>0</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>0</num>
+<num>0</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>0</num>
+<num>0</num>
+<num>2</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>0</num>
+<num>0</num>
+<num>3</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>0</num>
+<num>1</num>
+<num>0</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>0</num>
+<num>1</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>0</num>
+<num>1</num>
+<num>2</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>0</num>
+<num>1</num>
+<num>3</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>0</num>
+<num>2</num>
+<num>0</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>0</num>
+<num>2</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>0</num>
+<num>2</num>
+<num>2</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>0</num>
+<num>2</num>
+<num>3</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<num>0</num>
+<num>0</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<num>0</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<num>0</num>
+<num>2</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<num>0</num>
+<num>3</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<num>1</num>
+<num>0</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<num>1</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<num>1</num>
+<num>2</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<num>1</num>
+<num>3</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<num>2</num>
+<num>0</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<num>2</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<num>2</num>
+<num>2</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<num>2</num>
+<num>3</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>2</num>
+<num>0</num>
+<num>0</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>2</num>
+<num>0</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>2</num>
+<num>0</num>
+<num>2</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>2</num>
+<num>0</num>
+<num>3</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>2</num>
+<num>1</num>
+<num>0</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>2</num>
+<num>1</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>2</num>
+<num>1</num>
+<num>2</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>2</num>
+<num>1</num>
+<num>3</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>2</num>
+<num>2</num>
+<num>0</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>2</num>
+<num>2</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>2</num>
+<num>2</num>
+<num>2</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>2</num>
+<num>2</num>
+<num>3</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>3</num>
+<num>0</num>
+<num>0</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>3</num>
+<num>0</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>3</num>
+<num>0</num>
+<num>2</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>3</num>
+<num>0</num>
+<num>3</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>3</num>
+<num>1</num>
+<num>0</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>3</num>
+<num>1</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>3</num>
+<num>1</num>
+<num>2</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>3</num>
+<num>1</num>
+<num>3</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>3</num>
+<num>2</num>
+<num>0</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>3</num>
+<num>2</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>3</num>
+<num>2</num>
+<num>2</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>3</num>
+<num>2</num>
+<num>3</num>
+</exprList></token>
+</possibleTokensPlace></possibleTokens><deadMarkings><noDeadMarkings>0</noDeadMarkings></deadMarkings><livenessInfo><livenessInfoTrans><transition>ask</transition><liveBindings><binding><varBinding><var>i</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>2</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>3</num>
+</varBinding></binding>
+</liveBindings><quasiLiveBindings></quasiLiveBindings></livenessInfoTrans><livenessInfoTrans><transition>update_turn</transition><liveBindings></liveBindings><quasiLiveBindings><binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>k</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>k</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>k</var><num>2</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>k</var><num>3</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>k</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>k</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>k</var><num>2</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>k</var><num>3</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>k</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>k</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>k</var><num>2</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>k</var><num>3</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>k</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>k</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>k</var><num>2</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>k</var><num>3</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>k</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>k</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>k</var><num>2</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>k</var><num>3</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>k</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>k</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>k</var><num>2</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>k</var><num>3</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>2</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>k</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>2</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>k</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>2</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>k</var><num>2</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>2</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>k</var><num>3</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>2</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>k</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>2</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>k</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>2</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>k</var><num>2</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>2</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>k</var><num>3</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>2</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>k</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>2</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>k</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>2</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>k</var><num>2</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>2</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>k</var><num>3</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>3</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>k</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>3</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>k</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>3</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>k</var><num>2</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>3</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>k</var><num>3</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>3</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>k</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>3</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>k</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>3</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>k</var><num>2</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>3</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>k</var><num>3</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>3</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>k</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>3</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>k</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>3</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>k</var><num>2</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>3</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>k</var><num>3</num>
+</varBinding></binding>
+</quasiLiveBindings></livenessInfoTrans><livenessInfoTrans><transition>turn_equal</transition><liveBindings><binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>2</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>2</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>2</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>3</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>3</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>3</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding></binding>
+</liveBindings><quasiLiveBindings></quasiLiveBindings></livenessInfoTrans><livenessInfoTrans><transition>turn_diff</transition><liveBindings></liveBindings><quasiLiveBindings><binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>k</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>k</var><num>2</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>k</var><num>3</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>k</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>k</var><num>2</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>k</var><num>3</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>k</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>k</var><num>2</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>k</var><num>3</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>k</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>k</var><num>2</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>k</var><num>3</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>k</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>k</var><num>2</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>k</var><num>3</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>k</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>k</var><num>2</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>k</var><num>3</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>2</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>k</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>2</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>k</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>2</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>k</var><num>3</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>2</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>k</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>2</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>k</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>2</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>k</var><num>3</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>2</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>k</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>2</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>k</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>2</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>k</var><num>3</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>3</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>k</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>3</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>k</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>3</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>k</var><num>2</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>3</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>k</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>3</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>k</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>3</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>k</var><num>2</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>3</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>k</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>3</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>k</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>3</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>k</var><num>2</num>
+</varBinding></binding>
+</quasiLiveBindings></livenessInfoTrans><livenessInfoTrans><transition>continue_loop</transition><liveBindings><binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>k</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>k</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>k</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>k</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>k</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>k</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>k</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>k</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>k</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>2</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>k</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>2</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>k</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>2</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>k</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>3</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>k</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>3</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>k</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>3</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>k</var><num>0</num>
+</varBinding></binding>
+</liveBindings><quasiLiveBindings><binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>k</var><num>2</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>k</var><num>3</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>k</var><num>2</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>k</var><num>3</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>k</var><num>2</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>k</var><num>3</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>k</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>k</var><num>2</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>k</var><num>3</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>k</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>k</var><num>2</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>k</var><num>3</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>k</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>k</var><num>2</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>k</var><num>3</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>2</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>k</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>2</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>k</var><num>2</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>2</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>k</var><num>3</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>2</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>k</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>2</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>k</var><num>2</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>2</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>k</var><num>3</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>2</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>k</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>2</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>k</var><num>2</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>2</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>k</var><num>3</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>3</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>k</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>3</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>k</var><num>2</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>3</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>k</var><num>3</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>3</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>k</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>3</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>k</var><num>2</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>3</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>k</var><num>3</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>3</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>k</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>3</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>k</var><num>2</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>3</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>k</var><num>3</num>
+</varBinding></binding>
+</quasiLiveBindings></livenessInfoTrans><livenessInfoTrans><transition>progress_turn</transition><liveBindings><binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>2</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>2</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>3</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>3</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding></binding>
+</liveBindings><quasiLiveBindings></quasiLiveBindings></livenessInfoTrans><livenessInfoTrans><transition>access_cs</transition><liveBindings><binding><varBinding><var>i</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>2</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>3</num>
+</varBinding></binding>
+</liveBindings><quasiLiveBindings></quasiLiveBindings></livenessInfoTrans><livenessInfoTrans><transition>become_idle</transition><liveBindings><binding><varBinding><var>i</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>2</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>3</num>
+</varBinding></binding>
+</liveBindings><quasiLiveBindings></quasiLiveBindings></livenessInfoTrans><livenessInfoTrans><transition>end_loop</transition><liveBindings></liveBindings><quasiLiveBindings><binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>2</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>2</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>2</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>3</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>3</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>3</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding></binding>
+</quasiLiveBindings></livenessInfoTrans><livenessInfoTrans><transition>no_identity</transition><liveBindings><binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>k</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>k</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>k</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>k</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>k</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>k</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>2</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>k</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>2</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>k</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>2</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>k</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>3</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>k</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>3</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>k</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>3</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>k</var><num>0</num>
+</varBinding></binding>
+</liveBindings><quasiLiveBindings><binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>k</var><num>2</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>k</var><num>3</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>k</var><num>2</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>k</var><num>3</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>k</var><num>2</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>k</var><num>3</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>k</var><num>2</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>k</var><num>3</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>k</var><num>2</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>k</var><num>3</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>k</var><num>2</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>k</var><num>3</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>2</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>k</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>2</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>k</var><num>3</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>2</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>k</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>2</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>k</var><num>3</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>2</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>k</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>2</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>k</var><num>3</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>3</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>k</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>3</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>k</var><num>2</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>3</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>k</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>3</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>k</var><num>2</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>3</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>k</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>3</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>k</var><num>2</num>
+</varBinding></binding>
+</quasiLiveBindings></livenessInfoTrans><livenessInfoTrans><transition>identity</transition><liveBindings><binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding></binding>
+</liveBindings><quasiLiveBindings><binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>2</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>2</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>2</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>3</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>3</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>3</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding></binding>
+</quasiLiveBindings></livenessInfoTrans><livenessInfoTrans><transition>not_alone</transition><liveBindings><binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>k</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>k</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>k</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>k</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>k</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>k</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>2</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>k</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>2</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>k</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>2</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>k</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>3</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>k</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>3</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>k</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>3</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>k</var><num>0</num>
+</varBinding></binding>
+</liveBindings><quasiLiveBindings><binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>k</var><num>2</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>k</var><num>3</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>k</var><num>2</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>k</var><num>3</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>k</var><num>2</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>k</var><num>3</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>k</var><num>2</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>k</var><num>3</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>k</var><num>2</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>k</var><num>3</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>k</var><num>2</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>k</var><num>3</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>2</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>k</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>2</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>k</var><num>3</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>2</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>k</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>2</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>k</var><num>3</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>2</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>k</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>2</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>k</var><num>3</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>3</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>k</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>3</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>k</var><num>2</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>3</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>k</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>3</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>k</var><num>2</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>3</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>k</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>3</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>k</var><num>2</num>
+</varBinding></binding>
+</quasiLiveBindings></livenessInfoTrans><livenessInfoTrans><transition>alone</transition><liveBindings></liveBindings><quasiLiveBindings><binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>k</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>k</var><num>2</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>k</var><num>3</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>k</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>k</var><num>2</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>k</var><num>3</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>k</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>k</var><num>2</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>k</var><num>3</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>k</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>k</var><num>2</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>k</var><num>3</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>k</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>k</var><num>2</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>k</var><num>3</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>k</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>k</var><num>2</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>k</var><num>3</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>2</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>k</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>2</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>k</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>2</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>k</var><num>3</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>2</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>k</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>2</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>k</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>2</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>k</var><num>3</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>2</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>k</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>2</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>k</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>2</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>k</var><num>3</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>3</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>k</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>3</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>k</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>3</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>k</var><num>2</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>3</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>k</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>3</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>k</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>3</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>k</var><num>2</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>3</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>k</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>3</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>k</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>3</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>k</var><num>2</num>
+</varBinding></binding>
+</quasiLiveBindings></livenessInfoTrans><livenessInfoTrans><transition>loop</transition><liveBindings><binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>k</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>k</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>k</var><num>0</num>
+</varBinding></binding>
+</liveBindings><quasiLiveBindings><binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>k</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>k</var><num>2</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>k</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>k</var><num>2</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>k</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>k</var><num>2</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>k</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>k</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>k</var><num>2</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>k</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>k</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>k</var><num>2</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>k</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>k</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>k</var><num>2</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>2</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>k</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>2</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>k</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>2</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>k</var><num>2</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>2</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>k</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>2</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>k</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>2</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>k</var><num>2</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>2</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>k</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>2</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>k</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>2</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>k</var><num>2</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>3</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>k</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>3</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>k</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>3</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>k</var><num>2</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>3</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>k</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>3</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>k</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>3</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>k</var><num>2</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>3</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>k</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>3</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>k</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>3</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>k</var><num>2</num>
+</varBinding></binding>
+</quasiLiveBindings></livenessInfoTrans></livenessInfo></model-info></state-space-info>

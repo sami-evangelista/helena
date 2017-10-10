@@ -1,0 +1,1350 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<state-space-info>
+
+<model>slotted</model>
+<language>helena</language>
+<date>October, 10, 2017 at 11:18:54</date>
+<filePath>/home/sami/git/helena/examples/slotted.lna</filePath>
+<modelParameters><modelParameter><modelParameterName>N</modelParameterName><modelParameterValue>5</modelParameterValue></modelParameter></modelParameters><states>1723392</states>
+<edges>11082240</edges>
+
+<bfs-info>
+<levels>64</levels>
+<max-level>66481</max-level>
+<back-level-edges>1742175</back-level-edges>
+<max-back-level-edge>25</max-back-level-edge>
+<avg-back-level-edge>11.87</avg-back-level-edge>
+<bfs-levels>
+<level id="0"><states>1</states><edges>5</edges></level>
+<level id="1"><states>5</states><edges>35</edges></level>
+<level id="2"><states>25</states><edges>170</edges></level>
+<level id="3"><states>80</states><edges>590</edges></level>
+<level id="4"><states>225</states><edges>1665</edges></level>
+<level id="5"><states>521</states><edges>3895</edges></level>
+<level id="6"><states>1065</states><edges>7950</edges></level>
+<level id="7"><states>1950</states><edges>14380</edges></level>
+<level id="8"><states>3255</states><edges>23655</edges></level>
+<level id="9"><states>5025</states><edges>35665</edges></level>
+<level id="10"><states>7183</states><edges>49620</edges></level>
+<level id="11"><states>9580</states><edges>64060</edges></level>
+<level id="12"><states>12010</states><edges>77650</edges></level>
+<level id="13"><states>14390</states><edges>90320</edges></level>
+<level id="14"><states>16780</states><edges>102980</edges></level>
+<level id="15"><states>19272</states><edges>116720</edges></level>
+<level id="16"><states>21880</states><edges>131620</edges></level>
+<level id="17"><states>24580</states><edges>147980</edges></level>
+<level id="18"><states>27520</states><edges>166380</edges></level>
+<level id="19"><states>30740</states><edges>185840</edges></level>
+<level id="20"><states>33872</states><edges>203560</edges></level>
+<level id="21"><states>36480</states><edges>218840</edges></level>
+<level id="22"><states>38880</states><edges>236240</edges></level>
+<level id="23"><states>41960</states><edges>259760</edges></level>
+<level id="24"><states>45920</states><edges>286520</edges></level>
+<level id="25"><states>49751</states><edges>308515</edges></level>
+<level id="26"><states>52395</states><edges>323525</edges></level>
+<level id="27"><states>54175</states><edges>337750</edges></level>
+<level id="28"><states>56160</states><edges>356370</edges></level>
+<level id="29"><states>58735</states><edges>377855</edges></level>
+<level id="30"><states>61111</states><edges>394585</edges></level>
+<level id="31"><states>62375</states><edges>405010</edges></level>
+<level id="32"><states>63090</states><edges>416980</edges></level>
+<level id="33"><states>64425</states><edges>434585</edges></level>
+<level id="34"><states>66255</states><edges>448495</edges></level>
+<level id="35"><states>66481</states><edges>439820</edges></level>
+<level id="36"><states>63300</states><edges>407140</edges></level>
+<level id="37"><states>58150</states><edges>371390</edges></level>
+<level id="38"><states>53850</states><edges>349040</edges></level>
+<level id="39"><states>51380</states><edges>337340</edges></level>
+<level id="40"><states>49240</states><edges>321200</edges></level>
+<level id="41"><states>45960</states><edges>297820</edges></level>
+<level id="42"><states>42300</states><edges>276500</edges></level>
+<level id="43"><states>39360</states><edges>261140</edges></level>
+<level id="44"><states>37100</states><edges>248080</edges></level>
+<level id="45"><states>34640</states><edges>230040</edges></level>
+<level id="46"><states>31520</states><edges>208040</edges></level>
+<level id="47"><states>28320</states><edges>187120</edges></level>
+<level id="48"><states>25240</states><edges>167120</edges></level>
+<level id="49"><states>22080</states><edges>147080</edges></level>
+<level id="50"><states>18760</states><edges>125400</edges></level>
+<level id="51"><states>15440</states><edges>103960</edges></level>
+<level id="52"><states>12680</states><edges>86560</edges></level>
+<level id="53"><states>10640</states><edges>72480</edges></level>
+<level id="54"><states>8880</states><edges>58400</edges></level>
+<level id="55"><states>6880</states><edges>41840</edges></level>
+<level id="56"><states>4720</states><edges>26560</edges></level>
+<level id="57"><states>3280</states><edges>19520</edges></level>
+<level id="58"><states>3040</states><edges>20640</edges></level>
+<level id="59"><states>3280</states><edges>21920</edges></level>
+<level id="60"><states>2880</states><edges>16640</edges></level>
+<level id="61"><states>1680</states><edges>7680</edges></level>
+<level id="62"><states>560</states><edges>1840</edges></level>
+<level id="63"><states>80</states><edges>160</edges></level>
+</bfs-levels>
+<back-level-lengths>
+<length id="0">51.4730</length>
+<length id="1">0.0000</length>
+<length id="2">0.0000</length>
+<length id="3">0.0000</length>
+<length id="4">0.0000</length>
+<length id="5">0.0000</length>
+<length id="6">0.0000</length>
+<length id="7">0.0000</length>
+<length id="8">0.0000</length>
+<length id="9">0.0000</length>
+<length id="10">0.0000</length>
+<length id="11">0.0000</length>
+<length id="12">0.0000</length>
+<length id="13">0.0000</length>
+<length id="14">0.0000</length>
+<length id="15">0.0000</length>
+<length id="16">0.0000</length>
+<length id="17">0.0000</length>
+<length id="18">0.0000</length>
+<length id="19">0.0000</length>
+<length id="20">0.0000</length>
+<length id="21">0.0000</length>
+<length id="22">0.0000</length>
+<length id="23">0.0000</length>
+<length id="24">26.3817</length>
+<length id="25">22.1453</length>
+</back-level-lengths>
+</bfs-info>
+
+<degrees>
+<avg>6.4305</avg>
+<max-in>15</max-in>
+<max-out>15</max-out>
+<degree id="0"><in>0</in><out>0</out></degree>
+<degree id="1"><in>140</in><out>640</out></degree>
+<degree id="2"><in>4000</in><out>12960</out></degree>
+<degree id="3"><in>35090</in><out>72480</out></degree>
+<degree id="4"><in>141190</in><out>181760</out></degree>
+<degree id="5"><in>312687</in><out>288768</out></degree>
+<degree id="6"><in>424780</in><out>356160</out></degree>
+<degree id="7"><in>387425</in><out>331200</out></degree>
+<degree id="8"><in>249380</in><out>240640</out></degree>
+<degree id="9"><in>116570</in><out>143360</out></degree>
+<degree id="10"><in>39984</in><out>62912</out></degree>
+<degree id="11"><in>10060</in><out>24640</out></degree>
+<degree id="12"><in>1830</in><out>6080</out></degree>
+<degree id="13"><in>235</in><out>1600</out></degree>
+<degree id="14"><in>20</in><out>160</out></degree>
+<degree id="15"><in>1</in><out>32</out></degree>
+</degrees>
+
+<scc-info>
+<count>1</count>
+<trivial>0</trivial>
+<terminal>1</terminal>
+<largest>1723392</largest>
+</scc-info>
+
+<dfs-info>
+<stack-size id="1723">0.1000</stack-size>
+<stack-size id="3446">0.2000</stack-size>
+<stack-size id="5169">0.2999</stack-size>
+<stack-size id="6892">0.3999</stack-size>
+<stack-size id="8615">0.4998</stack-size>
+<stack-size id="10338">0.5993</stack-size>
+<stack-size id="12061">0.6993</stack-size>
+<stack-size id="13784">0.7991</stack-size>
+<stack-size id="15507">0.8985</stack-size>
+<stack-size id="17230">0.9985</stack-size>
+<stack-size id="18953">1.0984</stack-size>
+<stack-size id="20676">1.1983</stack-size>
+<stack-size id="22399">1.2981</stack-size>
+<stack-size id="24122">1.3979</stack-size>
+<stack-size id="25845">1.4977</stack-size>
+<stack-size id="27568">1.5975</stack-size>
+<stack-size id="29291">1.6974</stack-size>
+<stack-size id="31014">1.7967</stack-size>
+<stack-size id="32737">1.8965</stack-size>
+<stack-size id="34460">1.9961</stack-size>
+<stack-size id="36183">2.0959</stack-size>
+<stack-size id="37906">2.1954</stack-size>
+<stack-size id="39629">2.2948</stack-size>
+<stack-size id="41352">2.3944</stack-size>
+<stack-size id="43075">2.4944</stack-size>
+<stack-size id="44798">2.5940</stack-size>
+<stack-size id="46521">2.6932</stack-size>
+<stack-size id="48244">2.7926</stack-size>
+<stack-size id="49967">2.8921</stack-size>
+<stack-size id="51690">2.9909</stack-size>
+<stack-size id="53413">3.0908</stack-size>
+<stack-size id="55136">3.1899</stack-size>
+<stack-size id="56859">3.2892</stack-size>
+<stack-size id="58582">3.3890</stack-size>
+<stack-size id="60305">3.4882</stack-size>
+<stack-size id="62028">3.5878</stack-size>
+<stack-size id="63751">3.6863</stack-size>
+<stack-size id="65474">3.7852</stack-size>
+<stack-size id="67197">3.8844</stack-size>
+<stack-size id="68920">3.9836</stack-size>
+<stack-size id="70643">4.0826</stack-size>
+<stack-size id="72366">4.1815</stack-size>
+<stack-size id="74089">4.2806</stack-size>
+<stack-size id="75812">4.3799</stack-size>
+<stack-size id="77535">4.4792</stack-size>
+<stack-size id="79258">4.5784</stack-size>
+<stack-size id="80981">4.6772</stack-size>
+<stack-size id="82704">4.7767</stack-size>
+<stack-size id="84427">4.8755</stack-size>
+<stack-size id="86150">4.9746</stack-size>
+<stack-size id="87873">5.0731</stack-size>
+<stack-size id="89596">5.1711</stack-size>
+<stack-size id="91319">5.2682</stack-size>
+<stack-size id="93042">5.3667</stack-size>
+<stack-size id="94765">5.4657</stack-size>
+<stack-size id="96488">5.5647</stack-size>
+<stack-size id="98211">5.6630</stack-size>
+<stack-size id="99934">5.7603</stack-size>
+<stack-size id="101657">5.8580</stack-size>
+<stack-size id="103380">5.9558</stack-size>
+<stack-size id="105103">6.0531</stack-size>
+<stack-size id="106826">6.1518</stack-size>
+<stack-size id="108549">6.2503</stack-size>
+<stack-size id="110272">6.3485</stack-size>
+<stack-size id="111995">6.4469</stack-size>
+<stack-size id="113718">6.5451</stack-size>
+<stack-size id="115441">6.6442</stack-size>
+<stack-size id="117164">6.7419</stack-size>
+<stack-size id="118887">6.8384</stack-size>
+<stack-size id="120610">6.9366</stack-size>
+<stack-size id="122333">7.0350</stack-size>
+<stack-size id="124056">7.1320</stack-size>
+<stack-size id="125779">7.2301</stack-size>
+<stack-size id="127502">7.3281</stack-size>
+<stack-size id="129225">7.4261</stack-size>
+<stack-size id="130948">7.5221</stack-size>
+<stack-size id="132671">7.6200</stack-size>
+<stack-size id="134394">7.7176</stack-size>
+<stack-size id="136117">7.8149</stack-size>
+<stack-size id="137840">7.9129</stack-size>
+<stack-size id="139563">8.0108</stack-size>
+<stack-size id="141286">8.1083</stack-size>
+<stack-size id="143009">8.2035</stack-size>
+<stack-size id="144732">8.2990</stack-size>
+<stack-size id="146455">8.3960</stack-size>
+<stack-size id="148178">8.4935</stack-size>
+<stack-size id="149901">8.5902</stack-size>
+<stack-size id="151624">8.6876</stack-size>
+<stack-size id="153347">8.7824</stack-size>
+<stack-size id="155070">8.8789</stack-size>
+<stack-size id="156793">8.9747</stack-size>
+<stack-size id="158516">9.0716</stack-size>
+<stack-size id="160239">9.1658</stack-size>
+<stack-size id="161962">9.2639</stack-size>
+<stack-size id="163685">9.3586</stack-size>
+<stack-size id="165408">9.4518</stack-size>
+<stack-size id="167131">9.5477</stack-size>
+<stack-size id="168854">9.6420</stack-size>
+<stack-size id="170577">9.7394</stack-size>
+<stack-size id="172300">9.8357</stack-size>
+<stack-size id="174023">9.9325</stack-size>
+<stack-size id="175746">10.0287</stack-size>
+<stack-size id="177469">10.1227</stack-size>
+<stack-size id="179192">10.2154</stack-size>
+<stack-size id="180915">10.3111</stack-size>
+<stack-size id="182638">10.4077</stack-size>
+<stack-size id="184361">10.5029</stack-size>
+<stack-size id="186084">10.5957</stack-size>
+<stack-size id="187807">10.6910</stack-size>
+<stack-size id="189530">10.7877</stack-size>
+<stack-size id="191253">10.8829</stack-size>
+<stack-size id="192976">10.9778</stack-size>
+<stack-size id="194699">11.0750</stack-size>
+<stack-size id="196422">11.1725</stack-size>
+<stack-size id="198145">11.2695</stack-size>
+<stack-size id="199868">11.3648</stack-size>
+<stack-size id="201591">11.4595</stack-size>
+<stack-size id="203314">11.5569</stack-size>
+<stack-size id="205037">11.6517</stack-size>
+<stack-size id="206760">11.7469</stack-size>
+<stack-size id="208483">11.8420</stack-size>
+<stack-size id="210206">11.9368</stack-size>
+<stack-size id="211929">12.0319</stack-size>
+<stack-size id="213652">12.1260</stack-size>
+<stack-size id="215375">12.2193</stack-size>
+<stack-size id="217098">12.3156</stack-size>
+<stack-size id="218821">12.4099</stack-size>
+<stack-size id="220544">12.5039</stack-size>
+<stack-size id="222267">12.5981</stack-size>
+<stack-size id="223990">12.6919</stack-size>
+<stack-size id="225713">12.7864</stack-size>
+<stack-size id="227436">12.8781</stack-size>
+<stack-size id="229159">12.9716</stack-size>
+<stack-size id="230882">13.0632</stack-size>
+<stack-size id="232605">13.1570</stack-size>
+<stack-size id="234328">13.2499</stack-size>
+<stack-size id="236051">13.3449</stack-size>
+<stack-size id="237774">13.4365</stack-size>
+<stack-size id="239497">13.5301</stack-size>
+<stack-size id="241220">13.6221</stack-size>
+<stack-size id="242943">13.7160</stack-size>
+<stack-size id="244666">13.8107</stack-size>
+<stack-size id="246389">13.9053</stack-size>
+<stack-size id="248112">13.9963</stack-size>
+<stack-size id="249835">14.0901</stack-size>
+<stack-size id="251558">14.1835</stack-size>
+<stack-size id="253281">14.2742</stack-size>
+<stack-size id="255004">14.3670</stack-size>
+<stack-size id="256727">14.4613</stack-size>
+<stack-size id="258450">14.5542</stack-size>
+<stack-size id="260173">14.6463</stack-size>
+<stack-size id="261896">14.7377</stack-size>
+<stack-size id="263619">14.8301</stack-size>
+<stack-size id="265342">14.9235</stack-size>
+<stack-size id="267065">15.0143</stack-size>
+<stack-size id="268788">15.1041</stack-size>
+<stack-size id="270511">15.1989</stack-size>
+<stack-size id="272234">15.2916</stack-size>
+<stack-size id="273957">15.3820</stack-size>
+<stack-size id="275680">15.4736</stack-size>
+<stack-size id="277403">15.5643</stack-size>
+<stack-size id="279126">15.6573</stack-size>
+<stack-size id="280849">15.7510</stack-size>
+<stack-size id="282572">15.8399</stack-size>
+<stack-size id="284295">15.9343</stack-size>
+<stack-size id="286018">16.0273</stack-size>
+<stack-size id="287741">16.1162</stack-size>
+<stack-size id="289464">16.2094</stack-size>
+<stack-size id="291187">16.3025</stack-size>
+<stack-size id="292910">16.3952</stack-size>
+<stack-size id="294633">16.4806</stack-size>
+<stack-size id="296356">16.5719</stack-size>
+<stack-size id="298079">16.6631</stack-size>
+<stack-size id="299802">16.7510</stack-size>
+<stack-size id="301525">16.8353</stack-size>
+<stack-size id="303248">16.9188</stack-size>
+<stack-size id="304971">17.0124</stack-size>
+<stack-size id="306694">17.1048</stack-size>
+<stack-size id="308417">17.1905</stack-size>
+<stack-size id="310140">17.2832</stack-size>
+<stack-size id="311863">17.3741</stack-size>
+<stack-size id="313586">17.4653</stack-size>
+<stack-size id="315309">17.5524</stack-size>
+<stack-size id="317032">17.6451</stack-size>
+<stack-size id="318755">17.7371</stack-size>
+<stack-size id="320478">17.8313</stack-size>
+<stack-size id="322201">17.9206</stack-size>
+<stack-size id="323924">18.0062</stack-size>
+<stack-size id="325647">18.0950</stack-size>
+<stack-size id="327370">18.1836</stack-size>
+<stack-size id="329093">18.2771</stack-size>
+<stack-size id="330816">18.3682</stack-size>
+<stack-size id="332539">18.4594</stack-size>
+<stack-size id="334262">18.5484</stack-size>
+<stack-size id="335985">18.6367</stack-size>
+<stack-size id="337708">18.7245</stack-size>
+<stack-size id="339431">18.8169</stack-size>
+<stack-size id="341154">18.9076</stack-size>
+<stack-size id="342877">18.9959</stack-size>
+<stack-size id="344600">19.0755</stack-size>
+<stack-size id="346323">19.1635</stack-size>
+<stack-size id="348046">19.2527</stack-size>
+<stack-size id="349769">19.3420</stack-size>
+<stack-size id="351492">19.4323</stack-size>
+<stack-size id="353215">19.5175</stack-size>
+<stack-size id="354938">19.6060</stack-size>
+<stack-size id="356661">19.6957</stack-size>
+<stack-size id="358384">19.7848</stack-size>
+<stack-size id="360107">19.8758</stack-size>
+<stack-size id="361830">19.9655</stack-size>
+<stack-size id="363553">20.0544</stack-size>
+<stack-size id="365276">20.1398</stack-size>
+<stack-size id="366999">20.2307</stack-size>
+<stack-size id="368722">20.3171</stack-size>
+<stack-size id="370445">20.4022</stack-size>
+<stack-size id="372168">20.4905</stack-size>
+<stack-size id="373891">20.5729</stack-size>
+<stack-size id="375614">20.6591</stack-size>
+<stack-size id="377337">20.7458</stack-size>
+<stack-size id="379060">20.8317</stack-size>
+<stack-size id="380783">20.9114</stack-size>
+<stack-size id="382506">20.9991</stack-size>
+<stack-size id="384229">21.0861</stack-size>
+<stack-size id="385952">21.1723</stack-size>
+<stack-size id="387675">21.2593</stack-size>
+<stack-size id="389398">21.3479</stack-size>
+<stack-size id="391121">21.4325</stack-size>
+<stack-size id="392844">21.5176</stack-size>
+<stack-size id="394567">21.6066</stack-size>
+<stack-size id="396290">21.6945</stack-size>
+<stack-size id="398013">21.7786</stack-size>
+<stack-size id="399736">21.8657</stack-size>
+<stack-size id="401459">21.9512</stack-size>
+<stack-size id="403182">22.0308</stack-size>
+<stack-size id="404905">22.1169</stack-size>
+<stack-size id="406628">22.2005</stack-size>
+<stack-size id="408351">22.2841</stack-size>
+<stack-size id="410074">22.3683</stack-size>
+<stack-size id="411797">22.4495</stack-size>
+<stack-size id="413520">22.5369</stack-size>
+<stack-size id="415243">22.6177</stack-size>
+<stack-size id="416966">22.7082</stack-size>
+<stack-size id="418689">22.7926</stack-size>
+<stack-size id="420412">22.8801</stack-size>
+<stack-size id="422135">22.9637</stack-size>
+<stack-size id="423858">23.0510</stack-size>
+<stack-size id="425581">23.1309</stack-size>
+<stack-size id="427304">23.2162</stack-size>
+<stack-size id="429027">23.2992</stack-size>
+<stack-size id="430750">23.3846</stack-size>
+<stack-size id="432473">23.4689</stack-size>
+<stack-size id="434196">23.5549</stack-size>
+<stack-size id="435919">23.6364</stack-size>
+<stack-size id="437642">23.7167</stack-size>
+<stack-size id="439365">23.8014</stack-size>
+<stack-size id="441088">23.8826</stack-size>
+<stack-size id="442811">23.9632</stack-size>
+<stack-size id="444534">24.0483</stack-size>
+<stack-size id="446257">24.1318</stack-size>
+<stack-size id="447980">24.2117</stack-size>
+<stack-size id="449703">24.2920</stack-size>
+<stack-size id="451426">24.3708</stack-size>
+<stack-size id="453149">24.4562</stack-size>
+<stack-size id="454872">24.5435</stack-size>
+<stack-size id="456595">24.6259</stack-size>
+<stack-size id="458318">24.7059</stack-size>
+<stack-size id="460041">24.7851</stack-size>
+<stack-size id="461764">24.8723</stack-size>
+<stack-size id="463487">24.9559</stack-size>
+<stack-size id="465210">25.0440</stack-size>
+<stack-size id="466933">25.1277</stack-size>
+<stack-size id="468656">25.2106</stack-size>
+<stack-size id="470379">25.2945</stack-size>
+<stack-size id="472102">25.3775</stack-size>
+<stack-size id="473825">25.4554</stack-size>
+<stack-size id="475548">25.5385</stack-size>
+<stack-size id="477271">25.6185</stack-size>
+<stack-size id="478994">25.6958</stack-size>
+<stack-size id="480717">25.7677</stack-size>
+<stack-size id="482440">25.8461</stack-size>
+<stack-size id="484163">25.9255</stack-size>
+<stack-size id="485886">26.0011</stack-size>
+<stack-size id="487609">26.0724</stack-size>
+<stack-size id="489332">26.1587</stack-size>
+<stack-size id="491055">26.2415</stack-size>
+<stack-size id="492778">26.3224</stack-size>
+<stack-size id="494501">26.4046</stack-size>
+<stack-size id="496224">26.4885</stack-size>
+<stack-size id="497947">26.5671</stack-size>
+<stack-size id="499670">26.6465</stack-size>
+<stack-size id="501393">26.7267</stack-size>
+<stack-size id="503116">26.8027</stack-size>
+<stack-size id="504839">26.8818</stack-size>
+<stack-size id="506562">26.9610</stack-size>
+<stack-size id="508285">27.0405</stack-size>
+<stack-size id="510008">27.1230</stack-size>
+<stack-size id="511731">27.1985</stack-size>
+<stack-size id="513454">27.2707</stack-size>
+<stack-size id="515177">27.3466</stack-size>
+<stack-size id="516900">27.4270</stack-size>
+<stack-size id="518623">27.5063</stack-size>
+<stack-size id="520346">27.5836</stack-size>
+<stack-size id="522069">27.6592</stack-size>
+<stack-size id="523792">27.7372</stack-size>
+<stack-size id="525515">27.8142</stack-size>
+<stack-size id="527238">27.8947</stack-size>
+<stack-size id="528961">27.9751</stack-size>
+<stack-size id="530684">28.0557</stack-size>
+<stack-size id="532407">28.1392</stack-size>
+<stack-size id="534130">28.2202</stack-size>
+<stack-size id="535853">28.2970</stack-size>
+<stack-size id="537576">28.3651</stack-size>
+<stack-size id="539299">28.4422</stack-size>
+<stack-size id="541022">28.5201</stack-size>
+<stack-size id="542745">28.5983</stack-size>
+<stack-size id="544468">28.6795</stack-size>
+<stack-size id="546191">28.7580</stack-size>
+<stack-size id="547914">28.8280</stack-size>
+<stack-size id="549637">28.9075</stack-size>
+<stack-size id="551360">28.9848</stack-size>
+<stack-size id="553083">29.0601</stack-size>
+<stack-size id="554806">29.1377</stack-size>
+<stack-size id="556529">29.2139</stack-size>
+<stack-size id="558252">29.2873</stack-size>
+<stack-size id="559975">29.3637</stack-size>
+<stack-size id="561698">29.4423</stack-size>
+<stack-size id="563421">29.5239</stack-size>
+<stack-size id="565144">29.6063</stack-size>
+<stack-size id="566867">29.6813</stack-size>
+<stack-size id="568590">29.7632</stack-size>
+<stack-size id="570313">29.8416</stack-size>
+<stack-size id="572036">29.9209</stack-size>
+<stack-size id="573759">29.9985</stack-size>
+<stack-size id="575482">30.0724</stack-size>
+<stack-size id="577205">30.1489</stack-size>
+<stack-size id="578928">30.2241</stack-size>
+<stack-size id="580651">30.3021</stack-size>
+<stack-size id="582374">30.3761</stack-size>
+<stack-size id="584097">30.4541</stack-size>
+<stack-size id="585820">30.5220</stack-size>
+<stack-size id="587543">30.5929</stack-size>
+<stack-size id="589266">30.6631</stack-size>
+<stack-size id="590989">30.7351</stack-size>
+<stack-size id="592712">30.8098</stack-size>
+<stack-size id="594435">30.8855</stack-size>
+<stack-size id="596158">30.9566</stack-size>
+<stack-size id="597881">31.0304</stack-size>
+<stack-size id="599604">31.1102</stack-size>
+<stack-size id="601327">31.1830</stack-size>
+<stack-size id="603050">31.2562</stack-size>
+<stack-size id="604773">31.3257</stack-size>
+<stack-size id="606496">31.4059</stack-size>
+<stack-size id="608219">31.4761</stack-size>
+<stack-size id="609942">31.5594</stack-size>
+<stack-size id="611665">31.6316</stack-size>
+<stack-size id="613388">31.7039</stack-size>
+<stack-size id="615111">31.7878</stack-size>
+<stack-size id="616834">31.8640</stack-size>
+<stack-size id="618557">31.9341</stack-size>
+<stack-size id="620280">32.0014</stack-size>
+<stack-size id="622003">32.0755</stack-size>
+<stack-size id="623726">32.1462</stack-size>
+<stack-size id="625449">32.2078</stack-size>
+<stack-size id="627172">32.2880</stack-size>
+<stack-size id="628895">32.3582</stack-size>
+<stack-size id="630618">32.4340</stack-size>
+<stack-size id="632341">32.5104</stack-size>
+<stack-size id="634064">32.5828</stack-size>
+<stack-size id="635787">32.6518</stack-size>
+<stack-size id="637510">32.7219</stack-size>
+<stack-size id="639233">32.7956</stack-size>
+<stack-size id="640956">32.8697</stack-size>
+<stack-size id="642679">32.9457</stack-size>
+<stack-size id="644402">33.0137</stack-size>
+<stack-size id="646125">33.0806</stack-size>
+<stack-size id="647848">33.1431</stack-size>
+<stack-size id="649571">33.2139</stack-size>
+<stack-size id="651294">33.2857</stack-size>
+<stack-size id="653017">33.3585</stack-size>
+<stack-size id="654740">33.4250</stack-size>
+<stack-size id="656463">33.4926</stack-size>
+<stack-size id="658186">33.5647</stack-size>
+<stack-size id="659909">33.6376</stack-size>
+<stack-size id="661632">33.7087</stack-size>
+<stack-size id="663355">33.7719</stack-size>
+<stack-size id="665078">33.8399</stack-size>
+<stack-size id="666801">33.9113</stack-size>
+<stack-size id="668524">33.9778</stack-size>
+<stack-size id="670247">34.0572</stack-size>
+<stack-size id="671970">34.1307</stack-size>
+<stack-size id="673693">34.1941</stack-size>
+<stack-size id="675416">34.2606</stack-size>
+<stack-size id="677139">34.3237</stack-size>
+<stack-size id="678862">34.3965</stack-size>
+<stack-size id="680585">34.4696</stack-size>
+<stack-size id="682308">34.5379</stack-size>
+<stack-size id="684031">34.6090</stack-size>
+<stack-size id="685754">34.6779</stack-size>
+<stack-size id="687477">34.7418</stack-size>
+<stack-size id="689200">34.8123</stack-size>
+<stack-size id="690923">34.8798</stack-size>
+<stack-size id="692646">34.9508</stack-size>
+<stack-size id="694369">35.0229</stack-size>
+<stack-size id="696092">35.0919</stack-size>
+<stack-size id="697815">35.1592</stack-size>
+<stack-size id="699538">35.2261</stack-size>
+<stack-size id="701261">35.2935</stack-size>
+<stack-size id="702984">35.3537</stack-size>
+<stack-size id="704707">35.4162</stack-size>
+<stack-size id="706430">35.4875</stack-size>
+<stack-size id="708153">35.5502</stack-size>
+<stack-size id="709876">35.6181</stack-size>
+<stack-size id="711599">35.6854</stack-size>
+<stack-size id="713322">35.7577</stack-size>
+<stack-size id="715045">35.8215</stack-size>
+<stack-size id="716768">35.8950</stack-size>
+<stack-size id="718491">35.9554</stack-size>
+<stack-size id="720214">36.0254</stack-size>
+<stack-size id="721937">36.0958</stack-size>
+<stack-size id="723660">36.1664</stack-size>
+<stack-size id="725383">36.2382</stack-size>
+<stack-size id="727106">36.3085</stack-size>
+<stack-size id="728829">36.3796</stack-size>
+<stack-size id="730552">36.4482</stack-size>
+<stack-size id="732275">36.5150</stack-size>
+<stack-size id="733998">36.5732</stack-size>
+<stack-size id="735721">36.6364</stack-size>
+<stack-size id="737444">36.7050</stack-size>
+<stack-size id="739167">36.7683</stack-size>
+<stack-size id="740890">36.8309</stack-size>
+<stack-size id="742613">36.8977</stack-size>
+<stack-size id="744336">36.9649</stack-size>
+<stack-size id="746059">37.0349</stack-size>
+<stack-size id="747782">37.1018</stack-size>
+<stack-size id="749505">37.1654</stack-size>
+<stack-size id="751228">37.2385</stack-size>
+<stack-size id="752951">37.3045</stack-size>
+<stack-size id="754674">37.3655</stack-size>
+<stack-size id="756397">37.4373</stack-size>
+<stack-size id="758120">37.5019</stack-size>
+<stack-size id="759843">37.5689</stack-size>
+<stack-size id="761566">37.6350</stack-size>
+<stack-size id="763289">37.7002</stack-size>
+<stack-size id="765012">37.7649</stack-size>
+<stack-size id="766735">37.8200</stack-size>
+<stack-size id="768458">37.8874</stack-size>
+<stack-size id="770181">37.9543</stack-size>
+<stack-size id="771904">38.0136</stack-size>
+<stack-size id="773627">38.0755</stack-size>
+<stack-size id="775350">38.1418</stack-size>
+<stack-size id="777073">38.2015</stack-size>
+<stack-size id="778796">38.2670</stack-size>
+<stack-size id="780519">38.3326</stack-size>
+<stack-size id="782242">38.3948</stack-size>
+<stack-size id="783965">38.4584</stack-size>
+<stack-size id="785688">38.5221</stack-size>
+<stack-size id="787411">38.5917</stack-size>
+<stack-size id="789134">38.6593</stack-size>
+<stack-size id="790857">38.7239</stack-size>
+<stack-size id="792580">38.7848</stack-size>
+<stack-size id="794303">38.8491</stack-size>
+<stack-size id="796026">38.9101</stack-size>
+<stack-size id="797749">38.9763</stack-size>
+<stack-size id="799472">39.0411</stack-size>
+<stack-size id="801195">39.1058</stack-size>
+<stack-size id="802918">39.1694</stack-size>
+<stack-size id="804641">39.2342</stack-size>
+<stack-size id="806364">39.2942</stack-size>
+<stack-size id="808087">39.3679</stack-size>
+<stack-size id="809810">39.4333</stack-size>
+<stack-size id="811533">39.4946</stack-size>
+<stack-size id="813256">39.5481</stack-size>
+<stack-size id="814979">39.6112</stack-size>
+<stack-size id="816702">39.6707</stack-size>
+<stack-size id="818425">39.7365</stack-size>
+<stack-size id="820148">39.7816</stack-size>
+<stack-size id="821871">39.8436</stack-size>
+<stack-size id="823594">39.9116</stack-size>
+<stack-size id="825317">39.9722</stack-size>
+<stack-size id="827040">40.0302</stack-size>
+<stack-size id="828763">40.0917</stack-size>
+<stack-size id="830486">40.1551</stack-size>
+<stack-size id="832209">40.2151</stack-size>
+<stack-size id="833932">40.2854</stack-size>
+<stack-size id="835655">40.3442</stack-size>
+<stack-size id="837378">40.3954</stack-size>
+<stack-size id="839101">40.4485</stack-size>
+<stack-size id="840824">40.5077</stack-size>
+<stack-size id="842547">40.5626</stack-size>
+<stack-size id="844270">40.6182</stack-size>
+<stack-size id="845993">40.6761</stack-size>
+<stack-size id="847716">40.7446</stack-size>
+<stack-size id="849439">40.8042</stack-size>
+<stack-size id="851162">40.8630</stack-size>
+<stack-size id="852885">40.9118</stack-size>
+<stack-size id="854608">40.9756</stack-size>
+<stack-size id="856331">41.0364</stack-size>
+<stack-size id="858054">41.0923</stack-size>
+<stack-size id="859777">41.1469</stack-size>
+<stack-size id="861500">41.2039</stack-size>
+<stack-size id="863223">41.2497</stack-size>
+<stack-size id="864946">41.3031</stack-size>
+<stack-size id="866669">41.3586</stack-size>
+<stack-size id="868392">41.4223</stack-size>
+<stack-size id="870115">41.4810</stack-size>
+<stack-size id="871838">41.5414</stack-size>
+<stack-size id="873561">41.5974</stack-size>
+<stack-size id="875284">41.6457</stack-size>
+<stack-size id="877007">41.7046</stack-size>
+<stack-size id="878730">41.7583</stack-size>
+<stack-size id="880453">41.8204</stack-size>
+<stack-size id="882176">41.8688</stack-size>
+<stack-size id="883899">41.9180</stack-size>
+<stack-size id="885622">41.9636</stack-size>
+<stack-size id="887345">42.0245</stack-size>
+<stack-size id="889068">42.0669</stack-size>
+<stack-size id="890791">42.1317</stack-size>
+<stack-size id="892514">42.1885</stack-size>
+<stack-size id="894237">42.2496</stack-size>
+<stack-size id="895960">42.2976</stack-size>
+<stack-size id="897683">42.3493</stack-size>
+<stack-size id="899406">42.4083</stack-size>
+<stack-size id="901129">42.4505</stack-size>
+<stack-size id="902852">42.5013</stack-size>
+<stack-size id="904575">42.5582</stack-size>
+<stack-size id="906298">42.6178</stack-size>
+<stack-size id="908021">42.6807</stack-size>
+<stack-size id="909744">42.7388</stack-size>
+<stack-size id="911467">42.7958</stack-size>
+<stack-size id="913190">42.8443</stack-size>
+<stack-size id="914913">42.8799</stack-size>
+<stack-size id="916636">42.9355</stack-size>
+<stack-size id="918359">42.9957</stack-size>
+<stack-size id="920082">43.0423</stack-size>
+<stack-size id="921805">43.0951</stack-size>
+<stack-size id="923528">43.1497</stack-size>
+<stack-size id="925251">43.1964</stack-size>
+<stack-size id="926974">43.2611</stack-size>
+<stack-size id="928697">43.3226</stack-size>
+<stack-size id="930420">43.3757</stack-size>
+<stack-size id="932143">43.4179</stack-size>
+<stack-size id="933866">43.4652</stack-size>
+<stack-size id="935589">43.5228</stack-size>
+<stack-size id="937312">43.5745</stack-size>
+<stack-size id="939035">43.6259</stack-size>
+<stack-size id="940758">43.6721</stack-size>
+<stack-size id="942481">43.7253</stack-size>
+<stack-size id="944204">43.7770</stack-size>
+<stack-size id="945927">43.8216</stack-size>
+<stack-size id="947650">43.8694</stack-size>
+<stack-size id="949373">43.9090</stack-size>
+<stack-size id="951096">43.9556</stack-size>
+<stack-size id="952819">44.0139</stack-size>
+<stack-size id="954542">44.0622</stack-size>
+<stack-size id="956265">44.1243</stack-size>
+<stack-size id="957988">44.1660</stack-size>
+<stack-size id="959711">44.2250</stack-size>
+<stack-size id="961434">44.2756</stack-size>
+<stack-size id="963157">44.3258</stack-size>
+<stack-size id="964880">44.3797</stack-size>
+<stack-size id="966603">44.4274</stack-size>
+<stack-size id="968326">44.4722</stack-size>
+<stack-size id="970049">44.5285</stack-size>
+<stack-size id="971772">44.5795</stack-size>
+<stack-size id="973495">44.6316</stack-size>
+<stack-size id="975218">44.6818</stack-size>
+<stack-size id="976941">44.7280</stack-size>
+<stack-size id="978664">44.7698</stack-size>
+<stack-size id="980387">44.8188</stack-size>
+<stack-size id="982110">44.8673</stack-size>
+<stack-size id="983833">44.9145</stack-size>
+<stack-size id="985556">44.9695</stack-size>
+<stack-size id="987279">45.0199</stack-size>
+<stack-size id="989002">45.0669</stack-size>
+<stack-size id="990725">45.1175</stack-size>
+<stack-size id="992448">45.1695</stack-size>
+<stack-size id="994171">45.2241</stack-size>
+<stack-size id="995894">45.2611</stack-size>
+<stack-size id="997617">45.3093</stack-size>
+<stack-size id="999340">45.3637</stack-size>
+<stack-size id="1001063">45.4080</stack-size>
+<stack-size id="1002786">45.4552</stack-size>
+<stack-size id="1004509">45.4962</stack-size>
+<stack-size id="1006232">45.5485</stack-size>
+<stack-size id="1007955">45.6013</stack-size>
+<stack-size id="1009678">45.6513</stack-size>
+<stack-size id="1011401">45.7066</stack-size>
+<stack-size id="1013124">45.7526</stack-size>
+<stack-size id="1014847">45.8028</stack-size>
+<stack-size id="1016570">45.8487</stack-size>
+<stack-size id="1018293">45.8903</stack-size>
+<stack-size id="1020016">45.9222</stack-size>
+<stack-size id="1021739">45.9670</stack-size>
+<stack-size id="1023462">46.0179</stack-size>
+<stack-size id="1025185">46.0685</stack-size>
+<stack-size id="1026908">46.1032</stack-size>
+<stack-size id="1028631">46.1590</stack-size>
+<stack-size id="1030354">46.2102</stack-size>
+<stack-size id="1032077">46.2562</stack-size>
+<stack-size id="1033800">46.3116</stack-size>
+<stack-size id="1035523">46.3388</stack-size>
+<stack-size id="1037246">46.3916</stack-size>
+<stack-size id="1038969">46.4375</stack-size>
+<stack-size id="1040692">46.4927</stack-size>
+<stack-size id="1042415">46.5403</stack-size>
+<stack-size id="1044138">46.5938</stack-size>
+<stack-size id="1045861">46.6434</stack-size>
+<stack-size id="1047584">46.6860</stack-size>
+<stack-size id="1049307">46.7316</stack-size>
+<stack-size id="1051030">46.7620</stack-size>
+<stack-size id="1052753">46.8142</stack-size>
+<stack-size id="1054476">46.8554</stack-size>
+<stack-size id="1056199">46.9092</stack-size>
+<stack-size id="1057922">46.9506</stack-size>
+<stack-size id="1059645">47.0068</stack-size>
+<stack-size id="1061368">47.0481</stack-size>
+<stack-size id="1063091">47.0892</stack-size>
+<stack-size id="1064814">47.1424</stack-size>
+<stack-size id="1066537">47.1764</stack-size>
+<stack-size id="1068260">47.1860</stack-size>
+<stack-size id="1069983">47.2403</stack-size>
+<stack-size id="1071706">47.2895</stack-size>
+<stack-size id="1073429">47.3338</stack-size>
+<stack-size id="1075152">47.3707</stack-size>
+<stack-size id="1076875">47.4297</stack-size>
+<stack-size id="1078598">47.4665</stack-size>
+<stack-size id="1080321">47.5117</stack-size>
+<stack-size id="1082044">47.5563</stack-size>
+<stack-size id="1083767">47.6016</stack-size>
+<stack-size id="1085490">47.6384</stack-size>
+<stack-size id="1087213">47.6746</stack-size>
+<stack-size id="1088936">47.7301</stack-size>
+<stack-size id="1090659">47.7717</stack-size>
+<stack-size id="1092382">47.8089</stack-size>
+<stack-size id="1094105">47.8535</stack-size>
+<stack-size id="1095828">47.8958</stack-size>
+<stack-size id="1097551">47.9445</stack-size>
+<stack-size id="1099274">47.9862</stack-size>
+<stack-size id="1100997">48.0405</stack-size>
+<stack-size id="1102720">48.0813</stack-size>
+<stack-size id="1104443">48.1249</stack-size>
+<stack-size id="1106166">48.1663</stack-size>
+<stack-size id="1107889">48.1996</stack-size>
+<stack-size id="1109612">48.2394</stack-size>
+<stack-size id="1111335">48.2529</stack-size>
+<stack-size id="1113058">48.2920</stack-size>
+<stack-size id="1114781">48.3237</stack-size>
+<stack-size id="1116504">48.3632</stack-size>
+<stack-size id="1118227">48.4014</stack-size>
+<stack-size id="1119950">48.4313</stack-size>
+<stack-size id="1121673">48.4687</stack-size>
+<stack-size id="1123396">48.5218</stack-size>
+<stack-size id="1125119">48.5665</stack-size>
+<stack-size id="1126842">48.6004</stack-size>
+<stack-size id="1128565">48.6444</stack-size>
+<stack-size id="1130288">48.6907</stack-size>
+<stack-size id="1132011">48.7342</stack-size>
+<stack-size id="1133734">48.7880</stack-size>
+<stack-size id="1135457">48.8306</stack-size>
+<stack-size id="1137180">48.8613</stack-size>
+<stack-size id="1138903">48.9057</stack-size>
+<stack-size id="1140626">48.9372</stack-size>
+<stack-size id="1142349">48.9771</stack-size>
+<stack-size id="1144072">49.0147</stack-size>
+<stack-size id="1145795">49.0462</stack-size>
+<stack-size id="1147518">49.0764</stack-size>
+<stack-size id="1149241">49.1221</stack-size>
+<stack-size id="1150964">49.1547</stack-size>
+<stack-size id="1152687">49.1981</stack-size>
+<stack-size id="1154410">49.2510</stack-size>
+<stack-size id="1156133">49.2942</stack-size>
+<stack-size id="1157856">49.3254</stack-size>
+<stack-size id="1159579">49.3675</stack-size>
+<stack-size id="1161302">49.4083</stack-size>
+<stack-size id="1163025">49.4408</stack-size>
+<stack-size id="1164748">49.4806</stack-size>
+<stack-size id="1166471">49.5110</stack-size>
+<stack-size id="1168194">49.5504</stack-size>
+<stack-size id="1169917">49.5919</stack-size>
+<stack-size id="1171640">49.6199</stack-size>
+<stack-size id="1173363">49.6523</stack-size>
+<stack-size id="1175086">49.6959</stack-size>
+<stack-size id="1176809">49.7360</stack-size>
+<stack-size id="1178532">49.7647</stack-size>
+<stack-size id="1180255">49.8026</stack-size>
+<stack-size id="1181978">49.8496</stack-size>
+<stack-size id="1183701">49.8995</stack-size>
+<stack-size id="1185424">49.9326</stack-size>
+<stack-size id="1187147">49.9766</stack-size>
+<stack-size id="1188870">50.0165</stack-size>
+<stack-size id="1190593">50.0585</stack-size>
+<stack-size id="1192316">50.1023</stack-size>
+<stack-size id="1194039">50.1399</stack-size>
+<stack-size id="1195762">50.1831</stack-size>
+<stack-size id="1197485">50.2038</stack-size>
+<stack-size id="1199208">50.2412</stack-size>
+<stack-size id="1200931">50.2846</stack-size>
+<stack-size id="1202654">50.3241</stack-size>
+<stack-size id="1204377">50.3511</stack-size>
+<stack-size id="1206100">50.3813</stack-size>
+<stack-size id="1207823">50.4123</stack-size>
+<stack-size id="1209546">50.4424</stack-size>
+<stack-size id="1211269">50.4775</stack-size>
+<stack-size id="1212992">50.5125</stack-size>
+<stack-size id="1214715">50.5528</stack-size>
+<stack-size id="1216438">50.5971</stack-size>
+<stack-size id="1218161">50.6335</stack-size>
+<stack-size id="1219884">50.6643</stack-size>
+<stack-size id="1221607">50.6852</stack-size>
+<stack-size id="1223330">50.7292</stack-size>
+<stack-size id="1225053">50.7689</stack-size>
+<stack-size id="1226776">50.8038</stack-size>
+<stack-size id="1228499">50.8320</stack-size>
+<stack-size id="1230222">50.8650</stack-size>
+<stack-size id="1231945">50.9045</stack-size>
+<stack-size id="1233668">50.9301</stack-size>
+<stack-size id="1235391">50.9547</stack-size>
+<stack-size id="1237114">50.9766</stack-size>
+<stack-size id="1238837">50.9871</stack-size>
+<stack-size id="1240560">51.0203</stack-size>
+<stack-size id="1242283">51.0642</stack-size>
+<stack-size id="1244006">51.1079</stack-size>
+<stack-size id="1245729">51.1404</stack-size>
+<stack-size id="1247452">51.1817</stack-size>
+<stack-size id="1249175">51.2040</stack-size>
+<stack-size id="1250898">51.2517</stack-size>
+<stack-size id="1252621">51.2807</stack-size>
+<stack-size id="1254344">51.3079</stack-size>
+<stack-size id="1256067">51.3396</stack-size>
+<stack-size id="1257790">51.3746</stack-size>
+<stack-size id="1259513">51.4027</stack-size>
+<stack-size id="1261236">51.4387</stack-size>
+<stack-size id="1262959">51.4673</stack-size>
+<stack-size id="1264682">51.4841</stack-size>
+<stack-size id="1266405">51.5272</stack-size>
+<stack-size id="1268128">51.5567</stack-size>
+<stack-size id="1269851">51.5719</stack-size>
+<stack-size id="1271574">51.5959</stack-size>
+<stack-size id="1273297">51.6264</stack-size>
+<stack-size id="1275020">51.6605</stack-size>
+<stack-size id="1276743">51.6889</stack-size>
+<stack-size id="1278466">51.7275</stack-size>
+<stack-size id="1280189">51.7570</stack-size>
+<stack-size id="1281912">51.7883</stack-size>
+<stack-size id="1283635">51.8177</stack-size>
+<stack-size id="1285358">51.8471</stack-size>
+<stack-size id="1287081">51.8724</stack-size>
+<stack-size id="1288804">51.9079</stack-size>
+<stack-size id="1290527">51.9458</stack-size>
+<stack-size id="1292250">51.9673</stack-size>
+<stack-size id="1293973">51.9859</stack-size>
+<stack-size id="1295696">52.0141</stack-size>
+<stack-size id="1297419">52.0443</stack-size>
+<stack-size id="1299142">52.0820</stack-size>
+<stack-size id="1300865">52.1199</stack-size>
+<stack-size id="1302588">52.1500</stack-size>
+<stack-size id="1304311">52.1739</stack-size>
+<stack-size id="1306034">52.2081</stack-size>
+<stack-size id="1307757">52.2319</stack-size>
+<stack-size id="1309480">52.2750</stack-size>
+<stack-size id="1311203">52.3050</stack-size>
+<stack-size id="1312926">52.3408</stack-size>
+<stack-size id="1314649">52.3728</stack-size>
+<stack-size id="1316372">52.4044</stack-size>
+<stack-size id="1318095">52.4340</stack-size>
+<stack-size id="1319818">52.4604</stack-size>
+<stack-size id="1321541">52.4943</stack-size>
+<stack-size id="1323264">52.5143</stack-size>
+<stack-size id="1324987">52.5388</stack-size>
+<stack-size id="1326710">52.5657</stack-size>
+<stack-size id="1328433">52.5920</stack-size>
+<stack-size id="1330156">52.6213</stack-size>
+<stack-size id="1331879">52.6449</stack-size>
+<stack-size id="1333602">52.6694</stack-size>
+<stack-size id="1335325">52.6998</stack-size>
+<stack-size id="1337048">52.7365</stack-size>
+<stack-size id="1338771">52.7586</stack-size>
+<stack-size id="1340494">52.7963</stack-size>
+<stack-size id="1342217">52.8286</stack-size>
+<stack-size id="1343940">52.8663</stack-size>
+<stack-size id="1345663">52.8994</stack-size>
+<stack-size id="1347386">52.9225</stack-size>
+<stack-size id="1349109">52.9419</stack-size>
+<stack-size id="1350832">52.9604</stack-size>
+<stack-size id="1352555">52.9947</stack-size>
+<stack-size id="1354278">53.0214</stack-size>
+<stack-size id="1356001">53.0432</stack-size>
+<stack-size id="1357724">53.0695</stack-size>
+<stack-size id="1359447">53.0828</stack-size>
+<stack-size id="1361170">53.1085</stack-size>
+<stack-size id="1362893">53.1364</stack-size>
+<stack-size id="1364616">53.1701</stack-size>
+<stack-size id="1366339">53.2003</stack-size>
+<stack-size id="1368062">53.2300</stack-size>
+<stack-size id="1369785">53.2661</stack-size>
+<stack-size id="1371508">53.2813</stack-size>
+<stack-size id="1373231">53.3132</stack-size>
+<stack-size id="1374954">53.3337</stack-size>
+<stack-size id="1376677">53.3534</stack-size>
+<stack-size id="1378400">53.3876</stack-size>
+<stack-size id="1380123">53.4094</stack-size>
+<stack-size id="1381846">53.4331</stack-size>
+<stack-size id="1383569">53.4629</stack-size>
+<stack-size id="1385292">53.4894</stack-size>
+<stack-size id="1387015">53.5075</stack-size>
+<stack-size id="1388738">53.5273</stack-size>
+<stack-size id="1390461">53.5500</stack-size>
+<stack-size id="1392184">53.5742</stack-size>
+<stack-size id="1393907">53.6050</stack-size>
+<stack-size id="1395630">53.6321</stack-size>
+<stack-size id="1397353">53.6583</stack-size>
+<stack-size id="1399076">53.6775</stack-size>
+<stack-size id="1400799">53.7084</stack-size>
+<stack-size id="1402522">53.7326</stack-size>
+<stack-size id="1404245">53.7604</stack-size>
+<stack-size id="1405968">53.7790</stack-size>
+<stack-size id="1407691">53.8023</stack-size>
+<stack-size id="1409414">53.8303</stack-size>
+<stack-size id="1411137">53.8479</stack-size>
+<stack-size id="1412860">53.8666</stack-size>
+<stack-size id="1414583">53.8991</stack-size>
+<stack-size id="1416306">53.9240</stack-size>
+<stack-size id="1418029">53.9453</stack-size>
+<stack-size id="1419752">53.9650</stack-size>
+<stack-size id="1421475">53.9832</stack-size>
+<stack-size id="1423198">54.0117</stack-size>
+<stack-size id="1424921">54.0337</stack-size>
+<stack-size id="1426644">54.0614</stack-size>
+<stack-size id="1428367">54.0851</stack-size>
+<stack-size id="1430090">54.1023</stack-size>
+<stack-size id="1431813">54.1236</stack-size>
+<stack-size id="1433536">54.1388</stack-size>
+<stack-size id="1435259">54.1525</stack-size>
+<stack-size id="1436982">54.1733</stack-size>
+<stack-size id="1438705">54.1975</stack-size>
+<stack-size id="1440428">54.2084</stack-size>
+<stack-size id="1442151">54.2260</stack-size>
+<stack-size id="1443874">54.2506</stack-size>
+<stack-size id="1445597">54.2647</stack-size>
+<stack-size id="1447320">54.2863</stack-size>
+<stack-size id="1449043">54.3005</stack-size>
+<stack-size id="1450766">54.3166</stack-size>
+<stack-size id="1452489">54.3350</stack-size>
+<stack-size id="1454212">54.3501</stack-size>
+<stack-size id="1455935">54.3768</stack-size>
+<stack-size id="1457658">54.4012</stack-size>
+<stack-size id="1459381">54.4095</stack-size>
+<stack-size id="1461104">54.4241</stack-size>
+<stack-size id="1462827">54.4454</stack-size>
+<stack-size id="1464550">54.4544</stack-size>
+<stack-size id="1466273">54.4745</stack-size>
+<stack-size id="1467996">54.4868</stack-size>
+<stack-size id="1469719">54.5142</stack-size>
+<stack-size id="1471442">54.5335</stack-size>
+<stack-size id="1473165">54.5536</stack-size>
+<stack-size id="1474888">54.5697</stack-size>
+<stack-size id="1476611">54.5827</stack-size>
+<stack-size id="1478334">54.5907</stack-size>
+<stack-size id="1480057">54.6079</stack-size>
+<stack-size id="1481780">54.6265</stack-size>
+<stack-size id="1483503">54.6312</stack-size>
+<stack-size id="1485226">54.6501</stack-size>
+<stack-size id="1486949">54.6717</stack-size>
+<stack-size id="1488672">54.6898</stack-size>
+<stack-size id="1490395">54.7006</stack-size>
+<stack-size id="1492118">54.7133</stack-size>
+<stack-size id="1493841">54.7248</stack-size>
+<stack-size id="1495564">54.7463</stack-size>
+<stack-size id="1497287">54.7552</stack-size>
+<stack-size id="1499010">54.7647</stack-size>
+<stack-size id="1500733">54.7803</stack-size>
+<stack-size id="1502456">54.7962</stack-size>
+<stack-size id="1504179">54.8200</stack-size>
+<stack-size id="1505902">54.8329</stack-size>
+<stack-size id="1507625">54.8379</stack-size>
+<stack-size id="1509348">54.8552</stack-size>
+<stack-size id="1511071">54.8694</stack-size>
+<stack-size id="1512794">54.8929</stack-size>
+<stack-size id="1514517">54.9080</stack-size>
+<stack-size id="1516240">54.9180</stack-size>
+<stack-size id="1517963">54.9299</stack-size>
+<stack-size id="1519686">54.9470</stack-size>
+<stack-size id="1521409">54.9560</stack-size>
+<stack-size id="1523132">54.9696</stack-size>
+<stack-size id="1524855">54.9856</stack-size>
+<stack-size id="1526578">54.9903</stack-size>
+<stack-size id="1528301">54.9994</stack-size>
+<stack-size id="1530024">55.0056</stack-size>
+<stack-size id="1531747">55.0218</stack-size>
+<stack-size id="1533470">55.0363</stack-size>
+<stack-size id="1535193">55.0451</stack-size>
+<stack-size id="1536916">55.0616</stack-size>
+<stack-size id="1538639">55.0705</stack-size>
+<stack-size id="1540362">55.0780</stack-size>
+<stack-size id="1542085">55.0901</stack-size>
+<stack-size id="1543808">55.1065</stack-size>
+<stack-size id="1545531">55.1136</stack-size>
+<stack-size id="1547254">55.1275</stack-size>
+<stack-size id="1548977">55.1453</stack-size>
+<stack-size id="1550700">55.1499</stack-size>
+<stack-size id="1552423">55.1548</stack-size>
+<stack-size id="1554146">55.1710</stack-size>
+<stack-size id="1555869">55.1798</stack-size>
+<stack-size id="1557592">55.1914</stack-size>
+<stack-size id="1559315">55.2024</stack-size>
+<stack-size id="1561038">55.2121</stack-size>
+<stack-size id="1562761">55.2184</stack-size>
+<stack-size id="1564484">55.2261</stack-size>
+<stack-size id="1566207">55.2318</stack-size>
+<stack-size id="1567930">55.2384</stack-size>
+<stack-size id="1569653">55.2486</stack-size>
+<stack-size id="1571376">55.2545</stack-size>
+<stack-size id="1573099">55.2647</stack-size>
+<stack-size id="1574822">55.2755</stack-size>
+<stack-size id="1576545">55.2801</stack-size>
+<stack-size id="1578268">55.2865</stack-size>
+<stack-size id="1579991">55.2920</stack-size>
+<stack-size id="1581714">55.3034</stack-size>
+<stack-size id="1583437">55.3136</stack-size>
+<stack-size id="1585160">55.3199</stack-size>
+<stack-size id="1586883">55.3245</stack-size>
+<stack-size id="1588606">55.3347</stack-size>
+<stack-size id="1590329">55.3388</stack-size>
+<stack-size id="1592052">55.3451</stack-size>
+<stack-size id="1593775">55.3559</stack-size>
+<stack-size id="1595498">55.3576</stack-size>
+<stack-size id="1597221">55.3645</stack-size>
+<stack-size id="1598944">55.3674</stack-size>
+<stack-size id="1600667">55.3683</stack-size>
+<stack-size id="1602390">55.3781</stack-size>
+<stack-size id="1604113">55.3863</stack-size>
+<stack-size id="1605836">55.3913</stack-size>
+<stack-size id="1607559">55.3982</stack-size>
+<stack-size id="1609282">55.4069</stack-size>
+<stack-size id="1611005">55.4087</stack-size>
+<stack-size id="1612728">55.4151</stack-size>
+<stack-size id="1614451">55.4196</stack-size>
+<stack-size id="1616174">55.4214</stack-size>
+<stack-size id="1617897">55.4245</stack-size>
+<stack-size id="1619620">55.4245</stack-size>
+<stack-size id="1621343">55.4280</stack-size>
+<stack-size id="1623066">55.4296</stack-size>
+<stack-size id="1624789">55.4311</stack-size>
+<stack-size id="1626512">55.4328</stack-size>
+<stack-size id="1628235">55.4326</stack-size>
+<stack-size id="1629958">55.4324</stack-size>
+<stack-size id="1631681">55.4326</stack-size>
+<stack-size id="1633404">55.4325</stack-size>
+<stack-size id="1635127">55.4277</stack-size>
+<stack-size id="1636850">55.4263</stack-size>
+<stack-size id="1638573">55.4300</stack-size>
+<stack-size id="1640296">55.4329</stack-size>
+<stack-size id="1642019">55.4327</stack-size>
+<stack-size id="1643742">55.4322</stack-size>
+<stack-size id="1645465">55.4323</stack-size>
+<stack-size id="1647188">55.4314</stack-size>
+<stack-size id="1648911">55.4309</stack-size>
+<stack-size id="1650634">55.4291</stack-size>
+<stack-size id="1652357">55.4275</stack-size>
+<stack-size id="1654080">55.4243</stack-size>
+<stack-size id="1655803">55.4146</stack-size>
+<stack-size id="1657526">55.4032</stack-size>
+<stack-size id="1659249">55.3906</stack-size>
+<stack-size id="1660972">55.3669</stack-size>
+<stack-size id="1662695">55.3511</stack-size>
+<stack-size id="1664418">55.3371</stack-size>
+<stack-size id="1666141">55.2928</stack-size>
+<stack-size id="1667864">55.2799</stack-size>
+<stack-size id="1669587">55.2227</stack-size>
+<stack-size id="1671310">55.2051</stack-size>
+<stack-size id="1673033">55.1537</stack-size>
+<stack-size id="1674756">55.1154</stack-size>
+<stack-size id="1676479">55.0598</stack-size>
+<stack-size id="1678202">54.9898</stack-size>
+<stack-size id="1679925">54.8720</stack-size>
+<stack-size id="1681648">54.6874</stack-size>
+<stack-size id="1683371">54.5543</stack-size>
+<stack-size id="1685094">54.4247</stack-size>
+<stack-size id="1686817">54.2591</stack-size>
+<stack-size id="1688540">54.1005</stack-size>
+<stack-size id="1690263">53.8311</stack-size>
+<stack-size id="1691986">53.6035</stack-size>
+<stack-size id="1693709">53.4387</stack-size>
+<stack-size id="1695432">53.1989</stack-size>
+<stack-size id="1697155">52.9532</stack-size>
+<stack-size id="1698878">52.6182</stack-size>
+<stack-size id="1700601">52.2584</stack-size>
+<stack-size id="1702324">51.9263</stack-size>
+<stack-size id="1704047">51.5229</stack-size>
+<stack-size id="1705770">50.9905</stack-size>
+<stack-size id="1707493">50.3733</stack-size>
+<stack-size id="1709216">49.6325</stack-size>
+<stack-size id="1710939">48.6941</stack-size>
+<stack-size id="1712662">47.5490</stack-size>
+<stack-size id="1714385">46.1181</stack-size>
+<stack-size id="1716108">44.2052</stack-size>
+<stack-size id="1717831">41.5193</stack-size>
+<stack-size id="1719554">38.0965</stack-size>
+<stack-size id="1721277">32.1915</stack-size>
+<stack-size id="1723000">18.9213</stack-size>
+<max-stack>955358</max-stack>
+<front-edges>1723391</front-edges>
+<back-edges>4464907</back-edges>
+<cross-edges>4893942</cross-edges>
+<shortest-cycle>25</shortest-cycle>
+</dfs-info>
+
+<model-info><placeBounds><placeBound><place>p1</place><minCard>0</minCard><maxCard>5</maxCard><minMult>0</minMult><maxMult>5</maxMult></placeBound><placeBound><place>p2</place><minCard>0</minCard><maxCard>5</maxCard><minMult>0</minMult><maxMult>5</maxMult></placeBound><placeBound><place>p3</place><minCard>0</minCard><maxCard>5</maxCard><minMult>0</minMult><maxMult>5</maxMult></placeBound><placeBound><place>p4</place><minCard>0</minCard><maxCard>5</maxCard><minMult>0</minMult><maxMult>5</maxMult></placeBound><placeBound><place>p5</place><minCard>0</minCard><maxCard>5</maxCard><minMult>0</minMult><maxMult>5</maxMult></placeBound><placeBound><place>p6</place><minCard>0</minCard><maxCard>5</maxCard><minMult>0</minMult><maxMult>5</maxMult></placeBound><placeBound><place>p7</place><minCard>0</minCard><maxCard>5</maxCard><minMult>0</minMult><maxMult>5</maxMult></placeBound><placeBound><place>p8</place><minCard>0</minCard><maxCard>5</maxCard><minMult>0</minMult><maxMult>5</maxMult></placeBound><placeBound><place>p9</place><minCard>0</minCard><maxCard>5</maxCard><minMult>0</minMult><maxMult>5</maxMult></placeBound><placeBound><place>p10</place><minCard>0</minCard><maxCard>5</maxCard><minMult>0</minMult><maxMult>5</maxMult></placeBound></placeBounds><possibleTokens><possibleTokensPlace><place>p1</place><token><mult>1</mult><exprList><num>0</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>2</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>3</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>4</num>
+</exprList></token>
+</possibleTokensPlace><possibleTokensPlace><place>p2</place><token><mult>1</mult><exprList><num>0</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>2</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>3</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>4</num>
+</exprList></token>
+</possibleTokensPlace><possibleTokensPlace><place>p3</place><token><mult>1</mult><exprList><num>0</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>2</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>3</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>4</num>
+</exprList></token>
+</possibleTokensPlace><possibleTokensPlace><place>p4</place><token><mult>1</mult><exprList><num>0</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>2</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>3</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>4</num>
+</exprList></token>
+</possibleTokensPlace><possibleTokensPlace><place>p5</place><token><mult>1</mult><exprList><num>0</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>2</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>3</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>4</num>
+</exprList></token>
+</possibleTokensPlace><possibleTokensPlace><place>p6</place><token><mult>1</mult><exprList><num>0</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>2</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>3</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>4</num>
+</exprList></token>
+</possibleTokensPlace><possibleTokensPlace><place>p7</place><token><mult>1</mult><exprList><num>0</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>2</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>3</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>4</num>
+</exprList></token>
+</possibleTokensPlace><possibleTokensPlace><place>p8</place><token><mult>1</mult><exprList><num>0</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>2</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>3</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>4</num>
+</exprList></token>
+</possibleTokensPlace><possibleTokensPlace><place>p9</place><token><mult>1</mult><exprList><num>0</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>2</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>3</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>4</num>
+</exprList></token>
+</possibleTokensPlace><possibleTokensPlace><place>p10</place><token><mult>1</mult><exprList><num>0</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>2</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>3</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>4</num>
+</exprList></token>
+</possibleTokensPlace></possibleTokens><deadMarkings><noDeadMarkings>0</noDeadMarkings></deadMarkings><livenessInfo><livenessInfoTrans><transition>t1</transition><liveBindings><binding><varBinding><var>p</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>p</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>p</var><num>2</num>
+</varBinding></binding>
+<binding><varBinding><var>p</var><num>3</num>
+</varBinding></binding>
+<binding><varBinding><var>p</var><num>4</num>
+</varBinding></binding>
+</liveBindings><quasiLiveBindings></quasiLiveBindings></livenessInfoTrans><livenessInfoTrans><transition>t2</transition><liveBindings><binding><varBinding><var>p</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>p</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>p</var><num>2</num>
+</varBinding></binding>
+<binding><varBinding><var>p</var><num>3</num>
+</varBinding></binding>
+<binding><varBinding><var>p</var><num>4</num>
+</varBinding></binding>
+</liveBindings><quasiLiveBindings></quasiLiveBindings></livenessInfoTrans><livenessInfoTrans><transition>t3</transition><liveBindings><binding><varBinding><var>p</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>p</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>p</var><num>2</num>
+</varBinding></binding>
+<binding><varBinding><var>p</var><num>3</num>
+</varBinding></binding>
+<binding><varBinding><var>p</var><num>4</num>
+</varBinding></binding>
+</liveBindings><quasiLiveBindings></quasiLiveBindings></livenessInfoTrans><livenessInfoTrans><transition>t4</transition><liveBindings><binding><varBinding><var>p</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>p</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>p</var><num>2</num>
+</varBinding></binding>
+<binding><varBinding><var>p</var><num>3</num>
+</varBinding></binding>
+<binding><varBinding><var>p</var><num>4</num>
+</varBinding></binding>
+</liveBindings><quasiLiveBindings></quasiLiveBindings></livenessInfoTrans><livenessInfoTrans><transition>t5</transition><liveBindings><binding><varBinding><var>p</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>p</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>p</var><num>2</num>
+</varBinding></binding>
+<binding><varBinding><var>p</var><num>3</num>
+</varBinding></binding>
+<binding><varBinding><var>p</var><num>4</num>
+</varBinding></binding>
+</liveBindings><quasiLiveBindings></quasiLiveBindings></livenessInfoTrans><livenessInfoTrans><transition>t6</transition><liveBindings><binding><varBinding><var>p</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>p</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>p</var><num>2</num>
+</varBinding></binding>
+<binding><varBinding><var>p</var><num>3</num>
+</varBinding></binding>
+<binding><varBinding><var>p</var><num>4</num>
+</varBinding></binding>
+</liveBindings><quasiLiveBindings></quasiLiveBindings></livenessInfoTrans><livenessInfoTrans><transition>t7</transition><liveBindings><binding><varBinding><var>p</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>p</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>p</var><num>2</num>
+</varBinding></binding>
+<binding><varBinding><var>p</var><num>3</num>
+</varBinding></binding>
+<binding><varBinding><var>p</var><num>4</num>
+</varBinding></binding>
+</liveBindings><quasiLiveBindings></quasiLiveBindings></livenessInfoTrans><livenessInfoTrans><transition>t8</transition><liveBindings><binding><varBinding><var>p</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>p</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>p</var><num>2</num>
+</varBinding></binding>
+<binding><varBinding><var>p</var><num>3</num>
+</varBinding></binding>
+<binding><varBinding><var>p</var><num>4</num>
+</varBinding></binding>
+</liveBindings><quasiLiveBindings></quasiLiveBindings></livenessInfoTrans><livenessInfoTrans><transition>t9</transition><liveBindings><binding><varBinding><var>p</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>p</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>p</var><num>2</num>
+</varBinding></binding>
+<binding><varBinding><var>p</var><num>3</num>
+</varBinding></binding>
+<binding><varBinding><var>p</var><num>4</num>
+</varBinding></binding>
+</liveBindings><quasiLiveBindings></quasiLiveBindings></livenessInfoTrans><livenessInfoTrans><transition>t10</transition><liveBindings><binding><varBinding><var>p</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>p</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>p</var><num>2</num>
+</varBinding></binding>
+<binding><varBinding><var>p</var><num>3</num>
+</varBinding></binding>
+<binding><varBinding><var>p</var><num>4</num>
+</varBinding></binding>
+</liveBindings><quasiLiveBindings></quasiLiveBindings></livenessInfoTrans></livenessInfo></model-info></state-space-info>

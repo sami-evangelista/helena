@@ -67,7 +67,7 @@ void * observer_worker
     context_set_avg_cpu_usage(cpu_avg);
   }
 #ifdef CFG_WITH_OBSERVER
-  printf("%sdone.\n", pref);
+  printf("\n%sdone.\n", pref);
 #endif
   return NULL;
 }
