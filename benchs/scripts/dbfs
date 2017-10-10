@@ -3,8 +3,8 @@
 #OAR -p ib='QDR'
 #OAR -t allow_classic_ssh
 #OAR -n dist-helena
-#OAR -O ddfs.out
-#OAR -E ddfs.err
+#OAR -O dbfs.out
+#OAR -E dbfs.err
 
 [ "$1" = "" ] && echo 'error: missing $1 = # of nodes' && exit 1
 [ "$2" = "" ] && echo 'error: missing $2 = min # of states' && exit 1
@@ -19,10 +19,10 @@ hc=$4
 if [ $hc = 1 ]
 then
     helena="helena --hash-compaction=1"
-    outDir=out/ddfs-hc
+    outDir=out/dbfs-hc
 else
     helena=helena
-    outDir=out/ddfs
+    outDir=out/dbfs
 fi
 helena=$helena" --observer=0"
 
@@ -50,18 +50,18 @@ scripts/select-models $minStates $maxStates \
     | while read m lang st opt
       do
 	  printed=0
-	  hashSize=20
-	  size=900000
-	  while [ $size -lt $st -a $hashSize != 30 ]
-	  do
-	      hashSize=$((hashSize + 1))
-	      size=$((size * 2))
-	  done
 	  f=$(scripts/get-file $m $lang)
 	  [ ! -f $f ] && continue
 	  param=$(scripts/format-parameters $opt)
 	  for N in $(seq 1 $MAXW)
 	  do
+              hashSize=20
+	      size=900000
+	      while [ $((size * N)) -lt $st -a $hashSize != 30 ]
+	      do
+		  hashSize=$((hashSize + 1))
+		  size=$((size * 2))
+	      done
 	      xml=$outDir/$m
 	      if [ "$opt" != "" ]
 	      then
@@ -79,7 +79,7 @@ scripts/select-models $minStates $maxStates \
 		      then
 			  C=$(($C + 1))
 		      fi
-		      cmd=$cmd" --algo=ddfs --machine-file=mf --comm-workers="$C
+		      cmd=$cmd" --algo=dbfs --machine-file=mf --comm-workers="$C
 		  else
 		      cmd=$cmd" --algo=dfs"
 		  fi
@@ -97,5 +97,5 @@ scripts/select-models $minStates $maxStates \
 
 if [ $reports != $(ls -1 $outDir | wc -l) ]
 then
-    scripts/ddfs $MAXW $minStates $maxStates $hc
+    scripts/dbfs $MAXW $minStates $maxStates $hc
 fi

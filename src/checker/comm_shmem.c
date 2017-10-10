@@ -5,11 +5,14 @@
 #if defined(CFG_DISTRIBUTED)
 #include "shmem.h"
 
+#define COMM_SHMEM_CHUNK_SIZE 10000
 #define COMM_SHMEM_DEBUG_XXX
 
 void comm_shmem_init
 () {
+  printf("init shmem\n");
   shmem_init();
+  printf("init done\n");
 }
 
 void comm_shmem_barrier
@@ -36,12 +39,25 @@ void comm_shmem_put
     memcpy(dst, src, size);
   } else {
 #if defined(COMM_SHMEM_DEBUG)
-    printf("[%d,%d] put at %p to %d\n", shmem_my_pe(), w, dst, pe);
+    printf("%d put %d bytes at %p to %d\n",
+	   shmem_my_pe(), size , dst, pe);
 #endif
     context_increase_bytes_sent(size);
+    while(size) {
+      if(size < COMM_SHMEM_CHUNK_SIZE) {
+	shmem_putmem(dst, src, size, pe);
+	size = 0;
+      } else {
+	shmem_putmem(dst, src, COMM_SHMEM_CHUNK_SIZE, pe);
+	size -= COMM_SHMEM_CHUNK_SIZE;
+	dst += COMM_SHMEM_CHUNK_SIZE;
+	src += COMM_SHMEM_CHUNK_SIZE;
+      }
+    }
     shmem_putmem(dst, src, size, pe);
 #if defined(COMM_SHMEM_DEBUG)
-    printf("[%d,%d] put at %p to %d done\n", shmem_my_pe(), w, dst, pe);
+    printf("%d put %d bytes at %p to %d done\n",
+	   shmem_my_pe(), size , dst, pe);
 #endif
   }
 }
@@ -55,12 +71,14 @@ void comm_shmem_get
     memcpy(dst, src, size);
   } else {
 #if defined(COMM_SHMEM_DEBUG)
-    printf("[%d,%d] get adr %p from %d\n", shmem_my_pe(), w, dst, pe);
+    printf("%d get %d bytes at %p from %d\n",
+	   shmem_my_pe(), size , dst, pe);
 #endif
     context_increase_bytes_sent(size);
     shmem_getmem(dst, src, size, pe);
 #if defined(COMM_SHMEM_DEBUG)
-    printf("[%d,%d] get adr %p from %d done\n", shmem_my_pe(), w, dst, pe);
+    printf("%d get %d bytes at %p from %d done\n",
+	   shmem_my_pe(), size , dst, pe);
 #endif
   }
 }
