@@ -21,7 +21,7 @@ const bool_t WITH_TRACE =
   ;
 storage_t S;
 bfs_queue_t Q;
-pthread_barrier_t B;
+pthread_barrier_t BFS_BARRIER;
 
 
 worker_id_t bfs_thread_owner
@@ -38,7 +38,7 @@ worker_id_t bfs_thread_owner
 void bfs_wait_barrier
 () {
 #if defined(CFG_PARALLEL)
-  pthread_barrier_wait(&B);
+  context_barrier_wait(&BFS_BARRIER);
 #endif
 }
 
@@ -71,11 +71,11 @@ bool_t bfs_terminate_level
    *
    *  first send pending states then wait that all threads have done
    *  so.  then wait that other threads have done so.  worker 0
-   *  notifies the communicator thread that the level has been
-   *  processed.  then all wait that the communicator thread has
+   *  notifies the communicator threads that the level has been
+   *  processed.  then all wait that the communicator threads have
    *  exchanged termination information with remote processes.
-   *  finally move to the next level.  this is the communicator thread
-   *  that tells us whether the search is finished or not.
+   *  finally move to the next level.  this is the communicator
+   *  threads that tells us whether the search is finished or not.
    */
   dbfs_comm_send_all_pending_states(w);
 #if defined(BFS_DEBUG)
@@ -337,7 +337,7 @@ void bfs
   dbfs_comm_start(Q);
 #endif
 
-  pthread_barrier_init(&B, NULL, CFG_NO_WORKERS);
+  pthread_barrier_init(&BFS_BARRIER, NULL, CFG_NO_WORKERS);
   
 #if defined(CFG_ALGO_DBFS)
   h = state_hash(s);

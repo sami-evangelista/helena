@@ -35,7 +35,6 @@ struct struct_delta_ddd_storage_t {
   delta_ddd_state_t ST[CFG_HASH_SIZE];
   int32_t size[CFG_NO_WORKERS];
   uint64_t dd_time;
-  uint64_t barrier_time[CFG_NO_WORKERS];
 };
 
 typedef struct struct_delta_ddd_storage_t struct_delta_ddd_storage_t;
@@ -134,20 +133,9 @@ uint8_t RECONS_ID;
 
 void delta_ddd_barrier
 (worker_id_t w) {
-  lna_timer_t t;
-    
 #if defined(CFG_PARALLEL)
-  lna_timer_init(&t);
-  lna_timer_start(&t);
-  pthread_barrier_wait(&BARRIER);
-  lna_timer_stop(&t);
-  S->barrier_time[w] += lna_timer_value(t);
+  context_barrier_wait(&BARRIER);
 #endif
-}
-
-uint64_t delta_ddd_storage_barrier_time
-(delta_ddd_storage_t storage) {
-  return large_sum(storage->barrier_time, CFG_NO_WORKERS) / 1000000.0;
 }
 
 uint64_t delta_ddd_storage_dd_time
@@ -171,7 +159,6 @@ delta_ddd_storage_t delta_ddd_storage_new
   result = mem_alloc(SYSTEM_HEAP, sizeof(struct_delta_ddd_storage_t));
   for(w = 0; w < CFG_NO_WORKERS; w ++) {
     result->size[w] = 0;
-    result->barrier_time[w] = 0;
   }
 
   /*

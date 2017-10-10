@@ -90,7 +90,7 @@ void ddfs_comm_process_explored_state
     if(cfg_hash_compaction()) {
       h = storage_get_hash(S, id);
     } else {
-      storage_get_serialised(S, id, &s, &s_char_len);
+      storage_get_serialised(S, id, &s, &s_char_len, &h);
     }
     len = BASE_LEN;
     if(!cfg_hash_compaction()) {
@@ -107,7 +107,6 @@ void ddfs_comm_process_explored_state
       BUF.char_len[w] += len;
       
       /*  hash value  */
-      h = storage_get_hash(S, id);
       memcpy(pos, &h, sizeof(hash_key_t));
       pos += sizeof(hash_key_t);
      

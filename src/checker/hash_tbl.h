@@ -31,9 +31,6 @@ typedef uint64_t hash_tbl_id_t;
 typedef void (* hash_tbl_fold_func_t)
 (state_t, hash_tbl_id_t, void *);
 
-typedef void (* hash_tbl_fold_serialised_func_t)
-(bit_vector_t, uint16_t, hash_key_t, void *);
-
 
 /**
  * @brief hash_tbl_new
@@ -106,6 +103,15 @@ void hash_tbl_insert_serialised
 
 
 /**
+ * @brief hash_tbl_erase
+ */
+void hash_tbl_erase
+(hash_tbl_t tbl,
+ worker_id_t w,
+ hash_tbl_id_t id);
+
+
+/**
  * @brief hash_tbl_remove
  */
 void hash_tbl_remove
@@ -140,7 +146,8 @@ void hash_tbl_get_serialised
 (hash_tbl_t tbl,
  hash_tbl_id_t id,
  bit_vector_t * s,
- uint16_t * size);
+ uint16_t * size,
+ hash_key_t * h);
 
 
 /**
@@ -232,23 +239,6 @@ bool_t hash_tbl_get_red
 
 
 /**
- * @brief hash_tbl_set_expanded
- */
-void hash_tbl_set_expanded
-(hash_tbl_t tbl,
- hash_tbl_id_t id,
- bool_t expanded);
-
-
-/**
- * @brief hash_tbl_get_expanded
- */
-bool_t hash_tbl_get_expanded
-(hash_tbl_t tbl,
- hash_tbl_id_t id);
-
-
-/**
  * @brief hash_tbl_set_garbage
  */
 void hash_tbl_set_garbage
@@ -323,15 +313,6 @@ uint64_t hash_tbl_gc_time
 void hash_tbl_fold
 (hash_tbl_t tbl,
  hash_tbl_fold_func_t f,
- void * data);
-
-
-/**
- * @brief hash_tbl_fold_serialised
- */
-void hash_tbl_fold_serialised
-(hash_tbl_t tbl,
- hash_tbl_fold_serialised_func_t f,
  void * data);
 
 

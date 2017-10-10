@@ -38,6 +38,7 @@ typedef struct {
   bool_t bfs_levels_ok;
   float max_mem_used;
   float comp_time;
+  uint64_t barrier_time;
   uint64_t distributed_barrier_time;
   float avg_cpu_usage;
 
@@ -92,6 +93,7 @@ void context_init
   CTX->max_mem_used = 0.0;
   CTX->states_max_stored = 0;
   CTX->comp_time = 0.0;
+  CTX->barrier_time = 0;
   CTX->distributed_barrier_time = 0;
   CTX->avg_cpu_usage = 0.0;
 
@@ -279,11 +281,13 @@ void context_finalise
     fprintf(out, "<compilationTime>%.2f</compilationTime>\n", CTX->comp_time);
   }
   fprintf(out, "<searchTime>%.2f</searchTime>\n", CTX->exec_time / 1000000.0);
+  if(CTX->barrier_time > 0) {
+    fprintf(out, "<barrierTime>%.2f</barrierTime>\n",
+	    CTX->barrier_time / 1000000.0);
+  }
 #if defined(CFG_ALGO_DELTA_DDD)
   fprintf(out, "<duplicateDetectionTime>%.2f</duplicateDetectionTime>\n",
           storage_dd_time(CTX->storage) / 1000000.0);
-  fprintf(out, "<barrierTime>%.2f</barrierTime>\n",
-          storage_barrier_time(CTX->storage) / 1000000.0);
 #endif
 #if defined(CFG_DISTRIBUTED)
   fprintf(out, "<distributedBarrierTime>");
@@ -532,6 +536,11 @@ void context_increase_bytes_sent
   CTX->bytes_sent += bytes;
 }
 
+void context_increase_barrier_time
+(float time) {
+  CTX->barrier_time += time;
+}
+
 void context_increase_distributed_barrier_time
 (float time) {
   CTX->distributed_barrier_time += time;
@@ -647,4 +656,15 @@ float context_cpu_usage
 void context_set_avg_cpu_usage
 (float avg_cpu_usage) {
   CTX->avg_cpu_usage = avg_cpu_usage;
+}
+
+void context_barrier_wait
+(pthread_barrier_t * b) {
+  lna_timer_t t;
+  
+  lna_timer_init(&t);
+  lna_timer_start(&t);
+  pthread_barrier_wait(b);
+  lna_timer_stop(&t);
+  context_increase_barrier_time(lna_timer_value(t));
 }

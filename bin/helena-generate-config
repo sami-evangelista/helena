@@ -166,7 +166,7 @@ class Config:
         self.bfsQueueBlockSize = 10000
         self.dfsStackBlockSize = 10000
         self.rwalkMaxDepth = 1000
-        self.shmemHeapSize = 1000000
+        self.shmemHeapSize = 10000
         self.candidateSetSize = 100000
         self.stateCachingGcThreshold = 50
         self.stateCachingGcRatio = 0.01

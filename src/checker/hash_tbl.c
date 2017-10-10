@@ -27,13 +27,15 @@ typedef uint8_t bucket_status_t;
 
 struct struct_hash_tbl_t {
   bool_t hash_compaction;
+  uint8_t gc_threshold;
+  float gc_ratio;
   uint32_t attrs;
   uint32_t attrs_char_size;
   uint32_t attr_pos[NO_ATTRS];
   uint16_t no_workers;
   uint64_t hash_size;
-  uint64_t gc_time;
   pthread_barrier_t barrier;
+  uint64_t gc_time;
   heap_t heap;
   int64_t * size;
   rseed_t * seeds;
@@ -46,8 +48,6 @@ struct struct_hash_tbl_t {
   hash_tbl_id_t ** garbages;
   uint64_t * no_garbages;
   uint64_t * max_garbages;
-  uint8_t gc_threshold;
-  float gc_ratio;
   bool_t * done;
 };
 typedef struct struct_hash_tbl_t struct_hash_tbl_t;
@@ -76,6 +76,7 @@ hash_tbl_t hash_tbl_new
  uint8_t gc_threshold,
  float gc_ratio,
  uint32_t attrs) {
+  const heap_t heap = SYSTEM_HEAP;
   const uint32_t attrs_width[NO_ATTRS] = { ATTR_CYAN_WIDTH * no_workers,
                                            ATTR_BLUE_WIDTH,
                                            ATTR_PINK_WIDTH * no_workers,
@@ -90,7 +91,7 @@ hash_tbl_t hash_tbl_new
   worker_id_t w;
   uint32_t pos = 0;
   
-  result = mem_alloc(SYSTEM_HEAP, sizeof(struct_hash_tbl_t));
+  result = mem_alloc(heap, sizeof(struct_hash_tbl_t));
   result->hash_compaction = hash_compaction;
   result->gc_threshold = gc_threshold;
   result->gc_ratio = gc_ratio;
@@ -108,27 +109,22 @@ hash_tbl_t hash_tbl_new
   }
   result->no_workers = no_workers;
   result->hash_size = hash_size;
-  result->heap = SYSTEM_HEAP;
-  result->size = mem_alloc(SYSTEM_HEAP, no_workers * sizeof(uint64_t));
-  result->seeds = mem_alloc(SYSTEM_HEAP, no_workers * sizeof(uint32_t));
-  result->hash = mem_alloc(SYSTEM_HEAP, hash_size * sizeof(hash_key_t));
-  result->status = mem_alloc(SYSTEM_HEAP, hash_size * sizeof(bucket_status_t));
-  result->update_status = mem_alloc(SYSTEM_HEAP,
-                                    hash_size * sizeof(bucket_status_t));
-  result->garbages = mem_alloc(SYSTEM_HEAP,
-                               no_workers * sizeof(hash_tbl_id_t *));
-  result->max_garbages = mem_alloc(SYSTEM_HEAP,
-                                   no_workers * sizeof(uint64_t));
-  result->no_garbages = mem_alloc(SYSTEM_HEAP,
-                                  no_workers * sizeof(uint64_t));
-  result->done = mem_alloc(SYSTEM_HEAP, no_workers * sizeof(bool_t));
+  result->heap = heap;
+  result->size = mem_alloc(heap, no_workers * sizeof(uint64_t));
+  result->seeds = mem_alloc(heap, no_workers * sizeof(uint32_t));
+  result->hash = mem_alloc(heap, hash_size * sizeof(hash_key_t));
+  result->status = mem_alloc(heap, hash_size * sizeof(bucket_status_t));
+  result->update_status = mem_alloc(heap, hash_size * sizeof(bucket_status_t));
+  result->garbages = mem_alloc(heap, no_workers * sizeof(hash_tbl_id_t *));
+  result->max_garbages = mem_alloc(heap, no_workers * sizeof(uint64_t));
+  result->no_garbages = mem_alloc(heap, no_workers * sizeof(uint64_t));
+  result->done = mem_alloc(heap, no_workers * sizeof(bool_t));
   if(hash_compaction) {
-    result->hc_attrs = mem_alloc(SYSTEM_HEAP,
-                                 hash_size * result->attrs_char_size);
+    result->hc_attrs = mem_alloc(heap, hash_size * result->attrs_char_size);
     memset(result->hc_attrs, 0, hash_size * result->attrs_char_size);
   } else {
-    result->state = mem_alloc(SYSTEM_HEAP, hash_size * sizeof(bit_vector_t));
-    result->state_len = mem_alloc(SYSTEM_HEAP, hash_size * sizeof(uint16_t));
+    result->state = mem_alloc(heap, hash_size * sizeof(bit_vector_t));
+    result->state_len = mem_alloc(heap, hash_size * sizeof(uint16_t));
   }
   for(w = 0; w < result->no_workers; w ++) {
     result->size[w] = 0;
@@ -212,7 +208,7 @@ void hash_tbl_free
   } else {
     for(i = 0; i < tbl->hash_size; i++) {
       if(tbl->state[i]) {
-        mem_free(tbl->heap, tbl->state[i]);
+        mem_free(SYSTEM_HEAP, tbl->state[i]);
       }
     }
     mem_free(SYSTEM_HEAP, tbl->state);
@@ -233,6 +229,12 @@ void hash_tbl_free
   mem_free(SYSTEM_HEAP, tbl->max_garbages);
   mem_free(SYSTEM_HEAP, tbl->done);
   mem_free(SYSTEM_HEAP, tbl);
+}
+
+void hash_tbl_set_heap
+(hash_tbl_t tbl,
+ heap_t h) {
+  tbl->heap = h;
 }
 
 uint64_t hash_tbl_size
@@ -427,17 +429,17 @@ void hash_tbl_put_in_garbages
    *  reallocate the garbage array of worker w if necessary
    */
   if(tbl->max_garbages[w] == 0) {
-    tbl->garbages[w] = mem_alloc(SYSTEM_HEAP, sizeof(hash_tbl_id_t));
+    tbl->garbages[w] = mem_alloc(tbl->heap, sizeof(hash_tbl_id_t));
     tbl->max_garbages[w] = 1;
   } else if(tbl->max_garbages[w] == tbl->no_garbages[w]) {
     tmp = tbl->garbages[w];
     tbl->max_garbages[w] *= 2;
-    tbl->garbages[w] = mem_alloc(SYSTEM_HEAP,
+    tbl->garbages[w] = mem_alloc(tbl->heap,
                                  sizeof(hash_tbl_id_t) * tbl->max_garbages[w]);
     for(i = 0; i < tbl->no_garbages[w]; i ++) {
       tbl->garbages[w][i] = tmp[i];
     }
-    mem_free(SYSTEM_HEAP, tmp);
+    mem_free(tbl->heap, tmp);
   }
 
   /**
@@ -633,6 +635,29 @@ void hash_tbl_set_pred
                               ATTR_PRED_WIDTH);
 }
 
+void hash_tbl_erase_real
+(hash_tbl_t tbl,
+ worker_id_t w,
+ hash_tbl_id_t id,
+ uint8_t bucket_status) {
+  if(tbl->hash_compaction) {
+    memset(tbl->hc_attrs + id * tbl->attrs_char_size, 0, tbl->attrs_char_size);
+  } else {
+    mem_free(tbl->heap, tbl->state[id]);
+    tbl->state[id] = NULL;
+  }
+  tbl->status[id] = bucket_status;
+  tbl->update_status[id] = BUCKET_READY;
+  tbl->size[w] --;
+}
+
+void hash_tbl_erase
+(hash_tbl_t tbl,
+ worker_id_t w,
+ hash_tbl_id_t id) {
+  hash_tbl_erase_real(tbl, w, id, BUCKET_EMPTY);
+}
+
 void hash_tbl_remove
 (hash_tbl_t tbl,
  worker_id_t w,
@@ -644,10 +669,12 @@ void hash_tbl_get_serialised
 (hash_tbl_t tbl,
  hash_tbl_id_t id,
  bit_vector_t * s,
- uint16_t * size) {
+ uint16_t * size,
+ hash_key_t * h) {
   assert(!tbl->hash_compaction);
   (*s) = tbl->state[id] + tbl->attrs_char_size;
   (*size) = tbl->state_len[id];
+  (*h) = tbl->hash[id];
 }
 
 void hash_tbl_change_refs
@@ -707,7 +734,7 @@ void hash_tbl_unref
 void hash_tbl_barrier
 (hash_tbl_t tbl) {
   if(tbl->no_workers > 1) {
-    pthread_barrier_wait(&tbl->barrier);
+    context_barrier_wait(&tbl->barrier);
   }
 }
     
@@ -745,17 +772,9 @@ uint64_t hash_tbl_gc_real
         } else {
 
           /**
-           *  delete the bucket
+           *  erase the state
            */
-          tbl->update_status[id] = BUCKET_READY;
-          if(tbl->hash_compaction) {
-            memset(tbl->hc_attrs + id * tbl->attrs_char_size,
-                   0, tbl->attrs_char_size);
-          } else {
-            mem_free(tbl->heap, tbl->state[id]);
-            tbl->state[id] = NULL;
-          }
-          tbl->status[id] = BUCKET_DEL;
+	  hash_tbl_erase_real(tbl, w, id, BUCKET_DEL);
 
           /**
            *  if the next bucket is empty then all deleted buckets
@@ -771,7 +790,6 @@ uint64_t hash_tbl_gc_real
               }
             }
           }
-          tbl->size[w] --;
           deleted ++;
         }
       }
@@ -892,31 +910,6 @@ void hash_tbl_fold
     }
   }
   heap_free(h);
-}
-
-void hash_tbl_fold_serialised
-(hash_tbl_t tbl,
- hash_tbl_fold_serialised_func_t f,
- void * data) {
-  uint16_t l;
-  hash_key_t h;
-  bit_vector_t s;
-  uint64_t pos;
-  
-  for(pos = 0; pos < tbl->hash_size; pos ++) {
-    if(tbl->status[pos] == BUCKET_READY) {
-      s = tbl->state[pos] + tbl->attrs_char_size;
-      h = tbl->hash[pos];
-      l = tbl->state_len[pos];
-      f(s, l, h, data);
-    }
-  }
-}
-
-void hash_tbl_set_heap
-(hash_tbl_t tbl,
- heap_t h) {
-  tbl->heap = h;
 }
 
 list_t hash_tbl_get_trace

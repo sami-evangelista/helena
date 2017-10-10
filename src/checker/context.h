@@ -109,6 +109,9 @@ void context_update_bfs_levels
 void context_increase_bytes_sent
 (uint32_t bytes);
 
+void context_increase_barrier_time
+(float time);
+
 void context_increase_distributed_barrier_time
 (float time);
 
@@ -153,5 +156,8 @@ float context_cpu_usage
 
 void context_set_avg_cpu_usage
 (float avg_cpu_usage);
+
+void context_barrier_wait
+(pthread_barrier_t * b);
 
 #endif

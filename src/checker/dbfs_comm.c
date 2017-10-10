@@ -23,6 +23,8 @@ typedef struct {
   hash_tbl_t * states[CFG_NO_WORKERS];
   uint32_t * len[CFG_NO_WORKERS];
   uint32_t * remote_pos[CFG_NO_WORKERS];
+  hash_tbl_id_t ** ids[CFG_NO_WORKERS];
+  uint32_t * no_ids[CFG_NO_WORKERS];
 } worker_buffers_t;
 
 const struct timespec COMM_WAIT_TIME = { 0, COMM_WAIT_TIME_MS * 1000000 };
@@ -33,18 +35,18 @@ bfs_queue_t Q;
 pthread_t CW[CFG_NO_COMM_WORKERS];
 heap_t COMM_HEAPS[CFG_NO_COMM_WORKERS];
 worker_buffers_t BUF;
-uint32_t SHMEM_HEAP_SIZE;
-uint32_t SHMEM_HEAP_SIZE_WORKER;
-uint32_t SHMEM_HEAP_SIZE_PE;
+uint32_t DBFS_HEAP_SIZE;
+uint32_t DBFS_HEAP_SIZE_WORKER;
+uint32_t DBFS_HEAP_SIZE_PE;
 int PES;
 int ME;
 
 /**
  * synchronisation stuff
  */
-pthread_barrier_t DBFS_LB;
 pthread_mutex_t DBFS_MUTEX;
-pthread_barrier_t DBFS_CB;
+pthread_barrier_t DBFS_LOCAL_BARRIER;
+pthread_barrier_t DBFS_COMM_BARRIER;
 
 
 /**
@@ -79,10 +81,15 @@ void dbfs_comm_init_term_data
 }
 
 
-bool_t dbfs_comm_state_owner
+uint8_t dbfs_comm_state_owner
 (hash_key_t h) {
-  h = (h >> 24) + (h >> 16 && 0xff) + (h >> 8 & 0xff) + h & 0xff;
-  return h % PES;
+  int i = 0;
+  uint8_t result = 0;
+
+  for(i = 0; i < sizeof(hash_key_t); i ++) {
+    result += h >> (i * 8);
+  }
+  return result % PES;
 }
 
 
@@ -106,14 +113,14 @@ void dbfs_comm_notify_level_termination
 
 void dbfs_comm_local_barrier
 () {
-  pthread_barrier_wait(&DBFS_LB);
+  context_barrier_wait(&DBFS_LOCAL_BARRIER);
 }
 
 
 void dbfs_comm_comm_barrier
 () {
 #if CFG_NO_COMM_WORKERS > 1
-  pthread_barrier_wait(&DBFS_CB);
+  context_barrier_wait(&DBFS_COMM_BARRIER);
 #endif
 }
 
@@ -121,37 +128,14 @@ void dbfs_comm_comm_barrier
 void dbfs_comm_reinit_buffer
 (worker_id_t w,
  int pe) {
-  if(BUF.states[w][pe]) {
-    hash_tbl_free(BUF.states[w][pe]);
+  uint32_t i;
+
+  for(i = 0; i < BUF.no_ids[w][pe]; i ++) {
+    hash_tbl_erase(BUF.states[w][pe], 0, BUF.ids[w][pe][i]);
   }
-  BUF.states[w][pe] = hash_tbl_new(WORKER_STATE_BUFFER_LEN * 2,
-				   1, FALSE, 100, 0, 0);
-  heap_reset(BUF.heaps[w][pe]);
-  hash_tbl_set_heap(BUF.states[w][pe], BUF.heaps[w][pe]);
   BUF.len[w][pe] = 0;
+  BUF.no_ids[w][pe] = 0;
 }
-
-
-typedef struct {
-  uint32_t pos;
-  bit_vector_t buffer;
-} buffer_serialisation_data_t;
-
-void dbfs_comm_fill_buffer
-(bit_vector_t s,
- uint16_t l,
- hash_key_t h,
- void * data) {
-  buffer_serialisation_data_t * buf = (buffer_serialisation_data_t *) data;
-
-  memcpy(buf->buffer + buf->pos, &h, sizeof(hash_key_t));
-  buf->pos += sizeof(hash_key_t);
-  memcpy(buf->buffer + buf->pos, &l, sizeof(uint16_t));
-  buf->pos += sizeof(uint16_t);
-  memcpy(buf->buffer + buf->pos, s, l);
-  buf->pos += l;
-}
-
 
 void dbfs_comm_poll_remote_pe
 (worker_id_t w,
@@ -171,13 +155,16 @@ void dbfs_comm_send_buffer
 (worker_id_t w,
  int pe) {
   buffer_data_t data;
-  char buffer[SHMEM_HEAP_SIZE_WORKER];
-  buffer_serialisation_data_t buf;
+  char buffer[DBFS_HEAP_SIZE_WORKER];
+  uint32_t i, pos;
+  bit_vector_t s;
+  uint16_t size;
+  hash_key_t h;
 
 #if defined(DBFS_COMM_DEBUG)
   assert(hash_tbl_size(BUF.states[w][pe]) <= WORKER_STATE_BUFFER_LEN);
   assert(pe != ME);
-  assert(BUF.len[w][pe] < SHMEM_HEAP_SIZE_WORKER);
+  assert(BUF.len[w][pe] < DBFS_HEAP_SIZE_WORKER);
 #endif
   
   /**
@@ -188,20 +175,26 @@ void dbfs_comm_send_buffer
   /**
    * send my states to the remote PE
    */
-  memset(buffer, 0, SHMEM_HEAP_SIZE_WORKER);
-  buf.pos = 0;
-  buf.buffer = buffer;
-  hash_tbl_fold_serialised(BUF.states[w][pe], &dbfs_comm_fill_buffer, &buf);
+  memset(buffer, 0, DBFS_HEAP_SIZE_WORKER);
+  pos = 0;
+  for(i = 0; i < BUF.no_ids[w][pe]; i ++) {
+    hash_tbl_get_serialised(BUF.states[w][pe], BUF.ids[w][pe][i],
+			    &s, &size, &h);
+    memcpy(buffer + pos, &h, sizeof(hash_key_t));
+    memcpy(buffer + pos + sizeof(hash_key_t), &size, sizeof(uint16_t));
+    memcpy(buffer + pos + sizeof(hash_key_t) + sizeof(uint16_t), s, size);
+    pos += sizeof(hash_key_t) + sizeof(uint16_t) + size;
+  }
 #if defined(DBFS_COMM_DEBUG)
   assert(buf.pos == BUF.len[w][pe]);
 #endif
-  comm_shmem_put(H + BUF.remote_pos[w][pe], buffer, buf.pos, pe);
+  comm_shmem_put(H + BUF.remote_pos[w][pe], buffer, pos, pe);
 
   /**
    * send my data to the remote PE
    */
   data.no_states = hash_tbl_size(BUF.states[w][pe]);
-  data.len = buf.pos;
+  data.len = pos;
   comm_shmem_put(&H_DATA[w][ME], &data, sizeof(buffer_data_t), pe);
 #if defined(DBFS_COMM_DEBUG)
   printf("[%d,%d] sends %d states to [%d] at pos %d\n",
@@ -273,8 +266,8 @@ void dbfs_comm_process_state
    * the buffer content to the remote pe
    */
   if((BUF.len[w][pe] + sizeof(hash_key_t) + sizeof(uint16_t) + len >
-      SHMEM_HEAP_SIZE_WORKER)
-     || (hash_tbl_size(BUF.states[w][pe]) == WORKER_STATE_BUFFER_LEN)) {
+      DBFS_HEAP_SIZE_WORKER)
+     || (BUF.no_ids[w][pe] == WORKER_STATE_BUFFER_LEN)) {
     dbfs_comm_send_buffer(w, pe);
   }
 
@@ -284,6 +277,8 @@ void dbfs_comm_process_state
   hash_tbl_insert_hashed(BUF.states[w][pe], s, 0, h, &is_new, &id);
   if(is_new) {
     BUF.len[w][pe] += sizeof(hash_key_t) + sizeof(uint16_t) + len;
+    BUF.ids[w][pe][BUF.no_ids[w][pe]] = id;
+    BUF.no_ids[w][pe] ++;
   }
 }
 
@@ -297,7 +292,7 @@ void dbfs_comm_worker_process_incoming_states
   bool_t states_received = TRUE, is_new;
   hash_key_t h;
   buffer_data_t data;
-  char buffer[SHMEM_HEAP_SIZE_WORKER];
+  char buffer[DBFS_HEAP_SIZE_WORKER];
   storage_id_t sid;
   bfs_queue_item_t item;
   state_t s;
@@ -308,7 +303,7 @@ void dbfs_comm_worker_process_incoming_states
     pos = 0;
     for(pe = 0; pe < PES; pe ++) {
       if(pe != ME) {
-        for(x = 0; x < CFG_NO_WORKERS; x ++, pos += SHMEM_HEAP_SIZE_WORKER) {
+        for(x = 0; x < CFG_NO_WORKERS; x ++, pos += DBFS_HEAP_SIZE_WORKER) {
           pthread_mutex_lock(&DBFS_MUTEX);
           if(0 == H_DATA[x][pe].no_states) {
             pthread_mutex_unlock(&DBFS_MUTEX);
@@ -448,12 +443,12 @@ void * dbfs_comm_worker
        * synchronise with the working threads
        */
 #if defined(DBFS_COMM_DEBUG)
-        printf("[%d,c%d] at barrier 3\n", ME, c);
+      printf("[%d,c%d] at barrier 3\n", ME, c);
 #endif
       dbfs_comm_comm_barrier();
       dbfs_comm_init_term_data();
 #if defined(DBFS_COMM_DEBUG)
-        printf("[%d,c%d] at barrier 4\n", ME, c);
+      printf("[%d,c%d] at barrier 4\n", ME, c);
 #endif
       dbfs_comm_local_barrier();
     }
@@ -473,9 +468,9 @@ void dbfs_comm_start
   /* shmem initialisation */
   PES = comm_shmem_pes();
   ME = comm_shmem_me();
-  SHMEM_HEAP_SIZE_WORKER = CFG_SHMEM_HEAP_SIZE / ((PES) * CFG_NO_WORKERS);
-  SHMEM_HEAP_SIZE_PE = CFG_NO_WORKERS * SHMEM_HEAP_SIZE_WORKER;
-  SHMEM_HEAP_SIZE = SHMEM_HEAP_SIZE_PE * (PES);
+  DBFS_HEAP_SIZE_WORKER = CFG_SHMEM_HEAP_SIZE / ((PES) * CFG_NO_WORKERS);
+  DBFS_HEAP_SIZE_PE = CFG_NO_WORKERS * DBFS_HEAP_SIZE_WORKER;
+  DBFS_HEAP_SIZE = DBFS_HEAP_SIZE_PE * (PES);
   assert(PES <= MAX_PES);
 
   /* initialise global variables */
@@ -483,19 +478,22 @@ void dbfs_comm_start
   S = context_storage();
   GLOB_TERM = FALSE;
   dbfs_comm_init_term_data();
-  pthread_barrier_init(&DBFS_LB, NULL, CFG_NO_WORKERS + CFG_NO_COMM_WORKERS);
-  pthread_barrier_init(&DBFS_CB, NULL, CFG_NO_COMM_WORKERS);
+  pthread_barrier_init(&DBFS_LOCAL_BARRIER, NULL,
+		       CFG_NO_WORKERS + CFG_NO_COMM_WORKERS);
+  pthread_barrier_init(&DBFS_COMM_BARRIER, NULL, CFG_NO_COMM_WORKERS);
   pthread_mutex_init(&DBFS_MUTEX, NULL);
   for(w = 0; w < CFG_NO_WORKERS; w ++) {
-    BUF.remote_pos[w] = mem_alloc(SYSTEM_HEAP, sizeof(uint32_t) * PES);
-    BUF.len[w] = mem_alloc(SYSTEM_HEAP, sizeof(uint32_t) * PES);
-    BUF.states[w] = mem_alloc(SYSTEM_HEAP, sizeof(hash_tbl_t) * PES);
     BUF.heaps[w] = mem_alloc(SYSTEM_HEAP, sizeof(heap_t) * PES);
+    BUF.ids[w] = mem_alloc(SYSTEM_HEAP, sizeof(hash_tbl_id_t *) * PES);
+    BUF.len[w] = mem_alloc(SYSTEM_HEAP, sizeof(uint32_t) * PES);
+    BUF.no_ids[w] = mem_alloc(SYSTEM_HEAP, sizeof(uint32_t) * PES);
+    BUF.remote_pos[w] = mem_alloc(SYSTEM_HEAP, sizeof(uint32_t) * PES);
+    BUF.states[w] = mem_alloc(SYSTEM_HEAP, sizeof(hash_tbl_t) * PES);
   }
   for(pe = 0; pe < PES; pe ++) {
-    remote_pos = ME * SHMEM_HEAP_SIZE_PE;
+    remote_pos = ME * DBFS_HEAP_SIZE_PE;
     if(ME > pe) {
-      remote_pos -= SHMEM_HEAP_SIZE_PE;
+      remote_pos -= DBFS_HEAP_SIZE_PE;
     }
     for(w = 0; w < CFG_NO_WORKERS; w ++) {
       H_DATA[w][pe].len = 0;
@@ -504,10 +502,15 @@ void dbfs_comm_start
         BUF.remote_pos[w][pe] = 0;          
       } else {
         BUF.remote_pos[w][pe] = remote_pos;
-        BUF.states[w][pe] = NULL;
+        BUF.no_ids[w][pe] = 0;
+        BUF.ids[w][pe] = mem_alloc(SYSTEM_HEAP, sizeof(hash_tbl_id_t)
+				   * WORKER_STATE_BUFFER_LEN);
         BUF.heaps[w][pe] = local_heap_new();
+        BUF.states[w][pe] = hash_tbl_new(WORKER_STATE_BUFFER_LEN * 2,
+					 1, FALSE, 100, 0, 0);
+	hash_tbl_set_heap(BUF.states[w][pe], BUF.heaps[w][pe]);
         dbfs_comm_reinit_buffer(w, pe);
-        remote_pos += SHMEM_HEAP_SIZE_WORKER;
+        remote_pos += DBFS_HEAP_SIZE_WORKER;
       }
     }
   }
@@ -542,12 +545,15 @@ void dbfs_comm_end
       if(ME != pe) {
         hash_tbl_free(BUF.states[w][pe]);
         heap_free(BUF.heaps[w][pe]);
+	mem_free(SYSTEM_HEAP, BUF.ids[w][pe]);
       }
     }
-    mem_free(SYSTEM_HEAP, BUF.states[w]);
     mem_free(SYSTEM_HEAP, BUF.heaps[w]);
+    mem_free(SYSTEM_HEAP, BUF.ids[w]);
     mem_free(SYSTEM_HEAP, BUF.len[w]);
+    mem_free(SYSTEM_HEAP, BUF.no_ids[w]);
     mem_free(SYSTEM_HEAP, BUF.remote_pos[w]);
+    mem_free(SYSTEM_HEAP, BUF.states[w]);
   }
 }
 
