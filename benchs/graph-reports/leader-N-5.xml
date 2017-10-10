@@ -1,0 +1,496 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<state-space-info>
+
+<model>leader</model>
+<language>helena</language>
+<date>October, 10, 2017 at 10:53:12</date>
+<filePath>/home/sami/git/helena/examples/leader.lna</filePath>
+<modelParameters><modelParameter><modelParameterName>N</modelParameterName><modelParameterValue>5</modelParameterValue></modelParameter></modelParameters><states>219</states>
+<edges>770</edges>
+
+<bfs-info>
+<levels>11</levels>
+<max-level>49</max-level>
+<back-level-edges>348</back-level-edges>
+<max-back-level-edge>1</max-back-level-edge>
+<avg-back-level-edge>0.39</avg-back-level-edge>
+<bfs-levels>
+<level id="0"><states>1</states><edges>5</edges></level>
+<level id="1"><states>5</states><edges>25</edges></level>
+<level id="2"><states>15</states><edges>70</edges></level>
+<level id="3"><states>31</states><edges>130</edges></level>
+<level id="4"><states>46</states><edges>167</edges></level>
+<level id="5"><states>49</states><edges>150</edges></level>
+<level id="6"><states>33</states><edges>101</edges></level>
+<level id="7"><states>21</states><edges>64</edges></level>
+<level id="8"><states>12</states><edges>37</edges></level>
+<level id="9"><states>5</states><edges>17</edges></level>
+<level id="10"><states>1</states><edges>4</edges></level>
+</bfs-levels>
+<back-level-lengths>
+<length id="0">61.2069</length>
+<length id="1">38.7931</length>
+</back-level-lengths>
+</bfs-info>
+
+<degrees>
+<avg>3.5160</avg>
+<max-in>7</max-in>
+<max-out>5</max-out>
+<degree id="0"><in>1</in><out>1</out></degree>
+<degree id="1"><in>13</in><out>9</out></degree>
+<degree id="2"><in>41</in><out>31</out></degree>
+<degree id="3"><in>62</in><out>60</out></degree>
+<degree id="4"><in>51</in><out>71</out></degree>
+<degree id="5"><in>28</in><out>47</out></degree>
+<degree id="6"><in>16</in><out>0</out></degree>
+<degree id="7"><in>7</in><out>0</out></degree>
+</degrees>
+
+<scc-info>
+<count>219</count>
+<trivial>219</trivial>
+<terminal>1</terminal>
+<largest>1</largest>
+</scc-info>
+
+<dfs-info>
+<stack-size id="2">0.9132</stack-size>
+<stack-size id="3">1.3699</stack-size>
+<stack-size id="4">1.8265</stack-size>
+<stack-size id="5">2.2831</stack-size>
+<stack-size id="6">2.7397</stack-size>
+<stack-size id="7">3.1963</stack-size>
+<stack-size id="8">3.6530</stack-size>
+<stack-size id="9">4.1096</stack-size>
+<stack-size id="10">4.5662</stack-size>
+<stack-size id="11">5.0228</stack-size>
+<stack-size id="12">5.4795</stack-size>
+<stack-size id="13">5.9361</stack-size>
+<stack-size id="14">6.3927</stack-size>
+<stack-size id="15">5.9361</stack-size>
+<stack-size id="16">5.4795</stack-size>
+<stack-size id="17">5.0228</stack-size>
+<stack-size id="18">4.5662</stack-size>
+<stack-size id="19">5.0228</stack-size>
+<stack-size id="20">5.4795</stack-size>
+<stack-size id="21">5.9361</stack-size>
+<stack-size id="22">4.5662</stack-size>
+<stack-size id="23">5.0228</stack-size>
+<stack-size id="24">5.4795</stack-size>
+<stack-size id="25">3.6530</stack-size>
+<stack-size id="26">4.1096</stack-size>
+<stack-size id="27">4.5662</stack-size>
+<stack-size id="28">4.1096</stack-size>
+<stack-size id="29">3.1963</stack-size>
+<stack-size id="30">3.6530</stack-size>
+<stack-size id="31">4.1096</stack-size>
+<stack-size id="32">3.6530</stack-size>
+<stack-size id="33">2.7397</stack-size>
+<stack-size id="34">3.1963</stack-size>
+<stack-size id="35">3.6530</stack-size>
+<stack-size id="36">4.1096</stack-size>
+<stack-size id="37">4.5662</stack-size>
+<stack-size id="38">5.0228</stack-size>
+<stack-size id="39">5.4795</stack-size>
+<stack-size id="40">3.6530</stack-size>
+<stack-size id="41">4.1096</stack-size>
+<stack-size id="42">4.5662</stack-size>
+<stack-size id="43">5.0228</stack-size>
+<stack-size id="44">3.1963</stack-size>
+<stack-size id="45">2.7397</stack-size>
+<stack-size id="46">3.1963</stack-size>
+<stack-size id="47">3.6530</stack-size>
+<stack-size id="48">4.1096</stack-size>
+<stack-size id="49">4.5662</stack-size>
+<stack-size id="50">5.0228</stack-size>
+<stack-size id="51">5.4795</stack-size>
+<stack-size id="52">3.6530</stack-size>
+<stack-size id="53">4.1096</stack-size>
+<stack-size id="54">4.5662</stack-size>
+<stack-size id="55">5.0228</stack-size>
+<stack-size id="56">3.1963</stack-size>
+<stack-size id="57">2.7397</stack-size>
+<stack-size id="58">3.1963</stack-size>
+<stack-size id="59">2.2831</stack-size>
+<stack-size id="60">2.7397</stack-size>
+<stack-size id="61">3.1963</stack-size>
+<stack-size id="62">2.7397</stack-size>
+<stack-size id="63">2.2831</stack-size>
+<stack-size id="64">2.7397</stack-size>
+<stack-size id="65">3.1963</stack-size>
+<stack-size id="66">1.8265</stack-size>
+<stack-size id="67">2.2831</stack-size>
+<stack-size id="68">2.7397</stack-size>
+<stack-size id="69">2.2831</stack-size>
+<stack-size id="70">2.7397</stack-size>
+<stack-size id="71">1.8265</stack-size>
+<stack-size id="72">2.2831</stack-size>
+<stack-size id="73">2.7397</stack-size>
+<stack-size id="74">2.2831</stack-size>
+<stack-size id="75">1.8265</stack-size>
+<stack-size id="76">1.3699</stack-size>
+<stack-size id="77">1.8265</stack-size>
+<stack-size id="78">2.2831</stack-size>
+<stack-size id="79">2.7397</stack-size>
+<stack-size id="80">3.1963</stack-size>
+<stack-size id="81">3.6530</stack-size>
+<stack-size id="82">4.1096</stack-size>
+<stack-size id="83">4.5662</stack-size>
+<stack-size id="84">5.0228</stack-size>
+<stack-size id="85">5.4795</stack-size>
+<stack-size id="86">5.9361</stack-size>
+<stack-size id="87">6.3927</stack-size>
+<stack-size id="88">5.0228</stack-size>
+<stack-size id="89">5.4795</stack-size>
+<stack-size id="90">5.9361</stack-size>
+<stack-size id="91">4.5662</stack-size>
+<stack-size id="92">4.1096</stack-size>
+<stack-size id="93">3.6530</stack-size>
+<stack-size id="94">4.1096</stack-size>
+<stack-size id="95">4.5662</stack-size>
+<stack-size id="96">5.0228</stack-size>
+<stack-size id="97">5.4795</stack-size>
+<stack-size id="98">5.9361</stack-size>
+<stack-size id="99">3.6530</stack-size>
+<stack-size id="100">4.1096</stack-size>
+<stack-size id="101">4.5662</stack-size>
+<stack-size id="102">5.0228</stack-size>
+<stack-size id="103">5.4795</stack-size>
+<stack-size id="104">3.1963</stack-size>
+<stack-size id="105">3.6530</stack-size>
+<stack-size id="106">3.1963</stack-size>
+<stack-size id="107">2.7397</stack-size>
+<stack-size id="108">3.1963</stack-size>
+<stack-size id="109">3.6530</stack-size>
+<stack-size id="110">4.1096</stack-size>
+<stack-size id="111">4.5662</stack-size>
+<stack-size id="112">5.0228</stack-size>
+<stack-size id="113">5.4795</stack-size>
+<stack-size id="114">5.9361</stack-size>
+<stack-size id="115">3.1963</stack-size>
+<stack-size id="116">3.6530</stack-size>
+<stack-size id="117">4.1096</stack-size>
+<stack-size id="118">4.5662</stack-size>
+<stack-size id="119">5.0228</stack-size>
+<stack-size id="120">5.4795</stack-size>
+<stack-size id="121">2.7397</stack-size>
+<stack-size id="122">3.1963</stack-size>
+<stack-size id="123">3.6530</stack-size>
+<stack-size id="124">4.1096</stack-size>
+<stack-size id="125">4.5662</stack-size>
+<stack-size id="126">5.0228</stack-size>
+<stack-size id="127">5.4795</stack-size>
+<stack-size id="128">2.7397</stack-size>
+<stack-size id="129">3.1963</stack-size>
+<stack-size id="130">3.6530</stack-size>
+<stack-size id="131">4.1096</stack-size>
+<stack-size id="132">4.5662</stack-size>
+<stack-size id="133">5.0228</stack-size>
+<stack-size id="134">2.2831</stack-size>
+<stack-size id="135">2.7397</stack-size>
+<stack-size id="136">3.1963</stack-size>
+<stack-size id="137">2.7397</stack-size>
+<stack-size id="138">2.2831</stack-size>
+<stack-size id="139">2.7397</stack-size>
+<stack-size id="140">2.2831</stack-size>
+<stack-size id="141">1.8265</stack-size>
+<stack-size id="142">2.2831</stack-size>
+<stack-size id="143">2.7397</stack-size>
+<stack-size id="144">3.1963</stack-size>
+<stack-size id="145">2.7397</stack-size>
+<stack-size id="146">2.2831</stack-size>
+<stack-size id="147">2.7397</stack-size>
+<stack-size id="148">2.2831</stack-size>
+<stack-size id="149">1.8265</stack-size>
+<stack-size id="150">2.2831</stack-size>
+<stack-size id="151">1.8265</stack-size>
+<stack-size id="152">1.3699</stack-size>
+<stack-size id="153">1.8265</stack-size>
+<stack-size id="154">2.2831</stack-size>
+<stack-size id="155">2.7397</stack-size>
+<stack-size id="156">3.1963</stack-size>
+<stack-size id="157">3.6530</stack-size>
+<stack-size id="158">2.7397</stack-size>
+<stack-size id="159">3.1963</stack-size>
+<stack-size id="160">1.8265</stack-size>
+<stack-size id="161">2.2831</stack-size>
+<stack-size id="162">1.8265</stack-size>
+<stack-size id="163">2.2831</stack-size>
+<stack-size id="164">2.7397</stack-size>
+<stack-size id="165">1.3699</stack-size>
+<stack-size id="166">1.8265</stack-size>
+<stack-size id="167">2.2831</stack-size>
+<stack-size id="168">1.3699</stack-size>
+<stack-size id="169">0.9132</stack-size>
+<stack-size id="170">1.3699</stack-size>
+<stack-size id="171">1.8265</stack-size>
+<stack-size id="172">2.2831</stack-size>
+<stack-size id="173">2.7397</stack-size>
+<stack-size id="174">3.1963</stack-size>
+<stack-size id="175">2.7397</stack-size>
+<stack-size id="176">3.1963</stack-size>
+<stack-size id="177">2.7397</stack-size>
+<stack-size id="178">3.1963</stack-size>
+<stack-size id="179">2.2831</stack-size>
+<stack-size id="180">2.2831</stack-size>
+<stack-size id="181">1.8265</stack-size>
+<stack-size id="182">2.2831</stack-size>
+<stack-size id="183">2.7397</stack-size>
+<stack-size id="184">3.1963</stack-size>
+<stack-size id="185">2.7397</stack-size>
+<stack-size id="186">3.1963</stack-size>
+<stack-size id="187">3.6530</stack-size>
+<stack-size id="188">4.1096</stack-size>
+<stack-size id="189">3.1963</stack-size>
+<stack-size id="190">3.6530</stack-size>
+<stack-size id="191">2.7397</stack-size>
+<stack-size id="192">2.2831</stack-size>
+<stack-size id="193">1.8265</stack-size>
+<stack-size id="194">2.2831</stack-size>
+<stack-size id="195">2.7397</stack-size>
+<stack-size id="196">3.1963</stack-size>
+<stack-size id="197">3.6530</stack-size>
+<stack-size id="198">2.2831</stack-size>
+<stack-size id="199">1.3699</stack-size>
+<stack-size id="200">1.8265</stack-size>
+<stack-size id="201">2.2831</stack-size>
+<stack-size id="202">2.2831</stack-size>
+<stack-size id="203">2.7397</stack-size>
+<stack-size id="204">1.8265</stack-size>
+<stack-size id="205">1.3699</stack-size>
+<stack-size id="206">1.8265</stack-size>
+<stack-size id="207">1.3699</stack-size>
+<stack-size id="208">0.9132</stack-size>
+<stack-size id="209">1.3699</stack-size>
+<stack-size id="210">1.8265</stack-size>
+<stack-size id="211">2.2831</stack-size>
+<stack-size id="212">2.7397</stack-size>
+<stack-size id="213">1.8265</stack-size>
+<stack-size id="214">2.2831</stack-size>
+<stack-size id="215">1.3699</stack-size>
+<stack-size id="216">1.8265</stack-size>
+<stack-size id="217">0.9132</stack-size>
+<stack-size id="218">1.3699</stack-size>
+<stack-size id="219">0.9132</stack-size>
+<max-stack>14</max-stack>
+<front-edges>218</front-edges>
+<back-edges>0</back-edges>
+<cross-edges>552</cross-edges>
+<shortest-cycle>0</shortest-cycle>
+</dfs-info>
+
+<model-info><placeBounds><placeBound><place>idle</place><minCard>0</minCard><maxCard>5</maxCard><minMult>0</minMult><maxMult>5</maxMult></placeBound><placeBound><place>wait</place><minCard>0</minCard><maxCard>5</maxCard><minMult>0</minMult><maxMult>5</maxMult></placeBound><placeBound><place>loosing</place><minCard>0</minCard><maxCard>4</maxCard><minMult>0</minMult><maxMult>4</maxMult></placeBound><placeBound><place>msg</place><minCard>0</minCard><maxCard>5</maxCard><minMult>0</minMult><maxMult>5</maxMult></placeBound></placeBounds><possibleTokens><possibleTokensPlace><place>idle</place><token><mult>1</mult><exprList><num>0</num>
+<enum>false</enum>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<enum>false</enum>
+</exprList></token>
+<token><mult>1</mult><exprList><num>2</num>
+<enum>false</enum>
+</exprList></token>
+<token><mult>1</mult><exprList><num>3</num>
+<enum>false</enum>
+</exprList></token>
+<token><mult>1</mult><exprList><num>4</num>
+<enum>false</enum>
+</exprList></token>
+</possibleTokensPlace><possibleTokensPlace><place>wait</place><token><mult>1</mult><exprList><num>0</num>
+<enum>false</enum>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<enum>false</enum>
+</exprList></token>
+<token><mult>1</mult><exprList><num>2</num>
+<enum>false</enum>
+</exprList></token>
+<token><mult>1</mult><exprList><num>3</num>
+<enum>false</enum>
+</exprList></token>
+<token><mult>1</mult><exprList><num>4</num>
+<enum>false</enum>
+</exprList></token>
+<token><mult>1</mult><exprList><num>4</num>
+<enum>true</enum>
+</exprList></token>
+</possibleTokensPlace><possibleTokensPlace><place>loosing</place><token><mult>1</mult><exprList><num>0</num>
+<enum>false</enum>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<enum>false</enum>
+</exprList></token>
+<token><mult>1</mult><exprList><num>2</num>
+<enum>false</enum>
+</exprList></token>
+<token><mult>1</mult><exprList><num>3</num>
+<enum>false</enum>
+</exprList></token>
+</possibleTokensPlace><possibleTokensPlace><place>msg</place><token><mult>1</mult><exprList><num>0</num>
+<num>4</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>0</num>
+<num>4</num>
+<num>2</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<num>0</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<num>4</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>2</num>
+<num>1</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>2</num>
+<num>4</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>3</num>
+<num>2</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>3</num>
+<num>4</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>4</num>
+<num>3</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>4</num>
+<num>4</num>
+<num>1</num>
+</exprList></token>
+</possibleTokensPlace></possibleTokens><deadMarkings><noDeadMarkings>1</noDeadMarkings><state>
+<placeState>
+<place>wait</place>
+<token><mult>1</mult><exprList><num>4</num>
+<enum>true</enum>
+</exprList></token>
+</placeState>
+<placeState>
+<place>loosing</place>
+<token><mult>1</mult><exprList><num>0</num>
+<enum>false</enum>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<enum>false</enum>
+</exprList></token>
+<token><mult>1</mult><exprList><num>2</num>
+<enum>false</enum>
+</exprList></token>
+<token><mult>1</mult><exprList><num>3</num>
+<enum>false</enum>
+</exprList></token>
+</placeState>
+<placeState>
+<place>msg</place>
+<token><mult>1</mult><exprList><num>0</num>
+<num>4</num>
+<num>2</num>
+</exprList></token>
+</placeState>
+</state>
+</deadMarkings><livenessInfo><livenessInfoTrans><transition>candidate</transition><liveBindings></liveBindings><quasiLiveBindings><binding><varBinding><var>X</var><num>0</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding></binding>
+<binding><varBinding><var>X</var><num>1</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding></binding>
+<binding><varBinding><var>X</var><num>2</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding></binding>
+<binding><varBinding><var>X</var><num>3</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding></binding>
+<binding><varBinding><var>X</var><num>4</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding></binding>
+</quasiLiveBindings></livenessInfoTrans><livenessInfoTrans><transition>go1</transition><liveBindings></liveBindings><quasiLiveBindings><binding><varBinding><var>X</var><num>1</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding><varBinding><var>Y</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>X</var><num>2</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding><varBinding><var>Y</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>X</var><num>3</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding><varBinding><var>Y</var><num>2</num>
+</varBinding></binding>
+<binding><varBinding><var>X</var><num>4</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding><varBinding><var>Y</var><num>3</num>
+</varBinding></binding>
+</quasiLiveBindings></livenessInfoTrans><livenessInfoTrans><transition>go2</transition><liveBindings></liveBindings><quasiLiveBindings><binding><varBinding><var>X</var><num>0</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding><varBinding><var>Y</var><num>4</num>
+</varBinding></binding>
+<binding><varBinding><var>X</var><num>1</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding><varBinding><var>Y</var><num>4</num>
+</varBinding></binding>
+<binding><varBinding><var>X</var><num>2</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding><varBinding><var>Y</var><num>4</num>
+</varBinding></binding>
+<binding><varBinding><var>X</var><num>3</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding><varBinding><var>Y</var><num>4</num>
+</varBinding></binding>
+</quasiLiveBindings></livenessInfoTrans><livenessInfoTrans><transition>wait_to_loose</transition><liveBindings></liveBindings><quasiLiveBindings><binding><varBinding><var>X</var><num>0</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding><varBinding><var>Y</var><num>4</num>
+</varBinding></binding>
+<binding><varBinding><var>X</var><num>1</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding><varBinding><var>Y</var><num>4</num>
+</varBinding></binding>
+<binding><varBinding><var>X</var><num>2</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding><varBinding><var>Y</var><num>4</num>
+</varBinding></binding>
+<binding><varBinding><var>X</var><num>3</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding><varBinding><var>Y</var><num>4</num>
+</varBinding></binding>
+</quasiLiveBindings></livenessInfoTrans><livenessInfoTrans><transition>absorb1</transition><liveBindings></liveBindings><quasiLiveBindings><binding><varBinding><var>X</var><num>1</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding><varBinding><var>Y</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>X</var><num>2</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding><varBinding><var>Y</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>X</var><num>3</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding><varBinding><var>Y</var><num>2</num>
+</varBinding></binding>
+<binding><varBinding><var>X</var><num>4</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding><varBinding><var>Y</var><num>3</num>
+</varBinding></binding>
+<binding><varBinding><var>X</var><num>4</num>
+</varBinding><varBinding><var>b</var><enum>true</enum>
+</varBinding><varBinding><var>Y</var><num>3</num>
+</varBinding></binding>
+</quasiLiveBindings></livenessInfoTrans><livenessInfoTrans><transition>absorb2</transition><liveBindings></liveBindings><quasiLiveBindings><binding><varBinding><var>X</var><num>1</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding><varBinding><var>Y</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>X</var><num>2</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding><varBinding><var>Y</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>X</var><num>3</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding><varBinding><var>Y</var><num>2</num>
+</varBinding></binding>
+</quasiLiveBindings></livenessInfoTrans><livenessInfoTrans><transition>to_win</transition><liveBindings></liveBindings><quasiLiveBindings><binding><varBinding><var>X</var><num>4</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding></binding>
+</quasiLiveBindings></livenessInfoTrans></livenessInfo></model-info></state-space-info>

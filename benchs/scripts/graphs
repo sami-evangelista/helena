@@ -1,0 +1,31 @@
+#!/bin/bash
+
+[ "$1" = "" ] && echo 'error: missing $1 = min # of states' && exit 1
+[ "$2" = "" ] && echo 'error: missing $2 = max # of states' && exit 1
+
+scripts/select-models $1 $2 \
+    | while read m lang st opt
+do
+    f=$(scripts/get-file $m $lang)
+    xml=graph-reports/$m
+    if [ "$opt" != "" ]
+    then
+        xml=$xml-$(echo $opt | tr "=" "-" | tr " " "_")
+    fi
+    xml=$xml.xml
+    [ -e $xml ] && continue
+
+    echo "***** $m $opt *****"
+    hashSize=20
+    size=900000
+    while [ $size -lt $st -a $hashSize != 30 ]
+    do
+        hashSize=$((hashSize + 1))
+        size=$((size * 2))
+    done
+    param=$(scripts/format-parameters $opt)
+    cmd="helena --action=build-graph --hash-size=$hashSize "$param" "$f
+    eval $cmd # &> /dev/null
+    cmd="helena-graph $m $xml"
+    eval $cmd &> /dev/null
+done

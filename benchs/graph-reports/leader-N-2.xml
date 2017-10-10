@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<state-space-info>
+
+<model>leader</model>
+<language>helena</language>
+<date>October, 10, 2017 at 10:52:20</date>
+<filePath>/home/sami/git/helena/examples/leader.lna</filePath>
+<modelParameters><modelParameter><modelParameterName>N</modelParameterName><modelParameterValue>2</modelParameterValue></modelParameter></modelParameters><states>9</states>
+<edges>13</edges>
+
+<bfs-info>
+<levels>5</levels>
+<max-level>3</max-level>
+<back-level-edges>4</back-level-edges>
+<max-back-level-edge>1</max-back-level-edge>
+<avg-back-level-edge>0.50</avg-back-level-edge>
+<bfs-levels>
+<level id="0"><states>1</states><edges>2</edges></level>
+<level id="1"><states>2</states><edges>4</edges></level>
+<level id="2"><states>3</states><edges>4</edges></level>
+<level id="3"><states>2</states><edges>2</edges></level>
+<level id="4"><states>1</states><edges>1</edges></level>
+</bfs-levels>
+<back-level-lengths>
+<length id="0">50.0000</length>
+<length id="1">50.0000</length>
+</back-level-lengths>
+</bfs-info>
+
+<degrees>
+<avg>1.4444</avg>
+<max-in>3</max-in>
+<max-out>2</max-out>
+<degree id="0"><in>1</in><out>1</out></degree>
+<degree id="1"><in>4</in><out>3</out></degree>
+<degree id="2"><in>3</in><out>5</out></degree>
+<degree id="3"><in>1</in><out>0</out></degree>
+</degrees>
+
+<scc-info>
+<count>9</count>
+<trivial>9</trivial>
+<terminal>1</terminal>
+<largest>1</largest>
+</scc-info>
+
+<dfs-info>
+<stack-size id="2">22.2222</stack-size>
+<stack-size id="3">33.3333</stack-size>
+<stack-size id="4">44.4444</stack-size>
+<stack-size id="5">55.5556</stack-size>
+<stack-size id="6">66.6667</stack-size>
+<stack-size id="7">55.5556</stack-size>
+<stack-size id="8">44.4444</stack-size>
+<stack-size id="9">22.2222</stack-size>
+<max-stack>6</max-stack>
+<front-edges>8</front-edges>
+<back-edges>0</back-edges>
+<cross-edges>5</cross-edges>
+<shortest-cycle>0</shortest-cycle>
+</dfs-info>
+
+<model-info><placeBounds><placeBound><place>idle</place><minCard>0</minCard><maxCard>2</maxCard><minMult>0</minMult><maxMult>2</maxMult></placeBound><placeBound><place>wait</place><minCard>0</minCard><maxCard>2</maxCard><minMult>0</minMult><maxMult>2</maxMult></placeBound><placeBound><place>loosing</place><minCard>0</minCard><maxCard>1</maxCard><minMult>0</minMult><maxMult>1</maxMult></placeBound><placeBound><place>msg</place><minCard>0</minCard><maxCard>2</maxCard><minMult>0</minMult><maxMult>2</maxMult></placeBound></placeBounds><possibleTokens><possibleTokensPlace><place>idle</place><token><mult>1</mult><exprList><num>0</num>
+<enum>false</enum>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<enum>false</enum>
+</exprList></token>
+</possibleTokensPlace><possibleTokensPlace><place>wait</place><token><mult>1</mult><exprList><num>0</num>
+<enum>false</enum>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<enum>false</enum>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<enum>true</enum>
+</exprList></token>
+</possibleTokensPlace><possibleTokensPlace><place>loosing</place><token><mult>1</mult><exprList><num>0</num>
+<enum>false</enum>
+</exprList></token>
+</possibleTokensPlace><possibleTokensPlace><place>msg</place><token><mult>1</mult><exprList><num>0</num>
+<num>1</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>0</num>
+<num>1</num>
+<num>2</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<num>0</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<num>1</num>
+<num>1</num>
+</exprList></token>
+</possibleTokensPlace></possibleTokens><deadMarkings><noDeadMarkings>1</noDeadMarkings><state>
+<placeState>
+<place>wait</place>
+<token><mult>1</mult><exprList><num>1</num>
+<enum>true</enum>
+</exprList></token>
+</placeState>
+<placeState>
+<place>loosing</place>
+<token><mult>1</mult><exprList><num>0</num>
+<enum>false</enum>
+</exprList></token>
+</placeState>
+<placeState>
+<place>msg</place>
+<token><mult>1</mult><exprList><num>0</num>
+<num>1</num>
+<num>2</num>
+</exprList></token>
+</placeState>
+</state>
+</deadMarkings><livenessInfo><livenessInfoTrans><transition>candidate</transition><liveBindings></liveBindings><quasiLiveBindings><binding><varBinding><var>X</var><num>0</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding></binding>
+<binding><varBinding><var>X</var><num>1</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding></binding>
+</quasiLiveBindings></livenessInfoTrans><livenessInfoTrans><transition>go1</transition><liveBindings></liveBindings><quasiLiveBindings><binding><varBinding><var>X</var><num>1</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding><varBinding><var>Y</var><num>0</num>
+</varBinding></binding>
+</quasiLiveBindings></livenessInfoTrans><livenessInfoTrans><transition>go2</transition><liveBindings></liveBindings><quasiLiveBindings><binding><varBinding><var>X</var><num>0</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding><varBinding><var>Y</var><num>1</num>
+</varBinding></binding>
+</quasiLiveBindings></livenessInfoTrans><livenessInfoTrans><transition>wait_to_loose</transition><liveBindings></liveBindings><quasiLiveBindings><binding><varBinding><var>X</var><num>0</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding><varBinding><var>Y</var><num>1</num>
+</varBinding></binding>
+</quasiLiveBindings></livenessInfoTrans><livenessInfoTrans><transition>absorb1</transition><liveBindings></liveBindings><quasiLiveBindings><binding><varBinding><var>X</var><num>1</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding><varBinding><var>Y</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>X</var><num>1</num>
+</varBinding><varBinding><var>b</var><enum>true</enum>
+</varBinding><varBinding><var>Y</var><num>0</num>
+</varBinding></binding>
+</quasiLiveBindings></livenessInfoTrans><livenessInfoTrans><transition>absorb2</transition><liveBindings></liveBindings><quasiLiveBindings></quasiLiveBindings></livenessInfoTrans><livenessInfoTrans><transition>to_win</transition><liveBindings></liveBindings><quasiLiveBindings><binding><varBinding><var>X</var><num>1</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding></binding>
+</quasiLiveBindings></livenessInfoTrans></livenessInfo></model-info></state-space-info>

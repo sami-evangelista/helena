@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<state-space-info>
+
+<model>phils.1</model>
+<language>dve</language>
+<date>October, 10, 2017 at 10:52:43</date>
+<filePath>/home/sami/git/helena/examples/beem/phils.1.dve</filePath>
+<states>80</states>
+<edges>212</edges>
+
+<bfs-info>
+<levels>10</levels>
+<max-level>16</max-level>
+<back-level-edges>68</back-level-edges>
+<max-back-level-edge>3</max-back-level-edge>
+<avg-back-level-edge>3.00</avg-back-level-edge>
+<bfs-levels>
+<level id="0"><states>1</states><edges>4</edges></level>
+<level id="1"><states>4</states><edges>16</edges></level>
+<level id="2"><states>10</states><edges>32</edges></level>
+<level id="3"><states>16</states><edges>40</edges></level>
+<level id="4"><states>15</states><edges>32</edges></level>
+<level id="5"><states>12</states><edges>28</edges></level>
+<level id="6"><states>10</states><edges>24</edges></level>
+<level id="7"><states>4</states><edges>12</edges></level>
+<level id="8"><states>4</states><edges>12</edges></level>
+<level id="9"><states>4</states><edges>12</edges></level>
+</bfs-levels>
+<back-level-lengths>
+<length id="0">0.0000</length>
+<length id="1">0.0000</length>
+<length id="2">0.0000</length>
+<length id="3">100.0000</length>
+</back-level-lengths>
+</bfs-info>
+
+<degrees>
+<avg>2.6500</avg>
+<max-in>4</max-in>
+<max-out>4</max-out>
+<degree id="0"><in>0</in><out>1</out></degree>
+<degree id="1"><in>8</in><out>4</out></degree>
+<degree id="2"><in>20</in><out>24</out></degree>
+<degree id="3"><in>44</in><out>44</out></degree>
+<degree id="4"><in>8</in><out>7</out></degree>
+</degrees>
+
+<scc-info>
+<count>2</count>
+<trivial>1</trivial>
+<terminal>1</terminal>
+<largest>79</largest>
+</scc-info>
+
+<dfs-info>
+<stack-size id="2">2.5000</stack-size>
+<stack-size id="3">3.7500</stack-size>
+<stack-size id="4">5.0000</stack-size>
+<stack-size id="5">6.2500</stack-size>
+<stack-size id="6">7.5000</stack-size>
+<stack-size id="7">8.7500</stack-size>
+<stack-size id="8">10.0000</stack-size>
+<stack-size id="9">11.2500</stack-size>
+<stack-size id="10">12.5000</stack-size>
+<stack-size id="11">13.7500</stack-size>
+<stack-size id="12">15.0000</stack-size>
+<stack-size id="13">16.2500</stack-size>
+<stack-size id="14">17.5000</stack-size>
+<stack-size id="15">18.7500</stack-size>
+<stack-size id="16">20.0000</stack-size>
+<stack-size id="17">21.2500</stack-size>
+<stack-size id="18">22.5000</stack-size>
+<stack-size id="19">23.7500</stack-size>
+<stack-size id="20">25.0000</stack-size>
+<stack-size id="21">26.2500</stack-size>
+<stack-size id="22">27.5000</stack-size>
+<stack-size id="23">28.7500</stack-size>
+<stack-size id="24">30.0000</stack-size>
+<stack-size id="25">31.2500</stack-size>
+<stack-size id="26">32.5000</stack-size>
+<stack-size id="27">33.7500</stack-size>
+<stack-size id="28">35.0000</stack-size>
+<stack-size id="29">36.2500</stack-size>
+<stack-size id="30">37.5000</stack-size>
+<stack-size id="31">38.7500</stack-size>
+<stack-size id="32">40.0000</stack-size>
+<stack-size id="33">41.2500</stack-size>
+<stack-size id="34">42.5000</stack-size>
+<stack-size id="35">43.7500</stack-size>
+<stack-size id="36">45.0000</stack-size>
+<stack-size id="37">46.2500</stack-size>
+<stack-size id="38">47.5000</stack-size>
+<stack-size id="39">48.7500</stack-size>
+<stack-size id="40">50.0000</stack-size>
+<stack-size id="41">51.2500</stack-size>
+<stack-size id="42">51.2500</stack-size>
+<stack-size id="43">52.5000</stack-size>
+<stack-size id="44">53.7500</stack-size>
+<stack-size id="45">55.0000</stack-size>
+<stack-size id="46">56.2500</stack-size>
+<stack-size id="47">57.5000</stack-size>
+<stack-size id="48">58.7500</stack-size>
+<stack-size id="49">60.0000</stack-size>
+<stack-size id="50">61.2500</stack-size>
+<stack-size id="51">62.5000</stack-size>
+<stack-size id="52">63.7500</stack-size>
+<stack-size id="53">65.0000</stack-size>
+<stack-size id="54">66.2500</stack-size>
+<stack-size id="55">67.5000</stack-size>
+<stack-size id="56">68.7500</stack-size>
+<stack-size id="57">70.0000</stack-size>
+<stack-size id="58">71.2500</stack-size>
+<stack-size id="59">72.5000</stack-size>
+<stack-size id="60">73.7500</stack-size>
+<stack-size id="61">75.0000</stack-size>
+<stack-size id="62">75.0000</stack-size>
+<stack-size id="63">76.2500</stack-size>
+<stack-size id="64">77.5000</stack-size>
+<stack-size id="65">78.7500</stack-size>
+<stack-size id="66">80.0000</stack-size>
+<stack-size id="67">81.2500</stack-size>
+<stack-size id="68">82.5000</stack-size>
+<stack-size id="69">82.5000</stack-size>
+<stack-size id="70">83.7500</stack-size>
+<stack-size id="71">85.0000</stack-size>
+<stack-size id="72">73.7500</stack-size>
+<stack-size id="73">72.5000</stack-size>
+<stack-size id="74">58.7500</stack-size>
+<stack-size id="75">50.0000</stack-size>
+<stack-size id="76">51.2500</stack-size>
+<stack-size id="77">37.5000</stack-size>
+<stack-size id="78">30.0000</stack-size>
+<stack-size id="79">31.2500</stack-size>
+<stack-size id="80">23.7500</stack-size>
+<max-stack>68</max-stack>
+<front-edges>79</front-edges>
+<back-edges>69</back-edges>
+<cross-edges>64</cross-edges>
+<shortest-cycle>4</shortest-cycle>
+</dfs-info>
+
+</state-space-info>

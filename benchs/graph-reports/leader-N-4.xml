@@ -1,0 +1,309 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<state-space-info>
+
+<model>leader</model>
+<language>helena</language>
+<date>October, 10, 2017 at 10:52:39</date>
+<filePath>/home/sami/git/helena/examples/leader.lna</filePath>
+<modelParameters><modelParameter><modelParameterName>N</modelParameterName><modelParameterValue>4</modelParameterValue></modelParameter></modelParameters><states>78</states>
+<edges>221</edges>
+
+<bfs-info>
+<levels>9</levels>
+<max-level>20</max-level>
+<back-level-edges>96</back-level-edges>
+<max-back-level-edge>1</max-back-level-edge>
+<avg-back-level-edge>0.41</avg-back-level-edge>
+<bfs-levels>
+<level id="0"><states>1</states><edges>4</edges></level>
+<level id="1"><states>4</states><edges>16</edges></level>
+<level id="2"><states>10</states><edges>36</edges></level>
+<level id="3"><states>17</states><edges>52</edges></level>
+<level id="4"><states>20</states><edges>49</edges></level>
+<level id="5"><states>13</states><edges>32</edges></level>
+<level id="6"><states>8</states><edges>19</edges></level>
+<level id="7"><states>4</states><edges>10</edges></level>
+<level id="8"><states>1</states><edges>3</edges></level>
+</bfs-levels>
+<back-level-lengths>
+<length id="0">59.3750</length>
+<length id="1">40.6250</length>
+</back-level-lengths>
+</bfs-info>
+
+<degrees>
+<avg>2.8333</avg>
+<max-in>6</max-in>
+<max-out>4</max-out>
+<degree id="0"><in>1</in><out>1</out></degree>
+<degree id="1"><in>10</in><out>7</out></degree>
+<degree id="2"><in>23</in><out>19</out></degree>
+<degree id="3"><in>23</in><out>28</out></degree>
+<degree id="4"><in>12</in><out>23</out></degree>
+<degree id="5"><in>6</in><out>0</out></degree>
+<degree id="6"><in>3</in><out>0</out></degree>
+</degrees>
+
+<scc-info>
+<count>78</count>
+<trivial>78</trivial>
+<terminal>1</terminal>
+<largest>1</largest>
+</scc-info>
+
+<dfs-info>
+<stack-size id="2">2.5641</stack-size>
+<stack-size id="3">3.8462</stack-size>
+<stack-size id="4">5.1282</stack-size>
+<stack-size id="5">6.4103</stack-size>
+<stack-size id="6">7.6923</stack-size>
+<stack-size id="7">8.9744</stack-size>
+<stack-size id="8">10.2564</stack-size>
+<stack-size id="9">6.4103</stack-size>
+<stack-size id="10">7.6923</stack-size>
+<stack-size id="11">7.6923</stack-size>
+<stack-size id="12">8.9744</stack-size>
+<stack-size id="13">10.2564</stack-size>
+<stack-size id="14">11.5385</stack-size>
+<stack-size id="15">5.1282</stack-size>
+<stack-size id="16">6.4103</stack-size>
+<stack-size id="17">7.6923</stack-size>
+<stack-size id="18">8.9744</stack-size>
+<stack-size id="19">10.2564</stack-size>
+<stack-size id="20">11.5385</stack-size>
+<stack-size id="21">12.8205</stack-size>
+<stack-size id="22">6.4103</stack-size>
+<stack-size id="23">7.6923</stack-size>
+<stack-size id="24">8.9744</stack-size>
+<stack-size id="25">10.2564</stack-size>
+<stack-size id="26">11.5385</stack-size>
+<stack-size id="27">5.1282</stack-size>
+<stack-size id="28">3.8462</stack-size>
+<stack-size id="29">5.1282</stack-size>
+<stack-size id="30">6.4103</stack-size>
+<stack-size id="31">7.6923</stack-size>
+<stack-size id="32">8.9744</stack-size>
+<stack-size id="33">10.2564</stack-size>
+<stack-size id="34">11.5385</stack-size>
+<stack-size id="35">12.8205</stack-size>
+<stack-size id="36">14.1026</stack-size>
+<stack-size id="37">10.2564</stack-size>
+<stack-size id="38">11.5385</stack-size>
+<stack-size id="39">12.8205</stack-size>
+<stack-size id="40">8.9744</stack-size>
+<stack-size id="41">6.4103</stack-size>
+<stack-size id="42">7.6923</stack-size>
+<stack-size id="43">8.9744</stack-size>
+<stack-size id="44">5.1282</stack-size>
+<stack-size id="45">6.4103</stack-size>
+<stack-size id="46">7.6923</stack-size>
+<stack-size id="47">8.9744</stack-size>
+<stack-size id="48">10.2564</stack-size>
+<stack-size id="49">11.5385</stack-size>
+<stack-size id="50">12.8205</stack-size>
+<stack-size id="51">11.5385</stack-size>
+<stack-size id="52">10.2564</stack-size>
+<stack-size id="53">8.9744</stack-size>
+<stack-size id="54">7.6923</stack-size>
+<stack-size id="55">6.4103</stack-size>
+<stack-size id="56">7.6923</stack-size>
+<stack-size id="57">5.1282</stack-size>
+<stack-size id="58">3.8462</stack-size>
+<stack-size id="59">5.1282</stack-size>
+<stack-size id="60">6.4103</stack-size>
+<stack-size id="61">3.8462</stack-size>
+<stack-size id="62">2.5641</stack-size>
+<stack-size id="63">3.8462</stack-size>
+<stack-size id="64">5.1282</stack-size>
+<stack-size id="65">6.4103</stack-size>
+<stack-size id="66">7.6923</stack-size>
+<stack-size id="67">6.4103</stack-size>
+<stack-size id="68">7.6923</stack-size>
+<stack-size id="69">5.1282</stack-size>
+<stack-size id="70">6.4103</stack-size>
+<stack-size id="71">3.8462</stack-size>
+<stack-size id="72">5.1282</stack-size>
+<stack-size id="73">6.4103</stack-size>
+<stack-size id="74">5.1282</stack-size>
+<stack-size id="75">3.8462</stack-size>
+<stack-size id="76">2.5641</stack-size>
+<stack-size id="77">3.8462</stack-size>
+<stack-size id="78">2.5641</stack-size>
+<max-stack>11</max-stack>
+<front-edges>77</front-edges>
+<back-edges>0</back-edges>
+<cross-edges>144</cross-edges>
+<shortest-cycle>0</shortest-cycle>
+</dfs-info>
+
+<model-info><placeBounds><placeBound><place>idle</place><minCard>0</minCard><maxCard>4</maxCard><minMult>0</minMult><maxMult>4</maxMult></placeBound><placeBound><place>wait</place><minCard>0</minCard><maxCard>4</maxCard><minMult>0</minMult><maxMult>4</maxMult></placeBound><placeBound><place>loosing</place><minCard>0</minCard><maxCard>3</maxCard><minMult>0</minMult><maxMult>3</maxMult></placeBound><placeBound><place>msg</place><minCard>0</minCard><maxCard>4</maxCard><minMult>0</minMult><maxMult>4</maxMult></placeBound></placeBounds><possibleTokens><possibleTokensPlace><place>idle</place><token><mult>1</mult><exprList><num>0</num>
+<enum>false</enum>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<enum>false</enum>
+</exprList></token>
+<token><mult>1</mult><exprList><num>2</num>
+<enum>false</enum>
+</exprList></token>
+<token><mult>1</mult><exprList><num>3</num>
+<enum>false</enum>
+</exprList></token>
+</possibleTokensPlace><possibleTokensPlace><place>wait</place><token><mult>1</mult><exprList><num>0</num>
+<enum>false</enum>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<enum>false</enum>
+</exprList></token>
+<token><mult>1</mult><exprList><num>2</num>
+<enum>false</enum>
+</exprList></token>
+<token><mult>1</mult><exprList><num>3</num>
+<enum>false</enum>
+</exprList></token>
+<token><mult>1</mult><exprList><num>3</num>
+<enum>true</enum>
+</exprList></token>
+</possibleTokensPlace><possibleTokensPlace><place>loosing</place><token><mult>1</mult><exprList><num>0</num>
+<enum>false</enum>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<enum>false</enum>
+</exprList></token>
+<token><mult>1</mult><exprList><num>2</num>
+<enum>false</enum>
+</exprList></token>
+</possibleTokensPlace><possibleTokensPlace><place>msg</place><token><mult>1</mult><exprList><num>0</num>
+<num>3</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>0</num>
+<num>3</num>
+<num>2</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<num>0</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<num>3</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>2</num>
+<num>1</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>2</num>
+<num>3</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>3</num>
+<num>2</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>3</num>
+<num>3</num>
+<num>1</num>
+</exprList></token>
+</possibleTokensPlace></possibleTokens><deadMarkings><noDeadMarkings>1</noDeadMarkings><state>
+<placeState>
+<place>wait</place>
+<token><mult>1</mult><exprList><num>3</num>
+<enum>true</enum>
+</exprList></token>
+</placeState>
+<placeState>
+<place>loosing</place>
+<token><mult>1</mult><exprList><num>0</num>
+<enum>false</enum>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<enum>false</enum>
+</exprList></token>
+<token><mult>1</mult><exprList><num>2</num>
+<enum>false</enum>
+</exprList></token>
+</placeState>
+<placeState>
+<place>msg</place>
+<token><mult>1</mult><exprList><num>0</num>
+<num>3</num>
+<num>2</num>
+</exprList></token>
+</placeState>
+</state>
+</deadMarkings><livenessInfo><livenessInfoTrans><transition>candidate</transition><liveBindings></liveBindings><quasiLiveBindings><binding><varBinding><var>X</var><num>0</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding></binding>
+<binding><varBinding><var>X</var><num>1</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding></binding>
+<binding><varBinding><var>X</var><num>2</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding></binding>
+<binding><varBinding><var>X</var><num>3</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding></binding>
+</quasiLiveBindings></livenessInfoTrans><livenessInfoTrans><transition>go1</transition><liveBindings></liveBindings><quasiLiveBindings><binding><varBinding><var>X</var><num>1</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding><varBinding><var>Y</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>X</var><num>2</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding><varBinding><var>Y</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>X</var><num>3</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding><varBinding><var>Y</var><num>2</num>
+</varBinding></binding>
+</quasiLiveBindings></livenessInfoTrans><livenessInfoTrans><transition>go2</transition><liveBindings></liveBindings><quasiLiveBindings><binding><varBinding><var>X</var><num>0</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding><varBinding><var>Y</var><num>3</num>
+</varBinding></binding>
+<binding><varBinding><var>X</var><num>1</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding><varBinding><var>Y</var><num>3</num>
+</varBinding></binding>
+<binding><varBinding><var>X</var><num>2</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding><varBinding><var>Y</var><num>3</num>
+</varBinding></binding>
+</quasiLiveBindings></livenessInfoTrans><livenessInfoTrans><transition>wait_to_loose</transition><liveBindings></liveBindings><quasiLiveBindings><binding><varBinding><var>X</var><num>0</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding><varBinding><var>Y</var><num>3</num>
+</varBinding></binding>
+<binding><varBinding><var>X</var><num>1</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding><varBinding><var>Y</var><num>3</num>
+</varBinding></binding>
+<binding><varBinding><var>X</var><num>2</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding><varBinding><var>Y</var><num>3</num>
+</varBinding></binding>
+</quasiLiveBindings></livenessInfoTrans><livenessInfoTrans><transition>absorb1</transition><liveBindings></liveBindings><quasiLiveBindings><binding><varBinding><var>X</var><num>1</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding><varBinding><var>Y</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>X</var><num>2</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding><varBinding><var>Y</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>X</var><num>3</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding><varBinding><var>Y</var><num>2</num>
+</varBinding></binding>
+<binding><varBinding><var>X</var><num>3</num>
+</varBinding><varBinding><var>b</var><enum>true</enum>
+</varBinding><varBinding><var>Y</var><num>2</num>
+</varBinding></binding>
+</quasiLiveBindings></livenessInfoTrans><livenessInfoTrans><transition>absorb2</transition><liveBindings></liveBindings><quasiLiveBindings><binding><varBinding><var>X</var><num>1</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding><varBinding><var>Y</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>X</var><num>2</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding><varBinding><var>Y</var><num>1</num>
+</varBinding></binding>
+</quasiLiveBindings></livenessInfoTrans><livenessInfoTrans><transition>to_win</transition><liveBindings></liveBindings><quasiLiveBindings><binding><varBinding><var>X</var><num>3</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding></binding>
+</quasiLiveBindings></livenessInfoTrans></livenessInfo></model-info></state-space-info>

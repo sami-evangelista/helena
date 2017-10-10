@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<state-space-info>
+
+<model>lookup_processors</model>
+<language>helena</language>
+<date>October, 10, 2017 at 10:52:29</date>
+<filePath>/home/sami/git/helena/examples/lookup_processors.lna</filePath>
+<modelParameters><modelParameter><modelParameterName>N</modelParameterName><modelParameterValue>2</modelParameterValue></modelParameter></modelParameters><states>34</states>
+<edges>104</edges>
+
+<bfs-info>
+<levels>9</levels>
+<max-level>7</max-level>
+<back-level-edges>58</back-level-edges>
+<max-back-level-edge>5</max-back-level-edge>
+<avg-back-level-edge>1.62</avg-back-level-edge>
+<bfs-levels>
+<level id="0"><states>1</states><edges>4</edges></level>
+<level id="1"><states>2</states><edges>6</edges></level>
+<level id="2"><states>4</states><edges>10</edges></level>
+<level id="3"><states>6</states><edges>14</edges></level>
+<level id="4"><states>7</states><edges>20</edges></level>
+<level id="5"><states>6</states><edges>20</edges></level>
+<level id="6"><states>5</states><edges>16</edges></level>
+<level id="7"><states>2</states><edges>8</edges></level>
+<level id="8"><states>1</states><edges>6</edges></level>
+</bfs-levels>
+<back-level-lengths>
+<length id="0">55.1724</length>
+<length id="1">0.0000</length>
+<length id="2">0.0000</length>
+<length id="3">20.6897</length>
+<length id="4">20.6897</length>
+<length id="5">3.4483</length>
+</back-level-lengths>
+</bfs-info>
+
+<degrees>
+<avg>3.0588</avg>
+<max-in>5</max-in>
+<max-out>6</max-out>
+<degree id="0"><in>0</in><out>0</out></degree>
+<degree id="1"><in>4</in><out>0</out></degree>
+<degree id="2"><in>8</in><out>14</out></degree>
+<degree id="3"><in>10</in><out>8</out></degree>
+<degree id="4"><in>6</in><out>9</out></degree>
+<degree id="5"><in>6</in><out>2</out></degree>
+<degree id="6"><in>0</in><out>1</out></degree>
+</degrees>
+
+<scc-info>
+<count>1</count>
+<trivial>0</trivial>
+<terminal>1</terminal>
+<largest>34</largest>
+</scc-info>
+
+<dfs-info>
+<stack-size id="2">5.8824</stack-size>
+<stack-size id="3">8.8235</stack-size>
+<stack-size id="4">11.7647</stack-size>
+<stack-size id="5">14.7059</stack-size>
+<stack-size id="6">17.6471</stack-size>
+<stack-size id="7">20.5882</stack-size>
+<stack-size id="8">23.5294</stack-size>
+<stack-size id="9">26.4706</stack-size>
+<stack-size id="10">29.4118</stack-size>
+<stack-size id="11">32.3529</stack-size>
+<stack-size id="12">35.2941</stack-size>
+<stack-size id="13">38.2353</stack-size>
+<stack-size id="14">41.1765</stack-size>
+<stack-size id="15">41.1765</stack-size>
+<stack-size id="16">44.1176</stack-size>
+<stack-size id="17">47.0588</stack-size>
+<stack-size id="18">50.0000</stack-size>
+<stack-size id="19">47.0588</stack-size>
+<stack-size id="20">50.0000</stack-size>
+<stack-size id="21">52.9412</stack-size>
+<stack-size id="22">55.8824</stack-size>
+<stack-size id="23">58.8235</stack-size>
+<stack-size id="24">38.2353</stack-size>
+<stack-size id="25">32.3529</stack-size>
+<stack-size id="26">35.2941</stack-size>
+<stack-size id="27">38.2353</stack-size>
+<stack-size id="28">41.1765</stack-size>
+<stack-size id="29">44.1176</stack-size>
+<stack-size id="30">29.4118</stack-size>
+<stack-size id="31">32.3529</stack-size>
+<stack-size id="32">35.2941</stack-size>
+<stack-size id="33">26.4706</stack-size>
+<stack-size id="34">29.4118</stack-size>
+<max-stack>20</max-stack>
+<front-edges>33</front-edges>
+<back-edges>54</back-edges>
+<cross-edges>17</cross-edges>
+<shortest-cycle>1</shortest-cycle>
+</dfs-info>
+
+<model-info><placeBounds><placeBound><place>sleep</place><minCard>0</minCard><maxCard>2</maxCard><minMult>0</minMult><maxMult>2</maxMult></placeBound><placeBound><place>wait</place><minCard>0</minCard><maxCard>1</maxCard><minMult>0</minMult><maxMult>1</maxMult></placeBound><placeBound><place>loadData</place><minCard>0</minCard><maxCard>1</maxCard><minMult>0</minMult><maxMult>1</maxMult></placeBound><placeBound><place>latency1</place><minCard>0</minCard><maxCard>2</maxCard><minMult>0</minMult><maxMult>2</maxMult></placeBound><placeBound><place>latency2</place><minCard>0</minCard><maxCard>2</maxCard><minMult>0</minMult><maxMult>2</maxMult></placeBound><placeBound><place>comp</place><minCard>0</minCard><maxCard>2</maxCard><minMult>0</minMult><maxMult>2</maxMult></placeBound><placeBound><place>mutex</place><minCard>0</minCard><maxCard>1</maxCard><minMult>0</minMult><maxMult>1</maxMult></placeBound></placeBounds><possibleTokens><possibleTokensPlace><place>sleep</place><token><mult>1</mult><exprList><num>0</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+</exprList></token>
+</possibleTokensPlace><possibleTokensPlace><place>wait</place><token><mult>1</mult><exprList><num>0</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+</exprList></token>
+</possibleTokensPlace><possibleTokensPlace><place>loadData</place><token><mult>1</mult><exprList><num>0</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+</exprList></token>
+</possibleTokensPlace><possibleTokensPlace><place>latency1</place><token><mult>1</mult><exprList><num>0</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+</exprList></token>
+</possibleTokensPlace><possibleTokensPlace><place>latency2</place><token><mult>1</mult><exprList><num>0</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+</exprList></token>
+</possibleTokensPlace><possibleTokensPlace><place>comp</place><token><mult>1</mult><exprList><num>0</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+</exprList></token>
+</possibleTokensPlace><possibleTokensPlace><place>mutex</place><token><mult>1</mult><exprList></exprList></token>
+</possibleTokensPlace></possibleTokens><deadMarkings><noDeadMarkings>0</noDeadMarkings></deadMarkings><livenessInfo><livenessInfoTrans><transition>sleepToSleep</transition><liveBindings><binding><varBinding><var>i</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding></binding>
+</liveBindings><quasiLiveBindings></quasiLiveBindings></livenessInfoTrans><livenessInfoTrans><transition>sleepToLoadData</transition><liveBindings><binding><varBinding><var>i</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding></binding>
+</liveBindings><quasiLiveBindings></quasiLiveBindings></livenessInfoTrans><livenessInfoTrans><transition>sleepToWait</transition><liveBindings><binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding></binding>
+</liveBindings><quasiLiveBindings></quasiLiveBindings></livenessInfoTrans><livenessInfoTrans><transition>waitToWait</transition><liveBindings><binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding></binding>
+</liveBindings><quasiLiveBindings></quasiLiveBindings></livenessInfoTrans><livenessInfoTrans><transition>waitToLoadData</transition><liveBindings><binding><varBinding><var>i</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding></binding>
+</liveBindings><quasiLiveBindings></quasiLiveBindings></livenessInfoTrans><livenessInfoTrans><transition>loadDataToLatency1</transition><liveBindings><binding><varBinding><var>i</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding></binding>
+</liveBindings><quasiLiveBindings></quasiLiveBindings></livenessInfoTrans><livenessInfoTrans><transition>latency1ToLatency2</transition><liveBindings><binding><varBinding><var>i</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding></binding>
+</liveBindings><quasiLiveBindings></quasiLiveBindings></livenessInfoTrans><livenessInfoTrans><transition>latency2ToComp</transition><liveBindings><binding><varBinding><var>i</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding></binding>
+</liveBindings><quasiLiveBindings></quasiLiveBindings></livenessInfoTrans><livenessInfoTrans><transition>compToComp</transition><liveBindings><binding><varBinding><var>i</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding></binding>
+</liveBindings><quasiLiveBindings></quasiLiveBindings></livenessInfoTrans><livenessInfoTrans><transition>compToSleep</transition><liveBindings><binding><varBinding><var>i</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding></binding>
+</liveBindings><quasiLiveBindings></quasiLiveBindings></livenessInfoTrans><livenessInfoTrans><transition>compToLoadData</transition><liveBindings><binding><varBinding><var>i</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding></binding>
+</liveBindings><quasiLiveBindings></quasiLiveBindings></livenessInfoTrans><livenessInfoTrans><transition>compToWait</transition><liveBindings><binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding></binding>
+</liveBindings><quasiLiveBindings></quasiLiveBindings></livenessInfoTrans></livenessInfo></model-info></state-space-info>

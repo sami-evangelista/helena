@@ -1,0 +1,335 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<state-space-info>
+
+<model>firewire_tree.1</model>
+<language>dve</language>
+<date>October, 10, 2017 at 10:53:16</date>
+<filePath>/home/sami/git/helena/examples/beem/firewire_tree.1.dve</filePath>
+<states>272</states>
+<edges>864</edges>
+
+<bfs-info>
+<levels>13</levels>
+<max-level>40</max-level>
+<back-level-edges>0</back-level-edges>
+<max-back-level-edge>0</max-back-level-edge>
+<avg-back-level-edge>-nan</avg-back-level-edge>
+<bfs-levels>
+<level id="0"><states>1</states><edges>6</edges></level>
+<level id="1"><states>6</states><edges>32</edges></level>
+<level id="2"><states>17</states><edges>80</edges></level>
+<level id="3"><states>30</states><edges>124</edges></level>
+<level id="4"><states>38</states><edges>140</edges></level>
+<level id="5"><states>40</states><edges>136</edges></level>
+<level id="6"><states>39</states><edges>122</edges></level>
+<level id="7"><states>34</states><edges>92</edges></level>
+<level id="8"><states>25</states><edges>58</edges></level>
+<level id="9"><states>18</states><edges>40</edges></level>
+<level id="10"><states>14</states><edges>26</edges></level>
+<level id="11"><states>8</states><edges>8</edges></level>
+<level id="12"><states>2</states><edges>0</edges></level>
+</bfs-levels>
+<back-level-lengths>
+</back-level-lengths>
+</bfs-info>
+
+<degrees>
+<avg>3.1765</avg>
+<max-in>6</max-in>
+<max-out>6</max-out>
+<degree id="0"><in>1</in><out>2</out></degree>
+<degree id="1"><in>16</in><out>17</out></degree>
+<degree id="2"><in>58</in><out>56</out></degree>
+<degree id="3"><in>92</in><out>90</out></degree>
+<degree id="4"><in>73</in><out>74</out></degree>
+<degree id="5"><in>28</in><out>29</out></degree>
+<degree id="6"><in>4</in><out>4</out></degree>
+</degrees>
+
+<scc-info>
+<count>272</count>
+<trivial>272</trivial>
+<terminal>2</terminal>
+<largest>1</largest>
+</scc-info>
+
+<dfs-info>
+<stack-size id="2">0.7353</stack-size>
+<stack-size id="3">1.1029</stack-size>
+<stack-size id="4">1.4706</stack-size>
+<stack-size id="5">1.8382</stack-size>
+<stack-size id="6">2.2059</stack-size>
+<stack-size id="7">2.5735</stack-size>
+<stack-size id="8">2.9412</stack-size>
+<stack-size id="9">3.3088</stack-size>
+<stack-size id="10">3.6765</stack-size>
+<stack-size id="11">4.0441</stack-size>
+<stack-size id="12">4.4118</stack-size>
+<stack-size id="13">4.7794</stack-size>
+<stack-size id="14">3.6765</stack-size>
+<stack-size id="15">4.0441</stack-size>
+<stack-size id="16">4.4118</stack-size>
+<stack-size id="17">4.7794</stack-size>
+<stack-size id="18">2.9412</stack-size>
+<stack-size id="19">3.3088</stack-size>
+<stack-size id="20">3.6765</stack-size>
+<stack-size id="21">2.5735</stack-size>
+<stack-size id="22">2.9412</stack-size>
+<stack-size id="23">3.3088</stack-size>
+<stack-size id="24">3.6765</stack-size>
+<stack-size id="25">4.0441</stack-size>
+<stack-size id="26">4.4118</stack-size>
+<stack-size id="27">3.3088</stack-size>
+<stack-size id="28">3.6765</stack-size>
+<stack-size id="29">4.0441</stack-size>
+<stack-size id="30">4.4118</stack-size>
+<stack-size id="31">2.9412</stack-size>
+<stack-size id="32">3.3088</stack-size>
+<stack-size id="33">2.5735</stack-size>
+<stack-size id="34">2.2059</stack-size>
+<stack-size id="35">2.5735</stack-size>
+<stack-size id="36">2.9412</stack-size>
+<stack-size id="37">3.3088</stack-size>
+<stack-size id="38">3.6765</stack-size>
+<stack-size id="39">4.0441</stack-size>
+<stack-size id="40">4.4118</stack-size>
+<stack-size id="41">3.3088</stack-size>
+<stack-size id="42">3.6765</stack-size>
+<stack-size id="43">4.0441</stack-size>
+<stack-size id="44">2.9412</stack-size>
+<stack-size id="45">3.3088</stack-size>
+<stack-size id="46">2.9412</stack-size>
+<stack-size id="47">2.5735</stack-size>
+<stack-size id="48">2.9412</stack-size>
+<stack-size id="49">3.3088</stack-size>
+<stack-size id="50">3.6765</stack-size>
+<stack-size id="51">4.0441</stack-size>
+<stack-size id="52">4.4118</stack-size>
+<stack-size id="53">2.5735</stack-size>
+<stack-size id="54">2.9412</stack-size>
+<stack-size id="55">3.3088</stack-size>
+<stack-size id="56">3.6765</stack-size>
+<stack-size id="57">4.0441</stack-size>
+<stack-size id="58">2.2059</stack-size>
+<stack-size id="59">2.5735</stack-size>
+<stack-size id="60">2.2059</stack-size>
+<stack-size id="61">1.8382</stack-size>
+<stack-size id="62">2.2059</stack-size>
+<stack-size id="63">2.5735</stack-size>
+<stack-size id="64">2.9412</stack-size>
+<stack-size id="65">3.3088</stack-size>
+<stack-size id="66">2.9412</stack-size>
+<stack-size id="67">2.5735</stack-size>
+<stack-size id="68">2.9412</stack-size>
+<stack-size id="69">2.5735</stack-size>
+<stack-size id="70">2.2059</stack-size>
+<stack-size id="71">2.5735</stack-size>
+<stack-size id="72">2.2059</stack-size>
+<stack-size id="73">1.8382</stack-size>
+<stack-size id="74">2.2059</stack-size>
+<stack-size id="75">1.8382</stack-size>
+<stack-size id="76">1.4706</stack-size>
+<stack-size id="77">1.8382</stack-size>
+<stack-size id="78">2.2059</stack-size>
+<stack-size id="79">2.5735</stack-size>
+<stack-size id="80">2.9412</stack-size>
+<stack-size id="81">3.3088</stack-size>
+<stack-size id="82">3.6765</stack-size>
+<stack-size id="83">4.0441</stack-size>
+<stack-size id="84">4.4118</stack-size>
+<stack-size id="85">2.9412</stack-size>
+<stack-size id="86">3.3088</stack-size>
+<stack-size id="87">2.5735</stack-size>
+<stack-size id="88">2.9412</stack-size>
+<stack-size id="89">3.3088</stack-size>
+<stack-size id="90">3.6765</stack-size>
+<stack-size id="91">4.0441</stack-size>
+<stack-size id="92">2.9412</stack-size>
+<stack-size id="93">2.5735</stack-size>
+<stack-size id="94">2.2059</stack-size>
+<stack-size id="95">2.5735</stack-size>
+<stack-size id="96">2.9412</stack-size>
+<stack-size id="97">3.3088</stack-size>
+<stack-size id="98">3.6765</stack-size>
+<stack-size id="99">4.0441</stack-size>
+<stack-size id="100">4.4118</stack-size>
+<stack-size id="101">2.2059</stack-size>
+<stack-size id="102">2.5735</stack-size>
+<stack-size id="103">2.9412</stack-size>
+<stack-size id="104">3.3088</stack-size>
+<stack-size id="105">3.6765</stack-size>
+<stack-size id="106">4.0441</stack-size>
+<stack-size id="107">1.8382</stack-size>
+<stack-size id="108">2.2059</stack-size>
+<stack-size id="109">2.5735</stack-size>
+<stack-size id="110">2.9412</stack-size>
+<stack-size id="111">3.3088</stack-size>
+<stack-size id="112">3.6765</stack-size>
+<stack-size id="113">4.0441</stack-size>
+<stack-size id="114">2.9412</stack-size>
+<stack-size id="115">2.5735</stack-size>
+<stack-size id="116">2.2059</stack-size>
+<stack-size id="117">2.5735</stack-size>
+<stack-size id="118">2.9412</stack-size>
+<stack-size id="119">3.3088</stack-size>
+<stack-size id="120">3.6765</stack-size>
+<stack-size id="121">4.0441</stack-size>
+<stack-size id="122">1.8382</stack-size>
+<stack-size id="123">2.2059</stack-size>
+<stack-size id="124">2.5735</stack-size>
+<stack-size id="125">2.9412</stack-size>
+<stack-size id="126">3.3088</stack-size>
+<stack-size id="127">3.6765</stack-size>
+<stack-size id="128">2.5735</stack-size>
+<stack-size id="129">2.9412</stack-size>
+<stack-size id="130">3.3088</stack-size>
+<stack-size id="131">3.6765</stack-size>
+<stack-size id="132">2.2059</stack-size>
+<stack-size id="133">2.5735</stack-size>
+<stack-size id="134">1.8382</stack-size>
+<stack-size id="135">2.2059</stack-size>
+<stack-size id="136">1.4706</stack-size>
+<stack-size id="137">1.8382</stack-size>
+<stack-size id="138">2.2059</stack-size>
+<stack-size id="139">2.5735</stack-size>
+<stack-size id="140">2.2059</stack-size>
+<stack-size id="141">1.8382</stack-size>
+<stack-size id="142">1.4706</stack-size>
+<stack-size id="143">1.8382</stack-size>
+<stack-size id="144">2.2059</stack-size>
+<stack-size id="145">1.8382</stack-size>
+<stack-size id="146">1.4706</stack-size>
+<stack-size id="147">1.1029</stack-size>
+<stack-size id="148">1.4706</stack-size>
+<stack-size id="149">1.8382</stack-size>
+<stack-size id="150">2.2059</stack-size>
+<stack-size id="151">2.5735</stack-size>
+<stack-size id="152">2.9412</stack-size>
+<stack-size id="153">3.3088</stack-size>
+<stack-size id="154">3.6765</stack-size>
+<stack-size id="155">2.5735</stack-size>
+<stack-size id="156">2.9412</stack-size>
+<stack-size id="157">3.3088</stack-size>
+<stack-size id="158">2.2059</stack-size>
+<stack-size id="159">2.5735</stack-size>
+<stack-size id="160">2.9412</stack-size>
+<stack-size id="161">3.3088</stack-size>
+<stack-size id="162">2.2059</stack-size>
+<stack-size id="163">2.5735</stack-size>
+<stack-size id="164">2.9412</stack-size>
+<stack-size id="165">1.8382</stack-size>
+<stack-size id="166">2.2059</stack-size>
+<stack-size id="167">2.5735</stack-size>
+<stack-size id="168">2.2059</stack-size>
+<stack-size id="169">1.8382</stack-size>
+<stack-size id="170">2.2059</stack-size>
+<stack-size id="171">1.8382</stack-size>
+<stack-size id="172">1.4706</stack-size>
+<stack-size id="173">1.8382</stack-size>
+<stack-size id="174">2.2059</stack-size>
+<stack-size id="175">1.8382</stack-size>
+<stack-size id="176">1.4706</stack-size>
+<stack-size id="177">1.8382</stack-size>
+<stack-size id="178">1.4706</stack-size>
+<stack-size id="179">1.1029</stack-size>
+<stack-size id="180">1.4706</stack-size>
+<stack-size id="181">1.8382</stack-size>
+<stack-size id="182">2.2059</stack-size>
+<stack-size id="183">2.5735</stack-size>
+<stack-size id="184">2.9412</stack-size>
+<stack-size id="185">3.3088</stack-size>
+<stack-size id="186">2.9412</stack-size>
+<stack-size id="187">2.5735</stack-size>
+<stack-size id="188">2.2059</stack-size>
+<stack-size id="189">1.8382</stack-size>
+<stack-size id="190">2.2059</stack-size>
+<stack-size id="191">1.8382</stack-size>
+<stack-size id="192">1.4706</stack-size>
+<stack-size id="193">1.8382</stack-size>
+<stack-size id="194">2.2059</stack-size>
+<stack-size id="195">2.5735</stack-size>
+<stack-size id="196">2.9412</stack-size>
+<stack-size id="197">1.8382</stack-size>
+<stack-size id="198">2.2059</stack-size>
+<stack-size id="199">2.5735</stack-size>
+<stack-size id="200">1.4706</stack-size>
+<stack-size id="201">1.8382</stack-size>
+<stack-size id="202">1.4706</stack-size>
+<stack-size id="203">1.1029</stack-size>
+<stack-size id="204">1.4706</stack-size>
+<stack-size id="205">1.8382</stack-size>
+<stack-size id="206">1.4706</stack-size>
+<stack-size id="207">1.1029</stack-size>
+<stack-size id="208">1.4706</stack-size>
+<stack-size id="209">1.1029</stack-size>
+<stack-size id="210">0.7353</stack-size>
+<stack-size id="211">1.1029</stack-size>
+<stack-size id="212">1.4706</stack-size>
+<stack-size id="213">1.8382</stack-size>
+<stack-size id="214">2.2059</stack-size>
+<stack-size id="215">2.5735</stack-size>
+<stack-size id="216">2.9412</stack-size>
+<stack-size id="217">3.3088</stack-size>
+<stack-size id="218">2.9412</stack-size>
+<stack-size id="219">2.5735</stack-size>
+<stack-size id="220">2.2059</stack-size>
+<stack-size id="221">1.8382</stack-size>
+<stack-size id="222">2.2059</stack-size>
+<stack-size id="223">1.8382</stack-size>
+<stack-size id="224">1.4706</stack-size>
+<stack-size id="225">1.8382</stack-size>
+<stack-size id="226">2.2059</stack-size>
+<stack-size id="227">2.5735</stack-size>
+<stack-size id="228">2.9412</stack-size>
+<stack-size id="229">1.8382</stack-size>
+<stack-size id="230">2.2059</stack-size>
+<stack-size id="231">2.5735</stack-size>
+<stack-size id="232">1.4706</stack-size>
+<stack-size id="233">1.8382</stack-size>
+<stack-size id="234">1.4706</stack-size>
+<stack-size id="235">1.1029</stack-size>
+<stack-size id="236">1.4706</stack-size>
+<stack-size id="237">1.8382</stack-size>
+<stack-size id="238">2.2059</stack-size>
+<stack-size id="239">2.5735</stack-size>
+<stack-size id="240">2.9412</stack-size>
+<stack-size id="241">2.5735</stack-size>
+<stack-size id="242">2.2059</stack-size>
+<stack-size id="243">1.8382</stack-size>
+<stack-size id="244">2.2059</stack-size>
+<stack-size id="245">2.5735</stack-size>
+<stack-size id="246">2.2059</stack-size>
+<stack-size id="247">1.8382</stack-size>
+<stack-size id="248">1.4706</stack-size>
+<stack-size id="249">1.8382</stack-size>
+<stack-size id="250">1.4706</stack-size>
+<stack-size id="251">1.1029</stack-size>
+<stack-size id="252">1.4706</stack-size>
+<stack-size id="253">1.8382</stack-size>
+<stack-size id="254">1.4706</stack-size>
+<stack-size id="255">1.1029</stack-size>
+<stack-size id="256">1.4706</stack-size>
+<stack-size id="257">1.1029</stack-size>
+<stack-size id="258">0.7353</stack-size>
+<stack-size id="259">1.1029</stack-size>
+<stack-size id="260">1.4706</stack-size>
+<stack-size id="261">1.8382</stack-size>
+<stack-size id="262">1.4706</stack-size>
+<stack-size id="263">1.1029</stack-size>
+<stack-size id="264">1.4706</stack-size>
+<stack-size id="265">1.1029</stack-size>
+<stack-size id="266">0.7353</stack-size>
+<stack-size id="267">1.1029</stack-size>
+<stack-size id="268">1.4706</stack-size>
+<stack-size id="269">1.1029</stack-size>
+<stack-size id="270">0.7353</stack-size>
+<stack-size id="271">1.1029</stack-size>
+<stack-size id="272">0.7353</stack-size>
+<max-stack>13</max-stack>
+<front-edges>271</front-edges>
+<back-edges>0</back-edges>
+<cross-edges>593</cross-edges>
+<shortest-cycle>0</shortest-cycle>
+</dfs-info>
+
+</state-space-info>

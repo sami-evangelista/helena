@@ -1,0 +1,1604 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<state-space-info>
+
+<model>leader</model>
+<language>helena</language>
+<date>October, 10, 2017 at 11:03:23</date>
+<filePath>/home/sami/git/helena/examples/leader.lna</filePath>
+<modelParameters><modelParameter><modelParameterName>N</modelParameterName><modelParameterValue>12</modelParameterValue></modelParameter></modelParameters><states>218931</states>
+<edges>1836299</edges>
+
+<bfs-info>
+<levels>25</levels>
+<max-level>33241</max-level>
+<back-level-edges>833145</back-level-edges>
+<max-back-level-edge>1</max-back-level-edge>
+<avg-back-level-edge>0.29</avg-back-level-edge>
+<bfs-levels>
+<level id="0"><states>1</states><edges>12</edges></level>
+<level id="1"><states>12</states><edges>144</edges></level>
+<level id="2"><states>78</states><edges>924</edges></level>
+<level id="3"><states>353</states><edges>4092</edges></level>
+<level id="4"><states>1222</states><edges>13761</edges></level>
+<level id="5"><states>3388</states><edges>36816</edges></level>
+<level id="6"><states>7709</states><edges>80314</edges></level>
+<level id="7"><states>14576</states><edges>144660</edges></level>
+<level id="8"><states>23010</states><edges>216205</edges></level>
+<level id="9"><states>30314</states><edges>268276</edges></level>
+<level id="10"><states>33241</states><edges>276462</edges></level>
+<level id="11"><states>30389</states><edges>238696</edges></level>
+<level id="12"><states>23660</states><edges>178643</edges></level>
+<level id="13"><states>16725</states><edges>124584</edges></level>
+<level id="14"><states>11802</states><edges>86827</edges></level>
+<level id="15"><states>8274</states><edges>60330</edges></level>
+<level id="16"><states>5703</states><edges>41490</edges></level>
+<level id="17"><states>3796</states><edges>27820</edges></level>
+<level id="18"><states>2373</states><edges>17740</edges></level>
+<level id="19"><states>1337</states><edges>10356</edges></level>
+<level id="20"><states>642</states><edges>5239</edges></level>
+<level id="21"><states>245</states><edges>2136</edges></level>
+<level id="22"><states>68</states><edges>639</edges></level>
+<level id="23"><states>12</states><edges>122</edges></level>
+<level id="24"><states>1</states><edges>11</edges></level>
+</bfs-levels>
+<back-level-lengths>
+<length id="0">71.0703</length>
+<length id="1">28.9297</length>
+</back-level-lengths>
+</bfs-info>
+
+<degrees>
+<avg>8.3876</avg>
+<max-in>14</max-in>
+<max-out>12</max-out>
+<degree id="0"><in>1</in><out>1</out></degree>
+<degree id="1"><in>34</in><out>23</out></degree>
+<degree id="2"><in>307</in><out>199</out></degree>
+<degree id="3"><in>1511</in><out>1012</out></degree>
+<degree id="4"><in>4965</in><out>3564</out></degree>
+<degree id="5"><in>11976</in><out>9426</out></degree>
+<degree id="6"><in>22349</in><out>19556</out></degree>
+<degree id="7"><in>33225</in><out>32499</out></degree>
+<degree id="8"><in>39881</in><out>43394</out></degree>
+<degree id="9"><in>38763</in><out>45849</out></degree>
+<degree id="10"><in>30508</in><out>36797</out></degree>
+<degree id="11"><in>19605</in><out>20468</out></degree>
+<degree id="12"><in>10442</in><out>6143</out></degree>
+<degree id="13"><in>4341</in><out>0</out></degree>
+<degree id="14"><in>1023</in><out>0</out></degree>
+</degrees>
+
+<scc-info>
+<count>218931</count>
+<trivial>218931</trivial>
+<terminal>1</terminal>
+<largest>1</largest>
+</scc-info>
+
+<dfs-info>
+<stack-size id="218">0.0119</stack-size>
+<stack-size id="436">0.0100</stack-size>
+<stack-size id="654">0.0100</stack-size>
+<stack-size id="872">0.0123</stack-size>
+<stack-size id="1090">0.0119</stack-size>
+<stack-size id="1308">0.0100</stack-size>
+<stack-size id="1526">0.0100</stack-size>
+<stack-size id="1744">0.0114</stack-size>
+<stack-size id="1962">0.0082</stack-size>
+<stack-size id="2180">0.0091</stack-size>
+<stack-size id="2398">0.0137</stack-size>
+<stack-size id="2616">0.0123</stack-size>
+<stack-size id="2834">0.0082</stack-size>
+<stack-size id="3052">0.0091</stack-size>
+<stack-size id="3270">0.0100</stack-size>
+<stack-size id="3488">0.0110</stack-size>
+<stack-size id="3706">0.0096</stack-size>
+<stack-size id="3924">0.0091</stack-size>
+<stack-size id="4142">0.0100</stack-size>
+<stack-size id="4360">0.0110</stack-size>
+<stack-size id="4578">0.0073</stack-size>
+<stack-size id="4796">0.0132</stack-size>
+<stack-size id="5014">0.0087</stack-size>
+<stack-size id="5232">0.0123</stack-size>
+<stack-size id="5450">0.0123</stack-size>
+<stack-size id="5668">0.0105</stack-size>
+<stack-size id="5886">0.0105</stack-size>
+<stack-size id="6104">0.0059</stack-size>
+<stack-size id="6322">0.0100</stack-size>
+<stack-size id="6540">0.0082</stack-size>
+<stack-size id="6758">0.0123</stack-size>
+<stack-size id="6976">0.0087</stack-size>
+<stack-size id="7194">0.0119</stack-size>
+<stack-size id="7412">0.0091</stack-size>
+<stack-size id="7630">0.0132</stack-size>
+<stack-size id="7848">0.0096</stack-size>
+<stack-size id="8066">0.0078</stack-size>
+<stack-size id="8284">0.0087</stack-size>
+<stack-size id="8502">0.0096</stack-size>
+<stack-size id="8720">0.0100</stack-size>
+<stack-size id="8938">0.0087</stack-size>
+<stack-size id="9156">0.0082</stack-size>
+<stack-size id="9374">0.0100</stack-size>
+<stack-size id="9592">0.0128</stack-size>
+<stack-size id="9810">0.0110</stack-size>
+<stack-size id="10028">0.0119</stack-size>
+<stack-size id="10246">0.0119</stack-size>
+<stack-size id="10464">0.0091</stack-size>
+<stack-size id="10682">0.0105</stack-size>
+<stack-size id="10900">0.0096</stack-size>
+<stack-size id="11118">0.0091</stack-size>
+<stack-size id="11336">0.0100</stack-size>
+<stack-size id="11554">0.0119</stack-size>
+<stack-size id="11772">0.0110</stack-size>
+<stack-size id="11990">0.0128</stack-size>
+<stack-size id="12208">0.0082</stack-size>
+<stack-size id="12426">0.0128</stack-size>
+<stack-size id="12644">0.0105</stack-size>
+<stack-size id="12862">0.0091</stack-size>
+<stack-size id="13080">0.0100</stack-size>
+<stack-size id="13298">0.0073</stack-size>
+<stack-size id="13516">0.0100</stack-size>
+<stack-size id="13734">0.0073</stack-size>
+<stack-size id="13952">0.0110</stack-size>
+<stack-size id="14170">0.0073</stack-size>
+<stack-size id="14388">0.0123</stack-size>
+<stack-size id="14606">0.0073</stack-size>
+<stack-size id="14824">0.0082</stack-size>
+<stack-size id="15042">0.0082</stack-size>
+<stack-size id="15260">0.0114</stack-size>
+<stack-size id="15478">0.0091</stack-size>
+<stack-size id="15696">0.0100</stack-size>
+<stack-size id="15914">0.0128</stack-size>
+<stack-size id="16132">0.0082</stack-size>
+<stack-size id="16350">0.0073</stack-size>
+<stack-size id="16568">0.0064</stack-size>
+<stack-size id="16786">0.0073</stack-size>
+<stack-size id="17004">0.0078</stack-size>
+<stack-size id="17222">0.0073</stack-size>
+<stack-size id="17440">0.0073</stack-size>
+<stack-size id="17658">0.0069</stack-size>
+<stack-size id="17876">0.0114</stack-size>
+<stack-size id="18094">0.0078</stack-size>
+<stack-size id="18312">0.0087</stack-size>
+<stack-size id="18530">0.0082</stack-size>
+<stack-size id="18748">0.0073</stack-size>
+<stack-size id="18966">0.0073</stack-size>
+<stack-size id="19184">0.0055</stack-size>
+<stack-size id="19402">0.0064</stack-size>
+<stack-size id="19620">0.0064</stack-size>
+<stack-size id="19838">0.0064</stack-size>
+<stack-size id="20056">0.0078</stack-size>
+<stack-size id="20274">0.0073</stack-size>
+<stack-size id="20492">0.0073</stack-size>
+<stack-size id="20710">0.0073</stack-size>
+<stack-size id="20928">0.0073</stack-size>
+<stack-size id="21146">0.0155</stack-size>
+<stack-size id="21364">0.0105</stack-size>
+<stack-size id="21582">0.0114</stack-size>
+<stack-size id="21800">0.0123</stack-size>
+<stack-size id="22018">0.0087</stack-size>
+<stack-size id="22236">0.0091</stack-size>
+<stack-size id="22454">0.0137</stack-size>
+<stack-size id="22672">0.0091</stack-size>
+<stack-size id="22890">0.0123</stack-size>
+<stack-size id="23108">0.0123</stack-size>
+<stack-size id="23326">0.0132</stack-size>
+<stack-size id="23544">0.0078</stack-size>
+<stack-size id="23762">0.0082</stack-size>
+<stack-size id="23980">0.0114</stack-size>
+<stack-size id="24198">0.0128</stack-size>
+<stack-size id="24416">0.0082</stack-size>
+<stack-size id="24634">0.0078</stack-size>
+<stack-size id="24852">0.0110</stack-size>
+<stack-size id="25070">0.0082</stack-size>
+<stack-size id="25288">0.0119</stack-size>
+<stack-size id="25506">0.0082</stack-size>
+<stack-size id="25724">0.0073</stack-size>
+<stack-size id="25942">0.0078</stack-size>
+<stack-size id="26160">0.0064</stack-size>
+<stack-size id="26378">0.0128</stack-size>
+<stack-size id="26596">0.0119</stack-size>
+<stack-size id="26814">0.0100</stack-size>
+<stack-size id="27032">0.0078</stack-size>
+<stack-size id="27250">0.0137</stack-size>
+<stack-size id="27468">0.0123</stack-size>
+<stack-size id="27686">0.0119</stack-size>
+<stack-size id="27904">0.0100</stack-size>
+<stack-size id="28122">0.0082</stack-size>
+<stack-size id="28340">0.0105</stack-size>
+<stack-size id="28558">0.0082</stack-size>
+<stack-size id="28776">0.0123</stack-size>
+<stack-size id="28994">0.0091</stack-size>
+<stack-size id="29212">0.0137</stack-size>
+<stack-size id="29430">0.0110</stack-size>
+<stack-size id="29648">0.0073</stack-size>
+<stack-size id="29866">0.0082</stack-size>
+<stack-size id="30084">0.0073</stack-size>
+<stack-size id="30302">0.0100</stack-size>
+<stack-size id="30520">0.0119</stack-size>
+<stack-size id="30738">0.0073</stack-size>
+<stack-size id="30956">0.0082</stack-size>
+<stack-size id="31174">0.0078</stack-size>
+<stack-size id="31392">0.0110</stack-size>
+<stack-size id="31610">0.0119</stack-size>
+<stack-size id="31828">0.0128</stack-size>
+<stack-size id="32046">0.0064</stack-size>
+<stack-size id="32264">0.0110</stack-size>
+<stack-size id="32482">0.0082</stack-size>
+<stack-size id="32700">0.0087</stack-size>
+<stack-size id="32918">0.0082</stack-size>
+<stack-size id="33136">0.0100</stack-size>
+<stack-size id="33354">0.0064</stack-size>
+<stack-size id="33572">0.0128</stack-size>
+<stack-size id="33790">0.0100</stack-size>
+<stack-size id="34008">0.0119</stack-size>
+<stack-size id="34226">0.0119</stack-size>
+<stack-size id="34444">0.0073</stack-size>
+<stack-size id="34662">0.0128</stack-size>
+<stack-size id="34880">0.0100</stack-size>
+<stack-size id="35098">0.0110</stack-size>
+<stack-size id="35316">0.0091</stack-size>
+<stack-size id="35534">0.0087</stack-size>
+<stack-size id="35752">0.0064</stack-size>
+<stack-size id="35970">0.0073</stack-size>
+<stack-size id="36188">0.0073</stack-size>
+<stack-size id="36406">0.0137</stack-size>
+<stack-size id="36624">0.0100</stack-size>
+<stack-size id="36842">0.0087</stack-size>
+<stack-size id="37060">0.0073</stack-size>
+<stack-size id="37278">0.0128</stack-size>
+<stack-size id="37496">0.0123</stack-size>
+<stack-size id="37714">0.0137</stack-size>
+<stack-size id="37932">0.0132</stack-size>
+<stack-size id="38150">0.0073</stack-size>
+<stack-size id="38368">0.0082</stack-size>
+<stack-size id="38586">0.0073</stack-size>
+<stack-size id="38804">0.0064</stack-size>
+<stack-size id="39022">0.0082</stack-size>
+<stack-size id="39240">0.0114</stack-size>
+<stack-size id="39458">0.0073</stack-size>
+<stack-size id="39676">0.0100</stack-size>
+<stack-size id="39894">0.0100</stack-size>
+<stack-size id="40112">0.0100</stack-size>
+<stack-size id="40330">0.0078</stack-size>
+<stack-size id="40548">0.0105</stack-size>
+<stack-size id="40766">0.0123</stack-size>
+<stack-size id="40984">0.0110</stack-size>
+<stack-size id="41202">0.0082</stack-size>
+<stack-size id="41420">0.0091</stack-size>
+<stack-size id="41638">0.0064</stack-size>
+<stack-size id="41856">0.0091</stack-size>
+<stack-size id="42074">0.0100</stack-size>
+<stack-size id="42292">0.0073</stack-size>
+<stack-size id="42510">0.0055</stack-size>
+<stack-size id="42728">0.0091</stack-size>
+<stack-size id="42946">0.0087</stack-size>
+<stack-size id="43164">0.0069</stack-size>
+<stack-size id="43382">0.0100</stack-size>
+<stack-size id="43600">0.0073</stack-size>
+<stack-size id="43818">0.0082</stack-size>
+<stack-size id="44036">0.0055</stack-size>
+<stack-size id="44254">0.0082</stack-size>
+<stack-size id="44472">0.0073</stack-size>
+<stack-size id="44690">0.0064</stack-size>
+<stack-size id="44908">0.0082</stack-size>
+<stack-size id="45126">0.0119</stack-size>
+<stack-size id="45344">0.0082</stack-size>
+<stack-size id="45562">0.0096</stack-size>
+<stack-size id="45780">0.0073</stack-size>
+<stack-size id="45998">0.0105</stack-size>
+<stack-size id="46216">0.0110</stack-size>
+<stack-size id="46434">0.0073</stack-size>
+<stack-size id="46652">0.0091</stack-size>
+<stack-size id="46870">0.0064</stack-size>
+<stack-size id="47088">0.0100</stack-size>
+<stack-size id="47306">0.0087</stack-size>
+<stack-size id="47524">0.0100</stack-size>
+<stack-size id="47742">0.0082</stack-size>
+<stack-size id="47960">0.0064</stack-size>
+<stack-size id="48178">0.0105</stack-size>
+<stack-size id="48396">0.0091</stack-size>
+<stack-size id="48614">0.0082</stack-size>
+<stack-size id="48832">0.0069</stack-size>
+<stack-size id="49050">0.0091</stack-size>
+<stack-size id="49268">0.0087</stack-size>
+<stack-size id="49486">0.0064</stack-size>
+<stack-size id="49704">0.0110</stack-size>
+<stack-size id="49922">0.0082</stack-size>
+<stack-size id="50140">0.0073</stack-size>
+<stack-size id="50358">0.0078</stack-size>
+<stack-size id="50576">0.0082</stack-size>
+<stack-size id="50794">0.0100</stack-size>
+<stack-size id="51012">0.0064</stack-size>
+<stack-size id="51230">0.0082</stack-size>
+<stack-size id="51448">0.0100</stack-size>
+<stack-size id="51666">0.0073</stack-size>
+<stack-size id="51884">0.0100</stack-size>
+<stack-size id="52102">0.0082</stack-size>
+<stack-size id="52320">0.0091</stack-size>
+<stack-size id="52538">0.0073</stack-size>
+<stack-size id="52756">0.0082</stack-size>
+<stack-size id="52974">0.0100</stack-size>
+<stack-size id="53192">0.0073</stack-size>
+<stack-size id="53410">0.0100</stack-size>
+<stack-size id="53628">0.0100</stack-size>
+<stack-size id="53846">0.0091</stack-size>
+<stack-size id="54064">0.0055</stack-size>
+<stack-size id="54282">0.0059</stack-size>
+<stack-size id="54500">0.0055</stack-size>
+<stack-size id="54718">0.0064</stack-size>
+<stack-size id="54936">0.0069</stack-size>
+<stack-size id="55154">0.0082</stack-size>
+<stack-size id="55372">0.0055</stack-size>
+<stack-size id="55590">0.0073</stack-size>
+<stack-size id="55808">0.0064</stack-size>
+<stack-size id="56026">0.0059</stack-size>
+<stack-size id="56244">0.0082</stack-size>
+<stack-size id="56462">0.0091</stack-size>
+<stack-size id="56680">0.0082</stack-size>
+<stack-size id="56898">0.0073</stack-size>
+<stack-size id="57116">0.0064</stack-size>
+<stack-size id="57334">0.0087</stack-size>
+<stack-size id="57552">0.0091</stack-size>
+<stack-size id="57770">0.0096</stack-size>
+<stack-size id="57988">0.0082</stack-size>
+<stack-size id="58206">0.0110</stack-size>
+<stack-size id="58424">0.0069</stack-size>
+<stack-size id="58642">0.0100</stack-size>
+<stack-size id="58860">0.0073</stack-size>
+<stack-size id="59078">0.0091</stack-size>
+<stack-size id="59296">0.0100</stack-size>
+<stack-size id="59514">0.0091</stack-size>
+<stack-size id="59732">0.0073</stack-size>
+<stack-size id="59950">0.0114</stack-size>
+<stack-size id="60168">0.0073</stack-size>
+<stack-size id="60386">0.0105</stack-size>
+<stack-size id="60604">0.0100</stack-size>
+<stack-size id="60822">0.0082</stack-size>
+<stack-size id="61040">0.0064</stack-size>
+<stack-size id="61258">0.0100</stack-size>
+<stack-size id="61476">0.0096</stack-size>
+<stack-size id="61694">0.0073</stack-size>
+<stack-size id="61912">0.0100</stack-size>
+<stack-size id="62130">0.0082</stack-size>
+<stack-size id="62348">0.0069</stack-size>
+<stack-size id="62566">0.0087</stack-size>
+<stack-size id="62784">0.0100</stack-size>
+<stack-size id="63002">0.0082</stack-size>
+<stack-size id="63220">0.0073</stack-size>
+<stack-size id="63438">0.0055</stack-size>
+<stack-size id="63656">0.0078</stack-size>
+<stack-size id="63874">0.0110</stack-size>
+<stack-size id="64092">0.0091</stack-size>
+<stack-size id="64310">0.0105</stack-size>
+<stack-size id="64528">0.0100</stack-size>
+<stack-size id="64746">0.0091</stack-size>
+<stack-size id="64964">0.0100</stack-size>
+<stack-size id="65182">0.0105</stack-size>
+<stack-size id="65400">0.0073</stack-size>
+<stack-size id="65618">0.0073</stack-size>
+<stack-size id="65836">0.0082</stack-size>
+<stack-size id="66054">0.0100</stack-size>
+<stack-size id="66272">0.0100</stack-size>
+<stack-size id="66490">0.0087</stack-size>
+<stack-size id="66708">0.0064</stack-size>
+<stack-size id="66926">0.0082</stack-size>
+<stack-size id="67144">0.0100</stack-size>
+<stack-size id="67362">0.0073</stack-size>
+<stack-size id="67580">0.0100</stack-size>
+<stack-size id="67798">0.0073</stack-size>
+<stack-size id="68016">0.0091</stack-size>
+<stack-size id="68234">0.0091</stack-size>
+<stack-size id="68452">0.0064</stack-size>
+<stack-size id="68670">0.0096</stack-size>
+<stack-size id="68888">0.0055</stack-size>
+<stack-size id="69106">0.0100</stack-size>
+<stack-size id="69324">0.0082</stack-size>
+<stack-size id="69542">0.0073</stack-size>
+<stack-size id="69760">0.0064</stack-size>
+<stack-size id="69978">0.0073</stack-size>
+<stack-size id="70196">0.0055</stack-size>
+<stack-size id="70414">0.0073</stack-size>
+<stack-size id="70632">0.0069</stack-size>
+<stack-size id="70850">0.0100</stack-size>
+<stack-size id="71068">0.0078</stack-size>
+<stack-size id="71286">0.0055</stack-size>
+<stack-size id="71504">0.0064</stack-size>
+<stack-size id="71722">0.0064</stack-size>
+<stack-size id="71940">0.0064</stack-size>
+<stack-size id="72158">0.0055</stack-size>
+<stack-size id="72376">0.0064</stack-size>
+<stack-size id="72594">0.0055</stack-size>
+<stack-size id="72812">0.0055</stack-size>
+<stack-size id="73030">0.0064</stack-size>
+<stack-size id="73248">0.0064</stack-size>
+<stack-size id="73466">0.0055</stack-size>
+<stack-size id="73684">0.0046</stack-size>
+<stack-size id="73902">0.0114</stack-size>
+<stack-size id="74120">0.0105</stack-size>
+<stack-size id="74338">0.0091</stack-size>
+<stack-size id="74556">0.0105</stack-size>
+<stack-size id="74774">0.0091</stack-size>
+<stack-size id="74992">0.0096</stack-size>
+<stack-size id="75210">0.0110</stack-size>
+<stack-size id="75428">0.0073</stack-size>
+<stack-size id="75646">0.0091</stack-size>
+<stack-size id="75864">0.0082</stack-size>
+<stack-size id="76082">0.0082</stack-size>
+<stack-size id="76300">0.0100</stack-size>
+<stack-size id="76518">0.0064</stack-size>
+<stack-size id="76736">0.0064</stack-size>
+<stack-size id="76954">0.0110</stack-size>
+<stack-size id="77172">0.0073</stack-size>
+<stack-size id="77390">0.0110</stack-size>
+<stack-size id="77608">0.0100</stack-size>
+<stack-size id="77826">0.0064</stack-size>
+<stack-size id="78044">0.0082</stack-size>
+<stack-size id="78262">0.0110</stack-size>
+<stack-size id="78480">0.0096</stack-size>
+<stack-size id="78698">0.0100</stack-size>
+<stack-size id="78916">0.0119</stack-size>
+<stack-size id="79134">0.0087</stack-size>
+<stack-size id="79352">0.0100</stack-size>
+<stack-size id="79570">0.0064</stack-size>
+<stack-size id="79788">0.0064</stack-size>
+<stack-size id="80006">0.0082</stack-size>
+<stack-size id="80224">0.0082</stack-size>
+<stack-size id="80442">0.0082</stack-size>
+<stack-size id="80660">0.0082</stack-size>
+<stack-size id="80878">0.0110</stack-size>
+<stack-size id="81096">0.0119</stack-size>
+<stack-size id="81314">0.0110</stack-size>
+<stack-size id="81532">0.0082</stack-size>
+<stack-size id="81750">0.0100</stack-size>
+<stack-size id="81968">0.0087</stack-size>
+<stack-size id="82186">0.0096</stack-size>
+<stack-size id="82404">0.0119</stack-size>
+<stack-size id="82622">0.0110</stack-size>
+<stack-size id="82840">0.0082</stack-size>
+<stack-size id="83058">0.0091</stack-size>
+<stack-size id="83276">0.0073</stack-size>
+<stack-size id="83494">0.0091</stack-size>
+<stack-size id="83712">0.0100</stack-size>
+<stack-size id="83930">0.0091</stack-size>
+<stack-size id="84148">0.0087</stack-size>
+<stack-size id="84366">0.0082</stack-size>
+<stack-size id="84584">0.0100</stack-size>
+<stack-size id="84802">0.0100</stack-size>
+<stack-size id="85020">0.0064</stack-size>
+<stack-size id="85238">0.0082</stack-size>
+<stack-size id="85456">0.0064</stack-size>
+<stack-size id="85674">0.0100</stack-size>
+<stack-size id="85892">0.0055</stack-size>
+<stack-size id="86110">0.0091</stack-size>
+<stack-size id="86328">0.0064</stack-size>
+<stack-size id="86546">0.0073</stack-size>
+<stack-size id="86764">0.0064</stack-size>
+<stack-size id="86982">0.0073</stack-size>
+<stack-size id="87200">0.0110</stack-size>
+<stack-size id="87418">0.0096</stack-size>
+<stack-size id="87636">0.0073</stack-size>
+<stack-size id="87854">0.0055</stack-size>
+<stack-size id="88072">0.0073</stack-size>
+<stack-size id="88290">0.0064</stack-size>
+<stack-size id="88508">0.0064</stack-size>
+<stack-size id="88726">0.0055</stack-size>
+<stack-size id="88944">0.0073</stack-size>
+<stack-size id="89162">0.0100</stack-size>
+<stack-size id="89380">0.0064</stack-size>
+<stack-size id="89598">0.0091</stack-size>
+<stack-size id="89816">0.0064</stack-size>
+<stack-size id="90034">0.0078</stack-size>
+<stack-size id="90252">0.0087</stack-size>
+<stack-size id="90470">0.0055</stack-size>
+<stack-size id="90688">0.0073</stack-size>
+<stack-size id="90906">0.0082</stack-size>
+<stack-size id="91124">0.0064</stack-size>
+<stack-size id="91342">0.0055</stack-size>
+<stack-size id="91560">0.0059</stack-size>
+<stack-size id="91778">0.0046</stack-size>
+<stack-size id="91996">0.0064</stack-size>
+<stack-size id="92214">0.0055</stack-size>
+<stack-size id="92432">0.0055</stack-size>
+<stack-size id="92650">0.0064</stack-size>
+<stack-size id="92868">0.0073</stack-size>
+<stack-size id="93086">0.0064</stack-size>
+<stack-size id="93304">0.0078</stack-size>
+<stack-size id="93522">0.0078</stack-size>
+<stack-size id="93740">0.0046</stack-size>
+<stack-size id="93958">0.0069</stack-size>
+<stack-size id="94176">0.0064</stack-size>
+<stack-size id="94394">0.0073</stack-size>
+<stack-size id="94612">0.0064</stack-size>
+<stack-size id="94830">0.0055</stack-size>
+<stack-size id="95048">0.0055</stack-size>
+<stack-size id="95266">0.0064</stack-size>
+<stack-size id="95484">0.0059</stack-size>
+<stack-size id="95702">0.0055</stack-size>
+<stack-size id="95920">0.0046</stack-size>
+<stack-size id="96138">0.0055</stack-size>
+<stack-size id="96356">0.0059</stack-size>
+<stack-size id="96574">0.0050</stack-size>
+<stack-size id="96792">0.0059</stack-size>
+<stack-size id="97010">0.0046</stack-size>
+<stack-size id="97228">0.0073</stack-size>
+<stack-size id="97446">0.0055</stack-size>
+<stack-size id="97664">0.0082</stack-size>
+<stack-size id="97882">0.0059</stack-size>
+<stack-size id="98100">0.0064</stack-size>
+<stack-size id="98318">0.0064</stack-size>
+<stack-size id="98536">0.0082</stack-size>
+<stack-size id="98754">0.0073</stack-size>
+<stack-size id="98972">0.0082</stack-size>
+<stack-size id="99190">0.0073</stack-size>
+<stack-size id="99408">0.0055</stack-size>
+<stack-size id="99626">0.0059</stack-size>
+<stack-size id="99844">0.0046</stack-size>
+<stack-size id="100062">0.0082</stack-size>
+<stack-size id="100280">0.0082</stack-size>
+<stack-size id="100498">0.0073</stack-size>
+<stack-size id="100716">0.0073</stack-size>
+<stack-size id="100934">0.0064</stack-size>
+<stack-size id="101152">0.0046</stack-size>
+<stack-size id="101370">0.0073</stack-size>
+<stack-size id="101588">0.0073</stack-size>
+<stack-size id="101806">0.0064</stack-size>
+<stack-size id="102024">0.0046</stack-size>
+<stack-size id="102242">0.0055</stack-size>
+<stack-size id="102460">0.0073</stack-size>
+<stack-size id="102678">0.0059</stack-size>
+<stack-size id="102896">0.0073</stack-size>
+<stack-size id="103114">0.0046</stack-size>
+<stack-size id="103332">0.0073</stack-size>
+<stack-size id="103550">0.0055</stack-size>
+<stack-size id="103768">0.0055</stack-size>
+<stack-size id="103986">0.0055</stack-size>
+<stack-size id="104204">0.0055</stack-size>
+<stack-size id="104422">0.0091</stack-size>
+<stack-size id="104640">0.0082</stack-size>
+<stack-size id="104858">0.0055</stack-size>
+<stack-size id="105076">0.0064</stack-size>
+<stack-size id="105294">0.0064</stack-size>
+<stack-size id="105512">0.0082</stack-size>
+<stack-size id="105730">0.0091</stack-size>
+<stack-size id="105948">0.0055</stack-size>
+<stack-size id="106166">0.0082</stack-size>
+<stack-size id="106384">0.0082</stack-size>
+<stack-size id="106602">0.0055</stack-size>
+<stack-size id="106820">0.0046</stack-size>
+<stack-size id="107038">0.0073</stack-size>
+<stack-size id="107256">0.0082</stack-size>
+<stack-size id="107474">0.0064</stack-size>
+<stack-size id="107692">0.0064</stack-size>
+<stack-size id="107910">0.0073</stack-size>
+<stack-size id="108128">0.0055</stack-size>
+<stack-size id="108346">0.0055</stack-size>
+<stack-size id="108564">0.0046</stack-size>
+<stack-size id="108782">0.0055</stack-size>
+<stack-size id="109000">0.0041</stack-size>
+<stack-size id="109218">0.0069</stack-size>
+<stack-size id="109436">0.0069</stack-size>
+<stack-size id="109654">0.0059</stack-size>
+<stack-size id="109872">0.0041</stack-size>
+<stack-size id="110090">0.0041</stack-size>
+<stack-size id="110308">0.0050</stack-size>
+<stack-size id="110526">0.0050</stack-size>
+<stack-size id="110744">0.0055</stack-size>
+<stack-size id="110962">0.0050</stack-size>
+<stack-size id="111180">0.0032</stack-size>
+<stack-size id="111398">0.0046</stack-size>
+<stack-size id="111616">0.0050</stack-size>
+<stack-size id="111834">0.0046</stack-size>
+<stack-size id="112052">0.0059</stack-size>
+<stack-size id="112270">0.0059</stack-size>
+<stack-size id="112488">0.0050</stack-size>
+<stack-size id="112706">0.0059</stack-size>
+<stack-size id="112924">0.0032</stack-size>
+<stack-size id="113142">0.0059</stack-size>
+<stack-size id="113360">0.0055</stack-size>
+<stack-size id="113578">0.0059</stack-size>
+<stack-size id="113796">0.0064</stack-size>
+<stack-size id="114014">0.0069</stack-size>
+<stack-size id="114232">0.0069</stack-size>
+<stack-size id="114450">0.0055</stack-size>
+<stack-size id="114668">0.0064</stack-size>
+<stack-size id="114886">0.0100</stack-size>
+<stack-size id="115104">0.0087</stack-size>
+<stack-size id="115322">0.0064</stack-size>
+<stack-size id="115540">0.0050</stack-size>
+<stack-size id="115758">0.0064</stack-size>
+<stack-size id="115976">0.0091</stack-size>
+<stack-size id="116194">0.0087</stack-size>
+<stack-size id="116412">0.0064</stack-size>
+<stack-size id="116630">0.0091</stack-size>
+<stack-size id="116848">0.0073</stack-size>
+<stack-size id="117066">0.0078</stack-size>
+<stack-size id="117284">0.0082</stack-size>
+<stack-size id="117502">0.0055</stack-size>
+<stack-size id="117720">0.0064</stack-size>
+<stack-size id="117938">0.0050</stack-size>
+<stack-size id="118156">0.0055</stack-size>
+<stack-size id="118374">0.0091</stack-size>
+<stack-size id="118592">0.0069</stack-size>
+<stack-size id="118810">0.0082</stack-size>
+<stack-size id="119028">0.0073</stack-size>
+<stack-size id="119246">0.0078</stack-size>
+<stack-size id="119464">0.0082</stack-size>
+<stack-size id="119682">0.0091</stack-size>
+<stack-size id="119900">0.0078</stack-size>
+<stack-size id="120118">0.0064</stack-size>
+<stack-size id="120336">0.0073</stack-size>
+<stack-size id="120554">0.0064</stack-size>
+<stack-size id="120772">0.0069</stack-size>
+<stack-size id="120990">0.0087</stack-size>
+<stack-size id="121208">0.0055</stack-size>
+<stack-size id="121426">0.0064</stack-size>
+<stack-size id="121644">0.0082</stack-size>
+<stack-size id="121862">0.0073</stack-size>
+<stack-size id="122080">0.0082</stack-size>
+<stack-size id="122298">0.0064</stack-size>
+<stack-size id="122516">0.0073</stack-size>
+<stack-size id="122734">0.0064</stack-size>
+<stack-size id="122952">0.0064</stack-size>
+<stack-size id="123170">0.0087</stack-size>
+<stack-size id="123388">0.0064</stack-size>
+<stack-size id="123606">0.0064</stack-size>
+<stack-size id="123824">0.0055</stack-size>
+<stack-size id="124042">0.0064</stack-size>
+<stack-size id="124260">0.0046</stack-size>
+<stack-size id="124478">0.0037</stack-size>
+<stack-size id="124696">0.0064</stack-size>
+<stack-size id="124914">0.0073</stack-size>
+<stack-size id="125132">0.0055</stack-size>
+<stack-size id="125350">0.0046</stack-size>
+<stack-size id="125568">0.0064</stack-size>
+<stack-size id="125786">0.0055</stack-size>
+<stack-size id="126004">0.0055</stack-size>
+<stack-size id="126222">0.0064</stack-size>
+<stack-size id="126440">0.0046</stack-size>
+<stack-size id="126658">0.0082</stack-size>
+<stack-size id="126876">0.0078</stack-size>
+<stack-size id="127094">0.0073</stack-size>
+<stack-size id="127312">0.0064</stack-size>
+<stack-size id="127530">0.0082</stack-size>
+<stack-size id="127748">0.0073</stack-size>
+<stack-size id="127966">0.0050</stack-size>
+<stack-size id="128184">0.0064</stack-size>
+<stack-size id="128402">0.0091</stack-size>
+<stack-size id="128620">0.0091</stack-size>
+<stack-size id="128838">0.0091</stack-size>
+<stack-size id="129056">0.0082</stack-size>
+<stack-size id="129274">0.0055</stack-size>
+<stack-size id="129492">0.0064</stack-size>
+<stack-size id="129710">0.0073</stack-size>
+<stack-size id="129928">0.0069</stack-size>
+<stack-size id="130146">0.0064</stack-size>
+<stack-size id="130364">0.0069</stack-size>
+<stack-size id="130582">0.0055</stack-size>
+<stack-size id="130800">0.0059</stack-size>
+<stack-size id="131018">0.0073</stack-size>
+<stack-size id="131236">0.0055</stack-size>
+<stack-size id="131454">0.0073</stack-size>
+<stack-size id="131672">0.0064</stack-size>
+<stack-size id="131890">0.0073</stack-size>
+<stack-size id="132108">0.0064</stack-size>
+<stack-size id="132326">0.0069</stack-size>
+<stack-size id="132544">0.0082</stack-size>
+<stack-size id="132762">0.0064</stack-size>
+<stack-size id="132980">0.0055</stack-size>
+<stack-size id="133198">0.0073</stack-size>
+<stack-size id="133416">0.0046</stack-size>
+<stack-size id="133634">0.0073</stack-size>
+<stack-size id="133852">0.0082</stack-size>
+<stack-size id="134070">0.0078</stack-size>
+<stack-size id="134288">0.0064</stack-size>
+<stack-size id="134506">0.0055</stack-size>
+<stack-size id="134724">0.0064</stack-size>
+<stack-size id="134942">0.0055</stack-size>
+<stack-size id="135160">0.0069</stack-size>
+<stack-size id="135378">0.0055</stack-size>
+<stack-size id="135596">0.0037</stack-size>
+<stack-size id="135814">0.0027</stack-size>
+<stack-size id="136032">0.0064</stack-size>
+<stack-size id="136250">0.0050</stack-size>
+<stack-size id="136468">0.0050</stack-size>
+<stack-size id="136686">0.0091</stack-size>
+<stack-size id="136904">0.0091</stack-size>
+<stack-size id="137122">0.0050</stack-size>
+<stack-size id="137340">0.0091</stack-size>
+<stack-size id="137558">0.0073</stack-size>
+<stack-size id="137776">0.0064</stack-size>
+<stack-size id="137994">0.0064</stack-size>
+<stack-size id="138212">0.0078</stack-size>
+<stack-size id="138430">0.0055</stack-size>
+<stack-size id="138648">0.0055</stack-size>
+<stack-size id="138866">0.0069</stack-size>
+<stack-size id="139084">0.0073</stack-size>
+<stack-size id="139302">0.0059</stack-size>
+<stack-size id="139520">0.0082</stack-size>
+<stack-size id="139738">0.0055</stack-size>
+<stack-size id="139956">0.0064</stack-size>
+<stack-size id="140174">0.0073</stack-size>
+<stack-size id="140392">0.0059</stack-size>
+<stack-size id="140610">0.0069</stack-size>
+<stack-size id="140828">0.0050</stack-size>
+<stack-size id="141046">0.0046</stack-size>
+<stack-size id="141264">0.0037</stack-size>
+<stack-size id="141482">0.0037</stack-size>
+<stack-size id="141700">0.0027</stack-size>
+<stack-size id="141918">0.0064</stack-size>
+<stack-size id="142136">0.0073</stack-size>
+<stack-size id="142354">0.0064</stack-size>
+<stack-size id="142572">0.0046</stack-size>
+<stack-size id="142790">0.0050</stack-size>
+<stack-size id="143008">0.0059</stack-size>
+<stack-size id="143226">0.0046</stack-size>
+<stack-size id="143444">0.0055</stack-size>
+<stack-size id="143662">0.0050</stack-size>
+<stack-size id="143880">0.0041</stack-size>
+<stack-size id="144098">0.0046</stack-size>
+<stack-size id="144316">0.0046</stack-size>
+<stack-size id="144534">0.0055</stack-size>
+<stack-size id="144752">0.0064</stack-size>
+<stack-size id="144970">0.0087</stack-size>
+<stack-size id="145188">0.0055</stack-size>
+<stack-size id="145406">0.0069</stack-size>
+<stack-size id="145624">0.0073</stack-size>
+<stack-size id="145842">0.0046</stack-size>
+<stack-size id="146060">0.0041</stack-size>
+<stack-size id="146278">0.0064</stack-size>
+<stack-size id="146496">0.0069</stack-size>
+<stack-size id="146714">0.0059</stack-size>
+<stack-size id="146932">0.0055</stack-size>
+<stack-size id="147150">0.0064</stack-size>
+<stack-size id="147368">0.0037</stack-size>
+<stack-size id="147586">0.0037</stack-size>
+<stack-size id="147804">0.0069</stack-size>
+<stack-size id="148022">0.0055</stack-size>
+<stack-size id="148240">0.0046</stack-size>
+<stack-size id="148458">0.0069</stack-size>
+<stack-size id="148676">0.0055</stack-size>
+<stack-size id="148894">0.0027</stack-size>
+<stack-size id="149112">0.0064</stack-size>
+<stack-size id="149330">0.0055</stack-size>
+<stack-size id="149548">0.0064</stack-size>
+<stack-size id="149766">0.0059</stack-size>
+<stack-size id="149984">0.0055</stack-size>
+<stack-size id="150202">0.0055</stack-size>
+<stack-size id="150420">0.0064</stack-size>
+<stack-size id="150638">0.0082</stack-size>
+<stack-size id="150856">0.0073</stack-size>
+<stack-size id="151074">0.0059</stack-size>
+<stack-size id="151292">0.0073</stack-size>
+<stack-size id="151510">0.0064</stack-size>
+<stack-size id="151728">0.0055</stack-size>
+<stack-size id="151946">0.0064</stack-size>
+<stack-size id="152164">0.0046</stack-size>
+<stack-size id="152382">0.0064</stack-size>
+<stack-size id="152600">0.0064</stack-size>
+<stack-size id="152818">0.0064</stack-size>
+<stack-size id="153036">0.0055</stack-size>
+<stack-size id="153254">0.0050</stack-size>
+<stack-size id="153472">0.0055</stack-size>
+<stack-size id="153690">0.0064</stack-size>
+<stack-size id="153908">0.0055</stack-size>
+<stack-size id="154126">0.0064</stack-size>
+<stack-size id="154344">0.0041</stack-size>
+<stack-size id="154562">0.0046</stack-size>
+<stack-size id="154780">0.0050</stack-size>
+<stack-size id="154998">0.0046</stack-size>
+<stack-size id="155216">0.0073</stack-size>
+<stack-size id="155434">0.0073</stack-size>
+<stack-size id="155652">0.0064</stack-size>
+<stack-size id="155870">0.0059</stack-size>
+<stack-size id="156088">0.0055</stack-size>
+<stack-size id="156306">0.0055</stack-size>
+<stack-size id="156524">0.0055</stack-size>
+<stack-size id="156742">0.0041</stack-size>
+<stack-size id="156960">0.0050</stack-size>
+<stack-size id="157178">0.0037</stack-size>
+<stack-size id="157396">0.0055</stack-size>
+<stack-size id="157614">0.0055</stack-size>
+<stack-size id="157832">0.0064</stack-size>
+<stack-size id="158050">0.0046</stack-size>
+<stack-size id="158268">0.0032</stack-size>
+<stack-size id="158486">0.0046</stack-size>
+<stack-size id="158704">0.0037</stack-size>
+<stack-size id="158922">0.0064</stack-size>
+<stack-size id="159140">0.0055</stack-size>
+<stack-size id="159358">0.0050</stack-size>
+<stack-size id="159576">0.0055</stack-size>
+<stack-size id="159794">0.0064</stack-size>
+<stack-size id="160012">0.0059</stack-size>
+<stack-size id="160230">0.0046</stack-size>
+<stack-size id="160448">0.0055</stack-size>
+<stack-size id="160666">0.0064</stack-size>
+<stack-size id="160884">0.0059</stack-size>
+<stack-size id="161102">0.0050</stack-size>
+<stack-size id="161320">0.0064</stack-size>
+<stack-size id="161538">0.0055</stack-size>
+<stack-size id="161756">0.0055</stack-size>
+<stack-size id="161974">0.0055</stack-size>
+<stack-size id="162192">0.0055</stack-size>
+<stack-size id="162410">0.0046</stack-size>
+<stack-size id="162628">0.0055</stack-size>
+<stack-size id="162846">0.0046</stack-size>
+<stack-size id="163064">0.0055</stack-size>
+<stack-size id="163282">0.0055</stack-size>
+<stack-size id="163500">0.0064</stack-size>
+<stack-size id="163718">0.0064</stack-size>
+<stack-size id="163936">0.0037</stack-size>
+<stack-size id="164154">0.0032</stack-size>
+<stack-size id="164372">0.0041</stack-size>
+<stack-size id="164590">0.0050</stack-size>
+<stack-size id="164808">0.0046</stack-size>
+<stack-size id="165026">0.0055</stack-size>
+<stack-size id="165244">0.0050</stack-size>
+<stack-size id="165462">0.0059</stack-size>
+<stack-size id="165680">0.0041</stack-size>
+<stack-size id="165898">0.0059</stack-size>
+<stack-size id="166116">0.0032</stack-size>
+<stack-size id="166334">0.0023</stack-size>
+<stack-size id="166552">0.0023</stack-size>
+<stack-size id="166770">0.0064</stack-size>
+<stack-size id="166988">0.0064</stack-size>
+<stack-size id="167206">0.0073</stack-size>
+<stack-size id="167424">0.0064</stack-size>
+<stack-size id="167642">0.0050</stack-size>
+<stack-size id="167860">0.0046</stack-size>
+<stack-size id="168078">0.0055</stack-size>
+<stack-size id="168296">0.0064</stack-size>
+<stack-size id="168514">0.0046</stack-size>
+<stack-size id="168732">0.0059</stack-size>
+<stack-size id="168950">0.0046</stack-size>
+<stack-size id="169168">0.0055</stack-size>
+<stack-size id="169386">0.0037</stack-size>
+<stack-size id="169604">0.0055</stack-size>
+<stack-size id="169822">0.0046</stack-size>
+<stack-size id="170040">0.0046</stack-size>
+<stack-size id="170258">0.0055</stack-size>
+<stack-size id="170476">0.0046</stack-size>
+<stack-size id="170694">0.0046</stack-size>
+<stack-size id="170912">0.0037</stack-size>
+<stack-size id="171130">0.0046</stack-size>
+<stack-size id="171348">0.0055</stack-size>
+<stack-size id="171566">0.0027</stack-size>
+<stack-size id="171784">0.0041</stack-size>
+<stack-size id="172002">0.0037</stack-size>
+<stack-size id="172220">0.0046</stack-size>
+<stack-size id="172438">0.0037</stack-size>
+<stack-size id="172656">0.0046</stack-size>
+<stack-size id="172874">0.0037</stack-size>
+<stack-size id="173092">0.0037</stack-size>
+<stack-size id="173310">0.0023</stack-size>
+<stack-size id="173528">0.0073</stack-size>
+<stack-size id="173746">0.0073</stack-size>
+<stack-size id="173964">0.0064</stack-size>
+<stack-size id="174182">0.0064</stack-size>
+<stack-size id="174400">0.0073</stack-size>
+<stack-size id="174618">0.0055</stack-size>
+<stack-size id="174836">0.0064</stack-size>
+<stack-size id="175054">0.0073</stack-size>
+<stack-size id="175272">0.0082</stack-size>
+<stack-size id="175490">0.0073</stack-size>
+<stack-size id="175708">0.0073</stack-size>
+<stack-size id="175926">0.0078</stack-size>
+<stack-size id="176144">0.0069</stack-size>
+<stack-size id="176362">0.0064</stack-size>
+<stack-size id="176580">0.0055</stack-size>
+<stack-size id="176798">0.0059</stack-size>
+<stack-size id="177016">0.0046</stack-size>
+<stack-size id="177234">0.0073</stack-size>
+<stack-size id="177452">0.0046</stack-size>
+<stack-size id="177670">0.0064</stack-size>
+<stack-size id="177888">0.0059</stack-size>
+<stack-size id="178106">0.0037</stack-size>
+<stack-size id="178324">0.0064</stack-size>
+<stack-size id="178542">0.0064</stack-size>
+<stack-size id="178760">0.0046</stack-size>
+<stack-size id="178978">0.0055</stack-size>
+<stack-size id="179196">0.0059</stack-size>
+<stack-size id="179414">0.0055</stack-size>
+<stack-size id="179632">0.0064</stack-size>
+<stack-size id="179850">0.0055</stack-size>
+<stack-size id="180068">0.0027</stack-size>
+<stack-size id="180286">0.0055</stack-size>
+<stack-size id="180504">0.0046</stack-size>
+<stack-size id="180722">0.0046</stack-size>
+<stack-size id="180940">0.0046</stack-size>
+<stack-size id="181158">0.0041</stack-size>
+<stack-size id="181376">0.0073</stack-size>
+<stack-size id="181594">0.0073</stack-size>
+<stack-size id="181812">0.0050</stack-size>
+<stack-size id="182030">0.0069</stack-size>
+<stack-size id="182248">0.0069</stack-size>
+<stack-size id="182466">0.0037</stack-size>
+<stack-size id="182684">0.0041</stack-size>
+<stack-size id="182902">0.0064</stack-size>
+<stack-size id="183120">0.0046</stack-size>
+<stack-size id="183338">0.0041</stack-size>
+<stack-size id="183556">0.0064</stack-size>
+<stack-size id="183774">0.0027</stack-size>
+<stack-size id="183992">0.0055</stack-size>
+<stack-size id="184210">0.0046</stack-size>
+<stack-size id="184428">0.0082</stack-size>
+<stack-size id="184646">0.0064</stack-size>
+<stack-size id="184864">0.0064</stack-size>
+<stack-size id="185082">0.0055</stack-size>
+<stack-size id="185300">0.0073</stack-size>
+<stack-size id="185518">0.0073</stack-size>
+<stack-size id="185736">0.0055</stack-size>
+<stack-size id="185954">0.0046</stack-size>
+<stack-size id="186172">0.0050</stack-size>
+<stack-size id="186390">0.0055</stack-size>
+<stack-size id="186608">0.0055</stack-size>
+<stack-size id="186826">0.0055</stack-size>
+<stack-size id="187044">0.0082</stack-size>
+<stack-size id="187262">0.0064</stack-size>
+<stack-size id="187480">0.0064</stack-size>
+<stack-size id="187698">0.0055</stack-size>
+<stack-size id="187916">0.0059</stack-size>
+<stack-size id="188134">0.0059</stack-size>
+<stack-size id="188352">0.0046</stack-size>
+<stack-size id="188570">0.0055</stack-size>
+<stack-size id="188788">0.0064</stack-size>
+<stack-size id="189006">0.0073</stack-size>
+<stack-size id="189224">0.0073</stack-size>
+<stack-size id="189442">0.0082</stack-size>
+<stack-size id="189660">0.0050</stack-size>
+<stack-size id="189878">0.0055</stack-size>
+<stack-size id="190096">0.0073</stack-size>
+<stack-size id="190314">0.0046</stack-size>
+<stack-size id="190532">0.0059</stack-size>
+<stack-size id="190750">0.0069</stack-size>
+<stack-size id="190968">0.0064</stack-size>
+<stack-size id="191186">0.0046</stack-size>
+<stack-size id="191404">0.0046</stack-size>
+<stack-size id="191622">0.0037</stack-size>
+<stack-size id="191840">0.0064</stack-size>
+<stack-size id="192058">0.0055</stack-size>
+<stack-size id="192276">0.0050</stack-size>
+<stack-size id="192494">0.0050</stack-size>
+<stack-size id="192712">0.0050</stack-size>
+<stack-size id="192930">0.0064</stack-size>
+<stack-size id="193148">0.0046</stack-size>
+<stack-size id="193366">0.0064</stack-size>
+<stack-size id="193584">0.0032</stack-size>
+<stack-size id="193802">0.0059</stack-size>
+<stack-size id="194020">0.0059</stack-size>
+<stack-size id="194238">0.0059</stack-size>
+<stack-size id="194456">0.0069</stack-size>
+<stack-size id="194674">0.0041</stack-size>
+<stack-size id="194892">0.0050</stack-size>
+<stack-size id="195110">0.0059</stack-size>
+<stack-size id="195328">0.0041</stack-size>
+<stack-size id="195546">0.0069</stack-size>
+<stack-size id="195764">0.0059</stack-size>
+<stack-size id="195982">0.0055</stack-size>
+<stack-size id="196200">0.0064</stack-size>
+<stack-size id="196418">0.0064</stack-size>
+<stack-size id="196636">0.0055</stack-size>
+<stack-size id="196854">0.0055</stack-size>
+<stack-size id="197072">0.0059</stack-size>
+<stack-size id="197290">0.0041</stack-size>
+<stack-size id="197508">0.0050</stack-size>
+<stack-size id="197726">0.0032</stack-size>
+<stack-size id="197944">0.0041</stack-size>
+<stack-size id="198162">0.0023</stack-size>
+<stack-size id="198380">0.0032</stack-size>
+<stack-size id="198598">0.0069</stack-size>
+<stack-size id="198816">0.0050</stack-size>
+<stack-size id="199034">0.0059</stack-size>
+<stack-size id="199252">0.0041</stack-size>
+<stack-size id="199470">0.0050</stack-size>
+<stack-size id="199688">0.0041</stack-size>
+<stack-size id="199906">0.0050</stack-size>
+<stack-size id="200124">0.0041</stack-size>
+<stack-size id="200342">0.0032</stack-size>
+<stack-size id="200560">0.0041</stack-size>
+<stack-size id="200778">0.0064</stack-size>
+<stack-size id="200996">0.0059</stack-size>
+<stack-size id="201214">0.0050</stack-size>
+<stack-size id="201432">0.0041</stack-size>
+<stack-size id="201650">0.0055</stack-size>
+<stack-size id="201868">0.0059</stack-size>
+<stack-size id="202086">0.0059</stack-size>
+<stack-size id="202304">0.0059</stack-size>
+<stack-size id="202522">0.0059</stack-size>
+<stack-size id="202740">0.0050</stack-size>
+<stack-size id="202958">0.0032</stack-size>
+<stack-size id="203176">0.0050</stack-size>
+<stack-size id="203394">0.0050</stack-size>
+<stack-size id="203612">0.0059</stack-size>
+<stack-size id="203830">0.0059</stack-size>
+<stack-size id="204048">0.0059</stack-size>
+<stack-size id="204266">0.0050</stack-size>
+<stack-size id="204484">0.0041</stack-size>
+<stack-size id="204702">0.0050</stack-size>
+<stack-size id="204920">0.0032</stack-size>
+<stack-size id="205138">0.0069</stack-size>
+<stack-size id="205356">0.0037</stack-size>
+<stack-size id="205574">0.0032</stack-size>
+<stack-size id="205792">0.0059</stack-size>
+<stack-size id="206010">0.0041</stack-size>
+<stack-size id="206228">0.0050</stack-size>
+<stack-size id="206446">0.0055</stack-size>
+<stack-size id="206664">0.0037</stack-size>
+<stack-size id="206882">0.0046</stack-size>
+<stack-size id="207100">0.0027</stack-size>
+<stack-size id="207318">0.0041</stack-size>
+<stack-size id="207536">0.0037</stack-size>
+<stack-size id="207754">0.0059</stack-size>
+<stack-size id="207972">0.0046</stack-size>
+<stack-size id="208190">0.0046</stack-size>
+<stack-size id="208408">0.0059</stack-size>
+<stack-size id="208626">0.0064</stack-size>
+<stack-size id="208844">0.0050</stack-size>
+<stack-size id="209062">0.0037</stack-size>
+<stack-size id="209280">0.0037</stack-size>
+<stack-size id="209498">0.0046</stack-size>
+<stack-size id="209716">0.0027</stack-size>
+<stack-size id="209934">0.0046</stack-size>
+<stack-size id="210152">0.0037</stack-size>
+<stack-size id="210370">0.0037</stack-size>
+<stack-size id="210588">0.0032</stack-size>
+<stack-size id="210806">0.0037</stack-size>
+<stack-size id="211024">0.0055</stack-size>
+<stack-size id="211242">0.0055</stack-size>
+<stack-size id="211460">0.0059</stack-size>
+<stack-size id="211678">0.0055</stack-size>
+<stack-size id="211896">0.0064</stack-size>
+<stack-size id="212114">0.0050</stack-size>
+<stack-size id="212332">0.0037</stack-size>
+<stack-size id="212550">0.0050</stack-size>
+<stack-size id="212768">0.0037</stack-size>
+<stack-size id="212986">0.0055</stack-size>
+<stack-size id="213204">0.0046</stack-size>
+<stack-size id="213422">0.0046</stack-size>
+<stack-size id="213640">0.0037</stack-size>
+<stack-size id="213858">0.0037</stack-size>
+<stack-size id="214076">0.0046</stack-size>
+<stack-size id="214294">0.0055</stack-size>
+<stack-size id="214512">0.0027</stack-size>
+<stack-size id="214730">0.0041</stack-size>
+<stack-size id="214948">0.0027</stack-size>
+<stack-size id="215166">0.0050</stack-size>
+<stack-size id="215384">0.0046</stack-size>
+<stack-size id="215602">0.0032</stack-size>
+<stack-size id="215820">0.0032</stack-size>
+<stack-size id="216038">0.0041</stack-size>
+<stack-size id="216256">0.0041</stack-size>
+<stack-size id="216474">0.0023</stack-size>
+<stack-size id="216692">0.0041</stack-size>
+<stack-size id="216910">0.0046</stack-size>
+<stack-size id="217128">0.0050</stack-size>
+<stack-size id="217346">0.0041</stack-size>
+<stack-size id="217564">0.0046</stack-size>
+<stack-size id="217782">0.0032</stack-size>
+<stack-size id="218000">0.0014</stack-size>
+<stack-size id="218218">0.0050</stack-size>
+<stack-size id="218436">0.0027</stack-size>
+<stack-size id="218654">0.0041</stack-size>
+<stack-size id="218872">0.0014</stack-size>
+<max-stack>34</max-stack>
+<front-edges>218930</front-edges>
+<back-edges>0</back-edges>
+<cross-edges>1617369</cross-edges>
+<shortest-cycle>0</shortest-cycle>
+</dfs-info>
+
+<model-info><placeBounds><placeBound><place>idle</place><minCard>0</minCard><maxCard>12</maxCard><minMult>0</minMult><maxMult>12</maxMult></placeBound><placeBound><place>wait</place><minCard>0</minCard><maxCard>12</maxCard><minMult>0</minMult><maxMult>12</maxMult></placeBound><placeBound><place>loosing</place><minCard>0</minCard><maxCard>11</maxCard><minMult>0</minMult><maxMult>11</maxMult></placeBound><placeBound><place>msg</place><minCard>0</minCard><maxCard>12</maxCard><minMult>0</minMult><maxMult>12</maxMult></placeBound></placeBounds><possibleTokens><possibleTokensPlace><place>idle</place><token><mult>1</mult><exprList><num>0</num>
+<enum>false</enum>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<enum>false</enum>
+</exprList></token>
+<token><mult>1</mult><exprList><num>2</num>
+<enum>false</enum>
+</exprList></token>
+<token><mult>1</mult><exprList><num>3</num>
+<enum>false</enum>
+</exprList></token>
+<token><mult>1</mult><exprList><num>4</num>
+<enum>false</enum>
+</exprList></token>
+<token><mult>1</mult><exprList><num>5</num>
+<enum>false</enum>
+</exprList></token>
+<token><mult>1</mult><exprList><num>6</num>
+<enum>false</enum>
+</exprList></token>
+<token><mult>1</mult><exprList><num>7</num>
+<enum>false</enum>
+</exprList></token>
+<token><mult>1</mult><exprList><num>8</num>
+<enum>false</enum>
+</exprList></token>
+<token><mult>1</mult><exprList><num>9</num>
+<enum>false</enum>
+</exprList></token>
+<token><mult>1</mult><exprList><num>10</num>
+<enum>false</enum>
+</exprList></token>
+<token><mult>1</mult><exprList><num>11</num>
+<enum>false</enum>
+</exprList></token>
+</possibleTokensPlace><possibleTokensPlace><place>wait</place><token><mult>1</mult><exprList><num>0</num>
+<enum>false</enum>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<enum>false</enum>
+</exprList></token>
+<token><mult>1</mult><exprList><num>2</num>
+<enum>false</enum>
+</exprList></token>
+<token><mult>1</mult><exprList><num>3</num>
+<enum>false</enum>
+</exprList></token>
+<token><mult>1</mult><exprList><num>4</num>
+<enum>false</enum>
+</exprList></token>
+<token><mult>1</mult><exprList><num>5</num>
+<enum>false</enum>
+</exprList></token>
+<token><mult>1</mult><exprList><num>6</num>
+<enum>false</enum>
+</exprList></token>
+<token><mult>1</mult><exprList><num>7</num>
+<enum>false</enum>
+</exprList></token>
+<token><mult>1</mult><exprList><num>8</num>
+<enum>false</enum>
+</exprList></token>
+<token><mult>1</mult><exprList><num>9</num>
+<enum>false</enum>
+</exprList></token>
+<token><mult>1</mult><exprList><num>10</num>
+<enum>false</enum>
+</exprList></token>
+<token><mult>1</mult><exprList><num>11</num>
+<enum>false</enum>
+</exprList></token>
+<token><mult>1</mult><exprList><num>11</num>
+<enum>true</enum>
+</exprList></token>
+</possibleTokensPlace><possibleTokensPlace><place>loosing</place><token><mult>1</mult><exprList><num>0</num>
+<enum>false</enum>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<enum>false</enum>
+</exprList></token>
+<token><mult>1</mult><exprList><num>2</num>
+<enum>false</enum>
+</exprList></token>
+<token><mult>1</mult><exprList><num>3</num>
+<enum>false</enum>
+</exprList></token>
+<token><mult>1</mult><exprList><num>4</num>
+<enum>false</enum>
+</exprList></token>
+<token><mult>1</mult><exprList><num>5</num>
+<enum>false</enum>
+</exprList></token>
+<token><mult>1</mult><exprList><num>6</num>
+<enum>false</enum>
+</exprList></token>
+<token><mult>1</mult><exprList><num>7</num>
+<enum>false</enum>
+</exprList></token>
+<token><mult>1</mult><exprList><num>8</num>
+<enum>false</enum>
+</exprList></token>
+<token><mult>1</mult><exprList><num>9</num>
+<enum>false</enum>
+</exprList></token>
+<token><mult>1</mult><exprList><num>10</num>
+<enum>false</enum>
+</exprList></token>
+</possibleTokensPlace><possibleTokensPlace><place>msg</place><token><mult>1</mult><exprList><num>0</num>
+<num>11</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>0</num>
+<num>11</num>
+<num>2</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<num>0</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<num>11</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>2</num>
+<num>1</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>2</num>
+<num>11</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>3</num>
+<num>2</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>3</num>
+<num>11</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>4</num>
+<num>3</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>4</num>
+<num>11</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>5</num>
+<num>4</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>5</num>
+<num>11</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>6</num>
+<num>5</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>6</num>
+<num>11</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>7</num>
+<num>6</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>7</num>
+<num>11</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>8</num>
+<num>7</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>8</num>
+<num>11</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>9</num>
+<num>8</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>9</num>
+<num>11</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>10</num>
+<num>9</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>10</num>
+<num>11</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>11</num>
+<num>10</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>11</num>
+<num>11</num>
+<num>1</num>
+</exprList></token>
+</possibleTokensPlace></possibleTokens><deadMarkings><noDeadMarkings>1</noDeadMarkings><state>
+<placeState>
+<place>wait</place>
+<token><mult>1</mult><exprList><num>11</num>
+<enum>true</enum>
+</exprList></token>
+</placeState>
+<placeState>
+<place>loosing</place>
+<token><mult>1</mult><exprList><num>0</num>
+<enum>false</enum>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<enum>false</enum>
+</exprList></token>
+<token><mult>1</mult><exprList><num>2</num>
+<enum>false</enum>
+</exprList></token>
+<token><mult>1</mult><exprList><num>3</num>
+<enum>false</enum>
+</exprList></token>
+<token><mult>1</mult><exprList><num>4</num>
+<enum>false</enum>
+</exprList></token>
+<token><mult>1</mult><exprList><num>5</num>
+<enum>false</enum>
+</exprList></token>
+<token><mult>1</mult><exprList><num>6</num>
+<enum>false</enum>
+</exprList></token>
+<token><mult>1</mult><exprList><num>7</num>
+<enum>false</enum>
+</exprList></token>
+<token><mult>1</mult><exprList><num>8</num>
+<enum>false</enum>
+</exprList></token>
+<token><mult>1</mult><exprList><num>9</num>
+<enum>false</enum>
+</exprList></token>
+<token><mult>1</mult><exprList><num>10</num>
+<enum>false</enum>
+</exprList></token>
+</placeState>
+<placeState>
+<place>msg</place>
+<token><mult>1</mult><exprList><num>0</num>
+<num>11</num>
+<num>2</num>
+</exprList></token>
+</placeState>
+</state>
+</deadMarkings><livenessInfo><livenessInfoTrans><transition>candidate</transition><liveBindings></liveBindings><quasiLiveBindings><binding><varBinding><var>X</var><num>0</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding></binding>
+<binding><varBinding><var>X</var><num>1</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding></binding>
+<binding><varBinding><var>X</var><num>2</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding></binding>
+<binding><varBinding><var>X</var><num>3</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding></binding>
+<binding><varBinding><var>X</var><num>4</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding></binding>
+<binding><varBinding><var>X</var><num>5</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding></binding>
+<binding><varBinding><var>X</var><num>6</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding></binding>
+<binding><varBinding><var>X</var><num>7</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding></binding>
+<binding><varBinding><var>X</var><num>8</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding></binding>
+<binding><varBinding><var>X</var><num>9</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding></binding>
+<binding><varBinding><var>X</var><num>10</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding></binding>
+<binding><varBinding><var>X</var><num>11</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding></binding>
+</quasiLiveBindings></livenessInfoTrans><livenessInfoTrans><transition>go1</transition><liveBindings></liveBindings><quasiLiveBindings><binding><varBinding><var>X</var><num>1</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding><varBinding><var>Y</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>X</var><num>2</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding><varBinding><var>Y</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>X</var><num>3</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding><varBinding><var>Y</var><num>2</num>
+</varBinding></binding>
+<binding><varBinding><var>X</var><num>4</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding><varBinding><var>Y</var><num>3</num>
+</varBinding></binding>
+<binding><varBinding><var>X</var><num>5</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding><varBinding><var>Y</var><num>4</num>
+</varBinding></binding>
+<binding><varBinding><var>X</var><num>6</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding><varBinding><var>Y</var><num>5</num>
+</varBinding></binding>
+<binding><varBinding><var>X</var><num>7</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding><varBinding><var>Y</var><num>6</num>
+</varBinding></binding>
+<binding><varBinding><var>X</var><num>8</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding><varBinding><var>Y</var><num>7</num>
+</varBinding></binding>
+<binding><varBinding><var>X</var><num>9</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding><varBinding><var>Y</var><num>8</num>
+</varBinding></binding>
+<binding><varBinding><var>X</var><num>10</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding><varBinding><var>Y</var><num>9</num>
+</varBinding></binding>
+<binding><varBinding><var>X</var><num>11</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding><varBinding><var>Y</var><num>10</num>
+</varBinding></binding>
+</quasiLiveBindings></livenessInfoTrans><livenessInfoTrans><transition>go2</transition><liveBindings></liveBindings><quasiLiveBindings><binding><varBinding><var>X</var><num>0</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding><varBinding><var>Y</var><num>11</num>
+</varBinding></binding>
+<binding><varBinding><var>X</var><num>1</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding><varBinding><var>Y</var><num>11</num>
+</varBinding></binding>
+<binding><varBinding><var>X</var><num>2</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding><varBinding><var>Y</var><num>11</num>
+</varBinding></binding>
+<binding><varBinding><var>X</var><num>3</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding><varBinding><var>Y</var><num>11</num>
+</varBinding></binding>
+<binding><varBinding><var>X</var><num>4</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding><varBinding><var>Y</var><num>11</num>
+</varBinding></binding>
+<binding><varBinding><var>X</var><num>5</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding><varBinding><var>Y</var><num>11</num>
+</varBinding></binding>
+<binding><varBinding><var>X</var><num>6</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding><varBinding><var>Y</var><num>11</num>
+</varBinding></binding>
+<binding><varBinding><var>X</var><num>7</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding><varBinding><var>Y</var><num>11</num>
+</varBinding></binding>
+<binding><varBinding><var>X</var><num>8</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding><varBinding><var>Y</var><num>11</num>
+</varBinding></binding>
+<binding><varBinding><var>X</var><num>9</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding><varBinding><var>Y</var><num>11</num>
+</varBinding></binding>
+<binding><varBinding><var>X</var><num>10</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding><varBinding><var>Y</var><num>11</num>
+</varBinding></binding>
+</quasiLiveBindings></livenessInfoTrans><livenessInfoTrans><transition>wait_to_loose</transition><liveBindings></liveBindings><quasiLiveBindings><binding><varBinding><var>X</var><num>0</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding><varBinding><var>Y</var><num>11</num>
+</varBinding></binding>
+<binding><varBinding><var>X</var><num>1</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding><varBinding><var>Y</var><num>11</num>
+</varBinding></binding>
+<binding><varBinding><var>X</var><num>2</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding><varBinding><var>Y</var><num>11</num>
+</varBinding></binding>
+<binding><varBinding><var>X</var><num>3</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding><varBinding><var>Y</var><num>11</num>
+</varBinding></binding>
+<binding><varBinding><var>X</var><num>4</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding><varBinding><var>Y</var><num>11</num>
+</varBinding></binding>
+<binding><varBinding><var>X</var><num>5</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding><varBinding><var>Y</var><num>11</num>
+</varBinding></binding>
+<binding><varBinding><var>X</var><num>6</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding><varBinding><var>Y</var><num>11</num>
+</varBinding></binding>
+<binding><varBinding><var>X</var><num>7</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding><varBinding><var>Y</var><num>11</num>
+</varBinding></binding>
+<binding><varBinding><var>X</var><num>8</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding><varBinding><var>Y</var><num>11</num>
+</varBinding></binding>
+<binding><varBinding><var>X</var><num>9</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding><varBinding><var>Y</var><num>11</num>
+</varBinding></binding>
+<binding><varBinding><var>X</var><num>10</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding><varBinding><var>Y</var><num>11</num>
+</varBinding></binding>
+</quasiLiveBindings></livenessInfoTrans><livenessInfoTrans><transition>absorb1</transition><liveBindings></liveBindings><quasiLiveBindings><binding><varBinding><var>X</var><num>1</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding><varBinding><var>Y</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>X</var><num>2</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding><varBinding><var>Y</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>X</var><num>3</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding><varBinding><var>Y</var><num>2</num>
+</varBinding></binding>
+<binding><varBinding><var>X</var><num>4</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding><varBinding><var>Y</var><num>3</num>
+</varBinding></binding>
+<binding><varBinding><var>X</var><num>5</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding><varBinding><var>Y</var><num>4</num>
+</varBinding></binding>
+<binding><varBinding><var>X</var><num>6</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding><varBinding><var>Y</var><num>5</num>
+</varBinding></binding>
+<binding><varBinding><var>X</var><num>7</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding><varBinding><var>Y</var><num>6</num>
+</varBinding></binding>
+<binding><varBinding><var>X</var><num>8</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding><varBinding><var>Y</var><num>7</num>
+</varBinding></binding>
+<binding><varBinding><var>X</var><num>9</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding><varBinding><var>Y</var><num>8</num>
+</varBinding></binding>
+<binding><varBinding><var>X</var><num>10</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding><varBinding><var>Y</var><num>9</num>
+</varBinding></binding>
+<binding><varBinding><var>X</var><num>11</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding><varBinding><var>Y</var><num>10</num>
+</varBinding></binding>
+<binding><varBinding><var>X</var><num>11</num>
+</varBinding><varBinding><var>b</var><enum>true</enum>
+</varBinding><varBinding><var>Y</var><num>10</num>
+</varBinding></binding>
+</quasiLiveBindings></livenessInfoTrans><livenessInfoTrans><transition>absorb2</transition><liveBindings></liveBindings><quasiLiveBindings><binding><varBinding><var>X</var><num>1</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding><varBinding><var>Y</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>X</var><num>2</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding><varBinding><var>Y</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>X</var><num>3</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding><varBinding><var>Y</var><num>2</num>
+</varBinding></binding>
+<binding><varBinding><var>X</var><num>4</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding><varBinding><var>Y</var><num>3</num>
+</varBinding></binding>
+<binding><varBinding><var>X</var><num>5</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding><varBinding><var>Y</var><num>4</num>
+</varBinding></binding>
+<binding><varBinding><var>X</var><num>6</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding><varBinding><var>Y</var><num>5</num>
+</varBinding></binding>
+<binding><varBinding><var>X</var><num>7</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding><varBinding><var>Y</var><num>6</num>
+</varBinding></binding>
+<binding><varBinding><var>X</var><num>8</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding><varBinding><var>Y</var><num>7</num>
+</varBinding></binding>
+<binding><varBinding><var>X</var><num>9</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding><varBinding><var>Y</var><num>8</num>
+</varBinding></binding>
+<binding><varBinding><var>X</var><num>10</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding><varBinding><var>Y</var><num>9</num>
+</varBinding></binding>
+</quasiLiveBindings></livenessInfoTrans><livenessInfoTrans><transition>to_win</transition><liveBindings></liveBindings><quasiLiveBindings><binding><varBinding><var>X</var><num>11</num>
+</varBinding><varBinding><var>b</var><enum>false</enum>
+</varBinding></binding>
+</quasiLiveBindings></livenessInfoTrans></livenessInfo></model-info></state-space-info>

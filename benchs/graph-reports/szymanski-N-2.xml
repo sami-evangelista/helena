@@ -1,0 +1,1930 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<state-space-info>
+
+<model>szymanski</model>
+<language>helena</language>
+<date>October, 10, 2017 at 10:53:37</date>
+<filePath>/home/sami/git/helena/examples/szymanski.lna</filePath>
+<modelParameters><modelParameter><modelParameterName>N</modelParameterName><modelParameterValue>2</modelParameterValue></modelParameter></modelParameters><states>489</states>
+<edges>915</edges>
+
+<bfs-info>
+<levels>43</levels>
+<max-level>26</max-level>
+<back-level-edges>84</back-level-edges>
+<max-back-level-edge>21</max-back-level-edge>
+<avg-back-level-edge>11.00</avg-back-level-edge>
+<bfs-levels>
+<level id="0"><states>1</states><edges>2</edges></level>
+<level id="1"><states>2</states><edges>4</edges></level>
+<level id="2"><states>3</states><edges>6</edges></level>
+<level id="3"><states>4</states><edges>8</edges></level>
+<level id="4"><states>5</states><edges>10</edges></level>
+<level id="5"><states>6</states><edges>12</edges></level>
+<level id="6"><states>7</states><edges>14</edges></level>
+<level id="7"><states>8</states><edges>16</edges></level>
+<level id="8"><states>10</states><edges>20</edges></level>
+<level id="9"><states>13</states><edges>26</edges></level>
+<level id="10"><states>16</states><edges>32</edges></level>
+<level id="11"><states>19</states><edges>37</edges></level>
+<level id="12"><states>22</states><edges>42</edges></level>
+<level id="13"><states>25</states><edges>48</edges></level>
+<level id="14"><states>25</states><edges>48</edges></level>
+<level id="15"><states>24</states><edges>46</edges></level>
+<level id="16"><states>24</states><edges>46</edges></level>
+<level id="17"><states>25</states><edges>48</edges></level>
+<level id="18"><states>26</states><edges>49</edges></level>
+<level id="19"><states>26</states><edges>48</edges></level>
+<level id="20"><states>25</states><edges>46</edges></level>
+<level id="21"><states>23</states><edges>40</edges></level>
+<level id="22"><states>19</states><edges>33</edges></level>
+<level id="23"><states>16</states><edges>27</edges></level>
+<level id="24"><states>13</states><edges>21</edges></level>
+<level id="25"><states>11</states><edges>16</edges></level>
+<level id="26"><states>8</states><edges>12</edges></level>
+<level id="27"><states>7</states><edges>13</edges></level>
+<level id="28"><states>9</states><edges>17</edges></level>
+<level id="29"><states>10</states><edges>19</edges></level>
+<level id="30"><states>11</states><edges>21</edges></level>
+<level id="31"><states>12</states><edges>23</edges></level>
+<level id="32"><states>11</states><edges>20</edges></level>
+<level id="33"><states>7</states><edges>14</edges></level>
+<level id="34"><states>5</states><edges>9</edges></level>
+<level id="35"><states>3</states><edges>6</edges></level>
+<level id="36"><states>2</states><edges>4</edges></level>
+<level id="37"><states>1</states><edges>2</edges></level>
+<level id="38"><states>1</states><edges>2</edges></level>
+<level id="39"><states>1</states><edges>2</edges></level>
+<level id="40"><states>1</states><edges>2</edges></level>
+<level id="41"><states>1</states><edges>2</edges></level>
+<level id="42"><states>1</states><edges>2</edges></level>
+</bfs-levels>
+<back-level-lengths>
+<length id="0">0.0000</length>
+<length id="1">3.5714</length>
+<length id="2">9.5238</length>
+<length id="3">0.0000</length>
+<length id="4">7.1429</length>
+<length id="5">0.0000</length>
+<length id="6">7.1429</length>
+<length id="7">16.6667</length>
+<length id="8">15.4762</length>
+<length id="9">0.0000</length>
+<length id="10">0.0000</length>
+<length id="11">0.0000</length>
+<length id="12">0.0000</length>
+<length id="13">4.7619</length>
+<length id="14">0.0000</length>
+<length id="15">7.1429</length>
+<length id="16">0.0000</length>
+<length id="17">0.0000</length>
+<length id="18">0.0000</length>
+<length id="19">0.0000</length>
+<length id="20">3.5714</length>
+<length id="21">25.0000</length>
+</back-level-lengths>
+</bfs-info>
+
+<degrees>
+<avg>1.8712</avg>
+<max-in>4</max-in>
+<max-out>2</max-out>
+<degree id="0"><in>0</in><out>0</out></degree>
+<degree id="1"><in>125</in><out>63</out></degree>
+<degree id="2"><in>305</in><out>426</out></degree>
+<degree id="3"><in>56</in><out>0</out></degree>
+<degree id="4"><in>3</in><out>0</out></degree>
+</degrees>
+
+<scc-info>
+<count>2</count>
+<trivial>0</trivial>
+<terminal>1</terminal>
+<largest>468</largest>
+</scc-info>
+
+<dfs-info>
+<stack-size id="2">0.4090</stack-size>
+<stack-size id="3">0.6135</stack-size>
+<stack-size id="4">0.8180</stack-size>
+<stack-size id="5">1.0225</stack-size>
+<stack-size id="6">1.2270</stack-size>
+<stack-size id="7">1.4315</stack-size>
+<stack-size id="8">1.6360</stack-size>
+<stack-size id="9">1.8405</stack-size>
+<stack-size id="10">2.0450</stack-size>
+<stack-size id="11">2.2495</stack-size>
+<stack-size id="12">2.4540</stack-size>
+<stack-size id="13">2.6585</stack-size>
+<stack-size id="14">2.8630</stack-size>
+<stack-size id="15">3.0675</stack-size>
+<stack-size id="16">3.2720</stack-size>
+<stack-size id="17">3.4765</stack-size>
+<stack-size id="18">3.6810</stack-size>
+<stack-size id="19">3.8855</stack-size>
+<stack-size id="20">4.0900</stack-size>
+<stack-size id="21">4.2945</stack-size>
+<stack-size id="22">4.4990</stack-size>
+<stack-size id="23">4.7035</stack-size>
+<stack-size id="24">4.9080</stack-size>
+<stack-size id="25">5.1125</stack-size>
+<stack-size id="26">5.3170</stack-size>
+<stack-size id="27">5.5215</stack-size>
+<stack-size id="28">5.7260</stack-size>
+<stack-size id="29">5.9305</stack-size>
+<stack-size id="30">6.1350</stack-size>
+<stack-size id="31">6.3395</stack-size>
+<stack-size id="32">6.5440</stack-size>
+<stack-size id="33">6.7485</stack-size>
+<stack-size id="34">6.9530</stack-size>
+<stack-size id="35">7.1575</stack-size>
+<stack-size id="36">7.3620</stack-size>
+<stack-size id="37">7.5665</stack-size>
+<stack-size id="38">7.7710</stack-size>
+<stack-size id="39">7.9755</stack-size>
+<stack-size id="40">8.1800</stack-size>
+<stack-size id="41">8.3845</stack-size>
+<stack-size id="42">8.5890</stack-size>
+<stack-size id="43">8.7935</stack-size>
+<stack-size id="44">8.9980</stack-size>
+<stack-size id="45">9.2025</stack-size>
+<stack-size id="46">9.4070</stack-size>
+<stack-size id="47">9.6115</stack-size>
+<stack-size id="48">9.8160</stack-size>
+<stack-size id="49">10.0204</stack-size>
+<stack-size id="50">10.2249</stack-size>
+<stack-size id="51">10.4294</stack-size>
+<stack-size id="52">10.6339</stack-size>
+<stack-size id="53">10.8384</stack-size>
+<stack-size id="54">11.0429</stack-size>
+<stack-size id="55">11.2474</stack-size>
+<stack-size id="56">11.4519</stack-size>
+<stack-size id="57">11.6564</stack-size>
+<stack-size id="58">11.8609</stack-size>
+<stack-size id="59">12.0654</stack-size>
+<stack-size id="60">12.2699</stack-size>
+<stack-size id="61">12.4744</stack-size>
+<stack-size id="62">12.6789</stack-size>
+<stack-size id="63">12.8834</stack-size>
+<stack-size id="64">13.0879</stack-size>
+<stack-size id="65">13.2924</stack-size>
+<stack-size id="66">13.4969</stack-size>
+<stack-size id="67">13.7014</stack-size>
+<stack-size id="68">13.9059</stack-size>
+<stack-size id="69">14.1104</stack-size>
+<stack-size id="70">14.3149</stack-size>
+<stack-size id="71">14.5194</stack-size>
+<stack-size id="72">14.7239</stack-size>
+<stack-size id="73">14.9284</stack-size>
+<stack-size id="74">15.1329</stack-size>
+<stack-size id="75">15.3374</stack-size>
+<stack-size id="76">15.5419</stack-size>
+<stack-size id="77">15.7464</stack-size>
+<stack-size id="78">14.9284</stack-size>
+<stack-size id="79">15.1329</stack-size>
+<stack-size id="80">14.7239</stack-size>
+<stack-size id="81">14.9284</stack-size>
+<stack-size id="82">14.5194</stack-size>
+<stack-size id="83">14.7239</stack-size>
+<stack-size id="84">14.3149</stack-size>
+<stack-size id="85">14.5194</stack-size>
+<stack-size id="86">14.1104</stack-size>
+<stack-size id="87">14.3149</stack-size>
+<stack-size id="88">14.5194</stack-size>
+<stack-size id="89">14.7239</stack-size>
+<stack-size id="90">13.9059</stack-size>
+<stack-size id="91">14.1104</stack-size>
+<stack-size id="92">14.3149</stack-size>
+<stack-size id="93">14.5194</stack-size>
+<stack-size id="94">13.0879</stack-size>
+<stack-size id="95">13.2924</stack-size>
+<stack-size id="96">13.4969</stack-size>
+<stack-size id="97">13.7014</stack-size>
+<stack-size id="98">13.9059</stack-size>
+<stack-size id="99">14.1104</stack-size>
+<stack-size id="100">14.3149</stack-size>
+<stack-size id="101">12.6789</stack-size>
+<stack-size id="102">12.8834</stack-size>
+<stack-size id="103">13.0879</stack-size>
+<stack-size id="104">13.2924</stack-size>
+<stack-size id="105">13.4969</stack-size>
+<stack-size id="106">13.7014</stack-size>
+<stack-size id="107">13.9059</stack-size>
+<stack-size id="108">14.1104</stack-size>
+<stack-size id="109">14.3149</stack-size>
+<stack-size id="110">14.5194</stack-size>
+<stack-size id="111">14.7239</stack-size>
+<stack-size id="112">14.9284</stack-size>
+<stack-size id="113">15.1329</stack-size>
+<stack-size id="114">15.3374</stack-size>
+<stack-size id="115">15.5419</stack-size>
+<stack-size id="116">15.7464</stack-size>
+<stack-size id="117">15.9509</stack-size>
+<stack-size id="118">16.1554</stack-size>
+<stack-size id="119">16.3599</stack-size>
+<stack-size id="120">16.5644</stack-size>
+<stack-size id="121">16.7689</stack-size>
+<stack-size id="122">16.9734</stack-size>
+<stack-size id="123">17.1779</stack-size>
+<stack-size id="124">17.3824</stack-size>
+<stack-size id="125">17.5869</stack-size>
+<stack-size id="126">17.7914</stack-size>
+<stack-size id="127">17.9959</stack-size>
+<stack-size id="128">18.2004</stack-size>
+<stack-size id="129">18.4049</stack-size>
+<stack-size id="130">18.6094</stack-size>
+<stack-size id="131">18.8139</stack-size>
+<stack-size id="132">19.0184</stack-size>
+<stack-size id="133">19.2229</stack-size>
+<stack-size id="134">19.4274</stack-size>
+<stack-size id="135">19.6319</stack-size>
+<stack-size id="136">19.8364</stack-size>
+<stack-size id="137">19.2229</stack-size>
+<stack-size id="138">19.4274</stack-size>
+<stack-size id="139">19.6319</stack-size>
+<stack-size id="140">18.8139</stack-size>
+<stack-size id="141">19.0184</stack-size>
+<stack-size id="142">18.6094</stack-size>
+<stack-size id="143">18.4049</stack-size>
+<stack-size id="144">18.6094</stack-size>
+<stack-size id="145">18.8139</stack-size>
+<stack-size id="146">18.2004</stack-size>
+<stack-size id="147">18.4049</stack-size>
+<stack-size id="148">17.9959</stack-size>
+<stack-size id="149">18.2004</stack-size>
+<stack-size id="150">18.4049</stack-size>
+<stack-size id="151">18.6094</stack-size>
+<stack-size id="152">17.5869</stack-size>
+<stack-size id="153">17.7914</stack-size>
+<stack-size id="154">17.9959</stack-size>
+<stack-size id="155">18.2004</stack-size>
+<stack-size id="156">18.4049</stack-size>
+<stack-size id="157">17.3824</stack-size>
+<stack-size id="158">16.5644</stack-size>
+<stack-size id="159">16.7689</stack-size>
+<stack-size id="160">16.9734</stack-size>
+<stack-size id="161">17.1779</stack-size>
+<stack-size id="162">17.3824</stack-size>
+<stack-size id="163">17.5869</stack-size>
+<stack-size id="164">17.7914</stack-size>
+<stack-size id="165">17.9959</stack-size>
+<stack-size id="166">18.2004</stack-size>
+<stack-size id="167">15.1329</stack-size>
+<stack-size id="168">15.3374</stack-size>
+<stack-size id="169">15.5419</stack-size>
+<stack-size id="170">15.7464</stack-size>
+<stack-size id="171">15.9509</stack-size>
+<stack-size id="172">14.9284</stack-size>
+<stack-size id="173">15.1329</stack-size>
+<stack-size id="174">15.3374</stack-size>
+<stack-size id="175">15.5419</stack-size>
+<stack-size id="176">14.7239</stack-size>
+<stack-size id="177">14.9284</stack-size>
+<stack-size id="178">15.1329</stack-size>
+<stack-size id="179">15.3374</stack-size>
+<stack-size id="180">13.7014</stack-size>
+<stack-size id="181">13.9059</stack-size>
+<stack-size id="182">14.1104</stack-size>
+<stack-size id="183">14.3149</stack-size>
+<stack-size id="184">14.5194</stack-size>
+<stack-size id="185">14.7239</stack-size>
+<stack-size id="186">14.9284</stack-size>
+<stack-size id="187">13.4969</stack-size>
+<stack-size id="188">13.7014</stack-size>
+<stack-size id="189">13.9059</stack-size>
+<stack-size id="190">14.1104</stack-size>
+<stack-size id="191">14.3149</stack-size>
+<stack-size id="192">14.5194</stack-size>
+<stack-size id="193">14.7239</stack-size>
+<stack-size id="194">13.2924</stack-size>
+<stack-size id="195">13.4969</stack-size>
+<stack-size id="196">13.7014</stack-size>
+<stack-size id="197">13.9059</stack-size>
+<stack-size id="198">14.1104</stack-size>
+<stack-size id="199">14.3149</stack-size>
+<stack-size id="200">14.5194</stack-size>
+<stack-size id="201">14.7239</stack-size>
+<stack-size id="202">14.9284</stack-size>
+<stack-size id="203">15.1329</stack-size>
+<stack-size id="204">15.3374</stack-size>
+<stack-size id="205">15.5419</stack-size>
+<stack-size id="206">15.7464</stack-size>
+<stack-size id="207">15.9509</stack-size>
+<stack-size id="208">14.3149</stack-size>
+<stack-size id="209">14.5194</stack-size>
+<stack-size id="210">14.7239</stack-size>
+<stack-size id="211">14.9284</stack-size>
+<stack-size id="212">15.1329</stack-size>
+<stack-size id="213">15.3374</stack-size>
+<stack-size id="214">15.5419</stack-size>
+<stack-size id="215">15.7464</stack-size>
+<stack-size id="216">15.9509</stack-size>
+<stack-size id="217">16.1554</stack-size>
+<stack-size id="218">16.3599</stack-size>
+<stack-size id="219">16.5644</stack-size>
+<stack-size id="220">16.7689</stack-size>
+<stack-size id="221">16.9734</stack-size>
+<stack-size id="222">17.1779</stack-size>
+<stack-size id="223">17.3824</stack-size>
+<stack-size id="224">14.1104</stack-size>
+<stack-size id="225">14.3149</stack-size>
+<stack-size id="226">14.5194</stack-size>
+<stack-size id="227">14.7239</stack-size>
+<stack-size id="228">14.9284</stack-size>
+<stack-size id="229">15.1329</stack-size>
+<stack-size id="230">15.3374</stack-size>
+<stack-size id="231">15.5419</stack-size>
+<stack-size id="232">13.9059</stack-size>
+<stack-size id="233">14.1104</stack-size>
+<stack-size id="234">14.3149</stack-size>
+<stack-size id="235">14.5194</stack-size>
+<stack-size id="236">14.7239</stack-size>
+<stack-size id="237">14.9284</stack-size>
+<stack-size id="238">15.1329</stack-size>
+<stack-size id="239">15.3374</stack-size>
+<stack-size id="240">13.7014</stack-size>
+<stack-size id="241">13.9059</stack-size>
+<stack-size id="242">14.1104</stack-size>
+<stack-size id="243">14.3149</stack-size>
+<stack-size id="244">14.5194</stack-size>
+<stack-size id="245">14.7239</stack-size>
+<stack-size id="246">14.9284</stack-size>
+<stack-size id="247">15.1329</stack-size>
+<stack-size id="248">13.4969</stack-size>
+<stack-size id="249">13.7014</stack-size>
+<stack-size id="250">13.9059</stack-size>
+<stack-size id="251">14.1104</stack-size>
+<stack-size id="252">12.4744</stack-size>
+<stack-size id="253">12.6789</stack-size>
+<stack-size id="254">12.8834</stack-size>
+<stack-size id="255">13.0879</stack-size>
+<stack-size id="256">13.2924</stack-size>
+<stack-size id="257">13.4969</stack-size>
+<stack-size id="258">13.7014</stack-size>
+<stack-size id="259">13.9059</stack-size>
+<stack-size id="260">9.8160</stack-size>
+<stack-size id="261">10.0204</stack-size>
+<stack-size id="262">10.2249</stack-size>
+<stack-size id="263">10.4294</stack-size>
+<stack-size id="264">10.6339</stack-size>
+<stack-size id="265">10.8384</stack-size>
+<stack-size id="266">11.0429</stack-size>
+<stack-size id="267">11.2474</stack-size>
+<stack-size id="268">11.4519</stack-size>
+<stack-size id="269">11.6564</stack-size>
+<stack-size id="270">11.8609</stack-size>
+<stack-size id="271">9.6115</stack-size>
+<stack-size id="272">9.8160</stack-size>
+<stack-size id="273">10.0204</stack-size>
+<stack-size id="274">10.2249</stack-size>
+<stack-size id="275">10.4294</stack-size>
+<stack-size id="276">10.6339</stack-size>
+<stack-size id="277">10.8384</stack-size>
+<stack-size id="278">11.0429</stack-size>
+<stack-size id="279">11.2474</stack-size>
+<stack-size id="280">11.4519</stack-size>
+<stack-size id="281">11.2474</stack-size>
+<stack-size id="282">11.4519</stack-size>
+<stack-size id="283">11.6564</stack-size>
+<stack-size id="284">11.8609</stack-size>
+<stack-size id="285">12.0654</stack-size>
+<stack-size id="286">11.6564</stack-size>
+<stack-size id="287">11.8609</stack-size>
+<stack-size id="288">11.4519</stack-size>
+<stack-size id="289">11.6564</stack-size>
+<stack-size id="290">11.0429</stack-size>
+<stack-size id="291">11.2474</stack-size>
+<stack-size id="292">11.4519</stack-size>
+<stack-size id="293">10.8384</stack-size>
+<stack-size id="294">11.0429</stack-size>
+<stack-size id="295">11.2474</stack-size>
+<stack-size id="296">11.4519</stack-size>
+<stack-size id="297">11.6564</stack-size>
+<stack-size id="298">11.8609</stack-size>
+<stack-size id="299">12.0654</stack-size>
+<stack-size id="300">12.2699</stack-size>
+<stack-size id="301">12.4744</stack-size>
+<stack-size id="302">12.6789</stack-size>
+<stack-size id="303">12.8834</stack-size>
+<stack-size id="304">13.0879</stack-size>
+<stack-size id="305">13.2924</stack-size>
+<stack-size id="306">11.8609</stack-size>
+<stack-size id="307">12.0654</stack-size>
+<stack-size id="308">12.2699</stack-size>
+<stack-size id="309">12.4744</stack-size>
+<stack-size id="310">12.6789</stack-size>
+<stack-size id="311">12.8834</stack-size>
+<stack-size id="312">13.0879</stack-size>
+<stack-size id="313">11.6564</stack-size>
+<stack-size id="314">7.1575</stack-size>
+<stack-size id="315">7.3620</stack-size>
+<stack-size id="316">7.5665</stack-size>
+<stack-size id="317">6.9530</stack-size>
+<stack-size id="318">7.1575</stack-size>
+<stack-size id="319">7.3620</stack-size>
+<stack-size id="320">6.5440</stack-size>
+<stack-size id="321">6.7485</stack-size>
+<stack-size id="322">6.9530</stack-size>
+<stack-size id="323">7.1575</stack-size>
+<stack-size id="324">6.3395</stack-size>
+<stack-size id="325">6.5440</stack-size>
+<stack-size id="326">6.7485</stack-size>
+<stack-size id="327">6.9530</stack-size>
+<stack-size id="328">6.1350</stack-size>
+<stack-size id="329">6.3395</stack-size>
+<stack-size id="330">6.5440</stack-size>
+<stack-size id="331">6.7485</stack-size>
+<stack-size id="332">2.2495</stack-size>
+<stack-size id="333">2.4540</stack-size>
+<stack-size id="334">2.6585</stack-size>
+<stack-size id="335">2.8630</stack-size>
+<stack-size id="336">3.0675</stack-size>
+<stack-size id="337">3.2720</stack-size>
+<stack-size id="338">3.4765</stack-size>
+<stack-size id="339">3.6810</stack-size>
+<stack-size id="340">3.8855</stack-size>
+<stack-size id="341">4.0900</stack-size>
+<stack-size id="342">4.2945</stack-size>
+<stack-size id="343">4.4990</stack-size>
+<stack-size id="344">4.7035</stack-size>
+<stack-size id="345">4.9080</stack-size>
+<stack-size id="346">5.1125</stack-size>
+<stack-size id="347">5.3170</stack-size>
+<stack-size id="348">5.5215</stack-size>
+<stack-size id="349">3.6810</stack-size>
+<stack-size id="350">3.8855</stack-size>
+<stack-size id="351">4.0900</stack-size>
+<stack-size id="352">4.2945</stack-size>
+<stack-size id="353">4.4990</stack-size>
+<stack-size id="354">4.7035</stack-size>
+<stack-size id="355">4.9080</stack-size>
+<stack-size id="356">5.1125</stack-size>
+<stack-size id="357">5.3170</stack-size>
+<stack-size id="358">3.4765</stack-size>
+<stack-size id="359">3.6810</stack-size>
+<stack-size id="360">3.8855</stack-size>
+<stack-size id="361">4.0900</stack-size>
+<stack-size id="362">4.2945</stack-size>
+<stack-size id="363">4.4990</stack-size>
+<stack-size id="364">4.7035</stack-size>
+<stack-size id="365">4.9080</stack-size>
+<stack-size id="366">5.1125</stack-size>
+<stack-size id="367">3.2720</stack-size>
+<stack-size id="368">3.4765</stack-size>
+<stack-size id="369">3.6810</stack-size>
+<stack-size id="370">3.8855</stack-size>
+<stack-size id="371">4.0900</stack-size>
+<stack-size id="372">4.2945</stack-size>
+<stack-size id="373">4.4990</stack-size>
+<stack-size id="374">4.7035</stack-size>
+<stack-size id="375">4.9080</stack-size>
+<stack-size id="376">5.1125</stack-size>
+<stack-size id="377">5.3170</stack-size>
+<stack-size id="378">5.5215</stack-size>
+<stack-size id="379">5.7260</stack-size>
+<stack-size id="380">5.9305</stack-size>
+<stack-size id="381">6.1350</stack-size>
+<stack-size id="382">6.3395</stack-size>
+<stack-size id="383">6.5440</stack-size>
+<stack-size id="384">6.7485</stack-size>
+<stack-size id="385">6.9530</stack-size>
+<stack-size id="386">7.1575</stack-size>
+<stack-size id="387">5.1125</stack-size>
+<stack-size id="388">4.9080</stack-size>
+<stack-size id="389">3.0675</stack-size>
+<stack-size id="390">3.2720</stack-size>
+<stack-size id="391">3.4765</stack-size>
+<stack-size id="392">3.6810</stack-size>
+<stack-size id="393">3.8855</stack-size>
+<stack-size id="394">4.0900</stack-size>
+<stack-size id="395">4.2945</stack-size>
+<stack-size id="396">4.4990</stack-size>
+<stack-size id="397">4.7035</stack-size>
+<stack-size id="398">2.8630</stack-size>
+<stack-size id="399">3.0675</stack-size>
+<stack-size id="400">3.2720</stack-size>
+<stack-size id="401">3.4765</stack-size>
+<stack-size id="402">3.6810</stack-size>
+<stack-size id="403">3.8855</stack-size>
+<stack-size id="404">4.0900</stack-size>
+<stack-size id="405">4.2945</stack-size>
+<stack-size id="406">4.4990</stack-size>
+<stack-size id="407">2.6585</stack-size>
+<stack-size id="408">2.8630</stack-size>
+<stack-size id="409">3.0675</stack-size>
+<stack-size id="410">3.2720</stack-size>
+<stack-size id="411">3.4765</stack-size>
+<stack-size id="412">1.6360</stack-size>
+<stack-size id="413">1.8405</stack-size>
+<stack-size id="414">2.0450</stack-size>
+<stack-size id="415">2.2495</stack-size>
+<stack-size id="416">2.4540</stack-size>
+<stack-size id="417">2.6585</stack-size>
+<stack-size id="418">2.8630</stack-size>
+<stack-size id="419">3.0675</stack-size>
+<stack-size id="420">3.2720</stack-size>
+<stack-size id="421">1.4315</stack-size>
+<stack-size id="422">1.6360</stack-size>
+<stack-size id="423">1.8405</stack-size>
+<stack-size id="424">2.0450</stack-size>
+<stack-size id="425">2.2495</stack-size>
+<stack-size id="426">2.4540</stack-size>
+<stack-size id="427">2.6585</stack-size>
+<stack-size id="428">2.8630</stack-size>
+<stack-size id="429">3.0675</stack-size>
+<stack-size id="430">1.2270</stack-size>
+<stack-size id="431">1.4315</stack-size>
+<stack-size id="432">1.6360</stack-size>
+<stack-size id="433">1.8405</stack-size>
+<stack-size id="434">2.0450</stack-size>
+<stack-size id="435">2.2495</stack-size>
+<stack-size id="436">2.4540</stack-size>
+<stack-size id="437">2.6585</stack-size>
+<stack-size id="438">2.8630</stack-size>
+<stack-size id="439">0.6135</stack-size>
+<stack-size id="440">0.8180</stack-size>
+<stack-size id="441">1.0225</stack-size>
+<stack-size id="442">1.2270</stack-size>
+<stack-size id="443">1.4315</stack-size>
+<stack-size id="444">1.6360</stack-size>
+<stack-size id="445">1.8405</stack-size>
+<stack-size id="446">2.0450</stack-size>
+<stack-size id="447">2.2495</stack-size>
+<stack-size id="448">2.4540</stack-size>
+<stack-size id="449">2.6585</stack-size>
+<stack-size id="450">2.6585</stack-size>
+<stack-size id="451">2.8630</stack-size>
+<stack-size id="452">3.0675</stack-size>
+<stack-size id="453">2.8630</stack-size>
+<stack-size id="454">2.4540</stack-size>
+<stack-size id="455">2.2495</stack-size>
+<stack-size id="456">2.4540</stack-size>
+<stack-size id="457">2.6585</stack-size>
+<stack-size id="458">2.0450</stack-size>
+<stack-size id="459">2.2495</stack-size>
+<stack-size id="460">2.4540</stack-size>
+<stack-size id="461">2.6585</stack-size>
+<stack-size id="462">2.8630</stack-size>
+<stack-size id="463">3.0675</stack-size>
+<stack-size id="464">2.6585</stack-size>
+<stack-size id="465">2.8630</stack-size>
+<stack-size id="466">1.8405</stack-size>
+<stack-size id="467">2.0450</stack-size>
+<stack-size id="468">2.2495</stack-size>
+<stack-size id="469">2.4540</stack-size>
+<stack-size id="470">0.4090</stack-size>
+<stack-size id="471">0.6135</stack-size>
+<stack-size id="472">0.8180</stack-size>
+<stack-size id="473">1.0225</stack-size>
+<stack-size id="474">1.2270</stack-size>
+<stack-size id="475">1.4315</stack-size>
+<stack-size id="476">1.6360</stack-size>
+<stack-size id="477">1.8405</stack-size>
+<stack-size id="478">2.0450</stack-size>
+<stack-size id="479">2.2495</stack-size>
+<stack-size id="480">2.4540</stack-size>
+<stack-size id="481">2.6585</stack-size>
+<stack-size id="482">2.8630</stack-size>
+<stack-size id="483">3.0675</stack-size>
+<stack-size id="484">3.2720</stack-size>
+<stack-size id="485">3.4765</stack-size>
+<stack-size id="486">3.6810</stack-size>
+<stack-size id="487">3.8855</stack-size>
+<stack-size id="488">4.0900</stack-size>
+<stack-size id="489">4.2945</stack-size>
+<max-stack>97</max-stack>
+<front-edges>488</front-edges>
+<back-edges>45</back-edges>
+<cross-edges>382</cross-edges>
+<shortest-cycle>8</shortest-cycle>
+</dfs-info>
+
+<model-info><placeBounds><placeBound><place>a</place><minCard>1</minCard><maxCard>1</maxCard><minMult>1</minMult><maxMult>1</maxMult></placeBound><placeBound><place>w</place><minCard>1</minCard><maxCard>1</maxCard><minMult>1</minMult><maxMult>1</maxMult></placeBound><placeBound><place>s</place><minCard>1</minCard><maxCard>1</maxCard><minMult>1</minMult><maxMult>1</maxMult></placeBound><placeBound><place>ncs</place><minCard>0</minCard><maxCard>2</maxCard><minMult>0</minMult><maxMult>2</maxMult></placeBound><placeBound><place>p2</place><minCard>0</minCard><maxCard>2</maxCard><minMult>0</minMult><maxMult>2</maxMult></placeBound><placeBound><place>p3</place><minCard>0</minCard><maxCard>2</maxCard><minMult>0</minMult><maxMult>2</maxMult></placeBound><placeBound><place>p4</place><minCard>0</minCard><maxCard>2</maxCard><minMult>0</minMult><maxMult>2</maxMult></placeBound><placeBound><place>p5</place><minCard>0</minCard><maxCard>2</maxCard><minMult>0</minMult><maxMult>2</maxMult></placeBound><placeBound><place>p6</place><minCard>0</minCard><maxCard>2</maxCard><minMult>0</minMult><maxMult>2</maxMult></placeBound><placeBound><place>p61</place><minCard>0</minCard><maxCard>2</maxCard><minMult>0</minMult><maxMult>2</maxMult></placeBound><placeBound><place>p64</place><minCard>0</minCard><maxCard>2</maxCard><minMult>0</minMult><maxMult>2</maxMult></placeBound><placeBound><place>p7</place><minCard>0</minCard><maxCard>2</maxCard><minMult>0</minMult><maxMult>2</maxMult></placeBound><placeBound><place>p71</place><minCard>0</minCard><maxCard>1</maxCard><minMult>0</minMult><maxMult>1</maxMult></placeBound><placeBound><place>p8</place><minCard>0</minCard><maxCard>2</maxCard><minMult>0</minMult><maxMult>2</maxMult></placeBound><placeBound><place>p9</place><minCard>0</minCard><maxCard>2</maxCard><minMult>0</minMult><maxMult>2</maxMult></placeBound><placeBound><place>cs</place><minCard>0</minCard><maxCard>1</maxCard><minMult>0</minMult><maxMult>1</maxMult></placeBound></placeBounds><possibleTokens><possibleTokensPlace><place>a</place><token><mult>1</mult><exprList><vector>
+<exprList>
+<enum>false</enum>
+<enum>false</enum>
+</exprList>
+</vector>
+</exprList></token>
+<token><mult>1</mult><exprList><vector>
+<exprList>
+<enum>false</enum>
+<enum>true</enum>
+</exprList>
+</vector>
+</exprList></token>
+<token><mult>1</mult><exprList><vector>
+<exprList>
+<enum>true</enum>
+<enum>false</enum>
+</exprList>
+</vector>
+</exprList></token>
+<token><mult>1</mult><exprList><vector>
+<exprList>
+<enum>true</enum>
+<enum>true</enum>
+</exprList>
+</vector>
+</exprList></token>
+</possibleTokensPlace><possibleTokensPlace><place>w</place><token><mult>1</mult><exprList><vector>
+<exprList>
+<enum>false</enum>
+<enum>false</enum>
+</exprList>
+</vector>
+</exprList></token>
+<token><mult>1</mult><exprList><vector>
+<exprList>
+<enum>false</enum>
+<enum>true</enum>
+</exprList>
+</vector>
+</exprList></token>
+<token><mult>1</mult><exprList><vector>
+<exprList>
+<enum>true</enum>
+<enum>false</enum>
+</exprList>
+</vector>
+</exprList></token>
+<token><mult>1</mult><exprList><vector>
+<exprList>
+<enum>true</enum>
+<enum>true</enum>
+</exprList>
+</vector>
+</exprList></token>
+</possibleTokensPlace><possibleTokensPlace><place>s</place><token><mult>1</mult><exprList><vector>
+<exprList>
+<enum>false</enum>
+<enum>false</enum>
+</exprList>
+</vector>
+</exprList></token>
+<token><mult>1</mult><exprList><vector>
+<exprList>
+<enum>false</enum>
+<enum>true</enum>
+</exprList>
+</vector>
+</exprList></token>
+<token><mult>1</mult><exprList><vector>
+<exprList>
+<enum>true</enum>
+<enum>false</enum>
+</exprList>
+</vector>
+</exprList></token>
+<token><mult>1</mult><exprList><vector>
+<exprList>
+<enum>true</enum>
+<enum>true</enum>
+</exprList>
+</vector>
+</exprList></token>
+</possibleTokensPlace><possibleTokensPlace><place>ncs</place><token><mult>1</mult><exprList><num>0</num>
+<num>0</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<num>0</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<num>1</num>
+</exprList></token>
+</possibleTokensPlace><possibleTokensPlace><place>p2</place><token><mult>1</mult><exprList><num>0</num>
+<num>0</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>0</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>0</num>
+<num>2</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<num>0</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<num>2</num>
+</exprList></token>
+</possibleTokensPlace><possibleTokensPlace><place>p3</place><token><mult>1</mult><exprList><num>0</num>
+<num>2</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<num>2</num>
+</exprList></token>
+</possibleTokensPlace><possibleTokensPlace><place>p4</place><token><mult>1</mult><exprList><num>0</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>0</num>
+<num>2</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<num>0</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<num>2</num>
+</exprList></token>
+</possibleTokensPlace><possibleTokensPlace><place>p5</place><token><mult>1</mult><exprList><num>0</num>
+<num>0</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>0</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>0</num>
+<num>2</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<num>0</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<num>2</num>
+</exprList></token>
+</possibleTokensPlace><possibleTokensPlace><place>p6</place><token><mult>1</mult><exprList><num>0</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>0</num>
+<num>2</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<num>0</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<num>2</num>
+</exprList></token>
+</possibleTokensPlace><possibleTokensPlace><place>p61</place><token><mult>1</mult><exprList><num>0</num>
+<num>0</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>0</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>0</num>
+<num>2</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<num>0</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<num>2</num>
+</exprList></token>
+</possibleTokensPlace><possibleTokensPlace><place>p64</place><token><mult>1</mult><exprList><num>0</num>
+<num>0</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>0</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>0</num>
+<num>2</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<num>0</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<num>2</num>
+</exprList></token>
+</possibleTokensPlace><possibleTokensPlace><place>p7</place><token><mult>1</mult><exprList><num>0</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>0</num>
+<num>2</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<num>0</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<num>2</num>
+</exprList></token>
+</possibleTokensPlace><possibleTokensPlace><place>p71</place><token><mult>1</mult><exprList><num>0</num>
+<num>0</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>0</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>0</num>
+<num>2</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<num>0</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<num>2</num>
+</exprList></token>
+</possibleTokensPlace><possibleTokensPlace><place>p8</place><token><mult>1</mult><exprList><num>0</num>
+<num>1</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>0</num>
+<num>2</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<num>0</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<num>2</num>
+</exprList></token>
+</possibleTokensPlace><possibleTokensPlace><place>p9</place><token><mult>1</mult><exprList><num>0</num>
+<num>0</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<num>0</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<num>1</num>
+</exprList></token>
+</possibleTokensPlace><possibleTokensPlace><place>cs</place><token><mult>1</mult><exprList><num>0</num>
+<num>0</num>
+</exprList></token>
+<token><mult>1</mult><exprList><num>1</num>
+<num>1</num>
+</exprList></token>
+</possibleTokensPlace></possibleTokens><deadMarkings><noDeadMarkings>0</noDeadMarkings></deadMarkings><livenessInfo><livenessInfoTrans><transition>ncsToP2</transition><liveBindings><binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>a</var><vector>
+<exprList>
+<enum>false</enum>
+<enum>false</enum>
+</exprList>
+</vector>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>a</var><vector>
+<exprList>
+<enum>false</enum>
+<enum>true</enum>
+</exprList>
+</vector>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>a</var><vector>
+<exprList>
+<enum>false</enum>
+<enum>false</enum>
+</exprList>
+</vector>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>a</var><vector>
+<exprList>
+<enum>true</enum>
+<enum>false</enum>
+</exprList>
+</vector>
+</varBinding></binding>
+</liveBindings><quasiLiveBindings><binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>a</var><vector>
+<exprList>
+<enum>false</enum>
+<enum>false</enum>
+</exprList>
+</vector>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>a</var><vector>
+<exprList>
+<enum>true</enum>
+<enum>false</enum>
+</exprList>
+</vector>
+</varBinding></binding>
+</quasiLiveBindings></livenessInfoTrans><livenessInfoTrans><transition>p2ToP2</transition><liveBindings><binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>s</var><vector>
+<exprList>
+<enum>false</enum>
+<enum>false</enum>
+</exprList>
+</vector>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>s</var><vector>
+<exprList>
+<enum>false</enum>
+<enum>true</enum>
+</exprList>
+</vector>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>s</var><vector>
+<exprList>
+<enum>false</enum>
+<enum>false</enum>
+</exprList>
+</vector>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>s</var><vector>
+<exprList>
+<enum>false</enum>
+<enum>false</enum>
+</exprList>
+</vector>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>s</var><vector>
+<exprList>
+<enum>false</enum>
+<enum>false</enum>
+</exprList>
+</vector>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>s</var><vector>
+<exprList>
+<enum>true</enum>
+<enum>false</enum>
+</exprList>
+</vector>
+</varBinding></binding>
+</liveBindings><quasiLiveBindings></quasiLiveBindings></livenessInfoTrans><livenessInfoTrans><transition>p2ToP3</transition><liveBindings><binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding></binding>
+</liveBindings><quasiLiveBindings></quasiLiveBindings></livenessInfoTrans><livenessInfoTrans><transition>p3ToP4</transition><liveBindings><binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>a</var><vector>
+<exprList>
+<enum>true</enum>
+<enum>false</enum>
+</exprList>
+</vector>
+</varBinding><varBinding><var>w</var><vector>
+<exprList>
+<enum>false</enum>
+<enum>false</enum>
+</exprList>
+</vector>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>a</var><vector>
+<exprList>
+<enum>true</enum>
+<enum>false</enum>
+</exprList>
+</vector>
+</varBinding><varBinding><var>w</var><vector>
+<exprList>
+<enum>false</enum>
+<enum>true</enum>
+</exprList>
+</vector>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>a</var><vector>
+<exprList>
+<enum>true</enum>
+<enum>true</enum>
+</exprList>
+</vector>
+</varBinding><varBinding><var>w</var><vector>
+<exprList>
+<enum>false</enum>
+<enum>false</enum>
+</exprList>
+</vector>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>a</var><vector>
+<exprList>
+<enum>false</enum>
+<enum>true</enum>
+</exprList>
+</vector>
+</varBinding><varBinding><var>w</var><vector>
+<exprList>
+<enum>false</enum>
+<enum>false</enum>
+</exprList>
+</vector>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>a</var><vector>
+<exprList>
+<enum>false</enum>
+<enum>true</enum>
+</exprList>
+</vector>
+</varBinding><varBinding><var>w</var><vector>
+<exprList>
+<enum>true</enum>
+<enum>false</enum>
+</exprList>
+</vector>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>a</var><vector>
+<exprList>
+<enum>true</enum>
+<enum>true</enum>
+</exprList>
+</vector>
+</varBinding><varBinding><var>w</var><vector>
+<exprList>
+<enum>false</enum>
+<enum>false</enum>
+</exprList>
+</vector>
+</varBinding></binding>
+</liveBindings><quasiLiveBindings></quasiLiveBindings></livenessInfoTrans><livenessInfoTrans><transition>p4ToP9</transition><liveBindings><binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>s</var><vector>
+<exprList>
+<enum>true</enum>
+<enum>true</enum>
+</exprList>
+</vector>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>s</var><vector>
+<exprList>
+<enum>true</enum>
+<enum>false</enum>
+</exprList>
+</vector>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>s</var><vector>
+<exprList>
+<enum>true</enum>
+<enum>true</enum>
+</exprList>
+</vector>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>s</var><vector>
+<exprList>
+<enum>false</enum>
+<enum>true</enum>
+</exprList>
+</vector>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>s</var><vector>
+<exprList>
+<enum>true</enum>
+<enum>true</enum>
+</exprList>
+</vector>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>s</var><vector>
+<exprList>
+<enum>false</enum>
+<enum>true</enum>
+</exprList>
+</vector>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>s</var><vector>
+<exprList>
+<enum>true</enum>
+<enum>true</enum>
+</exprList>
+</vector>
+</varBinding></binding>
+</liveBindings><quasiLiveBindings></quasiLiveBindings></livenessInfoTrans><livenessInfoTrans><transition>p4ToP5</transition><liveBindings><binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>s</var><vector>
+<exprList>
+<enum>false</enum>
+<enum>false</enum>
+</exprList>
+</vector>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>s</var><vector>
+<exprList>
+<enum>false</enum>
+<enum>true</enum>
+</exprList>
+</vector>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>s</var><vector>
+<exprList>
+<enum>false</enum>
+<enum>false</enum>
+</exprList>
+</vector>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>s</var><vector>
+<exprList>
+<enum>true</enum>
+<enum>false</enum>
+</exprList>
+</vector>
+</varBinding></binding>
+</liveBindings><quasiLiveBindings></quasiLiveBindings></livenessInfoTrans><livenessInfoTrans><transition>p5ToP5</transition><liveBindings><binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>a</var><vector>
+<exprList>
+<enum>false</enum>
+<enum>false</enum>
+</exprList>
+</vector>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>a</var><vector>
+<exprList>
+<enum>false</enum>
+<enum>true</enum>
+</exprList>
+</vector>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>a</var><vector>
+<exprList>
+<enum>false</enum>
+<enum>false</enum>
+</exprList>
+</vector>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>a</var><vector>
+<exprList>
+<enum>false</enum>
+<enum>false</enum>
+</exprList>
+</vector>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>a</var><vector>
+<exprList>
+<enum>false</enum>
+<enum>false</enum>
+</exprList>
+</vector>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>a</var><vector>
+<exprList>
+<enum>true</enum>
+<enum>false</enum>
+</exprList>
+</vector>
+</varBinding></binding>
+</liveBindings><quasiLiveBindings></quasiLiveBindings></livenessInfoTrans><livenessInfoTrans><transition>p5ToP6</transition><liveBindings><binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>a</var><vector>
+<exprList>
+<enum>true</enum>
+<enum>false</enum>
+</exprList>
+</vector>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>a</var><vector>
+<exprList>
+<enum>false</enum>
+<enum>false</enum>
+</exprList>
+</vector>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>a</var><vector>
+<exprList>
+<enum>true</enum>
+<enum>false</enum>
+</exprList>
+</vector>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>a</var><vector>
+<exprList>
+<enum>false</enum>
+<enum>true</enum>
+</exprList>
+</vector>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>a</var><vector>
+<exprList>
+<enum>false</enum>
+<enum>false</enum>
+</exprList>
+</vector>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>a</var><vector>
+<exprList>
+<enum>false</enum>
+<enum>true</enum>
+</exprList>
+</vector>
+</varBinding></binding>
+</liveBindings><quasiLiveBindings></quasiLiveBindings></livenessInfoTrans><livenessInfoTrans><transition>p6ToP7</transition><liveBindings><binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding></binding>
+</liveBindings><quasiLiveBindings></quasiLiveBindings></livenessInfoTrans><livenessInfoTrans><transition>p6ToP61</transition><liveBindings><binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>s</var><vector>
+<exprList>
+<enum>false</enum>
+<enum>false</enum>
+</exprList>
+</vector>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>s</var><vector>
+<exprList>
+<enum>false</enum>
+<enum>true</enum>
+</exprList>
+</vector>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>s</var><vector>
+<exprList>
+<enum>false</enum>
+<enum>false</enum>
+</exprList>
+</vector>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>s</var><vector>
+<exprList>
+<enum>true</enum>
+<enum>false</enum>
+</exprList>
+</vector>
+</varBinding></binding>
+</liveBindings><quasiLiveBindings></quasiLiveBindings></livenessInfoTrans><livenessInfoTrans><transition>p61ToP61</transition><liveBindings><binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>a</var><vector>
+<exprList>
+<enum>false</enum>
+<enum>false</enum>
+</exprList>
+</vector>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>a</var><vector>
+<exprList>
+<enum>false</enum>
+<enum>true</enum>
+</exprList>
+</vector>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>a</var><vector>
+<exprList>
+<enum>false</enum>
+<enum>false</enum>
+</exprList>
+</vector>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>a</var><vector>
+<exprList>
+<enum>false</enum>
+<enum>false</enum>
+</exprList>
+</vector>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>a</var><vector>
+<exprList>
+<enum>false</enum>
+<enum>false</enum>
+</exprList>
+</vector>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>a</var><vector>
+<exprList>
+<enum>true</enum>
+<enum>false</enum>
+</exprList>
+</vector>
+</varBinding></binding>
+</liveBindings><quasiLiveBindings></quasiLiveBindings></livenessInfoTrans><livenessInfoTrans><transition>p61ToP7</transition><liveBindings><binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>a</var><vector>
+<exprList>
+<enum>true</enum>
+<enum>false</enum>
+</exprList>
+</vector>
+</varBinding><varBinding><var>s</var><vector>
+<exprList>
+<enum>false</enum>
+<enum>true</enum>
+</exprList>
+</vector>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>a</var><vector>
+<exprList>
+<enum>false</enum>
+<enum>true</enum>
+</exprList>
+</vector>
+</varBinding><varBinding><var>s</var><vector>
+<exprList>
+<enum>true</enum>
+<enum>false</enum>
+</exprList>
+</vector>
+</varBinding></binding>
+</liveBindings><quasiLiveBindings></quasiLiveBindings></livenessInfoTrans><livenessInfoTrans><transition>p61ToP64</transition><liveBindings><binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>w</var><vector>
+<exprList>
+<enum>true</enum>
+<enum>false</enum>
+</exprList>
+</vector>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>w</var><vector>
+<exprList>
+<enum>true</enum>
+<enum>true</enum>
+</exprList>
+</vector>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>w</var><vector>
+<exprList>
+<enum>false</enum>
+<enum>true</enum>
+</exprList>
+</vector>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>w</var><vector>
+<exprList>
+<enum>true</enum>
+<enum>true</enum>
+</exprList>
+</vector>
+</varBinding></binding>
+</liveBindings><quasiLiveBindings></quasiLiveBindings></livenessInfoTrans><livenessInfoTrans><transition>p64ToP64</transition><liveBindings><binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>w</var><vector>
+<exprList>
+<enum>false</enum>
+<enum>false</enum>
+</exprList>
+</vector>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>w</var><vector>
+<exprList>
+<enum>false</enum>
+<enum>true</enum>
+</exprList>
+</vector>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>w</var><vector>
+<exprList>
+<enum>false</enum>
+<enum>false</enum>
+</exprList>
+</vector>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>w</var><vector>
+<exprList>
+<enum>false</enum>
+<enum>false</enum>
+</exprList>
+</vector>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>w</var><vector>
+<exprList>
+<enum>false</enum>
+<enum>false</enum>
+</exprList>
+</vector>
+</varBinding></binding>
+</liveBindings><quasiLiveBindings></quasiLiveBindings></livenessInfoTrans><livenessInfoTrans><transition>p64ToP7</transition><liveBindings><binding><varBinding><var>i</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding></binding>
+</liveBindings><quasiLiveBindings></quasiLiveBindings></livenessInfoTrans><livenessInfoTrans><transition>p7ToP8</transition><liveBindings><binding><varBinding><var>i</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding></binding>
+</liveBindings><quasiLiveBindings></quasiLiveBindings></livenessInfoTrans><livenessInfoTrans><transition>p7ToP71</transition><liveBindings><binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding></binding>
+</liveBindings><quasiLiveBindings></quasiLiveBindings></livenessInfoTrans><livenessInfoTrans><transition>p71ToP71</transition><liveBindings><binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>w</var><vector>
+<exprList>
+<enum>true</enum>
+<enum>false</enum>
+</exprList>
+</vector>
+</varBinding><varBinding><var>s</var><vector>
+<exprList>
+<enum>false</enum>
+<enum>false</enum>
+</exprList>
+</vector>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>w</var><vector>
+<exprList>
+<enum>true</enum>
+<enum>false</enum>
+</exprList>
+</vector>
+</varBinding><varBinding><var>s</var><vector>
+<exprList>
+<enum>false</enum>
+<enum>true</enum>
+</exprList>
+</vector>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>w</var><vector>
+<exprList>
+<enum>true</enum>
+<enum>true</enum>
+</exprList>
+</vector>
+</varBinding><varBinding><var>s</var><vector>
+<exprList>
+<enum>false</enum>
+<enum>false</enum>
+</exprList>
+</vector>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>w</var><vector>
+<exprList>
+<enum>true</enum>
+<enum>true</enum>
+</exprList>
+</vector>
+</varBinding><varBinding><var>s</var><vector>
+<exprList>
+<enum>false</enum>
+<enum>true</enum>
+</exprList>
+</vector>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>w</var><vector>
+<exprList>
+<enum>false</enum>
+<enum>true</enum>
+</exprList>
+</vector>
+</varBinding><varBinding><var>s</var><vector>
+<exprList>
+<enum>false</enum>
+<enum>false</enum>
+</exprList>
+</vector>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>w</var><vector>
+<exprList>
+<enum>true</enum>
+<enum>true</enum>
+</exprList>
+</vector>
+</varBinding><varBinding><var>s</var><vector>
+<exprList>
+<enum>false</enum>
+<enum>false</enum>
+</exprList>
+</vector>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>w</var><vector>
+<exprList>
+<enum>true</enum>
+<enum>true</enum>
+</exprList>
+</vector>
+</varBinding><varBinding><var>s</var><vector>
+<exprList>
+<enum>true</enum>
+<enum>false</enum>
+</exprList>
+</vector>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>w</var><vector>
+<exprList>
+<enum>true</enum>
+<enum>false</enum>
+</exprList>
+</vector>
+</varBinding><varBinding><var>s</var><vector>
+<exprList>
+<enum>false</enum>
+<enum>false</enum>
+</exprList>
+</vector>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>w</var><vector>
+<exprList>
+<enum>true</enum>
+<enum>true</enum>
+</exprList>
+</vector>
+</varBinding><varBinding><var>s</var><vector>
+<exprList>
+<enum>false</enum>
+<enum>false</enum>
+</exprList>
+</vector>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>w</var><vector>
+<exprList>
+<enum>true</enum>
+<enum>true</enum>
+</exprList>
+</vector>
+</varBinding><varBinding><var>s</var><vector>
+<exprList>
+<enum>false</enum>
+<enum>true</enum>
+</exprList>
+</vector>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>w</var><vector>
+<exprList>
+<enum>false</enum>
+<enum>true</enum>
+</exprList>
+</vector>
+</varBinding><varBinding><var>s</var><vector>
+<exprList>
+<enum>false</enum>
+<enum>false</enum>
+</exprList>
+</vector>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>w</var><vector>
+<exprList>
+<enum>false</enum>
+<enum>true</enum>
+</exprList>
+</vector>
+</varBinding><varBinding><var>s</var><vector>
+<exprList>
+<enum>true</enum>
+<enum>false</enum>
+</exprList>
+</vector>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>w</var><vector>
+<exprList>
+<enum>true</enum>
+<enum>true</enum>
+</exprList>
+</vector>
+</varBinding><varBinding><var>s</var><vector>
+<exprList>
+<enum>false</enum>
+<enum>false</enum>
+</exprList>
+</vector>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>w</var><vector>
+<exprList>
+<enum>true</enum>
+<enum>true</enum>
+</exprList>
+</vector>
+</varBinding><varBinding><var>s</var><vector>
+<exprList>
+<enum>true</enum>
+<enum>false</enum>
+</exprList>
+</vector>
+</varBinding></binding>
+</liveBindings><quasiLiveBindings></quasiLiveBindings></livenessInfoTrans><livenessInfoTrans><transition>p71ToP8</transition><liveBindings><binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>w</var><vector>
+<exprList>
+<enum>true</enum>
+<enum>false</enum>
+</exprList>
+</vector>
+</varBinding><varBinding><var>s</var><vector>
+<exprList>
+<enum>false</enum>
+<enum>true</enum>
+</exprList>
+</vector>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>w</var><vector>
+<exprList>
+<enum>true</enum>
+<enum>false</enum>
+</exprList>
+</vector>
+</varBinding><varBinding><var>s</var><vector>
+<exprList>
+<enum>false</enum>
+<enum>false</enum>
+</exprList>
+</vector>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>w</var><vector>
+<exprList>
+<enum>true</enum>
+<enum>false</enum>
+</exprList>
+</vector>
+</varBinding><varBinding><var>s</var><vector>
+<exprList>
+<enum>false</enum>
+<enum>true</enum>
+</exprList>
+</vector>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>w</var><vector>
+<exprList>
+<enum>true</enum>
+<enum>true</enum>
+</exprList>
+</vector>
+</varBinding><varBinding><var>s</var><vector>
+<exprList>
+<enum>false</enum>
+<enum>false</enum>
+</exprList>
+</vector>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>w</var><vector>
+<exprList>
+<enum>true</enum>
+<enum>true</enum>
+</exprList>
+</vector>
+</varBinding><varBinding><var>s</var><vector>
+<exprList>
+<enum>false</enum>
+<enum>true</enum>
+</exprList>
+</vector>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>w</var><vector>
+<exprList>
+<enum>false</enum>
+<enum>true</enum>
+</exprList>
+</vector>
+</varBinding><varBinding><var>s</var><vector>
+<exprList>
+<enum>false</enum>
+<enum>false</enum>
+</exprList>
+</vector>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>w</var><vector>
+<exprList>
+<enum>false</enum>
+<enum>true</enum>
+</exprList>
+</vector>
+</varBinding><varBinding><var>s</var><vector>
+<exprList>
+<enum>true</enum>
+<enum>false</enum>
+</exprList>
+</vector>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>w</var><vector>
+<exprList>
+<enum>true</enum>
+<enum>true</enum>
+</exprList>
+</vector>
+</varBinding><varBinding><var>s</var><vector>
+<exprList>
+<enum>false</enum>
+<enum>false</enum>
+</exprList>
+</vector>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding><varBinding><var>w</var><vector>
+<exprList>
+<enum>true</enum>
+<enum>true</enum>
+</exprList>
+</vector>
+</varBinding><varBinding><var>s</var><vector>
+<exprList>
+<enum>true</enum>
+<enum>false</enum>
+</exprList>
+</vector>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>w</var><vector>
+<exprList>
+<enum>false</enum>
+<enum>true</enum>
+</exprList>
+</vector>
+</varBinding><varBinding><var>s</var><vector>
+<exprList>
+<enum>true</enum>
+<enum>false</enum>
+</exprList>
+</vector>
+</varBinding></binding>
+</liveBindings><quasiLiveBindings></quasiLiveBindings></livenessInfoTrans><livenessInfoTrans><transition>p8ToP4</transition><liveBindings><binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>w</var><vector>
+<exprList>
+<enum>false</enum>
+<enum>true</enum>
+</exprList>
+</vector>
+</varBinding><varBinding><var>s</var><vector>
+<exprList>
+<enum>true</enum>
+<enum>false</enum>
+</exprList>
+</vector>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>w</var><vector>
+<exprList>
+<enum>true</enum>
+<enum>false</enum>
+</exprList>
+</vector>
+</varBinding><varBinding><var>s</var><vector>
+<exprList>
+<enum>false</enum>
+<enum>true</enum>
+</exprList>
+</vector>
+</varBinding></binding>
+</liveBindings><quasiLiveBindings></quasiLiveBindings></livenessInfoTrans><livenessInfoTrans><transition>p8ToP4_2</transition><liveBindings><binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>2</num>
+</varBinding></binding>
+</liveBindings><quasiLiveBindings></quasiLiveBindings></livenessInfoTrans><livenessInfoTrans><transition>p9ToP9</transition><liveBindings><binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>w</var><vector>
+<exprList>
+<enum>false</enum>
+<enum>false</enum>
+</exprList>
+</vector>
+</varBinding><varBinding><var>s</var><vector>
+<exprList>
+<enum>false</enum>
+<enum>true</enum>
+</exprList>
+</vector>
+</varBinding></binding>
+</liveBindings><quasiLiveBindings></quasiLiveBindings></livenessInfoTrans><livenessInfoTrans><transition>p9ToCs</transition><liveBindings><binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding></binding>
+</liveBindings><quasiLiveBindings></quasiLiveBindings></livenessInfoTrans><livenessInfoTrans><transition>csToNcs</transition><liveBindings><binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>s</var><vector>
+<exprList>
+<enum>true</enum>
+<enum>false</enum>
+</exprList>
+</vector>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>0</num>
+</varBinding><varBinding><var>j</var><num>0</num>
+</varBinding><varBinding><var>s</var><vector>
+<exprList>
+<enum>true</enum>
+<enum>true</enum>
+</exprList>
+</vector>
+</varBinding></binding>
+<binding><varBinding><var>i</var><num>1</num>
+</varBinding><varBinding><var>j</var><num>1</num>
+</varBinding><varBinding><var>s</var><vector>
+<exprList>
+<enum>false</enum>
+<enum>true</enum>
+</exprList>
+</vector>
+</varBinding></binding>
+</liveBindings><quasiLiveBindings></quasiLiveBindings></livenessInfoTrans></livenessInfo></model-info></state-space-info>
