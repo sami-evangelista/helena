@@ -44,6 +44,14 @@ bool_t dbfs_comm_check_for_termination
 
 
 /**
+ *  @brief dbfs_comm_notify_queue_state
+ */
+void dbfs_comm_notify_queue_state
+(worker_id_t w,
+ bool_t empty);
+
+
+/**
  * @brief dbfs_comm_send_all_pending_states
  */
 void dbfs_comm_send_all_pending_states

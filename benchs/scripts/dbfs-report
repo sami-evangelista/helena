@@ -94,7 +94,6 @@ ls -1 $outDir/*xml | \
 for l in T C
 do
     echo ";" >> plot$l
-    cat plot$l
     cat plot$l | gnuplot
     rm plot$l
 done

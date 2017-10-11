@@ -6,11 +6,35 @@
 #include "shmem.h"
 
 #define COMM_SHMEM_CHUNK_SIZE 10000
-#define COMM_SHMEM_DEBUG
+#define COMM_SHMEM_DEBUG_XXX
+
+bool_t COMM_SHMEM_INITIALISED;
+
+void * shmem_initialiser
+(void * arg) {
+  shmem_init();
+  COMM_SHMEM_INITIALISED = TRUE;
+  return NULL;
+}
 
 void comm_shmem_init
 () {
-  shmem_init();
+  void * dummy;
+  pthread_t t;
+  uint32_t max_trials = 1000;
+  const struct timespec wait_time = { 0, 10 * 1000 * 1000 };  /* 10 ms */
+
+  COMM_SHMEM_INITIALISED = FALSE;
+  pthread_create(&t, NULL, shmem_initialiser, NULL);
+  while(!COMM_SHMEM_INITIALISED) {
+    max_trials --;
+    nanosleep(&wait_time, NULL);
+    if(0 == max_trials) {
+      printf("fatal error: could not initialise shmem\n");
+      exit(1);
+    }
+  }
+  pthread_join(t, &dummy);
 }
 
 void comm_shmem_barrier

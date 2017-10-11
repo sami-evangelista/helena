@@ -12,7 +12,7 @@
 
 #define BFS_DEBUG_XXX
 
-#define WAIT_QUEUE_TIME_MS 200
+#define WAIT_QUEUE_TIME_MS 1
 
 const struct timespec WAIT_QUEUE_TIME = { 0, WAIT_QUEUE_TIME_MS * 1000000 };
 
@@ -44,7 +44,7 @@ void bfs_init_queue
   bool_t levels = cfg_algo_dbfs() ? 1 : 2;
   bool_t events_in_queue = cfg_edge_lean();
   uint16_t no_workers =
-    CFG_NO_WORKERS + (cfg_algo_bfs() ? CFG_NO_COMM_WORKERS : 0);
+    CFG_NO_WORKERS + (cfg_algo_dbfs() ? CFG_NO_COMM_WORKERS : 0);
 #if defined(STORAGE_STATE_RECOVERABLE)
   bool_t states_in_queue = FALSE;
 #else
@@ -57,21 +57,19 @@ void bfs_init_queue
 
 bool_t bfs_check_termination
 (worker_id_t w) {
+  bool_t result = FALSE;
   
 #if defined(CFG_ALGO_DBFS)
 
   dbfs_comm_send_all_pending_states(w);
-  while(!dbfs_comm_check_for_termination()) {
-    if(!bfs_queue_local_is_empty(Q, w)) {
-      return FALSE;
-    }
+  while(!(result = dbfs_comm_check_for_termination())
+	&& bfs_queue_local_is_empty(Q, w)) {
+    dbfs_comm_notify_queue_state(w, TRUE);
     nanosleep(&WAIT_QUEUE_TIME, NULL);
   }
-  return TRUE;
+  return result;
   
 #else
-
-  bool_t result;
   
   bfs_wait_barrier();
   bfs_queue_switch_level(Q, w);
@@ -132,6 +130,9 @@ void * bfs_worker
   while(!termination) {
 #if defined(BFS_DEBUG)
     printf("[%d,w%d] at BFS level %d\n", context_proc_id(), w, levels);
+#endif
+#if defined(CFG_ALGO_DBFS)
+    dbfs_comm_notify_queue_state(w, FALSE);
 #endif
     for(x = 0; x < bfs_queue_no_workers(Q); x ++) {
       while(!bfs_queue_slot_is_empty(Q, x, w)) {
