@@ -11,12 +11,17 @@
 #define WORKER_STATE_BUFFER_LEN 10000
 #define MAX_PES                 100
 
-#define DBFS_COMM_DEBUG_XXX
+#define DBFS_COMM_DEBUG
 
 typedef struct {
   uint32_t no_states;
   uint32_t len;
 } buffer_data_t;
+
+typedef struct {
+  uint32_t packets_sent;
+  uint32_t queue_size;
+} worker_data_t;
 
 typedef struct {
   heap_t * heaps[CFG_NO_WORKERS];
@@ -45,39 +50,21 @@ int ME;
  * synchronisation stuff
  */
 pthread_mutex_t DBFS_MUTEX;
-pthread_barrier_t DBFS_LOCAL_BARRIER;
-pthread_barrier_t DBFS_COMM_BARRIER;
-
-
-/**
- * termination detection data
- */
-bool_t LOCAL_TERM;
-bool_t GLOB_TERM;
-unsigned int NO_TERM;
-bool_t REMOTE_TERM[MAX_PES];
 
 
 /**
  * remotely accessible items
  */
-static bool_t H_TERM = FALSE;
-static buffer_data_t H_DATA[CFG_NO_WORKERS][MAX_PES];
-static uint64_t H_QUEUE_SIZE = 0;
 static char H[CFG_SHMEM_HEAP_SIZE];
+static buffer_data_t H_BUFFER_DATA[CFG_NO_WORKERS][MAX_PES];
+static worker_data_t H_WORKER_DATA[CFG_NO_WORKERS];
 
 
-void dbfs_comm_init_term_data
+bool_t dbfs_comm_check_for_termination
 () {
-  int pe;
+  bool_t result = FALSE;
   
-  LOCAL_TERM = FALSE;
-  NO_TERM = 0;
-  for(pe = 0; pe < PES; pe ++) {
-    REMOTE_TERM[pe] = FALSE;
-  }
-  H_TERM = FALSE;
-  H_QUEUE_SIZE = 0;
+  return result;
 }
 
 
@@ -99,32 +86,6 @@ bool_t dbfs_comm_state_owned
 }
 
 
-bool_t dbfs_comm_global_termination
-() {
-  return GLOB_TERM;
-}
-
-
-void dbfs_comm_notify_level_termination
-() {
-  LOCAL_TERM = TRUE;
-}
-
-
-void dbfs_comm_local_barrier
-() {
-  context_barrier_wait(&DBFS_LOCAL_BARRIER);
-}
-
-
-void dbfs_comm_comm_barrier
-() {
-#if CFG_NO_COMM_WORKERS > 1
-  context_barrier_wait(&DBFS_COMM_BARRIER);
-#endif
-}
-
-
 void dbfs_comm_reinit_buffer
 (worker_id_t w,
  int pe) {
@@ -137,13 +98,16 @@ void dbfs_comm_reinit_buffer
   BUF.no_ids[w][pe] = 0;
 }
 
+
 void dbfs_comm_poll_remote_pe
 (worker_id_t w,
  int pe) {
   buffer_data_t data;
   
   do {
-    comm_shmem_get(&data, &H_DATA[w][ME], sizeof(buffer_data_t), pe);
+    printf("ici\n");
+    comm_shmem_get(&data, &H_BUFFER_DATA[w][ME], sizeof(buffer_data_t), pe);
+    printf("la\n");
     if(data.no_states > 0) {
       nanosleep(&WORKER_WAIT_TIME, NULL);
     }
@@ -170,7 +134,13 @@ void dbfs_comm_send_buffer
   /**
    * poll the remote PE to see if I can send my states
    */
+#if defined(DBFS_COMM_DEBUG)
+  printf("[%d,%d] polls %d\n", ME, w, pe);
+#endif
   dbfs_comm_poll_remote_pe(w, pe);
+#if defined(DBFS_COMM_DEBUG)
+  printf("[%d,%d] polls %d done\n", ME, w, pe);
+#endif
 
   /**
    * send my states to the remote PE
@@ -186,7 +156,7 @@ void dbfs_comm_send_buffer
     pos += sizeof(hash_key_t) + sizeof(uint16_t) + size;
   }
 #if defined(DBFS_COMM_DEBUG)
-  assert(buf.pos == BUF.len[w][pe]);
+  assert(pos == BUF.len[w][pe]);
 #endif
   comm_shmem_put(H + BUF.remote_pos[w][pe], buffer, pos, pe);
 
@@ -195,7 +165,7 @@ void dbfs_comm_send_buffer
    */
   data.no_states = hash_tbl_size(BUF.states[w][pe]);
   data.len = pos;
-  comm_shmem_put(&H_DATA[w][ME], &data, sizeof(buffer_data_t), pe);
+  comm_shmem_put(&H_BUFFER_DATA[w][ME], &data, sizeof(buffer_data_t), pe);
 #if defined(DBFS_COMM_DEBUG)
   printf("[%d,%d] sends %d states to [%d] at pos %d\n",
          ME, w, data.no_states, pe, BUF.remote_pos[w][pe]);
@@ -226,22 +196,6 @@ void dbfs_comm_send_all_pending_states
   }
 #if defined(DBFS_COMM_DEBUG)
   printf("[%d,w%d] sends pending states done\n", context_proc_id(), w);
-#endif
-  
-  /**
-   * poll all remote PEs to see to make sure that all the states I've
-   * sent have been consumed
-   */
-#if defined(DBFS_COMM_DEBUG)
-  printf("[%d,w%d] polls\n", context_proc_id(), w);
-#endif
-  for(pe = 0; pe < PES; pe ++) {
-    if(pe != ME) {
-      dbfs_comm_poll_remote_pe(w, pe);
-    }
-  }
-#if defined(DBFS_COMM_DEBUG)
-  printf("[%d,w%d] polls done\n", context_proc_id(), w);
 #endif
 }
 
@@ -305,18 +259,18 @@ void dbfs_comm_worker_process_incoming_states
       if(pe != ME) {
         for(x = 0; x < CFG_NO_WORKERS; x ++, pos += DBFS_HEAP_SIZE_WORKER) {
           pthread_mutex_lock(&DBFS_MUTEX);
-          if(0 == H_DATA[x][pe].no_states) {
+          if(0 == H_BUFFER_DATA[x][pe].no_states) {
             pthread_mutex_unlock(&DBFS_MUTEX);
           } else {
 #if defined(DBFS_COMM_DEBUG)
             printf("[%d] received %d states from [%d,%d] at pos %d\n",
-                   ME, H_DATA[x][pe].no_states, pe, x, pos);
+                   ME, H_BUFFER_DATA[x][pe].no_states, pe, x, pos);
 #endif
-            states_received = TRUE;
-            comm_shmem_get(buffer, H + pos, H_DATA[x][pe].len, ME);
-            no_states = H_DATA[x][pe].no_states;
-            H_DATA[x][pe].no_states = 0;
-            H_DATA[x][pe].len = 0;
+	    states_received = TRUE;
+            comm_shmem_get(buffer, H + pos, H_BUFFER_DATA[x][pe].len, ME);
+            no_states = H_BUFFER_DATA[x][pe].no_states;
+            H_BUFFER_DATA[x][pe].no_states = 0;
+            H_BUFFER_DATA[x][pe].len = 0;
             pthread_mutex_unlock(&DBFS_MUTEX);
             tmp_pos = 0;
             while((no_states --) > 0) {
@@ -367,95 +321,14 @@ void dbfs_comm_worker_process_incoming_states
 void * dbfs_comm_worker
 (void * arg) {
   const comm_worker_id_t c = (comm_worker_id_t) (uint64_t) arg;
-  const worker_id_t w = c + CFG_NO_WORKERS;
-  int pe;
-  uint64_t queue_size;
-  bool_t term;
-
-  while(!GLOB_TERM) {
-
-    /**
-     * sleep a bit and process incoming states
-     */
+  
+  /**
+   * sleep a bit and process incoming states until search finished
+   */
+  while(context_keep_searching()) {
     nanosleep(&COMM_WAIT_TIME, NULL);
     dbfs_comm_worker_process_incoming_states(c);
-    
-    /**
-     * local threads have terminated the current BFS level.  set
-     * H_TERM to TRUE to notify other PE.  also check whether it is
-     * also the case for other PEs.  done by communicator 0 only
-     */
-    if(LOCAL_TERM && 0 == c) {
-      if(!H_TERM) {
-        H_TERM = TRUE;
-        NO_TERM = 1;
-      }
-      for(pe = 0; pe < PES; pe ++) {
-        if(pe != ME && !REMOTE_TERM[pe]) {
-          comm_shmem_get(&REMOTE_TERM[pe], &H_TERM, sizeof(bool_t), pe);
-          if(REMOTE_TERM[pe]) {
-            NO_TERM ++;
-          }
-        }
-      }
-    }
-
-    /**
-     * all PEs have terminated the current level
-     */
-    if(NO_TERM == PES) {
-
-      /**
-       * every PE puts in its heap its queue size and read others's
-       * to check for termination.  done by communicator 0 only
-       */
-      if(0 == c) {
-#if defined(DBFS_COMM_DEBUG)
-        printf("[%d,c%d] at barrier 0\n", ME, c);
-#endif
-        comm_shmem_barrier();
-        H_QUEUE_SIZE = bfs_queue_size(Q);
-#if defined(DBFS_COMM_DEBUG)
-        printf("[%d,c%d] at barrier 1\n", ME, c);
-#endif
-        comm_shmem_barrier();
-        if(0 == H_QUEUE_SIZE) {
-          term = TRUE;
-          for(pe = 0; pe < PES && term; pe ++) {
-            if(pe != ME) {
-              comm_shmem_get(&queue_size, &H_QUEUE_SIZE, sizeof(uint64_t), pe);
-              if(0 != queue_size) {
-                term = FALSE;
-              }
-            }
-          }
-          GLOB_TERM = term;
-        }
-#if defined(DBFS_COMM_DEBUG)
-        printf("[%d,c%d] at barrier 2\n", ME, c);
-#endif
-        comm_shmem_barrier();
-      }
-      
-      /**
-       * all communicator threads synchronise then reinitialise
-       * everything for termination detection at next level and
-       * synchronise with the working threads
-       */
-#if defined(DBFS_COMM_DEBUG)
-      printf("[%d,c%d] at barrier 3\n", ME, c);
-#endif
-      dbfs_comm_comm_barrier();
-      dbfs_comm_init_term_data();
-#if defined(DBFS_COMM_DEBUG)
-      printf("[%d,c%d] at barrier 4\n", ME, c);
-#endif
-      dbfs_comm_local_barrier();
-    }
   }
-#if defined(DBFS_COMM_DEBUG)
-  printf("[%d,c%d] terminated\n", ME, c);
-#endif
 }
 
 
@@ -476,11 +349,6 @@ void dbfs_comm_start
   /* initialise global variables */
   Q = q;
   S = context_storage();
-  GLOB_TERM = FALSE;
-  dbfs_comm_init_term_data();
-  pthread_barrier_init(&DBFS_LOCAL_BARRIER, NULL,
-		       CFG_NO_WORKERS + CFG_NO_COMM_WORKERS);
-  pthread_barrier_init(&DBFS_COMM_BARRIER, NULL, CFG_NO_COMM_WORKERS);
   pthread_mutex_init(&DBFS_MUTEX, NULL);
   for(w = 0; w < CFG_NO_WORKERS; w ++) {
     BUF.heaps[w] = mem_alloc(SYSTEM_HEAP, sizeof(heap_t) * PES);
@@ -496,8 +364,8 @@ void dbfs_comm_start
       remote_pos -= DBFS_HEAP_SIZE_PE;
     }
     for(w = 0; w < CFG_NO_WORKERS; w ++) {
-      H_DATA[w][pe].len = 0;
-      H_DATA[w][pe].no_states = 0;
+      H_BUFFER_DATA[w][pe].len = 0;
+      H_BUFFER_DATA[w][pe].no_states = 0;
       if(ME == pe) {
         BUF.remote_pos[w][pe] = 0;          
       } else {

@@ -6,13 +6,11 @@
 #include "shmem.h"
 
 #define COMM_SHMEM_CHUNK_SIZE 10000
-#define COMM_SHMEM_DEBUG_XXX
+#define COMM_SHMEM_DEBUG
 
 void comm_shmem_init
 () {
-  printf("init shmem\n");
   shmem_init();
-  printf("init done\n");
 }
 
 void comm_shmem_barrier
