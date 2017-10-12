@@ -69,7 +69,7 @@ fun compileStateType s = let
     val (consts, comps) = List.partition isCompConst comps
     val arrayTypeDefs = compileArrayTypes ()
 
-    fun compileConst comp = let
+    fun compileConstDef comp = let
 	val v = valOf (getCompVar comp)
 	val t = Var.getTyp v
     in
@@ -134,7 +134,7 @@ in
      Utils.fmt {init  = if consts <> [] then "/*  constants  */\n" else "",
 		sep   = "\n",
 		final = "",
-		fmt   = compileConst} consts
+		fmt   = compileConstDef} consts
      ],
      concatLines [
      "void mstate_free (mstate_t s) {",
@@ -251,13 +251,27 @@ fun gen (s, hFile, cFile) = let
     val comps = buildStateComps s
     val map = buildMapping comps
     val (consts, comps) = List.partition isCompConst comps
-    fun compileConst comp = let
+    fun compileConstInit comp = let
 	val v = valOf (getCompVar comp)
+        val name = getCompName comp
 	val t = Var.getTyp v
-	val i = Var.getInit v
+        val i = valOf(Var.getInit v)
+        val assigns = (0, "")
     in
-	SOME ("   " ^ (getCompName comp) ^ " = " ^ 
-	      (compileExpr "" (valOf i) (NONE, map, comps, false)) ^ ";")
+        case (t, i) of
+        (Typ.ARRAY_TYPE (bt, n), Expr.ARRAY_INIT(_, l)) => let
+           val assigns = List.foldr (fn (e, (idx, assigns)) => let
+              val init = (compileExpr "" e (NONE, map, comps, false))
+              val a = name ^ "[" ^ (Int.toString idx) ^ "] = " ^ init ^ ";"
+           in
+              (idx + 1, a :: assigns)
+           end) (0, []) l
+           val (_, assigns) = assigns
+        in
+          SOME (concatLines assigns)
+        end
+      | _ => (SOME ("   " ^ name ^ " = " ^ 
+	      (compileExpr "" i (NONE, map, comps, false)) ^ ";"))
     end
 in
     (*
@@ -297,7 +311,7 @@ in
     Utils.fmt {init  = "",
 	       sep   = "\n",
 	       final = "",
-	       fmt   = compileConst} consts,
+	       fmt   = compileConstInit} consts,
     "}",
     "void free_model () {",
     "}" ])
