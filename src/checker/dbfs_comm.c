@@ -330,7 +330,8 @@ void dbfs_comm_worker_process_incoming_states
 		d = h % cfg_no_workers();
 		if(cfg_hash_compaction()) {
 		  heap_reset(COMM_HEAPS[c]);
-		  s = state_unserialise_mem(buffer + tmp_pos - s_len, heap);
+		  s = state_unserialise_mem(buffer + tmp_pos - s_len,
+                                            COMM_HEAPS[c]);
 		  item.s = s;
 		}
                 bfs_queue_enqueue(Q, item, w, d);

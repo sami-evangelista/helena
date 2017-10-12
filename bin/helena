@@ -4,11 +4,8 @@
 #
 
 gcc='/usr/bin/gcc'
-shcc='/home/sevangelista/openmpi3/bin/oshcc'
-shcc='/home/sevangelista/openmpi/bin/oshcc'
-
-shrun='/home/sevangelista/openmpi3/bin/oshrun -mca btl self,vader,sm,openib'
-shrun='/home/sevangelista/openmpi/bin/oshrun -mca btl self,vader,sm,openib'
+shcc='/usr/bin/oshcc'
+shrun='/usr/bin/oshrun'
 
 helenaDir=$HOME/.helena
 tmpDir=$HOME/.helena/tmp-$RANDOM

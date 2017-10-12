@@ -44,17 +44,15 @@ ls -1 $outDir/*xml | \
     do
         echo $m
         datT=$outDir/$m.time.dat
-        datV=$outDir/$m.visited.dat
         datC=$outDir/$m.cpu.dat
         echo > $datT
-        echo > $datV
         echo > $datC
         for N in $(seq 1 $MAX)
         do
             f=$outDir/$m"_N"$N.xml
             if [ -f "$f" ]
             then
-                l=$(scripts/get-stat $f searchTime)
+		l=$(scripts/get-stat $f searchTime)
                 resT=$(scripts/list-op min $l)
                 l=$(scripts/get-stat $f statesStored)
                 st=$(scripts/list-op sum $l)
@@ -63,16 +61,14 @@ ls -1 $outDir/*xml | \
 		l=$(scripts/get-stat $f arcs)
 		tr=$(scripts/list-op sum $l)
             elif [ $N = 1 ]
-            then
-                break
-            fi
-            if [ $N = 1 ]
-            then
+ 	    then
+		break
+	    fi
+	    if [ $N = 1 ]
+	    then
 		refSt=$st
                 refT=$resT
-                refV=$resV
                 echo 1 1 >> $datT
-                echo 1 1 >> $datV
                 echo 1 1 >> $datC
             else
 		if [ $refSt != $st ]
