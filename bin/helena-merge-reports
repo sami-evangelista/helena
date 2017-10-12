@@ -33,6 +33,7 @@ def mergeNode(nodeName, doSum, refDoc, docs):
 def mergeReports(refDoc, docs):
     for (node, doSum) in [ ("arcs", False),
                            ("barrierTime", False),
+                           ("sleepTime", False),
                            ("bfsLevels", False),
                            ("distributedBarrierTime", False),
                            ("duplicateDetectionTime", False),

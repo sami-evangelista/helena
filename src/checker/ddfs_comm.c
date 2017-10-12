@@ -2,8 +2,6 @@
 #include "ddfs_comm.h"
 #include "comm_shmem.h"
 
-#if defined(CFG_ALGO_DDFS)
-
 #define MAX_PES            100
 #define PRODUCE_PERIOD_MS  20
 #define CONSUME_PERIOD_MS  5
@@ -144,7 +142,7 @@ void * ddfs_comm_producer
   const worker_id_t my_worker_id = CFG_NO_WORKERS;
   
   while(context_keep_searching()) {
-    nanosleep(&PRODUCE_PERIOD, NULL);
+    context_sleep(PRODUCE_PERIOD);
 
     /**
      *  wait that all other pes have consumed my states
@@ -152,7 +150,7 @@ void * ddfs_comm_producer
     for(pe = 0; pe < PES; pe ++) {
       if(pe != ME) {
         while(PUB_DATA.produced[pe] && context_keep_searching()) {
-          nanosleep(&CONSUME_PERIOD, NULL);
+          context_sleep(CONSUME_PERIOD);
         }
       }
     }
@@ -166,7 +164,7 @@ void * ddfs_comm_producer
       
       /*  wait for the bucket of thread w to be ready  */
       while(!CAS(&BUF.status[w], BUCKET_OK, BUCKET_WRITE)) {
-	nanosleep(&WAIT_TIME, NULL);
+	context_sleep(WAIT_TIME);
       }
 
       /*  copy the buffer of worker w to my local  heap  */
@@ -209,7 +207,7 @@ void * ddfs_comm_consumer
   
   while(context_keep_searching()) {
     
-    nanosleep(&CONSUME_PERIOD, NULL);
+    context_sleep(CONSUME_PERIOD);
 
     /**
      * get states put by remote PEs in their heap and put these in my
@@ -218,7 +216,7 @@ void * ddfs_comm_consumer
     for(pe = 0; pe < PES; pe ++) {
       if(ME != pe) {
 	while(!CAS(&LOCK, LOCK_AVAILABLE, LOCK_TAKEN)) {
-	  nanosleep(&CONSUME_WAIT_TIME, NULL);
+	  context_sleep(CONSUME_WAIT_TIME);
 	}
 	comm_shmem_get(&remote_data, &PUB_DATA, sizeof(pub_data_t), pe);
         if(!remote_data.produced[ME]) {
@@ -326,5 +324,3 @@ void ddfs_comm_end
   }
   comm_shmem_finalize(NULL);
 }
-
-#endif  /*  defined(CFG_ALGO_DDFS)  */

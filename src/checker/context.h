@@ -160,4 +160,7 @@ void context_set_avg_cpu_usage
 void context_barrier_wait
 (pthread_barrier_t * b);
 
+void context_sleep
+(struct timespec t);
+
 #endif

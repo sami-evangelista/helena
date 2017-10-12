@@ -44,7 +44,7 @@ int main
      *  catch SIGINT by changing the context state
      */
     signal(SIGINT, context_interruption_handler);
-
+    
     /*
      *  launch the search
      */

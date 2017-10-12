@@ -34,12 +34,13 @@ typedef struct {
   uint64_t bytes_sent;
   uint64_t exec_time;
   uint64_t states_max_stored;
+  uint64_t barrier_time;
+  uint64_t distributed_barrier_time;
+  uint64_t sleep_time;
   unsigned int bfs_levels;
   bool_t bfs_levels_ok;
   float max_mem_used;
   float comp_time;
-  uint64_t barrier_time;
-  uint64_t distributed_barrier_time;
   float avg_cpu_usage;
 
   /*  threads  */
@@ -97,6 +98,7 @@ void context_init
   CTX->comp_time = 0.0;
   CTX->barrier_time = 0;
   CTX->distributed_barrier_time = 0;
+  CTX->sleep_time = 0;
   CTX->avg_cpu_usage = 0.0;
   CTX->no_workers = no_workers;
   CTX->no_comm_workers = no_comm_workers;
@@ -276,27 +278,31 @@ void context_finalise
     model_xml_statistics(out);
     fprintf(out, "<timeStatistics>\n");
     if(CTX->comp_time > 0) {
-      fprintf(out, "<compilationTime>%.2f</compilationTime>\n",
+      fprintf(out, "<compilationTime>%.3f</compilationTime>\n",
 	      CTX->comp_time);
     }
-    fprintf(out, "<searchTime>%.2f</searchTime>\n",
+    fprintf(out, "<searchTime>%.3f</searchTime>\n",
 	    CTX->exec_time / 1000000.0);
+    if(CTX->sleep_time > 0) {
+      fprintf(out, "<sleepTime>%.3f</sleepTime>\n",
+	      CTX->sleep_time / 1000000000.0);
+    }
     if(CTX->barrier_time > 0) {
-      fprintf(out, "<barrierTime>%.2f</barrierTime>\n",
+      fprintf(out, "<barrierTime>%.3f</barrierTime>\n",
 	      CTX->barrier_time / 1000000.0);
     }
     if(cfg_algo_delta_ddd()) {
-      fprintf(out, "<duplicateDetectionTime>%.2f</duplicateDetectionTime>\n",
+      fprintf(out, "<duplicateDetectionTime>%.3f</duplicateDetectionTime>\n",
 	      storage_dd_time(CTX->storage) / 1000000.0);
     }
     if(cfg_distributed()) {
       fprintf(out, "<distributedBarrierTime>");
-      fprintf(out, "%.2f</distributedBarrierTime>\n",
+      fprintf(out, "%.3f</distributedBarrierTime>\n",
 	      CTX->distributed_barrier_time / 1000000.0);
     }
     if(cfg_state_caching()) {
       fprintf(out, "<garbageCollectionTime>");
-      fprintf(out, "%.2f</garbageCollectionTime>\n",
+      fprintf(out, "%.3f</garbageCollectionTime>\n",
 	      storage_gc_time(CTX->storage) / 1000000.0);
     }
     fprintf(out, "</timeStatistics>\n");
@@ -661,4 +667,10 @@ void context_barrier_wait
   pthread_barrier_wait(b);
   lna_timer_stop(&t);
   context_increase_barrier_time(lna_timer_value(t));
+}
+
+void context_sleep
+(struct timespec t) {
+  nanosleep(&t, NULL);
+  CTX->sleep_time += t.tv_nsec;
 }

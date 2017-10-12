@@ -59,7 +59,7 @@ typedef struct struct_hash_tbl_t struct_hash_tbl_t;
 
 #define MAX_TRIALS 10000
 
-const struct timespec SLEEP_TIME = { 0, 1 };
+const struct timespec SLEEP_TIME = { 0, 10 };
 
 #define BIT_STREAM_INIT_ON_ATTRS(tbl, id, bits) {                       \
     if(tbl->hash_compaction) {                                          \
@@ -334,7 +334,7 @@ void hash_tbl_insert_real
      *  wait for the bucket to be readable
      */
     while(BUCKET_WRITE == tbl->status[pos]) {
-      nanosleep(&SLEEP_TIME, NULL);
+      context_sleep(SLEEP_TIME);
     }
 
     /**
@@ -506,7 +506,7 @@ void hash_tbl_set_attr
   bit_stream_move(bits, pos);
   if(tbl->no_workers > 0) {
     while(!CAS(&tbl->update_status[id], BUCKET_READY, BUCKET_WRITE)) {
-      nanosleep(&SLEEP_TIME, NULL);
+      context_sleep(SLEEP_TIME);
     }
   }
   bit_stream_set(bits, val, size);
@@ -690,7 +690,7 @@ void hash_tbl_change_refs
     bit_stream_move(bits, ATTR_REFS_POS(tbl));
     if(tbl->no_workers > 0) {
       while(!CAS(&tbl->update_status[id], BUCKET_READY, BUCKET_WRITE)) {
-        nanosleep(&SLEEP_TIME, NULL);
+        context_sleep(SLEEP_TIME);
       }
     }
   

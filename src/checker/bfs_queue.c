@@ -1,9 +1,6 @@
 #include "bfs_queue.h"
 #include "config.h"
 
-#if defined(CFG_ALGO_BFS) || defined(CFG_ALGO_DBFS) || \
-  defined(CFG_ALGO_FRONTIER)
-
 struct struct_bfs_queue_block_t {
   bfs_queue_item_t * items;
   heap_t heap;
@@ -264,6 +261,3 @@ void bfs_queue_switch_level
     }
   }
 }
-
-#endif  /*  defined(CFG_ALGO_BFS) || defined(CFG_ALGO_DBFS) ||
-            defined(CFG_ALGO_FRONTIER) */

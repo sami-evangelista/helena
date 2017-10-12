@@ -2,8 +2,8 @@
 #include "dbfs_comm.h"
 #include "comm_shmem.h"
 
-#define COMM_WAIT_TIME_MS       10
-#define WORKER_WAIT_TIME_MS     5
+#define COMM_WAIT_TIME_MS       2
+#define WORKER_WAIT_TIME_MS     1
 #define WORKER_STATE_BUFFER_LEN 10000
 #define MAX_PES                 100
 
@@ -33,8 +33,8 @@ typedef struct {
   uint32_t * no_ids[CFG_NO_WORKERS];
 } worker_buffers_t;
 
-const struct timespec COMM_WAIT_TIME = { 0, COMM_WAIT_TIME_MS * 1000000 };
-const struct timespec WORKER_WAIT_TIME = { 0, WORKER_WAIT_TIME_MS * 1000000 };
+const struct timespec COMM_WAIT_TIME = { 0, COMM_WAIT_TIME_MS * 1000 };
+const struct timespec WORKER_WAIT_TIME = { 0, WORKER_WAIT_TIME_MS * 1000 };
 
 storage_t S;
 bfs_queue_t Q;
@@ -132,7 +132,7 @@ void dbfs_comm_poll_remote_pe
   do {
     comm_shmem_get(&data, &H_BUFFER_DATA[w][ME], sizeof(buffer_data_t), pe);
     if(data.no_states > 0) {
-      nanosleep(&WORKER_WAIT_TIME, NULL);
+      context_sleep(WORKER_WAIT_TIME);
     }
   } while(data.no_states > 0);
 }
@@ -356,7 +356,7 @@ void * dbfs_comm_worker
    * sleep a bit and process incoming states until search finished
    */
   while(context_keep_searching()) {
-    nanosleep(&COMM_WAIT_TIME, NULL);
+    context_sleep(COMM_WAIT_TIME);
     dbfs_comm_worker_process_incoming_states(c);
   }
 }

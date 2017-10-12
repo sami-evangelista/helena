@@ -16,6 +16,9 @@ minStates=$2
 maxStates=$3
 hc=$4
 
+export PATH=$HOME/helena/bin:$PATH
+
+# create base helena command
 if [ $hc = 1 ]
 then
     helena="helena --hash-compaction=1"
@@ -24,10 +27,8 @@ else
     helena=helena
     outDir=out/dbfs
 fi
-helena=$helena" --observer=0"
 
-export PATH=$HOME/helena/bin:$PATH
-
+#  create the machine file
 if [ -z "$OAR_NODEFILE" ]
 then
     for N in $(seq 1 $MAXW)
@@ -42,10 +43,40 @@ else
     done > machinefile
 fi
 
+#  launch helena and kill it after 60 seconds if the search does not
+#  progress (happens sometimes because shmem_init does not terminate)
+launchHelena () {
+    cmd=$*
+    echo $cmd
+    tmp=$(mktemp)
+    eval $cmd > $tmp &
+    pid=$!
+    MAX=60
+    n=1
+    while [ $n -lt $MAX ]
+    do
+	l=$(grep 'States stored   :          0' $tmp | wc -l)
+	if [ $l -gt 10 ]
+	then
+	    break
+	else
+	    sleep 1
+	    n=$((n + 1))
+	fi
+    done
+    if [ $n -ge $MAX ]
+    then
+	wait $pid
+	cat $tmp
+    else
+	echo "***** kill $pid *****"
+	kill $pid
+    fi
+}
+
 mkdir -p $outDir &> /dev/null
 
 reports=$(ls -1 $outDir | wc -l)
-
 scripts/select-models $minStates $maxStates \
     | while read m lang st opt
       do
@@ -57,7 +88,7 @@ scripts/select-models $minStates $maxStates \
 	  do
               hashSize=20
 	      size=900000
-	      while [ $((size * N)) -lt $st -a $hashSize != 30 ]
+	      while [ $((size * N)) -lt $st -a $hashSize != 29 ]
 	      do
 		  hashSize=$((hashSize + 1))
 		  size=$((size * 2))
@@ -68,7 +99,7 @@ scripts/select-models $minStates $maxStates \
 		  xml=$xml-$(echo $opt | tr " " "-")
 	      fi
 	      xml=$xml"_N"$N.xml
-	      if [ ! -f $xml ]
+	      if [ ! -f $xml -a ! $hashSize -eq 29 ]
 	      then
 		  cmd=$helena" --hash-size=$hashSize "$param
 		  if [ $N -gt 1 ]
@@ -81,7 +112,7 @@ scripts/select-models $minStates $maxStates \
 		      fi
 		      cmd=$cmd" --algo=dbfs --machine-file=mf --comm-workers="$C
 		  else
-		      cmd=$cmd" --algo=dfs"
+		      cmd=$cmd" --algo=bfs"
 		  fi
 		  cmd=$cmd" --progress=no-report --report-file="$xml" $f"
 		  if [ $printed -eq 0 ]
@@ -89,8 +120,7 @@ scripts/select-models $minStates $maxStates \
 		      printed=1
 		      echo '***** '$m - $st states' *****'
 		  fi
-                  echo $cmd
-		  eval $cmd # &> /dev/null
+		  launchHelena $cmd
 	      fi
 	  done
       done

@@ -68,7 +68,7 @@ bool_t bfs_check_termination
 	  && bfs_queue_local_is_empty(Q, w)
 	  && context_keep_searching()) {
       dbfs_comm_notify_queue_state(w, TRUE);
-      nanosleep(&BFS_WAIT_TIME[w], NULL);
+      context_sleep(BFS_WAIT_TIME[w]);
       trials ++;
     }
     if(trials == 1) {
@@ -308,7 +308,7 @@ void bfs
   bfs_init_queue();
   for(w = 0; w < CFG_NO_WORKERS; w ++) {
     BFS_WAIT_TIME[w].tv_sec = 0;
-    BFS_WAIT_TIME[w].tv_nsec = 1000000;
+    BFS_WAIT_TIME[w].tv_nsec = 1000;
   }
 
   if(cfg_algo_dbfs()) {
@@ -337,15 +337,12 @@ void bfs
   state_free(s);
 
   launch_and_wait_workers(&bfs_worker);
-  printf("0\n");
 #if defined(BFS_DEBUG)
   printf("[%d] all workers terminated\n", context_proc_id());
 #endif
 
   bfs_queue_free(Q);
-  printf("1\n");
   context_stop_search();
-  printf("2\n");
 
   if(cfg_algo_dbfs()) {
     dbfs_comm_end();

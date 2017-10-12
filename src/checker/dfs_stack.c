@@ -3,8 +3,6 @@
 #include "context.h"
 #include "reduction.h"
 
-#if defined(CFG_ALGO_DFS) || defined(CFG_ALGO_DDFS)
-
 #define DFS_STACK_BLOCKS 2
 
 typedef struct {
@@ -404,5 +402,3 @@ void dfs_stack_create_trace
   }
   context_set_trace(trace);
 }
-
-#endif  /*  defined(CFG_ALGO_DFS) || defined(CFG_ALGO_DDFS)  */
