@@ -2,6 +2,8 @@
 #include "ddfs_comm.h"
 #include "comm_shmem.h"
 
+#if defined(CFG_ALGO_DDFS) || defined(CFG_ALGO_DFS)
+
 #define MAX_PES            100
 #define PRODUCE_PERIOD_MS  20
 #define CONSUME_PERIOD_MS  5
@@ -324,3 +326,5 @@ void ddfs_comm_end
   }
   comm_shmem_finalize(NULL);
 }
+
+#endif

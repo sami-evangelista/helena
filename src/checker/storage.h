@@ -34,6 +34,7 @@ typedef delta_ddd_storage_id_t storage_id_t;
 #define storage_size         delta_ddd_storage_size
 #define storage_barrier_time delta_ddd_storage_barrier_time
 #define storage_dd_time      delta_ddd_storage_dd_time
+#define storage_gc_time(...) 0
 
 
 /*****
@@ -74,7 +75,7 @@ typedef hash_tbl_id_t storage_id_t;
 #define storage_gc_barrier        hash_tbl_gc_barrier
 #define storage_has_attr          hash_tbl_has_attr
 #define storage_get_trace         hash_tbl_get_trace
-#define storage_dd_time(s)        0
+#define storage_dd_time(...)      0
 
 #endif
 

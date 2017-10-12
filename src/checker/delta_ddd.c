@@ -88,7 +88,7 @@ uint8_t RECONS_ID;
 #define DELTA_DDD_CAND_DEL  2
 #define DELTA_DDD_CAND_NONE 3
 
-#define DELTA_DDD_OWNER(h) (((h) & CFG_HASH_SIZE_M) % CFG_NO_WORKERS)
+#define DELTA_DDD_OWNER(h) (((h) & CFG_HASH_SIZE_M) % cfg_no_workers())
 
 #if defined(CFG_EVENT_UNDOABLE)
 #define DELTA_DDD_VISIT_PRE_HEAP_PROCESS() {    \
@@ -161,7 +161,7 @@ delta_ddd_storage_t delta_ddd_storage_new
   delta_ddd_storage_t result;
 
   result = mem_alloc(SYSTEM_HEAP, sizeof(struct_delta_ddd_storage_t));
-  for(w = 0; w < CFG_NO_WORKERS; w ++) {
+  for(w = 0; w < cfg_no_workers(); w ++) {
     result->size[w] = 0;
   }
 
@@ -189,7 +189,7 @@ uint64_t delta_ddd_storage_size
 (delta_ddd_storage_t storage) {
   uint64_t result = 0;
   worker_id_t w;
-  for(w = 0; w < CFG_NO_WORKERS; w ++) {
+  for(w = 0; w < cfg_no_workers(); w ++) {
     result += storage->size[w];
   }
   return result;
@@ -289,7 +289,7 @@ bool_t delta_ddd_merge_candidate_set
   bool_t loop;
 
   CS_size[w] = 0;
-  for(x = 0; x < CFG_NO_WORKERS; x ++) {
+  for(x = 0; x < cfg_no_workers(); x ++) {
     for(i = 0; i < BOX_size[x][w]; i ++) {
       delta_ddd_candidate_t c = BOX[x][w][i];
       fst = pos = c.h % CS_max_size;
@@ -317,7 +317,7 @@ bool_t delta_ddd_merge_candidate_set
 		ST[id].dd_visit = TRUE;
 	      }
 	    }
-	    slot = (slot + CFG_NO_WORKERS) & CFG_HASH_SIZE_M;
+	    slot = (slot + cfg_no_workers()) & CFG_HASH_SIZE_M;
 	  }
 	  break;
 	case DELTA_DDD_CAND_NEW :
@@ -495,7 +495,7 @@ delta_ddd_storage_id_t delta_ddd_insert_new_state
   uint8_t r = (RECONS_ID + 1) & 1;
   unsigned int id, fst = h & CFG_HASH_SIZE_M, slot = fst;
   while(ST[slot].fst_child != UINT_MAX) {
-    assert((slot = (slot + CFG_NO_WORKERS) & CFG_HASH_SIZE_M) != fst);
+    assert((slot = (slot + cfg_no_workers()) & CFG_HASH_SIZE_M) != fst);
   }
   s.next = s.fst_child = slot;
 #if defined(CFG_ACTION_BUILD_GRAPH)
@@ -545,7 +545,7 @@ void delta_ddd_insert_new_states
   delta_ddd_barrier(w);
 
   if(0 == w) {
-    for(x = 0; x < CFG_NO_WORKERS; x ++) {
+    for(x = 0; x < cfg_no_workers(); x ++) {
       for(i = 0; i < CS_size[x]; i ++) {
 	c = CS[x][NCS[x][i]];
 	if(DELTA_DDD_CAND_NEW == c.content) {
@@ -621,7 +621,7 @@ bool_t delta_ddd_duplicate_detection
    */
   heap_reset(candidates_heaps[w]);
   BOX_tot_size[w] = 0;
-  for(x = 0; x < CFG_NO_WORKERS; x ++) {
+  for(x = 0; x < cfg_no_workers(); x ++) {
     BOX_size[w][x] = 0;
     all_terminated = all_terminated && LVL_TERMINATED[x];
   }
@@ -696,7 +696,7 @@ state_t delta_ddd_expand_dfs
      *  perform duplicate detection if the candidate set is full
      */
     size = 0;
-    for(x = 0; x < CFG_NO_WORKERS; x ++) {
+    for(x = 0; x < cfg_no_workers(); x ++) {
       size += BOX_tot_size[x];
     }
     if(size >= CFG_DELTA_DDD_CAND_SET_SIZE) {
@@ -806,7 +806,7 @@ void * delta_ddd_worker
     delta_ddd_expand(w, depth);
     depth ++;
     if(0 == w) {
-      for(x = 0; x < CFG_NO_WORKERS; x ++) {
+      for(x = 0; x < cfg_no_workers(); x ++) {
 	NEXT_LVL += NEXT_LVLS[x];
       }
       context_update_bfs_levels(depth);
@@ -832,9 +832,9 @@ void delta_ddd
 
   S = (delta_ddd_storage_t) context_storage();
   ST = S->ST;
-  pthread_barrier_init(&BARRIER, NULL, CFG_NO_WORKERS);
+  pthread_barrier_init(&BARRIER, NULL, cfg_no_workers());
   error_reported = FALSE;
-  for(w = 0; w < CFG_NO_WORKERS; w ++) {
+  for(w = 0; w < cfg_no_workers(); w ++) {
     seeds[w] = random_seed(w);
   }
   next_num = 0;
@@ -843,7 +843,7 @@ void delta_ddd
   /*
    *  initialisation of the heaps
    */
-  for(w = 0; w < CFG_NO_WORKERS; w ++) {
+  for(w = 0; w < cfg_no_workers(); w ++) {
     expand_heaps[w] = local_heap_new();
     detect_heaps[w] = local_heap_new();
     candidates_heaps[w] = local_heap_new();
@@ -857,9 +857,9 @@ void delta_ddd
    *  initialisation of the mailboxes of workers
    */
   BOX_max_size = (CFG_DELTA_DDD_CAND_SET_SIZE /
-                  (CFG_NO_WORKERS * CFG_NO_WORKERS)) << 2;
-  for(w = 0; w < CFG_NO_WORKERS; w ++) {
-    for(x = 0; x < CFG_NO_WORKERS; x ++) {
+                  (cfg_no_workers() * cfg_no_workers())) << 2;
+  for(w = 0; w < cfg_no_workers(); w ++) {
+    for(x = 0; x < cfg_no_workers(); x ++) {
       s = BOX_max_size * sizeof(delta_ddd_candidate_t);
       BOX[w][x] = mem_alloc(SYSTEM_HEAP, s);
       for(i = 0; i < BOX_max_size; i ++) {
@@ -874,8 +874,8 @@ void delta_ddd
   /*
    *  initialisation of the candidate set
    */
-  CS_max_size = (CFG_DELTA_DDD_CAND_SET_SIZE / CFG_NO_WORKERS) << 1;
-  for(w = 0; w < CFG_NO_WORKERS; w ++) {
+  CS_max_size = (CFG_DELTA_DDD_CAND_SET_SIZE / cfg_no_workers()) << 1;
+  for(w = 0; w < cfg_no_workers(); w ++) {
     CS[w] = mem_alloc(SYSTEM_HEAP, CS_max_size *
                       sizeof(delta_ddd_candidate_t));
     NCS[w] = mem_alloc(SYSTEM_HEAP, CS_max_size * sizeof(uint32_t));
@@ -890,10 +890,10 @@ void delta_ddd
   /*
    *  free heaps and mailboxes
    */
-  for(w = 0; w < CFG_NO_WORKERS; w ++) {
+  for(w = 0; w < cfg_no_workers(); w ++) {
     mem_free(SYSTEM_HEAP, CS[w]);
     mem_free(SYSTEM_HEAP, NCS[w]);
-    for(x = 0; x < CFG_NO_WORKERS; x ++) {
+    for(x = 0; x < cfg_no_workers(); x ++) {
       mem_free(SYSTEM_HEAP, BOX[w][x]);
     }
     heap_free(candidates_heaps[w]);

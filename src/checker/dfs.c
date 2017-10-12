@@ -24,9 +24,10 @@ state_t dfs_recover_state
  worker_id_t w,
  heap_t heap) {
   storage_id_t id;
-#if defined(CFG_EVENT_UNDOABLE)
-  dfs_stack_event_undo(stack, now);
-#else
+
+  if(cfg_event_undoable()) {
+    dfs_stack_event_undo(stack, now);
+  }
 #if defined(STORAGE_STATE_RECOVERABLE)
   state_free(now);
   id = dfs_stack_top(stack);
@@ -34,7 +35,6 @@ state_t dfs_recover_state
 #else
   state_free(now);
   now = dfs_stack_top_state(stack, heap);
-#endif
 #endif
   return now;
 }
@@ -155,10 +155,10 @@ state_t dfs_main
       /*
        *  in distributed DFS we process the state to be later sent
        */
-#if defined(CFG_ALGO_DDFS)
-      en = dfs_stack_top_events(stack);
-      ddfs_comm_process_explored_state(w, id_top, en);
-#endif
+      if(cfg_algo_ddfs()) {
+	en = dfs_stack_top_events(stack);
+	ddfs_comm_process_explored_state(w, id_top, en);
+      }
 
       /*
        *  and finally pop the state
@@ -276,24 +276,18 @@ void * dfs_worker
   storage_id_t id;
   heap_t heap = local_heap_new();
   state_t now = state_initial_mem(heap);
-#if defined(CFG_PARALLEL) || defined(CFG_DISTRIBUTED)
-  bool_t shuffle = TRUE;
-#else
-  bool_t shuffle = FALSE;
-#endif
+  bool_t shuffle = cfg_parallel() || cfg_distributed();
 #if defined(CFG_EVENT_UNDOABLE) || defined(STORAGE_STATE_RECOVERABLE)
   bool_t states_stored = FALSE;
 #else
   bool_t states_stored = TRUE;
 #endif
-  dfs_stack_t blue_stack = dfs_stack_new(wid * 2, CFG_DFS_STACK_BLOCK_SIZE,
+  dfs_stack_t blue_stack = dfs_stack_new(wid * 2, cfg_dfs_stack_block_size(),
                                          shuffle, states_stored);
-#if defined(CFG_ACTION_CHECK_LTL)
-  dfs_stack_t red_stack = dfs_stack_new(wid * 2 + 1, CFG_DFS_STACK_BLOCK_SIZE,
-                                        shuffle, states_stored);
-#else
-  dfs_stack_t red_stack = NULL;
-#endif
+  dfs_stack_t red_stack = cfg_action_check_ltl() ?
+    (dfs_stack_new(wid * 2 + 1, cfg_dfs_stack_block_size(),
+		   shuffle, states_stored)
+     : NULL);
 
   storage_insert(S, now, w, &dummy, &id, &h);
   storage_set_cyan(S, id, w, TRUE);
@@ -320,16 +314,16 @@ void dfs
 
   S = context_storage();
 
-#if defined(CFG_ALGO_DDFS)
-  ddfs_comm_start();
-#endif
+  if(cfg_algo_ddfs()) {
+    ddfs_comm_start();
+  }
   
   launch_and_wait_workers(&dfs_worker);
 
-#if defined(CFG_ALGO_DDFS)
-  context_stop_search();
-  ddfs_comm_end();
-#endif
+  if(cfg_algo_ddfs()) {
+    context_stop_search();
+    ddfs_comm_end();
+  }
 }
 
 #endif
