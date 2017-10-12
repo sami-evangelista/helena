@@ -22,6 +22,14 @@ set key outside vertical center bottom font \",8\" box;
 set lmargin 4;
 plot x with lines linestyle 1 lw 2 lc rgb '#000000' title \"optimal\"" > plotT
 echo -n "set terminal png size 600, 900;
+set output \"dbfs-time-cpu.png\";
+set xtics 1;
+set xrange [1:$MAX];
+set yrange [0.75:$MAX];
+set key outside vertical center bottom font \",8\" box;
+set lmargin 4;
+plot x with lines linestyle 1 lw 2 lc rgb '#000000' title \"optimal\"" > plotTC
+echo -n "set terminal png size 600, 900;
 set output \"dbfs-cpu.png\";
 set xtics 1;
 set xrange [1:$MAX];
@@ -33,6 +41,7 @@ plot 1 title '' with dots lc rgb '#000000'" > plotC
 for i in $(seq 1 $MAX)
 do
     echo -n ", $i title '' with dots lc rgb '#000000'" >> plotT
+    echo -n ", $i title '' with dots lc rgb '#000000'" >> plotTC
     echo -n ", $i title '' with dots lc rgb '#000000'" >> plotC
 done
 lp=1
@@ -45,8 +54,10 @@ ls -1 $outDir/*xml | \
         echo $m
         datT=$outDir/$m.time.dat
         datC=$outDir/$m.cpu.dat
+        datTC=$outDir/$m.time-cpu.dat
         echo > $datT
         echo > $datC
+        echo > $datTC
         for N in $(seq 1 $MAX)
         do
             f=$outDir/$m"_N"$N.xml
@@ -70,13 +81,16 @@ ls -1 $outDir/*xml | \
                 refT=$resT
                 echo 1 1 >> $datT
                 echo 1 1 >> $datC
+                echo 1 1 >> $datTC
             else
 		if [ $refSt != $st ]
 		then
 		    echo erreur N=$N, ref=$refSt, st=$st
 		fi
-                echo $N $(echo "scale = 2 ; $refT / $resT" | bc) >> $datT
-                echo $N $(echo "scale = 2 ; $resC / ($N * 100)" | bc) >> $datC
+		cpu="$resC / ($N * 100)"
+                echo $N $(echo "scale=2;$refT/$resT" | bc) >> $datT
+                echo $N $(echo "scale=2;$cpu" | bc) >> $datC
+                echo $N $(echo "scale=2;$refT/($resT*$cpu)" | bc) >> $datTC
             fi
         done
         m=$(echo $m | sed 's/_/-/g')
@@ -85,9 +99,10 @@ ls -1 $outDir/*xml | \
 	t="$m (|S|=${S}E6, |T|=${T}E6)"
         echo -n ", \"$datT\" title \"$t\" with lp ls "$lp >> plotT
         echo -n ", \"$datC\" title \"$t\" with lp ls "$lp >> plotC
+        echo -n ", \"$datTC\" title \"$t\" with lp ls "$lp >> plotTC
         lp=$((lp + 1))
     done
-for l in T C
+for l in T C TC
 do
     echo ";" >> plot$l
     cat plot$l | gnuplot
