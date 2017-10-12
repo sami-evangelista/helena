@@ -18,7 +18,7 @@ fun compileStateHash (s: System.system, hFile, cFile) = let
     val body =
 	concatLines [
 	prot ^ " {",
-	"   return bit_vector_hash ((bit_vector_t) s, STATE_VECTOR_SIZE);",
+	"  return bit_vector_hash((bit_vector_t) s, sizeof(struct_mstate_t));",
 	"}"
 	]
 in

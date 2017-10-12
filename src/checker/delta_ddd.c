@@ -137,9 +137,9 @@ uint8_t RECONS_ID;
 
 void delta_ddd_barrier
 (worker_id_t w) {
-#if defined(CFG_PARALLEL)
-  context_barrier_wait(&BARRIER);
-#endif
+  if(cfg_parallel()) {
+    context_barrier_wait(&BARRIER);
+  }
 }
 
 uint64_t delta_ddd_storage_dd_time
@@ -168,7 +168,7 @@ delta_ddd_storage_t delta_ddd_storage_new
   /*
    *  initialisation of the state table
    */
-  for(i = 0; i < CFG_HASH_SIZE; i ++) {
+  for(i = 0; i < cfg_hash_size(); i ++) {
     result->ST[i].fst_child = UINT_MAX;
     result->ST[i].recons[0] = FALSE;
     result->ST[i].recons[1] = FALSE;
@@ -586,9 +586,9 @@ bool_t delta_ddd_duplicate_detection
   /*
    *  initialize heaps for duplicate detection
    */
-#if defined(CFG_EVENT_UNDOABLE)
-  heap_reset(detect_evts_heaps[w]);
-#endif
+  if(cfg_event_undoable()) {
+    heap_reset(detect_evts_heaps[w]);
+  }
   heap_reset(detect_heaps[w]);
   s = state_initial_mem(detect_heaps[w]);
 
@@ -596,7 +596,7 @@ bool_t delta_ddd_duplicate_detection
    *  merge the candidate set and mark states to reconstruct
    */
   delta_ddd_barrier(w);
-  if(delta_ddd_storage_size(S) >= 0.9 * CFG_HASH_SIZE) {
+  if(delta_ddd_storage_size(S) >= 0.9 * cfg_hash_size()) {
     raise_error("state table too small (increase --hash-size and rerun)");
   }
   if(!context_keep_searching()) {
@@ -699,7 +699,7 @@ state_t delta_ddd_expand_dfs
     for(x = 0; x < cfg_no_workers(); x ++) {
       size += BOX_tot_size[x];
     }
-    if(size >= CFG_DELTA_DDD_CAND_SET_SIZE) {
+    if(size >= cfg_delta_ddd_cand_set_size()) {
       delta_ddd_duplicate_detection(w);
     }
   } else {
@@ -739,9 +739,9 @@ void delta_ddd_expand
  unsigned int depth) {
   state_t s;
 
-#if defined(CFG_EVENT_UNDOABLE)
-  heap_reset(expand_evts_heaps[w]);
-#endif
+  if(cfg_event_undoable()) {
+    heap_reset(expand_evts_heaps[w]);
+  }
   heap_reset(expand_heaps[w]);
   s = state_initial_mem(expand_heaps[w]);
   delta_ddd_expand_dfs(w, S->root, s, depth);
@@ -856,7 +856,7 @@ void delta_ddd
   /*
    *  initialisation of the mailboxes of workers
    */
-  BOX_max_size = (CFG_DELTA_DDD_CAND_SET_SIZE /
+  BOX_max_size = (cfg_delta_ddd_cand_set_size() /
                   (cfg_no_workers() * cfg_no_workers())) << 2;
   for(w = 0; w < cfg_no_workers(); w ++) {
     for(x = 0; x < cfg_no_workers(); x ++) {
@@ -874,7 +874,7 @@ void delta_ddd
   /*
    *  initialisation of the candidate set
    */
-  CS_max_size = (CFG_DELTA_DDD_CAND_SET_SIZE / cfg_no_workers()) << 1;
+  CS_max_size = (cfg_delta_ddd_cand_set_size() / cfg_no_workers()) << 1;
   for(w = 0; w < cfg_no_workers(); w ++) {
     CS[w] = mem_alloc(SYSTEM_HEAP, CS_max_size *
                       sizeof(delta_ddd_candidate_t));

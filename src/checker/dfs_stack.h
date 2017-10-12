@@ -23,10 +23,6 @@
 #include "storage.h"
 #include "config.h"
 
-#if !defined(CFG_EVENT_UNDOABLE) && !defined(STORAGE_STATE_RECOVERABLE)
-#define DFS_STACK_STATE_IN_STACK
-#endif
-
 /**
  * @typedef the stack type
  */

@@ -328,15 +328,15 @@ void dbfs_comm_worker_process_incoming_states
               if(is_new) {
                 item.id = sid;
 		d = h % cfg_no_workers();
-#if !defined(STORAGE_STATE_RECOVERABLE)
-                heap_reset(COMM_HEAPS[c]);
-                s = state_unserialise_mem(buffer + tmp_pos - s_len, heap);
-                item.s = s;
-#endif
+		if(cfg_hash_compaction()) {
+		  heap_reset(COMM_HEAPS[c]);
+		  s = state_unserialise_mem(buffer + tmp_pos - s_len, heap);
+		  item.s = s;
+		}
                 bfs_queue_enqueue(Q, item, w, d);
-#if !defined(STORAGE_STATE_RECOVERABLE)
-                state_free(item.s);
-#endif
+		if(cfg_hash_compaction()) {
+		  state_free(item.s);
+		}
 		H_TERM_DATA.data[d].empty_queue = FALSE;
               }
             }

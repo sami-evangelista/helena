@@ -20,10 +20,6 @@
 #include "heap.h"
 #include "config.h"
 
-#if !defined(CFG_HASH_COMPACTION)
-#define STORAGE_STATE_RECOVERABLE
-#endif
-
 typedef struct struct_hash_tbl_t * hash_tbl_t;
 
 typedef uint64_t hash_tbl_id_t;

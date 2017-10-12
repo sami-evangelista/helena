@@ -27,15 +27,14 @@ state_t dfs_recover_state
 
   if(cfg_event_undoable()) {
     dfs_stack_event_undo(stack, now);
+  } else if(cfg_hash_compaction()) {
+    state_free(now);
+    now = dfs_stack_top_state(stack, heap);
+  } else {
+    state_free(now);
+    id = dfs_stack_top(stack);
+    now = storage_get_mem(S, id, w, heap);
   }
-#if defined(STORAGE_STATE_RECOVERABLE)
-  state_free(now);
-  id = dfs_stack_top(stack);
-  now = storage_get_mem(S, id, w, heap);
-#else
-  state_free(now);
-  now = dfs_stack_top_state(stack, heap);
-#endif
   return now;
 }
 
@@ -277,17 +276,13 @@ void * dfs_worker
   heap_t heap = local_heap_new();
   state_t now = state_initial_mem(heap);
   bool_t shuffle = cfg_parallel() || cfg_distributed();
-#if defined(CFG_EVENT_UNDOABLE) || defined(STORAGE_STATE_RECOVERABLE)
-  bool_t states_stored = FALSE;
-#else
-  bool_t states_stored = TRUE;
-#endif
+  bool_t states_stored = !cfg_event_undoable() && cfg_hash_compaction();
   dfs_stack_t blue_stack = dfs_stack_new(wid * 2, cfg_dfs_stack_block_size(),
                                          shuffle, states_stored);
   dfs_stack_t red_stack = cfg_action_check_ltl() ?
-    (dfs_stack_new(wid * 2 + 1, cfg_dfs_stack_block_size(),
+    dfs_stack_new(wid * 2 + 1, cfg_dfs_stack_block_size(),
 		   shuffle, states_stored)
-     : NULL);
+    : NULL;
 
   storage_insert(S, now, w, &dummy, &id, &h);
   storage_set_cyan(S, id, w, TRUE);

@@ -135,18 +135,18 @@ fun genStateSucc (s: System.system, checks, hFile, cFile) = let
     val bodyMem =
 	concatLines [
 	protMem ^ " {",
-	"   mstate_t result = mem_alloc (heap, sizeof (struct_mstate_t));",
-	"   memcpy (result, s, STATE_VECTOR_SIZE);",
+	"   mstate_t result = mem_alloc(heap, sizeof(struct_mstate_t));",
+	"   memcpy(result, s, sizeof(struct_mstate_t));",
 	"   result->heap = heap;",
-	"   mevent_exec (e, result);",
+	"   mevent_exec(e, result);",
 	"   return result;",
 	"}"
 	]
-    val prot = "mstate_t mstate_succ (mstate_t s, mevent_t e)"
+    val prot = "mstate_t mstate_succ(mstate_t s, mevent_t e)"
     val body =
 	concatLines [
 	prot ^ " {",
-	"   return mstate_succ_mem (s, e, SYSTEM_HEAP);",
+	"   return mstate_succ_mem(s, e, SYSTEM_HEAP);",
 	"}"
 	]
 in

@@ -18,7 +18,7 @@ fun compileStateCharWidth (s: System.system, hFile, cFile) = let
     val body =
 	concatLines [
 	prot ^ " {",
-	"   return STATE_VECTOR_SIZE;",
+	"   return sizeof(struct_mstate_t);",
 	"}"
 	]
 in
@@ -31,7 +31,7 @@ fun compileStateSerialise (s: System.system, hFile, cFile) = let
     val body =
 	concatLines [
 	prot ^ " {",
-	"   memcpy (v, s, STATE_VECTOR_SIZE);",
+	"   memcpy(v, s, sizeof(struct_mstate_t));",
 	"}"
 	]
 in
@@ -45,8 +45,8 @@ fun compileStateUnserialise (s: System.system, hFile, cFile) = let
     val bodyMem =
 	concatLines [
 	protMem ^ " {",
-	"   mstate_t result = mem_alloc (heap, sizeof (struct_mstate_t));",
-	"   memcpy (result, v, STATE_VECTOR_SIZE);",
+	"   mstate_t result = mem_alloc(heap, sizeof(struct_mstate_t));",
+	"   memcpy(result, v, sizeof(struct_mstate_t));",
 	"   result->heap = heap;",
 	"   return result;",
 	"}"
@@ -66,13 +66,13 @@ in
 end
 
 fun compileStateCmpVector (s: System.system, hFile, cFile) = let
-    val prot = "bool_t mstate_cmp_vector (mstate_t s, bit_vector_t v)"
+    val prot = "bool_t mstate_cmp_vector(mstate_t s, bit_vector_t v)"
     val body =
 	concatLines [
 	prot ^ " {",
 	"   unsigned int i = 0;",
-	"   for (i = 0; i < STATE_VECTOR_SIZE; i ++) {",
-	"      if (((char *) s)[i] != v[i]) {",
+	"   for(i = 0; i < sizeof(struct_mstate_t); i ++) {",
+	"      if(((char *) s)[i] != v[i]) {",
 	"         return FALSE;",
 	"      }",
 	"   }",

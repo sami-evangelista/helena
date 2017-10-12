@@ -46,14 +46,10 @@ void bfs_init_queue
   bool_t levels = cfg_algo_dbfs() ? 1 : 2;
   bool_t events_in_queue = cfg_edge_lean();
   uint16_t no_workers =
-    CFG_NO_WORKERS + (cfg_algo_dbfs() ? CFG_NO_COMM_WORKERS : 0);
-#if defined(STORAGE_STATE_RECOVERABLE)
-  bool_t states_in_queue = FALSE;
-#else
-  bool_t states_in_queue = TRUE;
-#endif
+    CFG_NO_WORKERS + (cfg_algo_dbfs() ? cfg_no_comm_workers() : 0);
+  bool_t states_in_queue = cfg_hash_compaction();
   
-  Q = bfs_queue_new(no_workers, CFG_BFS_QUEUE_BLOCK_SIZE,
+  Q = bfs_queue_new(no_workers, cfg_bfs_queue_block_size(),
                     states_in_queue, events_in_queue, levels);
 }
 
