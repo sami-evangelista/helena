@@ -8,7 +8,11 @@
 #include "reduction.h"
 #include "workers.h"
 
-#if defined(CFG_ALGO_DDFS) || defined(CFG_ALGO_DFS)
+#if !defined(CFG_ALGO_DDFS) && !defined(CFG_ALGO_DFS)
+
+void dfs() {}
+
+#else
 
 #define DFS_HEAP_SIZE 100000
 
@@ -299,9 +303,9 @@ void * dfs_worker
    *  if state caching is on we keep waiting on the storage barrier
    *  since some other threads may still launch garbage collection
    */
-#if defined(CFG_PARALLEL) && defined(CFG_STATE_CACHING)
-  storage_gc_barrier(S, w);
-#endif
+  if(cfg_parallel() && cfg_state_caching()) {
+    storage_gc_barrier(S, w);
+  }
 
   dfs_stack_free(blue_stack);
   dfs_stack_free(red_stack);
@@ -328,4 +332,4 @@ void dfs
 #endif
 }
 
-#endif  /*  defined(CFG_ALGO_DDFS) || defined(CFG_ALGO_DFS)  */
+#endif

@@ -7,14 +7,16 @@
 #include "reduction.h"
 #include "workers.h"
 
-#if defined(CFG_ALGO_BFS) || defined(CFG_ALGO_DBFS) || \
-  defined(CFG_ALGO_FRONTIER)
+#if !defined(CFG_ALGO_BFS) && !defined(CFG_ALGO_DBFS) && \
+  !defined(CFG_ALGO_FRONTIER)
+
+void bfs() {}
+
+#else
 
 #define BFS_DEBUG_XXX
 
-#define WAIT_QUEUE_TIME_MS 1
-
-const struct timespec WAIT_QUEUE_TIME = { 0, WAIT_QUEUE_TIME_MS * 1000000 };
+struct timespec BFS_WAIT_TIME[CFG_NO_WORKERS];
 
 storage_t S;
 bfs_queue_t Q;
@@ -34,9 +36,9 @@ worker_id_t bfs_thread_owner
 
 void bfs_wait_barrier
 () {
-#if defined(CFG_PARALLEL)
-  context_barrier_wait(&BFS_BARRIER);
-#endif
+  if(cfg_parallel()) {
+    context_barrier_wait(&BFS_BARRIER);
+  }
 }
 
 void bfs_init_queue
@@ -58,27 +60,28 @@ void bfs_init_queue
 bool_t bfs_check_termination
 (worker_id_t w) {
   bool_t result = FALSE;
+  uint16_t trials = 0;
   
-#if defined(CFG_ALGO_DBFS)
-
-  dbfs_comm_send_all_pending_states(w);
-  while(!(result = dbfs_comm_check_for_termination())
-	&& bfs_queue_local_is_empty(Q, w)) {
-    dbfs_comm_notify_queue_state(w, TRUE);
-    nanosleep(&WAIT_QUEUE_TIME, NULL);
+  if(cfg_algo_dbfs()) {
+    dbfs_comm_send_all_pending_states(w);
+    while(!(result = dbfs_comm_check_for_termination())
+	  && bfs_queue_local_is_empty(Q, w)
+	  && context_keep_searching()) {
+      dbfs_comm_notify_queue_state(w, TRUE);
+      nanosleep(&BFS_WAIT_TIME[w], NULL);
+      trials ++;
+    }
+    if(trials == 1) {
+      BFS_WAIT_TIME[w].tv_nsec /= 2;
+    }
+  } else {
+    bfs_wait_barrier();
+    bfs_queue_switch_level(Q, w);
+    bfs_wait_barrier();
+    result = !context_keep_searching() || bfs_queue_is_empty(Q);
+    bfs_wait_barrier();
   }
   return result;
-  
-#else
-  
-  bfs_wait_barrier();
-  bfs_queue_switch_level(Q, w);
-  bfs_wait_barrier();
-  result = !context_keep_searching() || bfs_queue_is_empty(Q);
-  bfs_wait_barrier();
-  return result;
-  
-#endif
 }
 
 void bfs_report_trace
@@ -131,9 +134,9 @@ void * bfs_worker
 #if defined(BFS_DEBUG)
     printf("[%d,w%d] at BFS level %d\n", context_proc_id(), w, levels);
 #endif
-#if defined(CFG_ALGO_DBFS)
-    dbfs_comm_notify_queue_state(w, FALSE);
-#endif
+    if(cfg_algo_dbfs()) {
+      dbfs_comm_notify_queue_state(w, FALSE);
+    }
     for(x = 0; x < bfs_queue_no_workers(Q); x ++) {
       while(!bfs_queue_slot_is_empty(Q, x, w)) {
 	if(!context_keep_searching()) {
@@ -193,23 +196,23 @@ void * bfs_worker
 	while(!list_is_empty(en)) {
 	  list_pick_first(en, &e);
 	  arcs ++;
-#if defined(CFG_EVENT_UNDOABLE)
-	  event_exec(e, s);
-	  succ = s;
-#else
-	  succ = state_succ_mem(s, e, heap);
-#endif
-#if defined(CFG_ALGO_DBFS)
-	  h = state_hash(succ);
-	  if(!dbfs_comm_state_owned(h)) {
-	    dbfs_comm_process_state(w, succ, h);
-	    bfs_back_to_s();
-	    continue;
+	  if(cfg_event_undoable()) {
+	    event_exec(e, s);
+	    succ = s;
+	  } else {
+	    succ = state_succ_mem(s, e, heap);
 	  }
-	  storage_insert_hashed(S, succ, w, h, &is_new, &id_succ);
-#else
-	  storage_insert(S, succ, w, &is_new, &id_succ, &h);
-#endif
+	  if(!cfg_algo_dbfs()) {
+	    storage_insert(S, succ, w, &is_new, &id_succ, &h);
+	  } else {
+	    h = state_hash(succ);
+	    if(!dbfs_comm_state_owned(h)) {
+	      dbfs_comm_process_state(w, succ, h);
+	      bfs_back_to_s();
+	      continue;
+	    }
+	    storage_insert_hashed(S, succ, w, h, &is_new, &id_succ);
+	  }
 
 	  /**
 	   *  if new, enqueue the successor
@@ -261,9 +264,9 @@ void * bfs_worker
 	 *  delete it from storage if algo is FRONTIER.
 	 */
 	storage_set_cyan(S, item.id, w, FALSE);
-#if defined(CFG_ALGO_FRONTIER)
-	storage_remove(S, w, item.id);
-#endif
+	if(cfg_algo_frontier()) {
+	  storage_remove(S, w, item.id);
+	}
       }
     }
     
@@ -271,9 +274,9 @@ void * bfs_worker
      *  with FRONTIER algorithm we delete all states of the previous
      *  level that were marked as garbage by the storage_remove calls
      */
-#if defined(CFG_ALGO_FRONTIER)
-    storage_gc_all(S, w);
-#endif
+    if(cfg_algo_frontier()) {
+      storage_gc_all(S, w);
+    }
 
     /**
      *  all states in the queue have been processed => check for termination
@@ -303,17 +306,21 @@ void bfs
   
   S = context_storage();
   bfs_init_queue();
+  for(w = 0; w < CFG_NO_WORKERS; w ++) {
+    BFS_WAIT_TIME[w].tv_sec = 0;
+    BFS_WAIT_TIME[w].tv_nsec = 1000000;
+  }
 
-#if defined(CFG_ALGO_DBFS)
-  dbfs_comm_start(Q);
-#endif
+  if(cfg_algo_dbfs()) {
+    dbfs_comm_start(Q);
+  }
 
   pthread_barrier_init(&BFS_BARRIER, NULL, CFG_NO_WORKERS);
   
-#if defined(CFG_ALGO_DBFS)
-  h = state_hash(s);
-  enqueue = dbfs_comm_state_owned(h);
-#endif
+  if(cfg_algo_dbfs()) {
+    h = state_hash(s);
+    enqueue = dbfs_comm_state_owned(h);
+  }
   
   if(enqueue) {
     storage_insert(S, s, 0, &is_new, &id, &h);
@@ -330,17 +337,19 @@ void bfs
   state_free(s);
 
   launch_and_wait_workers(&bfs_worker);
+  printf("0\n");
 #if defined(BFS_DEBUG)
   printf("[%d] all workers terminated\n", context_proc_id());
 #endif
 
   bfs_queue_free(Q);
+  printf("1\n");
   context_stop_search();
+  printf("2\n");
 
-#if defined(CFG_ALGO_DBFS)
-  dbfs_comm_end();
-#endif
+  if(cfg_algo_dbfs()) {
+    dbfs_comm_end();
+  }
 }
 
-#endif  /*  defined(CFG_ALGO_BFS)  || defined(CFG_ALGO_DBFS) ||
-	    defined(CFG_ALGO_FRONTIER)  */
+#endif

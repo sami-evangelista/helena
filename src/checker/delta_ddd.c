@@ -5,7 +5,11 @@
 #include "workers.h"
 #include "context.h"
 
-#if defined(CFG_ALGO_DELTA_DDD)
+#if !defined(CFG_ALGO_DELTA_DDD)
+
+void delta_ddd() {}
+
+#else
 
 typedef struct {
   delta_ddd_storage_id_t fst_child;
@@ -843,10 +847,10 @@ void delta_ddd
     expand_heaps[w] = local_heap_new();
     detect_heaps[w] = local_heap_new();
     candidates_heaps[w] = local_heap_new();
-#if defined(CFG_EVENT_UNDOABLE)
-    expand_evts_heaps[w] = local_heap_new();
-    detect_evts_heaps[w] = local_heap_new();
-#endif
+    if(cfg_event_undoable()) {
+      expand_evts_heaps[w] = local_heap_new();
+      detect_evts_heaps[w] = local_heap_new();
+    }
   }
 
   /*
@@ -895,10 +899,10 @@ void delta_ddd
     heap_free(candidates_heaps[w]);
     heap_free(expand_heaps[w]);
     heap_free(detect_heaps[w]);
-#if defined(CFG_EVENT_UNDOABLE)
-    heap_free(expand_evts_heaps[w]);
-    heap_free(detect_evts_heaps[w]);
-#endif
+    if(cfg_event_undoable()) {
+      heap_free(expand_evts_heaps[w]);
+      heap_free(detect_evts_heaps[w]);
+    }      
   }
   context_close_graph_file();
 }

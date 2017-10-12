@@ -4,7 +4,6 @@
 #include "state.h"
 #include "event.h"
 
-#if defined(CFG_ACTION_SIMULATE)
 
 bool_t check_error() {
   if(!context_error_raised()) {
@@ -134,5 +133,3 @@ quit\n");
   list_free(stack);
   list_free(stack_evts);
 }
-
-#endif  /*  defined(CFG_ACTION_SIMULATE)  */

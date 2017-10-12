@@ -52,16 +52,16 @@ def getBasicNodeValue(n, fmt, space = 0, unit = None):
             result += " " + unit
     else:
         l = l[0]
-        host = 1
+        node = 1
         result = "" 
         for item in l.getElementsByTagName("item"):
             if result != "":
                 result += "\n" + (space * " ")
-            result += "[host " + str(host) + "] "
+            result += "[node " + str(node) + "] "
             result += fmt(item.childNodes[0].nodeValue)
             if unit is not None:
                 result += " " + unit
-            host += 1
+            node += 1
         sumItem = l.getElementsByTagName("sum")
         if len(sumItem) > 0:
             if result != "":
@@ -71,97 +71,98 @@ def getBasicNodeValue(n, fmt, space = 0, unit = None):
             
             
 generalInfos = {
-    "model"                     : "Model analyzed  ",
-    "date"                      : "Analysis date   ",
-    "language"                  : "Model language  ",
-    "filePath"                  : "File path       ",
-    "host"                      : "Host machine    " }
+    "model"                   : "Model analyzed  ",
+    "date"                    : "Analysis date   ",
+    "language"                : "Model language  ",
+    "filePath"                : "File path       ",
+    "host"                    : "Host machine    " }
 searchInfos = {
-    "workers"                   : "Exploration threads  ",
-    "commWorkers"               : "Communication threads",
-    "errorMessage"              : "Error message        " }
+    "workers"                 : "Exploration threads  ",
+    "commWorkers"             : "Communication threads",
+    "errorMessage"            : "Error message        " }
 terminationStates = {
-    "searchTerminated"          : "Search terminated",
-    "stateLimitReached"         : "State limit reached",
-    "memoryExhausted"           : "Memory exhausted",
-    "timeElapsed"               : "Time elapsed",
-    "noCounterExample"          : "No counter-example found",
-    "propertyHolds"             : "Property holds",
-    "propertyViolated"          : "Property violated (see the trace report)",
-    "interruption"              : "Search interrupted",
-    "error"                     : "An error occurred" }
+    "searchTerminated"        : "Search terminated",
+    "stateLimitReached"       : "State limit reached",
+    "memoryExhausted"         : "Memory exhausted",
+    "timeElapsed"             : "Time elapsed",
+    "noCounterExample"        : "No counter-example found",
+    "propertyHolds"           : "Property holds",
+    "propertyViolated"        : "Property violated (see the trace report)",
+    "interruption"            : "Search interrupted",
+    "error"                   : "An error occurred" }
 algorithms = {
-    "breadthSearch"             : "Breadth-first search",
-    "frontierSearch"            : "Frontier search",
-    "depthSearch"               : "Depth-first search",
-    "distributedDepthSearch"    : "Distributed depth-first searches",
-    "randomWalk"                : "Random walk",
-    "parallelDDDD"              : "Delta-DDD" }
+    "breadthSearch"           : "Breadth-first search",
+    "depthSearch"             : "Depth-first search",
+    "frontierSearch"          : "Frontier search",
+    "distributedDepthSearch"  : "Distributed depth-first searches",
+    "distributedBreadthSearch": "Distributed breadth-first searches",
+    "randomWalk"              : "Random walk",
+    "deltaDDD"                : "Delta-DDD" }
 options = {
-    "staticReductions"          : "Static reductions",
-    "partialOrder"              : "Partial order reduction",
-    "hashCompact"               : "Hash compaction",
-    "stateCaching"              : "State caching",
-    "candidateSetSize"          :
-        "Candidate set size (for --algo=delta-ddd) = ",
-    "hashTableSlots"            : "Hash table size = " }
+    "searchAlgorithm"         : "Search algorithm = ",
+    "partialOrder"            : "Partial order reduction",
+    "hashCompact"             : "Hash compaction",
+    "stateCaching"            : "State caching",
+    "candidateSetSize"        : "Candidate set size (for --algo=delta-ddd) = ",
+    "hashTableSlots"          : "Hash table size = " }
 optionsWithVal = {
-    "candidateSetSize"          : noFormat,
-    "hashTableSlots"            : formatNumber }
+    "candidateSetSize"        : noFormat,
+    "hashTableSlots"          : formatNumber,
+    "searchAlgorithm"         : lambda a: algorithms[a] }
 statistics = {
-    "searchTime"                : "Search time               ",
-    "duplicateDetectionTime"    : "   for duplicate detection",
-    "garbageCollectionTime"     : "   for garbage collection ",
-    "barrierTime"               : "   for local barrier wait ",
-    "distributedBarrierTime"    : "   for shmem barrier wait ",
-    "compilationTime"           : "Model compilation         ",
-    "places"                    : "Places                    ",
-    "transitions"               : "Transitions               ",
-    "netArcs"                   : "Arcs                      ",
-    "inArcs"                    : "   in arcs                ",
-    "outArcs"                   : "   out arcs               ",
-    "inhibArcs"                 : "   inhibitor arcs         ",
-    "stateVectorSize"           : "State vector size         ",
-    "stateComparisons"          : "State comparisons         ",
-    "statesStored"              : "States stored (at the end)",
-    "statesMaxStored"           : "States stored (peak)      ",
-    "statesProcessed"           : "States processed          ",
-    "statesProcessedMax"        : "   max. over threads      ",
-    "statesProcessedMin"        : "   min. over threads      ",
-    "statesProcessedDev"        : "   std. dev. over threads ",
-    "statesAccepting"           : "Accepting states          ",
-    "statesTerminal"            : "Deadlock states           ",
-    "arcs"                      : "Arcs                      ",
-    "bfsLevels"                 : "BFS levels                ",
-    "eventsExecuted"            : "Events executed           ",
-    "eventsExecutedDDD"         : "   for duplicate detection",
-    "eventsExecutedExpansion"   : "   for state expansion    ",
-    "eventExecPerSecond"        : "Event execution rate      ",
-    "maxMemoryUsed"             : "Max. memory used          ",
-    "bytesSent"                 : "Bytes sent                ",
-    "avgCPUUsage"               : "Average CPU Usage         " }
+    "searchTime"              : "Search time               ",
+    "duplicateDetectionTime"  : "   for duplicate detection",
+    "garbageCollectionTime"   : "   for garbage collection ",
+    "barrierTime"             : "   for local barrier wait ",
+    "distributedBarrierTime"  : "   for shmem barrier wait ",
+    "compilationTime"         : "Model compilation         ",
+    "places"                  : "Places                    ",
+    "transitions"             : "Transitions               ",
+    "netArcs"                 : "Arcs                      ",
+    "inArcs"                  : "   in arcs                ",
+    "outArcs"                 : "   out arcs               ",
+    "inhibArcs"               : "   inhibitor arcs         ",
+    "stateVectorSize"         : "State vector size         ",
+    "stateComparisons"        : "State comparisons         ",
+    "statesStored"            : "States stored (at the end)",
+    "statesMaxStored"         : "States stored (peak)      ",
+    "statesProcessed"         : "States processed          ",
+    "statesProcessedMax"      : "   max. over threads      ",
+    "statesProcessedMin"      : "   min. over threads      ",
+    "statesProcessedDev"      : "   std. dev. over threads ",
+    "statesAccepting"         : "Accepting states          ",
+    "statesTerminal"          : "Deadlock states           ",
+    "arcs"                    : "Arcs                      ",
+    "bfsLevels"               : "BFS levels                ",
+    "eventsExecuted"          : "Events executed           ",
+    "eventsExecutedDDD"       : "   for duplicate detection",
+    "eventsExecutedExpansion" : "   for state expansion    ",
+    "eventExecPerSecond"      : "Event execution rate      ",
+    "maxMemoryUsed"           : "Max. memory used          ",
+    "bytesSent"               : "Bytes sent                ",
+    "avgCPUUsage"             : "Average CPU Usage         " }
 statisticsUnits = {
-    "searchTime"                : "s.",
-    "duplicateDetectionTime"    : "s.",
-    "garbageCollectionTime"     : "s.",
-    "compilationTime"           : "s.",
-    "barrierTime"               : "s. (sum over all threads)",
-    "distributedBarrierTime"    : "s.",
-    "eventExecPerSecond"        : "exec. / s.",
-    "maxMemoryUsed"             : "MB",
-    "stateVectorSize"           : "bytes",
-    "avgCPUUsage"               : "%" }
+    "searchTime"              : "s.",
+    "duplicateDetectionTime"  : "s.",
+    "garbageCollectionTime"   : "s.",
+    "compilationTime"         : "s.",
+    "barrierTime"             : "s. (sum over all threads)",
+    "distributedBarrierTime"  : "s.",
+    "eventExecPerSecond"      : "exec. / s.",
+    "maxMemoryUsed"           : "MB",
+    "stateVectorSize"         : "bytes",
+    "avgCPUUsage"             : "%" }
 statisticsCategories = {
-    "timeStatistics"            : "Time statistics",
-    "modelStatistics"           : "Model statistics",
-    "graphStatistics"           : "Exploration statistics",
-    "hashTableStatistics"       : "Hash table statistics",
-    "otherStatistics"           : "Other statistics" }
+    "timeStatistics"          : "Time statistics",
+    "modelStatistics"         : "Model statistics",
+    "graphStatistics"         : "Exploration statistics",
+    "hashTableStatistics"     : "Hash table statistics",
+    "otherStatistics"         : "Other statistics" }
 subReports = {
-    "infoReport"                : "General informations",
-    "searchReport"              : "Search report",
-    "statisticsReport"          : "Statistics report",
-    "traceReport"               : "Trace report" }
+    "infoReport"              : "General informations",
+    "searchReport"            : "Search report",
+    "statisticsReport"        : "Statistics report",
+    "traceReport"             : "Trace report" }
 
 def printInfoReport(r):
     for e in r.childNodes:
@@ -189,8 +190,6 @@ def printSearchReport(r):
         if name == "searchResult":
             print "    Termination state    : " + \
                 getBasicNodeValue(e, formatSearchResult, 27)
-        elif name in algorithms:
-            print "    Algorithm used       : " + algorithms[name]
         elif name in searchInfos:
             print "    " + searchInfos[name] + ": " + \
                 getBasicNodeValue(e, noFormat)

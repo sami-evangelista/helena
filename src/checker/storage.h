@@ -74,6 +74,7 @@ typedef hash_tbl_id_t storage_id_t;
 #define storage_gc_barrier        hash_tbl_gc_barrier
 #define storage_has_attr          hash_tbl_has_attr
 #define storage_get_trace         hash_tbl_get_trace
+#define storage_dd_time(s)        0
 
 #endif
 

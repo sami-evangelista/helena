@@ -12,16 +12,15 @@ void * observer_worker
   uint64_t stored;
   char name[100], pref[100];
   int n = 0;
-  
-#ifdef CFG_WITH_OBSERVER
-#if defined(CFG_DISTRIBUTED)
-  gethostname(name, 1024);
-  sprintf(pref, "[%s:%d] ", name, getpid());
-#else
   pref[0] = 0;
-#endif
-  printf("%sRunning...\n", pref);
-#endif
+  
+  if(cfg_with_observer()) {
+    if(cfg_distributed()) {
+      gethostname(name, 1024);
+      sprintf(pref, "[%s:%d] ", name, getpid());
+    }
+    printf("%sRunning...\n", pref);
+  }
   while(context_keep_searching()) {
     n ++;
     sleep(1);
@@ -36,38 +35,32 @@ void * observer_worker
     context_update_max_mem_used(mem);
     processed = context_processed();
     time = ((float) duration(context_start_time(), now)) / 1000000.0;
-#ifdef CFG_WITH_OBSERVER
-    printf("\n%sTime elapsed    :   %8.2f s.\n", pref, time);
-    printf("%sStates stored   :%'11llu\n", pref, stored);
-    printf("%sStates processed:%'11llu\n", pref, processed);
-    printf("%sMemory usage    :   %8.1f MB.\n", pref, mem);
-    printf("%sCPU usage       :   %8.2f %c\n", pref, cpu, '%');
-#endif
-        
+    if(cfg_with_observer()) {
+      printf("\n%sTime elapsed    :   %8.2f s.\n", pref, time);
+      printf("%sStates stored   :%'11llu\n", pref, stored);
+      printf("%sStates processed:%'11llu\n", pref, processed);
+      printf("%sMemory usage    :   %8.1f MB.\n", pref, mem);
+      printf("%sCPU usage       :   %8.2f %c\n", pref, cpu, '%');
+    }
+    
     /*
      *  check for limits
      */
-#if defined(CFG_MEMORY_LIMITED) && defined(CFG_MAX_MEMORY)
-    if(mem > CFG_MAX_MEMORY) {
+    if(cfg_memory_limited() && mem > cfg_max_memory()) {
       context_set_termination_state(MEMORY_EXHAUSTED);
     }
-#endif
-#if defined(CFG_TIME_LIMITED) && defined(CFG_MAX_TIME)
-    if(time > (float) CFG_MAX_TIME) {
+    if(cfg_time_limited() && time > (float) CFG_MAX_TIME) {
       context_set_termination_state(TIME_ELAPSED);
     }
-#endif
-#if defined(CFG_STATE_LIMITED) && defined(CFG_MAX_STATE)
-    if(processed > CFG_MAX_STATE) {
+    if(cfg_state_limited() && processed > CFG_MAX_STATE) {
       context_set_termination_state(STATE_LIMIT_REACHED);
     }
-#endif
   }
   if(cpu_avg != 0) {
     context_set_avg_cpu_usage(cpu_avg);
   }
-#ifdef CFG_WITH_OBSERVER
-  printf("\n%sdone.\n", pref);
-#endif
+  if(cfg_with_observer()) {
+    printf("\n%sdone.\n", pref);
+  }
   return NULL;
 }

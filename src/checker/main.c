@@ -33,49 +33,43 @@ int main
     }
   }
 
-  
-#if defined(CFG_ACTION_SIMULATE)
-  
-  simulator();
+  if(cfg_action_simulate()) { 
+    simulator();
+  } else {
+    if(cfg_distributed()) {
+      comm_shmem_init();
+    }
 
-#else
+    /*
+     *  catch SIGINT by changing the context state
+     */
+    signal(SIGINT, context_interruption_handler);
 
-#if defined CFG_DISTRIBUTED
-  comm_shmem_init();
-#endif
+    /*
+     *  launch the search
+     */
+    if(cfg_algo_bfs() || cfg_algo_dbfs() || cfg_algo_frontier()) {
+      bfs();
+    } else if(cfg_algo_dfs() || cfg_algo_ddfs()) {
+      dfs();
+    } else if(cfg_algo_delta_ddd()) {
+      delta_ddd();
+    } else if(cfg_algo_rwalk()) {
+      rwalk();
+    }
 
-  /*
-   *  catch SIGINT by changing the context state
-   */
-  signal(SIGINT, context_interruption_handler);
+    context_finalise();
+    
+    /*
+     *  termination of all libraries
+     */
+    free_bit_stream();
+    free_model();
 
-  /*
-   *  launch the search
-   */
-#if defined(CFG_ALGO_BFS) || defined(CFG_ALGO_DBFS) || \
-  defined(CFG_ALGO_FRONTIER)
-  bfs();
-#elif defined(CFG_ALGO_DFS) || defined(CFG_ALGO_DDFS)
-  dfs();
-#elif defined(CFG_ALGO_DELTA_DDD)
-  delta_ddd();
-#elif defined(CFG_ALGO_RWALK)
-  rwalk();
-#endif
-
-  context_finalise();
-
-  /*
-   *  termination of all libraries
-   */
-  free_bit_stream();
-  free_model();
-
-#if defined(CFG_ACTION_BUILD_GRAPH)
-  graph_make_report(CFG_GRAPH_FILE, CFG_RG_REPORT_FILE, NULL);
-#endif
-
-#endif
+    if(cfg_action_build_graph()) {
+      graph_make_report(CFG_GRAPH_FILE, CFG_RG_REPORT_FILE, NULL);
+    }
+  }
 
   exit(EXIT_SUCCESS);
 }

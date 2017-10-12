@@ -2,10 +2,6 @@
 #include "dbfs_comm.h"
 #include "comm_shmem.h"
 
-#if defined(CFG_ALGO_DBFS)
-
-#include "shmem.h"
-
 #define COMM_WAIT_TIME_MS       10
 #define WORKER_WAIT_TIME_MS     5
 #define WORKER_STATE_BUFFER_LEN 10000
@@ -461,5 +457,3 @@ void dbfs_comm_end
     mem_free(SYSTEM_HEAP, BUF.states[w]);
   }
 }
-
-#endif  /* defined(CFG_ALGO_DBFS) */

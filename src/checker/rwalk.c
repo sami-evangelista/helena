@@ -3,7 +3,6 @@
 #include "prop.h"
 #include "workers.h"
 
-#if defined(CFG_ALGO_RWALK)
 
 void * rwalk_worker
 (void * arg) {
@@ -64,5 +63,3 @@ void rwalk
 () {
   launch_and_wait_workers(&rwalk_worker);
 }
-
-#endif  /*  defined(CFG_ALGO_RWALK)  */
