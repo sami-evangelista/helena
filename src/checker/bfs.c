@@ -14,8 +14,6 @@ void bfs() {}
 
 #else
 
-#define BFS_DEBUG_XXX
-
 struct timespec BFS_WAIT_TIME[CFG_NO_WORKERS];
 
 storage_t S;
@@ -31,7 +29,7 @@ worker_id_t bfs_thread_owner
   for(i = 0; i < sizeof(hash_key_t); i++) {
     result += (h >> (i * 8)) & 0xff;
   }
-  return result % CFG_NO_WORKERS;
+  return result % cfg_no_workers();
 }
 
 void bfs_wait_barrier
@@ -46,7 +44,7 @@ void bfs_init_queue
   bool_t levels = cfg_algo_dbfs() ? 1 : 2;
   bool_t events_in_queue = cfg_edge_lean();
   uint16_t no_workers =
-    CFG_NO_WORKERS + (cfg_algo_dbfs() ? cfg_no_comm_workers() : 0);
+    cfg_no_workers() + (cfg_algo_dbfs() ? cfg_no_comm_workers() : 0);
   bool_t states_in_queue = cfg_hash_compaction();
   
   Q = bfs_queue_new(no_workers, cfg_bfs_queue_block_size(),
@@ -127,9 +125,6 @@ void * bfs_worker
   bool_t is_new, reduced, termination = FALSE;
   
   while(!termination) {
-#if defined(BFS_DEBUG)
-    printf("[%d,w%d] at BFS level %d\n", context_proc_id(), w, levels);
-#endif
     if(cfg_algo_dbfs()) {
       dbfs_comm_notify_queue_state(w, FALSE);
     }
@@ -284,9 +279,6 @@ void * bfs_worker
  bfs_loop_done:
   heap_free(heap);
   context_update_bfs_levels(levels);
-#if defined(BFS_DEBUG)
-  printf("[%d,w%d] terminated\n", context_proc_id(), w);
-#endif
 }
 
 void bfs
@@ -302,7 +294,7 @@ void bfs
   
   S = context_storage();
   bfs_init_queue();
-  for(w = 0; w < CFG_NO_WORKERS; w ++) {
+  for(w = 0; w < cfg_no_workers(); w ++) {
     BFS_WAIT_TIME[w].tv_sec = 0;
     BFS_WAIT_TIME[w].tv_nsec = 1000;
   }
@@ -311,7 +303,7 @@ void bfs
     dbfs_comm_start(Q);
   }
 
-  pthread_barrier_init(&BFS_BARRIER, NULL, CFG_NO_WORKERS);
+  pthread_barrier_init(&BFS_BARRIER, NULL, cfg_no_workers());
   
   if(cfg_algo_dbfs()) {
     h = state_hash(s);
@@ -320,7 +312,7 @@ void bfs
   
   if(enqueue) {
     storage_insert(S, s, 0, &is_new, &id, &h);
-    w = h % CFG_NO_WORKERS;
+    w = h % cfg_no_workers();
     item.id = id;
     item.s = s;
     item.e_set = FALSE;
@@ -333,9 +325,6 @@ void bfs
   state_free(s);
 
   launch_and_wait_workers(&bfs_worker);
-#if defined(BFS_DEBUG)
-  printf("[%d] all workers terminated\n", context_proc_id());
-#endif
 
   bfs_queue_free(Q);
   context_stop_search();

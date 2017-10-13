@@ -141,7 +141,7 @@ void * ddfs_comm_producer
   int pe;
   worker_id_t w;
   uint64_t size = 0, char_len = 0;
-  const worker_id_t my_worker_id = CFG_NO_WORKERS;
+  const worker_id_t my_worker_id = cfg_no_workers();
   
   while(context_keep_searching()) {
     context_sleep(PRODUCE_PERIOD);
@@ -162,7 +162,7 @@ void * ddfs_comm_producer
      */
     char_len = 0;
     size = 0;
-    for(w = 0; w < CFG_NO_WORKERS; w ++) {
+    for(w = 0; w < cfg_no_workers(); w ++) {
       
       /*  wait for the bucket of thread w to be ready  */
       while(!CAS(&BUF.status[w], BUCKET_OK, BUCKET_WRITE)) {
@@ -195,7 +195,7 @@ void * ddfs_comm_producer
 void * ddfs_comm_consumer
 (void * arg) {
   const comm_worker_id_t c = (comm_worker_id_t) (uint64_t) arg;
-  const worker_id_t w = c + CFG_NO_WORKERS;
+  const worker_id_t w = c + cfg_no_workers();
   bool_t f = FALSE;
   int pe;
   void * pos;
@@ -293,7 +293,7 @@ void ddfs_comm_start
   assert(PES <= MAX_PES);
   
   S = context_storage();
-  for(w = 0; w < CFG_NO_WORKERS; w ++) {
+  for(w = 0; w < cfg_no_workers(); w ++) {
     BUF.status[w] = BUCKET_OK;
     BUF.size[w] = 0;
     BUF.char_len[w] = 0;
@@ -310,7 +310,7 @@ void ddfs_comm_start
 
   /*  launch the producer and consumer threads  */
   pthread_create(&PROD, NULL, &ddfs_comm_producer, NULL);
-  for(c = 0; c < CFG_NO_COMM_WORKERS; c ++) {
+  for(c = 0; c < cfg_no_comm_workers(); c ++) {
     pthread_create(&CONS[c], NULL, &ddfs_comm_consumer, (void *) (long) c);
   }
 }
@@ -321,7 +321,7 @@ void ddfs_comm_end
   void * dummy;
 
   pthread_join(PROD, &dummy);
-  for(c = 0; c < CFG_NO_COMM_WORKERS; c ++) {
+  for(c = 0; c < cfg_no_comm_workers(); c ++) {
     pthread_join(CONS[c], &dummy);
   }
   comm_shmem_finalize(NULL);

@@ -35,7 +35,6 @@ typedef struct {
   uint64_t exec_time;
   uint64_t states_max_stored;
   uint64_t barrier_time;
-  uint64_t distributed_barrier_time;
   uint64_t sleep_time;
   unsigned int bfs_levels;
   bool_t bfs_levels_ok;
@@ -97,7 +96,6 @@ void context_init
   CTX->states_max_stored = 0;
   CTX->comp_time = 0.0;
   CTX->barrier_time = 0;
-  CTX->distributed_barrier_time = 0;
   CTX->sleep_time = 0;
   CTX->avg_cpu_usage = 0.0;
   CTX->no_workers = no_workers;
@@ -253,11 +251,13 @@ void context_finalise
     }
     fprintf(out, "</searchAlgorithm>\n");
     fprintf(out, "<workers>%d</workers>\n", CTX->no_workers);
+    if(cfg_hash_storage() || cfg_delta_ddd_storage()) {
+      fprintf(out, "<hashTableSize>%d</hashTableSize>\n", cfg_hash_size());
+    }
     if(cfg_distributed()) {
       fprintf(out, "<commWorkers>%d</commWorkers>\n", CTX->no_comm_workers);
-    }
-    if(cfg_hash_storage() || cfg_delta_ddd_storage()) {
-      fprintf(out, "<hashTableSlots>%d</hashTableSlots>\n", cfg_hash_size());
+      fprintf(out, "<shmemHeapSize>%d</shmemHeapSize>\n",
+              cfg_shmem_heap_size());
     }
     if(cfg_hash_compaction()) {
       fprintf(out, "<hashCompact/>\n");
@@ -294,11 +294,6 @@ void context_finalise
     if(cfg_algo_delta_ddd()) {
       fprintf(out, "<duplicateDetectionTime>%.3f</duplicateDetectionTime>\n",
 	      storage_dd_time(CTX->storage) / 1000000.0);
-    }
-    if(cfg_distributed()) {
-      fprintf(out, "<distributedBarrierTime>");
-      fprintf(out, "%.3f</distributedBarrierTime>\n",
-	      CTX->distributed_barrier_time / 1000000.0);
     }
     if(cfg_state_caching()) {
       fprintf(out, "<garbageCollectionTime>");
@@ -546,11 +541,6 @@ void context_increase_bytes_sent
 void context_increase_barrier_time
 (float time) {
   CTX->barrier_time += time;
-}
-
-void context_increase_distributed_barrier_time
-(float time) {
-  CTX->distributed_barrier_time += time;
 }
 
 void context_update_max_states_stored

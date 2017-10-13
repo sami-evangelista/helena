@@ -17,6 +17,7 @@
             msmie.1        2334        3097    42
         protocols.1        2430        6480    30
     firewire_tree.2        2441        5692    52
+           rether.1        2458        2755   105
             lifts.1        2661        4486    58
             lifts.2        2664        4490    58
     reader_writer.1        2666       10658    12
@@ -24,7 +25,6 @@
         protocols.3        2817        7826    34
          elevator.2        2825        5274    47
  cyclic_scheduler.2        3302        7720    51
-           rether.1        3673        4088   121
     reader_writer.2        4104       49190    13
  cyclic_scheduler.1        4606       20480    55
    leader_filters.1        4966        9387    39
@@ -145,6 +145,7 @@ lamport_nonatomic.3       36983      123337    40
           lamport.5     1066800     3630664    77
          peterson.4     1119560     3864896   104
         szymanski.3     1128424     4234041   111
+           rether.4     1157052     1535386   285
 lamport_nonatomic.4     1257304     5360727    57
               plc.3     1268968     2058701  5654
           fischer.4     1272254     4609671    30
@@ -170,6 +171,7 @@ lamport_nonatomic.4     1257304     5360727    57
               plc.4     3763999     6100165  7852
     firewire_tree.5     3807023    18225703   202
   production_cell.5     4211856    13072120    68
+           rether.7     4789409     5317199   416
   leader_election.5     4803952    28064092   161
             lifts.7     5126781    13631916   220
             bopdp.5     5300185    14586136   150
@@ -187,7 +189,6 @@ lamport_nonatomic.4     1257304     5360727    57
        extinction.5     8167070    29666627   150
           fischer.6     8321728    33454191    33
           lamport.6     8717688    31502176   111
-           rether.4     9559819    13322683   285
             bopdp.6     9627830    26721111   160
           synapse.7    10198141    19893297    76
         cambridge.7    11465015    54850496   339
@@ -216,7 +217,6 @@ lamport_nonatomic.4     1257304     5360727    57
         collision.4    41465543   113148818     0
               brp.6    42728113    89187437     0
        train-gate.7    50199556   106056460     0
-           rether.7    55338617    61198113     0
         iprotocol.7    59794192   200828479     0
          elevator.5   185008051   185008051     0
             lifts.9   266445936   846144885     0

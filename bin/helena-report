@@ -104,18 +104,23 @@ options = {
     "hashCompact"             : "Hash compaction",
     "stateCaching"            : "State caching",
     "candidateSetSize"        : "Candidate set size (for --algo=delta-ddd) = ",
-    "hashTableSlots"          : "Hash table size = " }
+    "hashTableSize"           : "Hash table size = ",
+    "shmemHeapSize"           : "SHMEM heap size = " }
 optionsWithVal = {
-    "candidateSetSize"        : noFormat,
-    "hashTableSlots"          : formatNumber,
+    "shmemHeapSize"           : formatNumber,
+    "candidateSetSize"        : formatNumber,
+    "hashTableSize"           : formatNumber,
     "searchAlgorithm"         : lambda a: algorithms[a] }
+optionsWithUnits = {
+    "shmemHeapSize"           : "bytes",
+    "candidateSetSize"        : "states",
+    "hashTableSize"           : "states" }
 statistics = {
     "searchTime"              : "Search time               ",
     "duplicateDetectionTime"  : "   for duplicate detection",
     "garbageCollectionTime"   : "   for garbage collection ",
     "barrierTime"             : "   for local barrier wait ",
     "sleepTime"               : "   for sleep              ",
-    "distributedBarrierTime"  : "   for shmem barrier wait ",
     "compilationTime"         : "Model compilation         ",
     "places"                  : "Places                    ",
     "transitions"             : "Transitions               ",
@@ -149,7 +154,6 @@ statisticsUnits = {
     "compilationTime"         : "s.",
     "barrierTime"             : "s. (sum over all threads)",
     "sleepTime"               : "s. (sum over all threads)",
-    "distributedBarrierTime"  : "s.",
     "eventExecPerSecond"      : "exec. / s.",
     "maxMemoryUsed"           : "MB",
     "stateVectorSize"         : "bytes",
@@ -203,6 +207,8 @@ def printSearchReport(r):
                 if o.nodeName in optionsWithVal:
                     f = optionsWithVal[o.nodeName]
                     line += f(o.childNodes[0].nodeValue)
+                    if o.nodeName in optionsWithUnits:
+                        line += " " + optionsWithUnits[o.nodeName]
                 print line
                 pref = "                           "
                     

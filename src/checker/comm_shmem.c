@@ -25,12 +25,7 @@ void comm_shmem_barrier
 #if !defined(CFG_DISTRIBUTED)
   assert(0);
 #else
-  lna_timer_t t;
-  lna_timer_init(&t);
-  lna_timer_start(&t);
   shmem_barrier_all();
-  lna_timer_stop(&t);
-  context_increase_distributed_barrier_time(lna_timer_value(t));
 #endif
 }
 

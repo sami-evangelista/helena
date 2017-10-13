@@ -35,7 +35,6 @@ def mergeReports(refDoc, docs):
                            ("barrierTime", False),
                            ("sleepTime", False),
                            ("bfsLevels", False),
-                           ("distributedBarrierTime", False),
                            ("duplicateDetectionTime", False),
                            ("eventExecPerSecond", False),
                            ("eventsExecuted", False),
@@ -69,14 +68,13 @@ if len(sys.argv) == 1:
 else:
     docs = list()
     for xml in sys.argv[1:]:
-        #try:
-        docs.append(parse(xml))
-        #except:
-        #    exitWithError("error: could not parse file " + xml)
+        try:
+            docs.append(parse(xml))
+        except:
+            exitWithError("error: could not parse file " + xml)
     docRef = docs[0]
     mergeReports(docRef, docs)
     out = open("report.xml", "w")
     out.write(docRef.toprettyxml(indent = '  '))
     out.close()
-    
 exit(0)

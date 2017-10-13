@@ -112,9 +112,6 @@ void context_increase_bytes_sent
 void context_increase_barrier_time
 (float time);
 
-void context_increase_distributed_barrier_time
-(float time);
-
 void context_incr_arcs
 (worker_id_t w,
  int no);

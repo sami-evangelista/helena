@@ -570,15 +570,9 @@ void graph_make_statistics
   fprintf(f, "<state-space-info>\n\n");
 
   fprintf(f, "<model>%s</model>\n", model_name());
-#if defined(CFG_LANGUAGE)
   fprintf(f, "<language>%s</language>\n", CFG_LANGUAGE);
-#endif
-#if defined(CFG_DATE)
   fprintf(f, "<date>%s</date>\n", CFG_DATE);
-#endif
-#if defined(CFG_FILE_PATH)
   fprintf(f, "<filePath>%s</filePath>\n", CFG_FILE_PATH);
-#endif
   model_xml_parameters(f);
 
   fprintf(f, "<states>%d</states>\n", graph->no_nodes);
