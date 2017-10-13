@@ -130,16 +130,13 @@ void * bfs_worker
     }
     for(x = 0; x < bfs_queue_no_workers(Q); x ++) {
       while(!bfs_queue_slot_is_empty(Q, x, w)) {
-	if(!context_keep_searching()) {
-	  goto bfs_loop_done;
-	}
         
 	/**
 	 *  get the next state sent by thread x, get its successors
 	 *  and a valid reduced set.  if the states are not stored in
 	 *  the queue we get it from the storage
 	 */
-	item = bfs_queue_dequeue(Q, x, w);
+	item = bfs_queue_next(Q, x, w);
 	heap_reset(heap);
 	if(states_in_queue) {
 	  s = item.s;
@@ -254,6 +251,7 @@ void * bfs_worker
 	 *  the state leaves the queue => we unset its cyan bit and
 	 *  delete it from storage if algo is FRONTIER.
 	 */
+        bfs_queue_dequeue(Q, x, w);
 	storage_set_cyan(S, item.id, w, FALSE);
 	if(cfg_algo_frontier()) {
 	  storage_remove(S, w, item.id);
@@ -276,7 +274,6 @@ void * bfs_worker
     levels ++;
   }
 
- bfs_loop_done:
   heap_free(heap);
   context_update_bfs_levels(levels);
 }
@@ -327,9 +324,9 @@ void bfs
   launch_and_wait_workers(&bfs_worker);
 
   bfs_queue_free(Q);
-  context_stop_search();
 
   if(cfg_algo_dbfs()) {
+    context_stop_search();
     dbfs_comm_end();
   }
 }

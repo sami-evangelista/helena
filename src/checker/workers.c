@@ -1,7 +1,7 @@
 #include "workers.h"
 #include "context.h"
 
-#define WORKERS_DEBUG
+#define WORKERS_DEBUG_XXX
 
 void launch_and_wait_workers
 (worker_func_t f) {

@@ -1,17 +1,14 @@
 #!/bin/bash
 
 MAX=$1
-HC=$2
+TYPE=$2
 
-[ "$MAX" = "" ] && echo "missing \$1 = MAX # of nodes" && exit 1
-[ "$HC" = "" ] && echo "missing \$2 = hash-compaction (0/1)" && exit 1
+[ "$MAX"  = "" ] && echo "missing \$1 = MAX # of nodes" && exit 1
+[ "$TYPE" = "" ] && echo "missing \$2 = BTL (ib/tcp)" && exit 1
 
-if [ "$HC" = 1 ]
-then
-    outDir=out/dbfs-hc
-else
-    outDir=out/dbfs
-fi
+outDir=out/dbfs-$TYPE
+
+[ ! -d $outDir ] && echo "$outDir does not exist" && exit 1
 
 echo -n "set terminal png size 600, 900;
 set output \"dbfs-time.png\";
@@ -33,7 +30,7 @@ echo -n "set terminal png size 600, 900;
 set output \"dbfs-cpu.png\";
 set xtics 1;
 set xrange [1:$MAX];
-set yrange [0:$((MAX / 2))];
+set yrange [0:2];
 set key outside vertical center bottom font \",8\" box;
 set lmargin 4;
 set size ratio 0.5;

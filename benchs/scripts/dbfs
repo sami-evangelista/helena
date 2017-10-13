@@ -1,5 +1,5 @@
 #!/bin/bash
-#OAR -l nodes=8,walltime=10:00:00
+#OAR -l nodes=8/cpu=2,walltime=10:00:00
 #OAR -p ib='QDR'
 #OAR -t allow_classic_ssh
 #OAR -n dist-helena
@@ -110,6 +110,7 @@ scripts/select-models $minStates $maxStates \
 		      then
 			  C=$(($C + 1))
 		      fi
+                      C=1
 		      cmd=$cmd" --algo=dbfs --machine-file=mf --comm-workers="$C
 		  else
 		      cmd=$cmd" --algo=bfs"

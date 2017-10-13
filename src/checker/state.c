@@ -58,6 +58,7 @@ state_t state_copy_mem
 (state_t s,
  heap_t heap) {
   state_t result;
+  
   result = mem_alloc(heap, sizeof(struct_state_t));
   result->m = mstate_copy_mem(s->m, heap);
   result->b = s->b;
@@ -98,7 +99,8 @@ state_t state_unserialise_mem
 (bit_vector_t v,
  heap_t heap) {
   unsigned int bsize = sizeof(bstate_t);
-  state_t result = mem_alloc(heap, sizeof(struct_state_t)); 
+  state_t result = mem_alloc(heap, sizeof(struct_state_t));
+  
   result->b = 0;
   memcpy(&(result->b), v, bsize);
   result->m = mstate_unserialise(v + bsize);
@@ -110,12 +112,12 @@ bool_t state_cmp_vector
 (state_t s,
  bit_vector_t v) {
   bstate_t b = 0;
-  unsigned int bsize = sizeof(bstate_t);
-  memcpy(&b, v, bsize);
+
+  memcpy(&b, v, sizeof(bstate_t));
   if(s->b != b) {
     return FALSE;
   }
-  return mstate_cmp_vector(s->m, v + bsize);
+  return mstate_cmp_vector(s->m, v + sizeof(bstate_t));
 }
 
 #endif
