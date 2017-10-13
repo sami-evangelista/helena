@@ -69,7 +69,7 @@ fun compileStateType s = let
     val (consts, comps) = List.partition isCompConst comps
     val arrayTypeDefs = compileArrayTypes ()
 
-    fun compileConstDef comp = let
+    fun compileConst comp = let
 	val v = valOf (getCompVar comp)
 	val t = Var.getTyp v
     in
@@ -125,6 +125,7 @@ in
 		sep   = "\n   ",
 		final = "\n   heap_t heap;\n} struct_mstate_t;",
 		fmt   = compileComp} comps,
+     "#define STATE_VECTOR_SIZE " ^ (Int.toString stateVectorSize),
      "typedef struct_mstate_t * mstate_t;",
      "void mstate_free (mstate_t s);",
      "mstate_t mstate_copy (mstate_t s);",
@@ -134,7 +135,7 @@ in
      Utils.fmt {init  = if consts <> [] then "/*  constants  */\n" else "",
 		sep   = "\n",
 		final = "",
-		fmt   = compileConstDef} consts
+		fmt   = compileConst} consts
      ],
      concatLines [
      "void mstate_free (mstate_t s) {",
@@ -142,8 +143,8 @@ in
      "}",
      "",
      "mstate_t mstate_copy_mem (mstate_t s, heap_t heap) {",
-     "   mstate_t result = mem_alloc(heap, sizeof(struct_mstate_t));",
-     "   memcpy(result, s, sizeof(struct_mstate_t));",
+     "   mstate_t result = mem_alloc (heap, sizeof (struct_mstate_t));",
+     "   *result = *s;",
      "   result->heap = heap;",
      "   return result;",
      "}",
@@ -153,7 +154,7 @@ in
      "}",
      "",
      "bool_t mstate_equal (mstate_t s1, mstate_t s2) {",
-     "   if(0 == memcmp(s1, s2, sizeof(struct_mstate_t))) { return TRUE; }",
+     "   if(0 == memcmp(s1, s2, STATE_VECTOR_SIZE)) { return TRUE; }",
      "   else { return FALSE; }",
      "}",
      "",
@@ -252,26 +253,26 @@ fun gen (s, hFile, cFile) = let
     val map = buildMapping comps
     val (consts, comps) = List.partition isCompConst comps
     fun compileConstInit comp = let
-	val v = valOf (getCompVar comp)
+        val v = valOf (getCompVar comp)
         val name = getCompName comp
-	val t = Var.getTyp v
+        val t = Var.getTyp v
         val i = valOf(Var.getInit v)
         val assigns = (0, "")
     in
         case (t, i) of
         (Typ.ARRAY_TYPE (bt, n), Expr.ARRAY_INIT(_, l)) => let
-           val assigns = List.foldr (fn (e, (idx, assigns)) => let
-              val init = (compileExpr "" e (NONE, map, comps, false))
-              val a = name ^ "[" ^ (Int.toString idx) ^ "] = " ^ init ^ ";"
-           in
-              (idx + 1, a :: assigns)
-           end) (0, []) l
-           val (_, assigns) = assigns
+            val assigns = List.foldr (fn (e, (idx, assigns)) => let
+                val init = (compileExpr "" e (NONE, map, comps, false))
+                val a = name ^ "[" ^ (Int.toString idx) ^ "] = " ^ init ^ ";"
+            in
+                (idx + 1, a :: assigns)
+            end) (0, []) l
+            val (_, assigns) = assigns
         in
-          SOME (concatLines assigns)
+            SOME (concatLines assigns)
         end
-      | _ => (SOME ("   " ^ name ^ " = " ^ 
-	      (compileExpr "" i (NONE, map, comps, false)) ^ ";"))
+       | _ => (SOME ("   " ^ name ^ " = " ^
+        (compileExpr "" i (NONE, map, comps, false)) ^ ";"))
     end
 in
     (*

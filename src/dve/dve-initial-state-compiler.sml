@@ -81,7 +81,6 @@ fun gen (s: System.system, checks, hFile, cFile) = let
 	concatLines [
 	protMem ^ " {",
 	"   mstate_t result = mem_alloc(heap, sizeof(struct_mstate_t));",
-	"   memset(result, 0, sizeof(struct_mstate_t));",
 	"   result->heap = heap;",
 	"",
 	"   /*  process state  */",

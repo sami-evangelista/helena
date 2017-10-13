@@ -105,7 +105,7 @@ in
 end
 
 fun gen (s, checks, hFile, cFile) = (
-    TextIO.output (hFile, "#include \"list.h\"\n");
+    TextIO.output (hFile, "#include \"list.h\"");
     TextIO.output (hFile, "/*  enabling test functions  */");
     TextIO.output (cFile, "/*  enabling test functions  */");
     compileGetEnabledEvent
