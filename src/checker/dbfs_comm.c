@@ -18,14 +18,13 @@ typedef struct {
 } buffer_data_t;
 
 typedef struct {
-  bool_t empty_queue;
   uint32_t packets_sent;
   uint32_t packets_received;
 } worker_data_t;
 
 typedef struct {
   worker_data_t data[CFG_NO_WORKERS + CFG_NO_COMM_WORKERS];
-} term_data_t;
+} packets_data_t;
 
 typedef struct {
   heap_t * heaps[CFG_NO_WORKERS];
@@ -49,6 +48,9 @@ uint32_t DBFS_HEAP_SIZE_WORKER;
 uint32_t DBFS_HEAP_SIZE_PE;
 int PES;
 int ME;
+bool_t WAITING[CFG_NO_WORKERS];
+bool_t TERM = FALSE;
+
 
 /**
  * synchronisation stuff
@@ -61,38 +63,21 @@ pthread_mutex_t DBFS_MUTEX;
  */
 static char H[CFG_SHMEM_HEAP_SIZE];
 static buffer_data_t H_BUFFER_DATA[CFG_NO_WORKERS][MAX_PES];
-static term_data_t H_TERM_DATA;
+static packets_data_t H_PACKETS_DATA;
+static bool_t H_LOC_TERM = FALSE;
+static bool_t H_CHECK_FOR_TERM = FALSE;
 
-bool_t dbfs_comm_check_for_termination
-() {
-  worker_id_t w;
-  int pe;
-  term_data_t d;
-  uint32_t sum_sent = 0;
-  uint32_t sum_received = 0;  
 
-  for(pe = 0; pe < PES; pe ++) {
-    comm_shmem_get(&d, &H_TERM_DATA, sizeof(term_data_t), pe);
-    for(w = 0; w < cfg_no_workers() + cfg_no_comm_workers(); w ++) {
-      sum_sent += d.data[w].packets_sent;
-      sum_received += d.data[w].packets_received;
-      if(!d.data[w].empty_queue) {
-	return FALSE;
-      }
-    }
-  }
-  if(sum_sent == sum_received) {
-    return TRUE;
-  } else {
-    return FALSE;
-  }
+void dbfs_comm_notify_waiting
+(worker_id_t w,
+ bool_t waiting) {
+  WAITING[w] = waiting;
 }
 
 
-void dbfs_comm_notify_queue_state
-(worker_id_t w,
- bool_t empty) {
-  H_TERM_DATA.data[w].empty_queue = empty;
+bool_t dbfs_comm_termination
+() {
+  return TERM;
 }
 
 
@@ -197,7 +182,7 @@ void dbfs_comm_send_buffer
          ME, w, data.no_states, pe, BUF.remote_pos[w][pe]);
 #endif
   
-  H_TERM_DATA.data[w].packets_sent ++;
+  H_PACKETS_DATA.data[w].packets_sent ++;
   
   /**
    * reinitialise the buffer
@@ -265,7 +250,7 @@ void dbfs_comm_process_state
 }
 
 
-void dbfs_comm_worker_process_incoming_states
+bool_t dbfs_comm_worker_process_incoming_states
 (comm_worker_id_t c) {
   const worker_id_t w = c + cfg_no_workers();
   worker_id_t x, d;
@@ -279,6 +264,7 @@ void dbfs_comm_worker_process_incoming_states
   bfs_queue_item_t item;
   state_t s;
   int pe;
+  bool_t result = FALSE;
 
   while(states_received) {
     states_received = FALSE;
@@ -294,6 +280,7 @@ void dbfs_comm_worker_process_incoming_states
             printf("[%d] received %d states from [%d,%d] at pos %d\n",
                    ME, H_BUFFER_DATA[x][pe].no_states, pe, x, pos);
 #endif
+	    result = TRUE;
 	    states_received = TRUE;
             comm_shmem_get(buffer, H + pos, H_BUFFER_DATA[x][pe].len, ME);
             no_states = H_BUFFER_DATA[x][pe].no_states;
@@ -338,13 +325,122 @@ void dbfs_comm_worker_process_incoming_states
 		if(cfg_hash_compaction()) {
 		  state_free(item.s);
 		}
-		H_TERM_DATA.data[d].empty_queue = FALSE;
               }
             }
-	    H_TERM_DATA.data[w].packets_received ++;
+	    H_PACKETS_DATA.data[w].packets_received ++;
           }
         }
       }
+    }
+  }
+  return result;
+}
+
+
+bool_t dbfs_comm_termination_local_checks
+() {
+  worker_id_t w;
+  
+  /**
+   * bfs queue must be empty and all workers must be waiting
+   */
+  if(!bfs_queue_is_empty(Q)) {
+    return FALSE;
+  }
+  for(w = 0; w < cfg_no_workers(); w ++) {
+    if(!WAITING[w]) {
+      return FALSE;
+    }
+  }
+  return TRUE;
+}
+
+
+bool_t dbfs_comm_remote_pe_checking_for_termination
+() {
+  int pe;
+  bool_t b;
+
+  for(pe = 0; pe < PES; pe ++) {
+    if(ME == pe) {
+      b = H_CHECK_FOR_TERM;
+    } else {
+      comm_shmem_get(&b, &H_CHECK_FOR_TERM, sizeof(bool_t), pe);
+      if(b) {
+	return TRUE;
+      }
+    }
+  }
+  return FALSE;
+}
+
+
+bool_t dbfs_comm_check_termination
+(comm_worker_id_t c) {
+  worker_id_t w;
+  bool_t b, all_term;
+  int pe;
+  packets_data_t d;
+  uint64_t sum_sent = 0, sum_received = 0;
+
+  /**
+   * globally check for termination if I have locally terminated or if
+   * a remote PE has notified he is doing so
+   */
+  if(dbfs_comm_termination_local_checks()
+     || dbfs_comm_remote_pe_checking_for_termination()) {
+
+    /**
+     * termination checks are performed by comm worker 0 only
+     */
+    if(0 == c) {
+      
+      /**
+       * notify remote PEs I am checking for termination and wait for
+       * them
+       */
+      H_CHECK_FOR_TERM = TRUE;
+      comm_shmem_barrier();
+
+      /**
+       * notify remote PEs my local termination status (i.e. BFS queue
+       * empty + all workers waiting) then wait that others have done
+       * so
+       */
+      H_CHECK_FOR_TERM = FALSE;
+      H_LOC_TERM = dbfs_comm_termination_local_checks();  
+      comm_shmem_barrier();
+
+      /**
+       * check the local termination status of others
+       */
+      all_term = H_LOC_TERM;
+      for(pe = 0; pe < PES; pe ++) {
+	if(ME != pe) {
+	  comm_shmem_get(&b, &H_LOC_TERM, sizeof(bool_t), pe);
+	  all_term = all_term && b;
+	}
+      }
+
+      /**
+       * all workers of remote PEs are waiting and all queues are
+       * empty.  we finally check that channels are empty (i.e. # of
+       * packets sent by all PEs = # of packets received).  if this is
+       * the case then we must terminate.
+       */
+      if(all_term) {
+	for(pe = 0; pe < PES; pe ++) {
+	  comm_shmem_get(&d, &H_PACKETS_DATA, sizeof(packets_data_t), pe);
+	  for(w = 0; w < cfg_no_workers() + cfg_no_comm_workers(); w ++) {
+	    sum_sent += d.data[w].packets_sent;
+	    sum_received += d.data[w].packets_received;
+	  }
+	}
+	if(sum_sent == sum_received) {
+	  TERM = TRUE;
+	}
+      }
+      comm_shmem_barrier();
     }
   }
 }
@@ -353,15 +449,16 @@ void dbfs_comm_worker_process_incoming_states
 void * dbfs_comm_worker
 (void * arg) {
   const comm_worker_id_t c = (comm_worker_id_t) (uint64_t) arg;
-  
-  H_TERM_DATA.data[c + cfg_no_workers()].empty_queue = TRUE;
-    
+      
   /**
-   * sleep a bit and process incoming states until search finished
+   * sleep a bit and process incoming states.  then check for
+   * termination if I did not receive any states
    */
-  while(context_keep_searching()) {
+  while(!TERM) {
     context_sleep(COMM_WAIT_TIME);
-    dbfs_comm_worker_process_incoming_states(c);
+    if(!dbfs_comm_worker_process_incoming_states(c)) {
+      dbfs_comm_check_termination(c);
+    }
   }
 }
 
@@ -381,10 +478,12 @@ void dbfs_comm_start
   assert(PES <= MAX_PES);
 
   /* initialise global variables */
+  TERM = FALSE;
   Q = q;
   S = context_storage();
   pthread_mutex_init(&DBFS_MUTEX, NULL);
   for(w = 0; w < cfg_no_workers(); w ++) {
+    WAITING[w] = FALSE;
     BUF.heaps[w] = mem_alloc(SYSTEM_HEAP, sizeof(heap_t) * PES);
     BUF.ids[w] = mem_alloc(SYSTEM_HEAP, sizeof(hash_tbl_id_t *) * PES);
     BUF.len[w] = mem_alloc(SYSTEM_HEAP, sizeof(uint32_t) * PES);
@@ -393,9 +492,8 @@ void dbfs_comm_start
     BUF.states[w] = mem_alloc(SYSTEM_HEAP, sizeof(hash_tbl_t) * PES);
   }
   for(w = 0; w < cfg_no_workers() + cfg_no_comm_workers(); w ++) {
-    H_TERM_DATA.data[w].packets_sent = 0;
-    H_TERM_DATA.data[w].packets_received = 0;
-    H_TERM_DATA.data[w].empty_queue = FALSE;
+    H_PACKETS_DATA.data[w].packets_sent = 0;
+    H_PACKETS_DATA.data[w].packets_received = 0;
   }
   for(pe = 0; pe < PES; pe ++) {
     remote_pos = ME * DBFS_HEAP_SIZE_PE;

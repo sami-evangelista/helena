@@ -58,16 +58,16 @@ bool_t bfs_check_termination
   
   if(cfg_algo_dbfs()) {
     dbfs_comm_send_all_pending_states(w);
-    while(!(result = dbfs_comm_check_for_termination())
-	  && bfs_queue_local_is_empty(Q, w)
-	  && context_keep_searching()) {
-      dbfs_comm_notify_queue_state(w, TRUE);
+    dbfs_comm_notify_waiting(w, TRUE);
+    while(!(result = dbfs_comm_termination())
+	  && bfs_queue_local_is_empty(Q, w)) {
       context_sleep(BFS_WAIT_TIME[w]);
       trials ++;
     }
+    dbfs_comm_notify_waiting(w, FALSE);
     if(trials == 1) {
       BFS_WAIT_TIME[w].tv_nsec /= 2;
-    }
+    }    
   } else {
     bfs_wait_barrier();
     bfs_queue_switch_level(Q, w);
@@ -125,12 +125,9 @@ void * bfs_worker
   bool_t is_new, reduced, termination = FALSE;
   
   while(!termination) {
-    if(cfg_algo_dbfs()) {
-      dbfs_comm_notify_queue_state(w, FALSE);
-    }
     for(x = 0; x < bfs_queue_no_workers(Q); x ++) {
       while(!bfs_queue_slot_is_empty(Q, x, w)) {
-        
+	
 	/**
 	 *  get the next state sent by thread x, get its successors
 	 *  and a valid reduced set.  if the states are not stored in

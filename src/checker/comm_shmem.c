@@ -9,6 +9,7 @@
 #define COMM_SHMEM_CHUNK_SIZE 10000
 #define COMM_SHMEM_DEBUG_XXX
 
+pthread_mutex_t COMM_SHMEM_MUTEX;
 bool_t COMM_SHMEM_INITIALISED;
 
 void comm_shmem_init
@@ -17,6 +18,7 @@ void comm_shmem_init
   assert(0);
 #else
   shmem_init();
+  pthread_mutex_init(&COMM_SHMEM_MUTEX, NULL);
 #endif
 }
 
@@ -50,6 +52,7 @@ void comm_shmem_put
 	   shmem_my_pe(), size , dst, pe);
 #endif
     context_increase_bytes_sent(size);
+    pthread_mutex_lock(&COMM_SHMEM_MUTEX);
     while(size) {
       if(size < COMM_SHMEM_CHUNK_SIZE) {
 	shmem_putmem(dst, src, size, pe);
@@ -61,7 +64,7 @@ void comm_shmem_put
 	src += COMM_SHMEM_CHUNK_SIZE;
       }
     }
-    shmem_putmem(dst, src, size, pe);
+    pthread_mutex_unlock(&COMM_SHMEM_MUTEX);
 #if defined(COMM_SHMEM_DEBUG)
     printf("%d put %d bytes at %p to %d done\n",
 	   shmem_my_pe(), size , dst, pe);
@@ -86,7 +89,9 @@ void comm_shmem_get
 	   shmem_my_pe(), size , dst, pe);
 #endif
     context_increase_bytes_sent(size);
+    pthread_mutex_lock(&COMM_SHMEM_MUTEX);
     shmem_getmem(dst, src, size, pe);
+    pthread_mutex_unlock(&COMM_SHMEM_MUTEX);
 #if defined(COMM_SHMEM_DEBUG)
     printf("%d get %d bytes at %p from %d done\n",
 	   shmem_my_pe(), size , dst, pe);
@@ -105,6 +110,7 @@ void comm_shmem_finalize
     shmem_free(heap);
   }
   shmem_finalize();
+  pthread_mutex_destroy(&COMM_SHMEM_MUTEX);
 #endif
 }
 

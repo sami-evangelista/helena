@@ -37,18 +37,18 @@ void dbfs_comm_process_state
 
 
 /**
- *  @brief dbfs_comm_check_for_termination
+ *  @brief dbfs_comm_termination
  */
-bool_t dbfs_comm_check_for_termination
+bool_t dbfs_comm_termination
 ();
 
 
 /**
- *  @brief dbfs_comm_notify_queue_state
+ *  @brief dbfs_comm_notify_waiting
  */
-void dbfs_comm_notify_queue_state
+void dbfs_comm_notify_waiting
 (worker_id_t w,
- bool_t empty);
+ bool_t waiting);
 
 
 /**

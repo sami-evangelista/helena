@@ -138,7 +138,7 @@ statistics = {
     "statesProcessedDev"      : "   std. dev. over threads ",
     "statesAccepting"         : "Accepting states          ",
     "statesTerminal"          : "Deadlock states           ",
-    "arcs"                    : "Arcs                      ",
+    "arcs"                    : "Transitions               ",
     "bfsLevels"               : "BFS levels                ",
     "eventsExecuted"          : "Events executed           ",
     "eventsExecutedDDD"       : "   for duplicate detection",
