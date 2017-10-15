@@ -41,8 +41,8 @@ void comm_shmem_put
   assert(0);
 #else
   /**
-   * NOTE: shmem_put fails on local PE in some cases.  we do
-   * memcpy instead which seems equivalent.
+   * NOTE: shmem_put fails on local PE in some cases.  we do memcpy
+   * instead which seems equivalent.
    */
   if(pe == shmem_my_pe()) {
     memcpy(dst, src, size);
