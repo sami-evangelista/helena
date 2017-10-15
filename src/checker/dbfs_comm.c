@@ -139,7 +139,7 @@ void dbfs_comm_send_buffer
 #if defined(DBFS_COMM_DEBUG)
   assert(hash_tbl_size(BUF.states[w][pe]) <= WORKER_STATE_BUFFER_LEN);
   assert(pe != ME);
-  assert(BUF.len[w][pe] < DBFS_HEAP_SIZE_WORKER);
+  assert(BUF.len[w][pe] <= DBFS_HEAP_SIZE_WORKER);
 #endif
   
   /**
