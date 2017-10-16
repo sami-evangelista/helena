@@ -58,13 +58,11 @@ bool_t bfs_check_termination
   
   if(cfg_algo_dbfs()) {
     dbfs_comm_send_all_pending_states(w);
-    dbfs_comm_notify_waiting(w, TRUE);
     while(!(result = dbfs_comm_termination())
 	  && bfs_queue_local_is_empty(Q, w)) {
       context_sleep(BFS_WAIT_TIME[w]);
       trials ++;
     }
-    dbfs_comm_notify_waiting(w, FALSE);
     if(trials == 1) {
       BFS_WAIT_TIME[w].tv_nsec /= 2;
     }    

@@ -44,14 +44,6 @@ bool_t dbfs_comm_termination
 
 
 /**
- *  @brief dbfs_comm_notify_waiting
- */
-void dbfs_comm_notify_waiting
-(worker_id_t w,
- bool_t waiting);
-
-
-/**
  * @brief dbfs_comm_send_all_pending_states
  */
 void dbfs_comm_send_all_pending_states

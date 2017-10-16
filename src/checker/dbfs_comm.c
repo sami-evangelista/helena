@@ -10,21 +10,16 @@
 #define WORKER_STATE_BUFFER_LEN 10000
 #define MAX_PES                 100
 
-#define DBFS_COMM_DEBUG_XXX
+#define TOKEN_NONE               0
+#define TOKEN_BLACK              1
+#define TOKEN_WHITE              2
+
+#define DBFS_COMM_DEBUG
 
 typedef struct {
   uint32_t no_states;
   uint32_t len;
 } buffer_data_t;
-
-typedef struct {
-  uint32_t packets_sent;
-  uint32_t packets_received;
-} worker_data_t;
-
-typedef struct {
-  worker_data_t data[CFG_NO_WORKERS + CFG_NO_COMM_WORKERS];
-} packets_data_t;
 
 typedef struct {
   heap_t * heaps[CFG_NO_WORKERS];
@@ -48,8 +43,9 @@ uint32_t DBFS_HEAP_SIZE_WORKER;
 uint32_t DBFS_HEAP_SIZE_PE;
 int PES;
 int ME;
-bool_t WAITING[CFG_NO_WORKERS];
 bool_t TERM = FALSE;
+uint8_t TERM_COLOR = TOKEN_WHITE;
+bool_t TOKEN_SENT = FALSE;
 
 
 /**
@@ -63,16 +59,9 @@ pthread_mutex_t DBFS_MUTEX;
  */
 static char H[CFG_SHMEM_HEAP_SIZE];
 static buffer_data_t H_BUFFER_DATA[CFG_NO_WORKERS][MAX_PES];
-static packets_data_t H_PACKETS_DATA;
-static bool_t H_LOC_TERM = FALSE;
-static bool_t H_CHECK_FOR_TERM = FALSE;
+static bool_t H_TOKEN = TOKEN_NONE;
+static bool_t H_TERM = FALSE;
 
-
-void dbfs_comm_notify_waiting
-(worker_id_t w,
- bool_t waiting) {
-  WAITING[w] = waiting;
-}
 
 
 bool_t dbfs_comm_termination
@@ -145,13 +134,7 @@ void dbfs_comm_send_buffer
   /**
    * poll the remote PE to see if I can send my states
    */
-#if defined(DBFS_COMM_DEBUG)
-  printf("[%d,%d] polls %d\n", ME, w, pe);
-#endif
   dbfs_comm_poll_remote_pe(w, pe);
-#if defined(DBFS_COMM_DEBUG)
-  printf("[%d,%d] polls %d done\n", ME, w, pe);
-#endif
 
   /**
    * send my states to the remote PE
@@ -176,17 +159,17 @@ void dbfs_comm_send_buffer
    */
   data.no_states = hash_tbl_size(BUF.states[w][pe]);
   data.len = pos;
-  comm_shmem_put(&H_BUFFER_DATA[w][ME], &data, sizeof(buffer_data_t), pe);
 #if defined(DBFS_COMM_DEBUG)
-  printf("[%d,%d] sends %d states to [%d] at pos %d\n",
-         ME, w, data.no_states, pe, BUF.remote_pos[w][pe]);
-#endif
-  
-  H_PACKETS_DATA.data[w].packets_sent ++;
-  
-  /**
-   * reinitialise the buffer
-   */
+  assert(data.len > 0);
+  assert(data.no_states > 0);
+#endif  
+  comm_shmem_put(&H_BUFFER_DATA[w][ME], &data, sizeof(buffer_data_t), pe);
+
+  if(pe < ME) {
+    TERM_COLOR = TOKEN_BLACK;
+  }
+
+  dbfs_comm_poll_remote_pe(w, pe);
   dbfs_comm_reinit_buffer(w, pe);
 }
 
@@ -199,17 +182,11 @@ void dbfs_comm_send_all_pending_states
   /**
    * send all buffers content
    */
-#if defined(DBFS_COMM_DEBUG)
-  printf("[%d,w%d] sends pending states\n", context_proc_id(), w);
-#endif
   for(pe = 0; pe < PES; pe ++) {
     if(pe != ME && hash_tbl_size(BUF.states[w][pe]) > 0) {
       dbfs_comm_send_buffer(w, pe);
     }
   }
-#if defined(DBFS_COMM_DEBUG)
-  printf("[%d,w%d] sends pending states done\n", context_proc_id(), w);
-#endif
 }
 
 
@@ -272,22 +249,14 @@ bool_t dbfs_comm_worker_process_incoming_states
     for(pe = 0; pe < PES; pe ++) {
       if(pe != ME) {
         for(x = 0; x < cfg_no_workers(); x ++, pos += DBFS_HEAP_SIZE_WORKER) {
-          pthread_mutex_lock(&DBFS_MUTEX);
-          if(0 == H_BUFFER_DATA[x][pe].no_states) {
-            pthread_mutex_unlock(&DBFS_MUTEX);
-          } else {
-#if defined(DBFS_COMM_DEBUG)
-            printf("[%d] received %d states from [%d,%d] at pos %d\n",
-                   ME, H_BUFFER_DATA[x][pe].no_states, pe, x, pos);
-#endif
+	  if(0 != H_BUFFER_DATA[x][pe].no_states) {
 	    result = TRUE;
 	    states_received = TRUE;
             comm_shmem_get(buffer, H + pos, H_BUFFER_DATA[x][pe].len, ME);
             no_states = H_BUFFER_DATA[x][pe].no_states;
             H_BUFFER_DATA[x][pe].no_states = 0;
             H_BUFFER_DATA[x][pe].len = 0;
-            pthread_mutex_unlock(&DBFS_MUTEX);
-            tmp_pos = 0;
+	    tmp_pos = 0;
             while((no_states --) > 0) {
 
               /**
@@ -327,7 +296,6 @@ bool_t dbfs_comm_worker_process_incoming_states
 		}
               }
             }
-	    H_PACKETS_DATA.data[w].packets_received ++;
           }
         }
       }
@@ -337,110 +305,60 @@ bool_t dbfs_comm_worker_process_incoming_states
 }
 
 
-bool_t dbfs_comm_termination_local_checks
+bool_t dbfs_comm_all_buffers_empty
 () {
+  int pe;
   worker_id_t w;
-  
-  /**
-   * bfs queue must be empty and all workers must be waiting
-   */
-  if(!bfs_queue_is_empty(Q)) {
-    return FALSE;
-  }
+
   for(w = 0; w < cfg_no_workers(); w ++) {
-    if(!WAITING[w]) {
-      return FALSE;
+    for(pe = 0; pe < PES; pe ++) {
+      if(BUF.len[w][pe] != 0) {
+	return FALSE;
+      }
     }
   }
   return TRUE;
 }
 
 
-bool_t dbfs_comm_remote_pe_checking_for_termination
+void dbfs_comm_check_termination
 () {
-  int pe;
-  bool_t b;
-
-  for(pe = 0; pe < PES; pe ++) {
-    if(ME == pe) {
-      b = H_CHECK_FOR_TERM;
-    } else {
-      comm_shmem_get(&b, &H_CHECK_FOR_TERM, sizeof(bool_t), pe);
-      if(b) {
-	return TRUE;
-      }
-    }
-  }
-  return FALSE;
-}
-
-
-bool_t dbfs_comm_check_termination
-(comm_worker_id_t c) {
   worker_id_t w;
-  bool_t b, all_term;
-  int pe;
-  packets_data_t d;
-  uint64_t sum_sent = 0, sum_received = 0;
+  int pe, next, qe;
+  bool_t b, all_empty;
+  buffer_data_t data;
+  uint8_t recv, sent;
 
-  /**
-   * globally check for termination if I have locally terminated or if
-   * a remote PE has notified he is doing so
-   */
-  if(dbfs_comm_termination_local_checks()
-     || dbfs_comm_remote_pe_checking_for_termination()) {
-
-    /**
-     * termination checks are performed by comm worker 0 only
-     */
-    if(0 == c) {
-      
-      /**
-       * notify remote PEs I am checking for termination and wait for
-       * them
-       */
-      H_CHECK_FOR_TERM = TRUE;
-      comm_shmem_barrier();
-
-      /**
-       * notify remote PEs my local termination status (i.e. BFS queue
-       * empty + all workers waiting) then wait that others have done
-       * so
-       */
-      H_CHECK_FOR_TERM = FALSE;
-      H_LOC_TERM = dbfs_comm_termination_local_checks();  
-      comm_shmem_barrier();
-
-      /**
-       * check the local termination status of others
-       */
-      all_term = H_LOC_TERM;
-      for(pe = 0; pe < PES; pe ++) {
-	if(ME != pe) {
-	  comm_shmem_get(&b, &H_LOC_TERM, sizeof(bool_t), pe);
-	  all_term = all_term && b;
-	}
+  if(bfs_queue_is_empty(Q) && dbfs_comm_all_buffers_empty()) {
+    next = (ME + 1) % PES;
+    if(0 == ME) {
+      if(!TOKEN_SENT || H_TOKEN == TOKEN_BLACK) {
+	sent = TOKEN_WHITE;
+	H_TOKEN = TOKEN_NONE;
+	TOKEN_SENT = TRUE;
+	comm_shmem_put(&H_TOKEN, &sent, sizeof(bool_t), next);
+      } else if(H_TOKEN == TOKEN_WHITE) {
+	/*  termination  */
+	TERM = TRUE;
+	comm_shmem_put(&H_TERM, &TERM, sizeof(bool_t), next);
       }
-
-      /**
-       * all workers of remote PEs are waiting and all queues are
-       * empty.  we finally check that channels are empty (i.e. # of
-       * packets sent by all PEs = # of packets received).  if this is
-       * the case then we must terminate.
-       */
-      if(all_term) {
-	for(pe = 0; pe < PES; pe ++) {
-	  comm_shmem_get(&d, &H_PACKETS_DATA, sizeof(packets_data_t), pe);
-	  for(w = 0; w < cfg_no_workers() + cfg_no_comm_workers(); w ++) {
-	    sum_sent += d.data[w].packets_sent;
-	    sum_received += d.data[w].packets_received;
-	  }
+    } else if(H_TERM) {
+      TERM = TRUE;
+      comm_shmem_put(&H_TERM, &TERM, sizeof(bool_t), next);
+    } else if(H_TOKEN != TOKEN_NONE) {
+      recv = H_TOKEN;
+      H_TOKEN = TOKEN_NONE;
+      if(recv == TOKEN_BLACK) {
+	sent = TOKEN_BLACK;
+      } else if(recv == TOKEN_WHITE) {
+	sent = TERM_COLOR;
+	if(TERM_COLOR == TOKEN_BLACK) {
+	  TERM_COLOR = TOKEN_WHITE;
 	}
-	if(sum_sent == sum_received) {
-	  TERM = TRUE;
-	}
-      }
-      comm_shmem_barrier();
+      } else {
+	assert(0);
+      }      
+      comm_shmem_put(&H_TOKEN, &sent, sizeof(uint8_t), next);
     }
   }
 }
@@ -478,22 +396,16 @@ void dbfs_comm_start
   assert(PES <= MAX_PES);
 
   /* initialise global variables */
-  TERM = FALSE;
   Q = q;
   S = context_storage();
   pthread_mutex_init(&DBFS_MUTEX, NULL);
   for(w = 0; w < cfg_no_workers(); w ++) {
-    WAITING[w] = FALSE;
     BUF.heaps[w] = mem_alloc(SYSTEM_HEAP, sizeof(heap_t) * PES);
     BUF.ids[w] = mem_alloc(SYSTEM_HEAP, sizeof(hash_tbl_id_t *) * PES);
     BUF.len[w] = mem_alloc(SYSTEM_HEAP, sizeof(uint32_t) * PES);
     BUF.no_ids[w] = mem_alloc(SYSTEM_HEAP, sizeof(uint32_t) * PES);
     BUF.remote_pos[w] = mem_alloc(SYSTEM_HEAP, sizeof(uint32_t) * PES);
     BUF.states[w] = mem_alloc(SYSTEM_HEAP, sizeof(hash_tbl_t) * PES);
-  }
-  for(w = 0; w < cfg_no_workers() + cfg_no_comm_workers(); w ++) {
-    H_PACKETS_DATA.data[w].packets_sent = 0;
-    H_PACKETS_DATA.data[w].packets_received = 0;
   }
   for(pe = 0; pe < PES; pe ++) {
     remote_pos = ME * DBFS_HEAP_SIZE_PE;
@@ -504,7 +416,9 @@ void dbfs_comm_start
       H_BUFFER_DATA[w][pe].len = 0;
       H_BUFFER_DATA[w][pe].no_states = 0;
       if(ME == pe) {
-        BUF.remote_pos[w][pe] = 0;          
+        BUF.remote_pos[w][pe] = 0;
+	BUF.no_ids[w][pe] = 0;
+	BUF.len[w][pe] = 0;
       } else {
         BUF.remote_pos[w][pe] = remote_pos;
         BUF.no_ids[w][pe] = 0;
