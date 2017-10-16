@@ -2,6 +2,7 @@
 #include "observer.h"
 #include "config.h"
 #include "comm_shmem.h"
+#include "papi_stats.h"
 
 typedef struct {
   struct timeval start_time;
@@ -51,7 +52,7 @@ typedef struct_context_t * context_t;
 
 context_t CTX;
 
-void context_init
+void init_context
 () {
   unsigned int i;
   unsigned int no_workers = CFG_NO_WORKERS;
@@ -159,7 +160,7 @@ void context_output_trace
 }
 
 
-void context_finalise
+void finalise_context
 () {
   FILE * out;
   void * dummy;
@@ -342,6 +343,9 @@ void context_finalise
       fprintf(out, "<bfsLevels>%u</bfsLevels>\n", CTX->bfs_levels);
     }
     fprintf(out, "</graphStatistics>\n");
+    if(cfg_with_papi()) {
+      papi_stats_output(out);
+    }
     fprintf(out, "<otherStatistics>\n");
     fprintf(out, "<maxMemoryUsed>%.1f</maxMemoryUsed>\n",
 	    CTX->max_mem_used);

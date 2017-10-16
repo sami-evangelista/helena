@@ -21,6 +21,7 @@ includes
 list
 main
 observer
+papi_stats
 reduction
 rwalk
 simulator

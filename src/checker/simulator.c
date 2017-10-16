@@ -3,13 +3,14 @@
 #include "list.h"
 #include "state.h"
 #include "event.h"
+#include "context.h"
 
 
 bool_t check_error() {
   if(!context_error_raised()) {
     return TRUE;
   } else {
-    printf("model error: %s\n", context_error());
+    printf("model error: %s\n", context_error_msg());
     context_flush_error();
     return FALSE;
   }

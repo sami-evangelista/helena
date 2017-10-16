@@ -12,17 +12,17 @@
 #include "common.h"
 
 /**
- * @brief comm_shmem_init
+ * @brief init_comm_shmem
  */
-void comm_shmem_init
+void init_comm_shmem
 ();
 
 
 /**
- * @brief comm_shmem_finalize
+ * @brief finalise_comm_shmem
  */
-void comm_shmem_finalize
-(void * heap);
+void finalise_comm_shmem
+();
 
 
 /**

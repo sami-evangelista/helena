@@ -48,7 +48,7 @@ typedef struct {
 /**
  *  the symmetric heap and shared static data
  */
-static H[CFG_SHMEM_HEAP_SIZE];
+static char H[CFG_SHMEM_HEAP_SIZE];
 static pub_data_t PUB_DATA;
 
 void ddfs_comm_process_explored_state
@@ -324,7 +324,6 @@ void ddfs_comm_end
   for(c = 0; c < cfg_no_comm_workers(); c ++) {
     pthread_join(CONS[c], &dummy);
   }
-  comm_shmem_finalize(NULL);
 }
 
 #endif

@@ -38,7 +38,8 @@ CCopt="-pthread -lm"
 commonFiles="bit_stream"
 checkerSrcFiles="bfs bfs_queue bit_stream buchi common comm_shmem config
 context ddfs_comm dbfs_comm delta_ddd dfs dfs_stack event graph heap hash_array
-hash_tbl list observer prop reduction rwalk state simulator storage workers"
+hash_tbl list observer papi_stats prop reduction rwalk state simulator storage
+workers"
 
 exitWithError () {
     rm -rf $tmpDir &> /dev/null
@@ -301,6 +302,9 @@ do
                 *) error "invalid value for option $opt: $val" ;;
             esac
             ;;
+        -wp|--with-papi)
+            CCopt=$CCopt" -lpapi"
+            ;;
     esac
 done
 if [ $distributed -eq 1 ]
@@ -416,9 +420,9 @@ done
 #  copy source files to the model directory
 msg "Copying files to model directory ($(getModelDir)/src/) ..."
 cp $helenaDir/common/* $(getModelDir)/src/ &> /dev/null
-CC=$CC" "$CCopt" -O3 -ansi"
 CC_GP=$CC" "$CCopt" -pg"
 CC_VG=$CC" "$CCopt" -O0 -g"
+CC=$CC" "$CCopt" -O3"
 createMakefile
 
 #####

@@ -7,18 +7,29 @@
 #endif
 
 #define COMM_SHMEM_CHUNK_SIZE 10000
-#define COMM_SHMEM_DEBUG_XXX
+#define COMM_SHMEM_DEBUG
 
 pthread_mutex_t COMM_SHMEM_MUTEX;
 bool_t COMM_SHMEM_INITIALISED;
 
-void comm_shmem_init
+void init_comm_shmem
 () {
 #if !defined(CFG_DISTRIBUTED)
   assert(0);
 #else
   shmem_init();
   pthread_mutex_init(&COMM_SHMEM_MUTEX, NULL);
+#endif
+}
+
+void finalise_comm_shmem
+() {
+#if !defined(CFG_DISTRIBUTED)
+  assert(0);
+#else
+  comm_shmem_barrier();
+  shmem_finalize();
+  pthread_mutex_destroy(&COMM_SHMEM_MUTEX);
 #endif
 }
 
@@ -97,20 +108,6 @@ void comm_shmem_get
 	   shmem_my_pe(), size , dst, pe);
 #endif
   }
-#endif
-}
-
-void comm_shmem_finalize
-(void * heap) {
-#if !defined(CFG_DISTRIBUTED)
-  assert(0);
-#else
-  comm_shmem_barrier();
-  if(heap) {
-    shmem_free(heap);
-  }
-  shmem_finalize();
-  pthread_mutex_destroy(&COMM_SHMEM_MUTEX);
 #endif
 }
 

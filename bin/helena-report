@@ -146,7 +146,13 @@ statistics = {
     "eventExecPerSecond"      : "Event execution rate      ",
     "maxMemoryUsed"           : "Max. memory used          ",
     "bytesSent"               : "Bytes sent                ",
-    "avgCPUUsage"             : "Average CPU Usage         " }
+    "avgCPUUsage"             : "Average CPU Usage         ",
+    "lvl1TotalCacheMiss"      : "Level 1 total cache miss  ",
+    "lvl1TotalCacheHit"       : "Level 1 total cache hit   ",
+    "lvl2TotalCacheMiss"      : "Level 2 total cache miss  ",
+    "lvl2TotalCacheHit"       : "Level 2 total cache hit   ",
+    "lvl3TotalCacheMiss"      : "Level 3 total cache miss  ",
+    "lvl3TotalCacheHit"       : "Level 3 total cache hit   " }
 statisticsUnits = {
     "searchTime"              : "s.",
     "duplicateDetectionTime"  : "s.",
@@ -162,7 +168,7 @@ statisticsCategories = {
     "timeStatistics"          : "Time statistics",
     "modelStatistics"         : "Model statistics",
     "graphStatistics"         : "Exploration statistics",
-    "hashTableStatistics"     : "Hash table statistics",
+    "papiStatistics"          : "PAPI statistics",
     "otherStatistics"         : "Other statistics" }
 subReports = {
     "infoReport"              : "General informations",

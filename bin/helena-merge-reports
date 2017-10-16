@@ -31,7 +31,7 @@ def mergeNode(nodeName, doSum, refDoc, docs):
     n.replaceChild(l, c)
 
 def mergeReports(refDoc, docs):
-    for (node, doSum) in [ ("arcs", False),
+    for (node, doSum) in [ ("arcs", True),
                            ("barrierTime", False),
                            ("sleepTime", False),
                            ("bfsLevels", False),

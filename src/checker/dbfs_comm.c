@@ -14,7 +14,7 @@
 #define TOKEN_BLACK              1
 #define TOKEN_WHITE              2
 
-#define DBFS_COMM_DEBUG
+#define DBFS_COMM_DEBUG_XXX
 
 typedef struct {
   uint32_t no_states;
@@ -135,6 +135,7 @@ void dbfs_comm_send_buffer
    * poll the remote PE to see if I can send my states
    */
   dbfs_comm_poll_remote_pe(w, pe);
+  assert(0);
 
   /**
    * send my states to the remote PE
@@ -456,7 +457,6 @@ void dbfs_comm_end
 #if defined(DBFS_COMM_DEBUG)
   printf("[%d] all communicators terminated\n", ME);
 #endif
-  comm_shmem_finalize(NULL);
   for(w = 0; w < cfg_no_workers(); w ++) {
     for(pe = 0; pe < PES; pe ++) {
       if(ME != pe) {

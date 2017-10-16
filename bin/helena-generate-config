@@ -93,11 +93,12 @@ def printHelp():
     print "  -h   --help"
     print "  -V   --version"
     print "  -v   --verbose"
-    print "  -g   --progress={no-compile|no-check|no-report}"
-    print "  -b   --observer=[={0|1}]"
     print "  -N   --action={EXPLORE|SIMULATE|BUILD-GRAPH|CHECK-prop}"
+    print "  -g   --progress={no-compile|no-check|no-report}"
+    print "  -b   --observer[={0|1}]"
     print "  -p   --property-file=FILE"
     print "  -md  --model-directory=DIRECTORY"
+    print "  -wp  --with-papi[={0|1}]"
     print ""
     print "Search and storage options"
     print "  -A   --algo={BFS|DFS|FRONTIER|DELTA-DDD|RWALK}"
@@ -107,11 +108,10 @@ def printHelp():
     print "  -C   --comm-workers=N"
     print "  -cs  --candidate-set-size=N"
     print "  -hs  --shmem-heap-size=N"
-    #print "  -dc  --ddfs-comm-strategy={K<N>|M|D<N>} ... {K<N>|M|D<N>}"
     #print "  -mf  --machine-file=FILE"
     print ""
     print "Reduction techniques"
-    print "  -H   --hash-compaction"
+    print "  -H   --hash-compaction[={0|1}]"
     print "  -P   --partial-order[={0|1}]"
     print "  -E   --edge-lean[={0|1}]"
     print "  -S   --state-caching[={0|1}]"
@@ -137,11 +137,12 @@ class Config:
     def __init__(self):
         self.verbose = False
         self.version = False
-        self.withObserver = True
         self.partialOrder = False
         self.stateCaching = False
         self.hashCompaction = False
         self.edgeLean = False
+        self.withPapi = False
+        self.withObserver = True
         self.workers = 1
         self.commWorkers = 1
         self.capacity = 1
@@ -186,25 +187,29 @@ class Config:
                 self.traceType = FULL
         elif self.action == SIMULATE:
             self.runTimeChecks = True
-        if self.algo == RWALK:
+        if self.algo == BFS:
             self.stateCaching = False
-            self.hashCompaction = False
-            self.partialOrder = False
         elif self.algo == FRONTIER:
             self.stateCaching = False
             self.traceType = STATE
+        elif self.algo == RWALK:
+            self.stateCaching = False
+            self.hashCompaction = False
+            self.partialOrder = False
+            self.edgeLean = False
         elif self.algo == DELTA_DDD:
             self.stateCaching = False
             self.hashCompaction = False
             self.partialOrder = False
-        elif self.algo == BFS:
-            self.stateCaching = False
+            self.edgeLean = False
         elif self.algo == DDFS:
             self.partialOrder = False
             self.stateCaching = False
+            self.edgeLean = False
         elif self.algo == DBFS:
             self.partialOrder = False
             self.stateCaching = False
+            self.edgeLean = False
             self.traceType = STATE
 
     def openFile(self, name, mode):
@@ -268,6 +273,7 @@ class Config:
             ("TRACE_EVENTS", self.traceType == EVENTS),
             ("TRACE_STATE", self.traceType == STATE),
             ("WITH_OBSERVER", self.withObserver),
+            ("WITH_PAPI", self.withPapi),
             ("HASH_STORAGE", self.algo not in [ DELTA_DDD, RWALK ]),
             ("DELTA_DDD_STORAGE", self.algo == DELTA_DDD),
             ("ACTION_EXPLORE", self.action == EXPLORE),
@@ -323,6 +329,8 @@ class Config:
         W("\n")
         for (s, c) in syms:
             W("char cfg_" + s.lower() + "();\n")
+        for (p, v, t) in params:
+            W(t + " cfg_" + p.lower() + "();\n");
 
         W("\n#endif  /*  LIB_CONFIG  */\n")
         f.close()
@@ -330,6 +338,7 @@ class Config:
         f = self.openFile("config.c", "w")
         W = f.write
         W("#include \"config.h\"\n\n")
+        W("const int grut = 0;\n")
         for (s, c) in syms:
             W("char cfg_" + s.lower() + "() { return ")
             if c:
@@ -398,6 +407,8 @@ class Config:
                 self.stateCaching = (val is None) or val == "1"
             elif opt in [ "-H", "--hash-compaction" ]:
                 self.hashCompaction = (val is None) or val == "1"
+            elif opt in [ "-wp", "--with-papi" ]:
+                self.withPapi = (val is None) or val == "1"
 
             #  numerical options
             elif opt in [ "-W", "--workers" ]:

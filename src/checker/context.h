@@ -17,14 +17,14 @@
 /**
  * @brief Context initialisation.
  */
-void context_init
+void init_context
 ();
 
 
 /**
  * @brief Context finalisation.
  */
-void context_finalise
+void finalise_context
 ();
 
 
