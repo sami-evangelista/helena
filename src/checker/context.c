@@ -599,6 +599,7 @@ void context_incr_evts_exec_dd
 
 void context_error
 (char * msg) {
+  pthread_mutex_lock(&CTX->ctx_mutex);
   if(CTX->error_raised) {
     free(CTX->error_msg);
   }
@@ -609,6 +610,7 @@ void context_error
     CTX->keep_searching = FALSE;
   }
   CTX->error_raised = TRUE;
+  pthread_mutex_unlock(&CTX->ctx_mutex);
 }
 
 void context_flush_error

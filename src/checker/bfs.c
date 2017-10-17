@@ -7,7 +7,7 @@
 #include "reduction.h"
 #include "workers.h"
 
-#if !defined(CFG_ALGO_BFS) && !defined(CFG_ALGO_DBFS) && \
+#if !defined(CFG_ALGO_BFS) && !defined(CFG_ALGO_DBFS) &&        \
   !defined(CFG_ALGO_FRONTIER)
 
 void bfs() {}
@@ -59,7 +59,7 @@ bool_t bfs_check_termination
   if(cfg_algo_dbfs()) {
     dbfs_comm_send_all_pending_states(w);
     while(!(result = dbfs_comm_termination())
-	  && bfs_queue_local_is_empty(Q, w)) {
+          && bfs_queue_local_is_empty(Q, w)) {
       context_sleep(BFS_WAIT_TIME[w]);
       trials ++;
     }
@@ -125,132 +125,132 @@ void * bfs_worker
   while(!termination) {
     for(x = 0; x < bfs_queue_no_workers(Q); x ++) {
       while(!bfs_queue_slot_is_empty(Q, x, w)) {
-	
-	/**
-	 *  get the next state sent by thread x, get its successors
-	 *  and a valid reduced set.  if the states are not stored in
-	 *  the queue we get it from the storage
-	 */
-	item = bfs_queue_next(Q, x, w);
-	heap_reset(heap);
-	if(states_in_queue) {
-	  s = item.s;
-	} else {
-	  s = storage_get_mem(S, item.id, w, heap);
-	}
+ 
+        /**
+         *  get the next state sent by thread x, get its successors
+         *  and a valid reduced set.  if the states are not stored in
+         *  the queue we get it from the storage
+         */
+        item = bfs_queue_next(Q, x, w);
+        heap_reset(heap);
+        if(states_in_queue) {
+          s = item.s;
+        } else {
+          s = storage_get_mem(S, item.id, w, heap);
+        }
 
-	/**
-	 *  compute enabled events and apply POR
-	 */
-	if(por) {
-	  en = state_events_reduced_mem(s, &reduced, heap);
-	} else {
-	  en = state_events_mem(s, heap);
-	}
+        /**
+         *  compute enabled events and apply POR
+         */
+        if(por) {
+          en = state_events_reduced_mem(s, &reduced, heap);
+        } else {
+          en = state_events_mem(s, heap);
+        }
 
 
-	/**
-	 *  check the state property
-	 */
+        /**
+         *  check the state property
+         */
 #if defined(CFG_ACTION_CHECK_SAFETY)
-	if(state_check_property(s, en)) {
-	  if(with_trace) {
-	    bfs_report_trace(item.id);
-	  } else {
-	    context_faulty_state(s);
-	  }
-	}
+        if(state_check_property(s, en)) {
+          if(with_trace) {
+            bfs_report_trace(item.id);
+          } else {
+            context_faulty_state(s);
+          }
+        }
 #endif
         
-	/**
-	 *  apply edge lean reduction after checking state property
-	 *  (EDGE-LEAN may remove all enabled events)
-	 */
-	if(edge_lean && item.e_set) {
-	  edge_lean_reduction(en, item.e);
-	}
+        /**
+         *  apply edge lean reduction after checking state property
+         *  (EDGE-LEAN may remove all enabled events)
+         */
+        if(edge_lean && item.e_set) {
+          edge_lean_reduction(en, item.e);
+        }
 
-	/**
-	 *  expand the current state and put its unprocessed
-	 *  successors in the queue
-	 */
+        /**
+         *  expand the current state and put its unprocessed
+         *  successors in the queue
+         */
       state_expansion:
-	arcs = 0;
-	while(!list_is_empty(en)) {
-	  list_pick_first(en, &e);
-	  arcs ++;
-	  if(cfg_event_undoable()) {
-	    event_exec(e, s);
-	    succ = s;
-	  } else {
-	    succ = state_succ_mem(s, e, heap);
-	  }
-	  if(!cfg_algo_dbfs()) {
-	    storage_insert(S, succ, w, &is_new, &id_succ, &h);
-	  } else {
-	    h = state_hash(succ);
-	    if(!dbfs_comm_state_owned(h)) {
-	      dbfs_comm_process_state(w, succ, h);
-	      bfs_back_to_s();
-	      continue;
-	    }
-	    storage_insert_hashed(S, succ, w, h, &is_new, &id_succ);
-	  }
+        arcs = 0;
+        while(!list_is_empty(en)) {
+          list_pick_first(en, &e);
+          arcs ++;
+          if(cfg_event_undoable()) {
+            event_exec(e, s);
+            succ = s;
+          } else {
+            succ = state_succ_mem(s, e, heap);
+          }
+          if(!cfg_algo_dbfs()) {
+            storage_insert(S, succ, w, &is_new, &id_succ, &h);
+          } else {
+            h = state_hash(succ);
+            if(!dbfs_comm_state_owned(h)) {
+              dbfs_comm_process_state(w, succ, h);
+              bfs_back_to_s();
+              continue;
+            }
+            storage_insert_hashed(S, succ, w, h, &is_new, &id_succ);
+          }
 
-	  /**
-	   *  if new, enqueue the successor
-	   */
-	  if(is_new) {
-	    y = bfs_thread_owner(h);
-	    storage_set_cyan(S, id_succ, y, TRUE);
-	    succ_item.id = id_succ;
-	    succ_item.s = succ;
-	    succ_item.e_set = TRUE;
-	    succ_item.e = e;
-	    bfs_queue_enqueue(Q, succ_item, w, y);
-	    if(with_trace) {
-	      storage_set_pred(S, succ_item.id, item.id, event_id(e));
-	    }
-	  } else {
+          /**
+           *  if new, enqueue the successor
+           */
+          if(is_new) {
+            y = bfs_thread_owner(h);
+            storage_set_cyan(S, id_succ, y, TRUE);
+            succ_item.id = id_succ;
+            succ_item.s = succ;
+            succ_item.e_set = TRUE;
+            succ_item.e = e;
+            bfs_queue_enqueue(Q, succ_item, w, y);
+            if(with_trace) {
+              storage_set_pred(S, succ_item.id, item.id, event_id(e));
+            }
+          } else {
 
-	    /**
-	     *  if the successor state is not new and if the current
-	     *  state is reduced then the successor must be in the
-	     *  queue (i.e., cyan for some worker)
-	     */
-	    if(por && proviso && reduced &&
-	       !storage_get_any_cyan(S, id_succ)) {
-	      reduced = FALSE;
-	      list_free(en);
-	      bfs_back_to_s();
-	      en = state_events_mem(s, heap);
-	      goto state_expansion;
-	    }
-	  }
-	  bfs_back_to_s();
-	}
-	state_free(s);
-	list_free(en);
+            /**
+             *  if the successor state is not new and if the current
+             *  state is reduced then the successor must be in the
+             *  queue (i.e., cyan for some worker)
+             */
+            if(por && proviso && reduced &&
+               !storage_get_any_cyan(S, id_succ)) {
+              reduced = FALSE;
+              list_free(en);
+              bfs_back_to_s();
+              en = state_events_mem(s, heap);
+              goto state_expansion;
+            }
+          }
+          bfs_back_to_s();
+        }
+        state_free(s);
+        list_free(en);
 
-	/**
-	 *  update some statistics
-	 */
-	if(0 == arcs) {
-	  context_incr_dead(w, 1);
-	}
-	context_incr_arcs(w, arcs);
-	context_incr_processed(w, 1);
-	context_incr_evts_exec(w, arcs);
+        /**
+         *  update some statistics
+         */
+        if(0 == arcs) {
+          context_incr_dead(w, 1);
+        }
+        context_incr_arcs(w, arcs);
+        context_incr_processed(w, 1);
+        context_incr_evts_exec(w, arcs);
 
-	/**
-	 *  the state leaves the queue => we unset its cyan bit and
-	 *  delete it from storage if algo is FRONTIER.
-	 */
+        /**
+         *  the state leaves the queue => we unset its cyan bit and
+         *  delete it from storage if algo is FRONTIER.
+         */
         bfs_queue_dequeue(Q, x, w);
-	storage_set_cyan(S, item.id, w, FALSE);
-	if(cfg_algo_frontier()) {
-	  storage_remove(S, w, item.id);
-	}
+        storage_set_cyan(S, item.id, w, FALSE);
+        if(cfg_algo_frontier()) {
+          storage_remove(S, w, item.id);
+        }
       }
     }
     
@@ -268,7 +268,6 @@ void * bfs_worker
     termination = bfs_check_termination(w);
     levels ++;
   }
-
   heap_free(heap);
   context_update_bfs_levels(levels);
 }

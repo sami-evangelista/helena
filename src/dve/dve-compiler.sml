@@ -61,10 +61,10 @@ fun compile (inFile, path, checks, errStream) = let
 	    "" ]
     in
 	TextIO.output (hFile, concatLines head);
-	printComment ("configuration");
-	DveConfigCompiler.gen (sys, hFile, cFile);
 	printComment ("type definitions");
 	DveDefinitionsCompiler.gen (sys, hFile, cFile);
+	printComment ("configuration");
+	DveConfigCompiler.gen (sys, hFile, cFile);
 	printComment ("enabling test");
 	DveEnablingTestCompiler.gen (sys, checks, hFile, cFile);
 	printComment ("event execution");

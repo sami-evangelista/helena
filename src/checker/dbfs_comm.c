@@ -43,20 +43,13 @@ uint32_t DBFS_HEAP_SIZE_WORKER;
 uint32_t DBFS_HEAP_SIZE_PE;
 int PES;
 int ME;
+
+/* termination detection variables */
 bool_t TERM = FALSE;
 uint8_t TERM_COLOR = TOKEN_WHITE;
 bool_t TOKEN_SENT = FALSE;
 
-
-/**
- * synchronisation stuff
- */
-pthread_mutex_t DBFS_MUTEX;
-
-
-/**
- * remotely accessible items
- */
+/* remotely accessible items */
 static char H[CFG_SHMEM_HEAP_SIZE];
 static buffer_data_t H_BUFFER_DATA[CFG_NO_WORKERS][MAX_PES];
 static bool_t H_TOKEN = TOKEN_NONE;
@@ -135,7 +128,6 @@ void dbfs_comm_send_buffer
    * poll the remote PE to see if I can send my states
    */
   dbfs_comm_poll_remote_pe(w, pe);
-  assert(0);
 
   /**
    * send my states to the remote PE
@@ -370,13 +362,15 @@ void * dbfs_comm_worker
   const comm_worker_id_t c = (comm_worker_id_t) (uint64_t) arg;
       
   /**
-   * sleep a bit and process incoming states.  then check for
-   * termination if I did not receive any states
+   * sleep a bit and process incoming states.  communicator 0 checks
+   * for termination if it did not receive any states
    */
   while(!TERM) {
     context_sleep(COMM_WAIT_TIME);
     if(!dbfs_comm_worker_process_incoming_states(c)) {
-      dbfs_comm_check_termination(c);
+      if(0 == c) {
+        dbfs_comm_check_termination(c);
+      }
     }
   }
 }
@@ -399,7 +393,6 @@ void dbfs_comm_start
   /* initialise global variables */
   Q = q;
   S = context_storage();
-  pthread_mutex_init(&DBFS_MUTEX, NULL);
   for(w = 0; w < cfg_no_workers(); w ++) {
     BUF.heaps[w] = mem_alloc(SYSTEM_HEAP, sizeof(heap_t) * PES);
     BUF.ids[w] = mem_alloc(SYSTEM_HEAP, sizeof(hash_tbl_id_t *) * PES);
