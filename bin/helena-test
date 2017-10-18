@@ -4,196 +4,115 @@
 #
 
 import os
-import subprocess
-import random
-import shutil
 import sys
+import test_gen
 
 def exitWithUsage(exitCode):
-    print "helena-test input-dir output-dir"
-    print "helena-test output-dir"
+    print "helena-test input-dir output-test-script"
     exit(exitCode)
 
-class Model:
-    defaultArgs = [ "--report-file=report.xml",
-                    "--hash-size=20",
-                    "--state-limit=1000000",
-                    "--time-limit=60" ]
+if __name__ == "__main__":
+    if len(sys.argv) != 3:
+        exitWithUsage(1)
 
-    def __init__(self, modelFile, language, outDir):
-        self.language = language
-        self.outFile = None
-        self.check = False
-        self.ltl = False
-        self.modelFile = modelFile
-        self.outDir = outDir + os.sep + os.path.basename(self.modelFile)
-        self.functions = [ self.appendAction,
-                           self.appendAlgo,
-                           self.appendPartialOrder,
-                           self.appendHashCompaction,
-                           self.appendStateCaching,
-                           self.appendWorkers,
-                           self.launchHelena ]
-        self.testNum = 0
-        os.mkdir(self.outDir)
+    inDir  = sys.argv[1]
+    outScript  = sys.argv[2]
 
-    def launchHelena(self, l, n):
-        (model, _) = os.path.splitext(self.modelFile)
-        d = self.outDir + os.sep
-        md = d + "test-" + str(self.testNum)
-        cmd = "helena " + " ".join(l + self.defaultArgs) + \
-               " --model-directory=" + md + " " + self.modelFile
-        print cmd
-        f = open(d + "test-" + str(self.testNum) + ".cmd", "w")
-        f.write(cmd)
-        f.close()
-        errFile = open(d + "test-" + str(self.testNum) + ".err", "w")
-        subprocess.call(cmd, stderr = errFile,
-                        stdout = self.outFile, shell = True)
-        errFile.close()
-        if os.path.exists("report.xml"):
-            n = d + "test-" + str(self.testNum) + ".xml"
-            os.rename("report.xml", n)
-            if "-N=build-graph" in l:
-                p = d + "test-" + str(self.testNum) + ".pdf"
-                subprocess.call("helena-graph" +
-                                " " + md + os.sep + "rg-report.xml " + p,
-                                shell = True)
-        else:
-            f = open(d + "test-" + str(self.testNum) + ".xml", "w")
-            f.write("error")
-            f.close()
-        if os.path.exists(md):
-            shutil.rmtree(md)
-        self.testNum = self.testNum + 1
+    generator = test_gen.TestScriptGenerator()
 
-    def appendWorkers(self, l, n):
-        f = self.functions[n + 1]
-        f(l + ["-W=1"], n + 1)
-        f(l + ["-W=2"], n + 1)
-        f(l + ["-W=3"], n + 1)
-        f(l + ["-W=4"], n + 1)
+    baseCmd = "helena"
+    baseOptions = [
+        ["--report-file=report.xml"],
+        ["--hash-size=20"],
+        ["--state-limit=1000000"],
+        ["--time-limit=60"]
+    ]
+    exploreOptions = baseOptions + [
+        ["-N=build-graph", "-N=explore"],
+        ["-A=dfs", "-A=bfs", "-A=frontier", "-A=rwalk", "-A=delta-ddd"],
+        ["-W=1", "-W=2", "-W=3", "-W=4"],
+        ["-S=1", "-S=0"],
+        ["-H=0", "-H=1"],
+        ["-E=0", "-E=1"]
+    ]
+    porOptions = [
+        "-P=0", "-P=1"
+    ]
+    lnaExploreOptions = exploreOptions + [ porOptions ]
+    dveExploreOptions = exploreOptions
+    ltlOptions = baseOptions + [
+        ["-A=dfs"],
+        ["-W=1", "-W=2", "-W=3", "-W=4"],
+        ["-S=1", "-S=0"],
+        ["-H=0", "-H=1"],
+        ["-E=0", "-E=1"]
+    ]
+    lnaLtlOptions = ltlOptions + [ porOptions ]
+    safetyOptions = baseOptions + [
+        ["-A=dfs", "-A=bfs", "-A=frontier", "-A=rwalk", "-A=delta-ddd"],
+        ["-W=1", "-W=2", "-W=3", "-W=4"],
+        ["-S=1", "-S=0"],
+        ["-H=0", "-H=1"],
+        ["-E=0", "-E=1"]
+    ]
+    lnaSafetyOptions = safetyOptions + [ porOptions ]
+    requires = [
+        ("-H=1", [["-A=dfs"], ["-A=bfs"], ["-A=frontier"]]),
+        ("-P=1", [["-A=dfs"], ["-A=bfs"], ["-A=frontier"]]),
+        ("-E=1", [["-A=dfs"], ["-A=bfs"], ["-A=frontier"]]),
+        ("-S=1", [["-A=dfs"]]),
+        ("-N=build-graph", [["-A=delta-ddd"]])
+    ]
+    postCmd = "cp report.xml __TEST_DIR__"
 
-    #  state caching is only available in DFS
-    def appendStateCaching(self, l, n):
-        f = self.functions[n + 1]
-        f(l + ["-S=0"], n + 1)
-        if "-A=dfs" in l:
-            f(l + ["-S=1" ], n + 1)
+    #  create model lists
+    lnaModels = []
+    dveModels = []
+    for(_, _, files) in os.walk(inDir):
+        for f in files:
+            (f, ext) = os.path.splitext(f)
+            if ext == ".lna":
+                (_, ext2) = os.path.splitext(f)
+                if ext2 != ".prop":
+                    lnaModels.append(os.path.abspath(inDir + os.sep + f + ext))
+            elif ext == ".dve":
+                dveModels.append(os.path.abspath(inDir + os.sep + f + ext))
 
-    #  hash compaction is available in DFS, BFS and FRONTIER
-    def appendHashCompaction(self, l, n):
-        f = self.functions[n + 1]
-        f(l + ["-H=0"], n + 1)
-        if "-A=dfs" in l or "-A=bfs" in l or "-A=frontier" in l:
-            f(l + ["-H=1"], n + 1)
+    #  1st test: exploration and graph generation for lna models
+    t = test_gen.Test(baseCmd, options = lnaExploreOptions + [ lnaModels ],
+                      requires = requires, postCmd = postCmd)
+    generator.addTest(t)
 
-    #  partial order reduction is available in DFS, BFS and FRONTIER and
-    #  disabled for DVE models (not yet implemented)
-    def appendPartialOrder(self, l, n):
-        f = self.functions[n + 1]
-        f(l + ["-P=0"], n + 1)
-        if ("-A=dfs" in l or "-A=bfs" in l or "-A=frontier" in l) \
-           and self.language != "DVE":
-            f(l + ["-P=1"], n + 1)
+    #  2nd test: exploration and graph generation for dve models
+    t = test_gen.Test(baseCmd, options = dveExploreOptions + [ dveModels ],
+                      requires = requires, postCmd = postCmd)
+    generator.addTest(t)
 
-    #  reachability graph generation is only available with algorithm DELTA-DDD
-    #  and LTL verification is only available with algorithm DFS
-    def appendAlgo(self, l, n):
-        f = self.functions[n + 1]
-        if "-N=build-graph" in l:
-            f(l + ["-A=delta-ddd"], n + 1)
-        else:
-            f(l + ["-A=dfs"], n + 1)
-            if not self.ltl:
-                f(l + ["-A=bfs"], n + 1)
-                f(l + ["-A=frontier"], n + 1)
-                f(l + ["-A=rwalk"], n + 1)
-                f(l + ["-A=delta-ddd"], n + 1)
-
-    def appendAction(self, l, n):
-        f = self.functions[n + 1]
-        (model, _) = os.path.splitext(self.modelFile)
-        f(l + ["-N=build-graph"], n + 1)
-        f(l + ["-N=explore"], n + 1)
-        propFile = model + ".prop.lna"
+    #  3nd test: check properties of LNA models
+    for f in lnaModels:
+        (m, ext) = os.path.splitext(f)
+        propFile = m + ".prop.lna"
         if os.path.exists(propFile):
             pf = open(propFile)
             for str in pf:
                 fields = str.split()
                 if len(fields) >= 3 and fields[1] == "property":
                     prop = fields[2].split(":")[0]
-                    self.ltl = fields[0] == "ltl"
-                    f(l + [ "-N=check-" + prop ], n + 1)
-                    self.ltl = False
+                    if fields[0] == "ltl":
+                        opts = lnaLtlOptions + [ ["-N=check-" + prop],
+                                                 [f]]
+                        generator.addTest(t)
+                    elif fields[0] == "state":
+                        opts = lnaSafetyOptions + [ ["-N=check-" + prop],
+                                                    [f]]
+                    else:
+                        opts = []
+                    t = test_gen.Test(baseCmd,
+                                      options = opts,
+                                      requires = requires,
+                                      postCmd = postCmd)
             pf.close()
 
-    def launchTest(self):
-        print "=====  " + self.modelFile + " ====="
-        self.outFile = open(os.devnull, "w")
-        self.appendAction([], 0)
-
-
-def analyseDir(d):
-    errors = []
-    num = 0
-    base = d + os.path.sep + "test-"
-    while os.path.isfile(base + str(num) + ".cmd"):
-        cmd = base + str(num) + ".cmd"
-        err = base + str(num) + ".err"
-        xml = base + str(num) + ".xml"
-        error = True
-        xmlError = True
-        if os.path.isfile(err):
-            error = os.stat(err).st_size != 0
-        if os.path.isfile(xml):
-            xmlContent = None
-            with open(xml, 'r') as f:
-                xmlContent = f.read()
-            xmlError = xmlContent == "error"
-        if error or xmlError:
-            with open(cmd, 'r') as f:
-                cmdContent = f.read()
-            errors.append(cmdContent)
-        num += 1
-    return errors
-
-def analyseResults(resultsDir):
-    errors = []
-    for(_, dirs, _) in os.walk(resultsDir):
-        for d in dirs:
-            errors += analyseDir(resultsDir + os.path.sep + d)
-        break
-    if len(errors) == 0:
-        print "*** no erroneous run found ***"
-    else:
-        print "*** " + str(len(errors)) + " erroneous run(s) found ***"
-        print "here are the 20 first ones:"
-        for err in errors[0:20]:
-            print err
-        
-if __name__ == "__main__":
-    if len(sys.argv) not in [ 2, 3 ]:
-        exitWithUsage(1)
-    elif len(sys.argv) == 2:
-        resultsDir = sys.argv[1]
-        analyseResults(resultsDir)
-    elif len(sys.argv) == 3:
-        inDir  = sys.argv[1]
-        outDir = sys.argv[2]
-        os.mkdir(outDir)
-        for(_, _, files) in os.walk(inDir):
-            for f in files:
-                (f, ext) = os.path.splitext(f)
-                if ext == ".lna":
-                    (_, ext2) = os.path.splitext(f)
-                    if ext2 != ".prop":
-                        m = Model(os.path.abspath(inDir + os.sep + f + ext),
-                                  "LNA", outDir)
-                        m.launchTest()
-                elif ext == ".dve":
-                    m = Model(os.path.abspath(inDir + os.sep + f + ext),
-                              "DVE", outDir)
-                    m.launchTest()
-            break
-exit(0)
+    #  generate the script
+    generator.genScript(out = outScript)
+    exit(0)
