@@ -19,7 +19,7 @@ analyse DVE models (option --with-dve).
 
 To compile helena, go to directory src and execute script compile-helena.
 The script can be passed with the following options:
-* option *--with-ltl* => This is required if you want to analyse ltl
+* option *--with-ltl* => This is required if you want to analyse LTL
   properties.
 * option *--with-dve* => This is required if you want to analyse DVE
   models (beta version).
