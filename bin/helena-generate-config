@@ -219,95 +219,96 @@ class Config:
             return open(self.directory + os.sep + name, mode)
 
     def generateConfigFile(self):
+        
         f = self.openFile("config.h", "w")
         W = f.write
-        now = datetime.now()
+        
         W("#ifndef LIB_CONFIG\n")
         W("#define LIB_CONFIG\n")
         W("\n")
-        W("#define CFG_REPORT_FILE \"report.xml\"\n")
-        W("#define CFG_RG_REPORT_FILE \"rg-report.xml\"\n")
-        W("#define CFG_GRAPH_FILE \"graph.dat\"\n")
-        W("#define CFG_DATE \"" + \
-          now.strftime("%B, %d, %Y at %H:%M:%S") + "\"\n")
-        W("#define CFG_FILE_PATH \"" + os.path.realpath(self.inFile) + "\"\n")
-        if self.inFileExt == ".lna":
-            W("#define CFG_LANGUAGE \"helena\"\n")
-        elif self.inFileExt == ".dve":
+        
+        now = datetime.now()
+        model = ""
+        language = self.inFileExt[1:]
+        if language == "dve":
             (model, _) = os.path.splitext(os.path.basename(self.inFile))
-            if model == "": model = "model"
-            W("#define CFG_MODEL_NAME \"" + model + "\"\n")
-            W("#define CFG_LANGUAGE \"dve\"\n")
-
-        syms = [
-            ("STATE_CACHING", self.stateCaching),
-            ("DISTRIBUTED", self.algo in [ DBFS, DDFS ]),
-            ("PARALLEL", self.workers > 1),
-            ("EDGE_LEAN", self.edgeLean),
-            ("POR", self.partialOrder),
-            ("PROVISO", self.partialOrder and self.propType is not None
-             and self.propType != DEADLOCK),
-            ("HASH_COMPACTION", self.hashCompaction),
-            ("MEMORY_LIMITED", self.memoryLimit != 0),
-            ("TIME_LIMITED", self.timeLimit != 0),
-            ("STATE_LIMITED", self.stateLimit != 0),
-            ("TRACE_FULL", self.traceType == FULL),
-            ("TRACE_EVENTS", self.traceType == EVENTS),
-            ("TRACE_STATE", self.traceType == STATE),
-            ("WITH_OBSERVER", self.withObserver),
-            ("WITH_PAPI", self.withPapi),
-            ("HASH_STORAGE", self.algo not in [ DELTA_DDD, RWALK ]),
-            ("DELTA_DDD_STORAGE", self.algo == DELTA_DDD),
-            ("ACTION_EXPLORE", self.action == EXPLORE),
-            ("ACTION_SIMULATE", self.action == SIMULATE),
-            ("ACTION_BUILD_GRAPH", self.action == BUILD_GRAPH),
-            ("ACTION_CHECK", self.action == CHECK),
-            ("ACTION_CHECK_LTL",
-             self.action == CHECK and self.propType == LTL),
-            ("ACTION_CHECK_SAFETY",
-             self.action == CHECK and self.propType in [ STATE, DEADLOCK]),
-            ("ALGO_BFS", self.algo == BFS),
-            ("ALGO_DFS", self.algo == DFS),
-            ("ALGO_DBFS", self.algo == DBFS),
-            ("ALGO_DDFS", self.algo == DDFS),
-            ("ALGO_FRONTIER", self.algo == FRONTIER),
-            ("ALGO_RWALK", self.algo == RWALK),
-            ("ALGO_DELTA_DDD", self.algo == DELTA_DDD),
-            ("LANGUAGE_LNA", self.inFileExt == ".lna"),
-            ("EVENT_UNDOABLE", self.inFileExt == ".lna"),
-            ("MODEL_HAS_GRAPH_ROUTINES", self.inFileExt == ".lna"),
-            ("LANGUAGE_DVE", self.inFileExt == ".dve")
-        ]
-        syms = sorted(syms, key = lambda p: p[0])
-
+            if model == "":
+                model = "model"
         prop = self.prop
         if prop is None:
             prop = ""
+            
         params = [
+            ("ACTION_BUILD_GRAPH", self.action == BUILD_GRAPH),
+            ("ACTION_CHECK_LTL", self.action == CHECK and self.propType == LTL),
+            ("ACTION_CHECK_SAFETY", self.action == CHECK and
+             self.propType in [ STATE, DEADLOCK]),
+            ("ACTION_CHECK", self.action == CHECK),
+            ("ACTION_EXPLORE", self.action == EXPLORE),
+            ("ACTION_SIMULATE", self.action == SIMULATE),
+            ("ALGO_BFS", self.algo == BFS),
+            ("ALGO_DBFS", self.algo == DBFS),
+            ("ALGO_DDFS", self.algo == DDFS),
+            ("ALGO_DELTA_DDD", self.algo == DELTA_DDD),
+            ("ALGO_DFS", self.algo == DFS),
+            ("ALGO_FRONTIER", self.algo == FRONTIER),
+            ("ALGO_RWALK", self.algo == RWALK),
             ("BFS_QUEUE_BLOCK_SIZE", self.bfsQueueBlockSize),
+            ("DATE", "\"" + now.strftime("%B, %d, %Y at %H:%M:%S") + "\""),
             ("DELTA_DDD_CAND_SET_SIZE", self.candidateSetSize),
+            ("DELTA_DDD_STORAGE", self.algo == DELTA_DDD),
             ("DFS_STACK_BLOCK_SIZE", self.dfsStackBlockSize),
-            ("HASH_SIZE", pow(2, self.hashSize)),
+            ("DISTRIBUTED", self.algo in [ DBFS, DDFS ]),
+            ("EDGE_LEAN", self.edgeLean),
+            ("EVENT_UNDOABLE", self.inFileExt == ".lna"),
+            ("FILE_PATH", "\"" + os.path.realpath(self.inFile) + "\""),
+            ("GRAPH_FILE", "\"graph.dat\""),
+            ("HASH_COMPACTION", self.hashCompaction),
             ("HASH_SIZE_BITS", self.hashSize),
             ("HASH_SIZE_M", pow(2, self.hashSize) - 1),
-            ("NO_WORKERS", self.workers),
-            ("NO_COMM_WORKERS", self.commWorkers),
-            ("RWALK_MAX_DEPTH", self.rwalkMaxDepth),
-            ("STATE_CACHING_GC_THRESHOLD",
-             self.stateCachingGcThreshold),
-            ("STATE_CACHING_GC_RATIO", self.stateCachingGcRatio),
-            ("SHMEM_HEAP_SIZE", self.shmemHeapSize),
+            ("HASH_SIZE", pow(2, self.hashSize)),
+            ("HASH_STORAGE", self.algo not in [ DELTA_DDD, RWALK ]),
+            ("LANGUAGE", "\"" + language + "\""),
+            ("LANGUAGE_DVE", self.inFileExt == ".dve"),
+            ("LANGUAGE_LNA", self.inFileExt == ".lna"),
             ("MAX_MEMORY", self.memoryLimit),
-            ("MAX_TIME", self.timeLimit),
             ("MAX_STATE", self.stateLimit),
-            ("PROPERTY", "\"" + prop + "\"")
+            ("MAX_TIME", self.timeLimit),
+            ("MEMORY_LIMITED", self.memoryLimit != 0),
+            ("MODEL_HAS_GRAPH_ROUTINES", self.inFileExt == ".lna"),
+            ("MODEL_NAME", "\"" + model + "\""),
+            ("NO_COMM_WORKERS", self.commWorkers),
+            ("NO_WORKERS", self.workers),
+            ("PARALLEL", self.workers > 1),
+            ("POR", self.partialOrder),
+            ("PROPERTY", "\"" + prop + "\""),
+            ("PROVISO", self.partialOrder and self.propType is not None and
+             self.propType != DEADLOCK),
+            ("REPORT_FILE", "\"report.xml\""),
+            ("RG_REPORT_FILE", "\"rg-report.xml\""),
+            ("RWALK_MAX_DEPTH", self.rwalkMaxDepth),
+            ("SHMEM_HEAP_SIZE", self.shmemHeapSize),
+            ("STATE_CACHING_GC_RATIO", self.stateCachingGcRatio),
+            ("STATE_CACHING_GC_THRESHOLD", self.stateCachingGcThreshold),
+            ("STATE_CACHING", self.stateCaching),
+            ("STATE_LIMITED", self.stateLimit != 0),
+            ("TIME_LIMITED", self.timeLimit != 0),
+            ("TRACE_EVENTS", self.traceType == EVENTS),
+            ("TRACE_FULL", self.traceType == FULL),
+            ("TRACE_STATE", self.traceType == STATE),
+            ("WITH_OBSERVER", self.withObserver),
+            ("WITH_PAPI", self.withPapi)
         ]
-        params = sorted(params, key = lambda p: p[0])
         
-        for (s, c) in syms:
-            W("#define CFG_" + s + " " + ("1" if c else "0") + "\n")
         for (p, v) in params:
-            W("#define CFG_" + p + " " + str(v) + "\n")
+            if type(v) == bool:
+                W("#define CFG_" + p + " " + ("1" if v else "0") + "\n")
+            elif type(v) in [ float, int ]:
+                W("#define CFG_" + p + " " + str(v) + "\n")
+            elif type(v) == str:
+                W("#define CFG_" + p + " " + v + "\n")
+            else:
+                raise Exception
         W("\n#endif  /*  LIB_CONFIG  */\n")
         f.close()
 
