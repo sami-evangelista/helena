@@ -775,6 +775,7 @@ void * delta_ddd_worker
     ns.dd = ns.dd_visit = ns.recons[0] = FALSE;
     ns.recons[1] = ns.father = 1;
     ns.next = ns.fst_child = slot;
+    ns.h = h;
 #if CFG_ACTION_BUILD_GRAPH == 1
     gf = context_graph_file();
     ns.num = next_num ++;
