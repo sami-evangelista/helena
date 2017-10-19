@@ -12,8 +12,8 @@ To compile Helena you will need:
 
 * GCC
 * [http://libre.adacore.com] The GNAT ada compiler.
-* [http://mlton.org] The mlton compiler is required if you want to
-analyse DVE models (option --with-dve).
+* [http://mlton.org] The mlton compiler.  It is required if you want
+to analyse DVE models (option --with-dve).
 
 ## Compilation
 
@@ -31,7 +31,7 @@ variables in script bin/helena:
 * helenaDir - path of the directory in which helena will store specific files
   for a model
   
-## Notes
+## Acknowledgements
 
 LTL properties are translated to Buchi automata using the LTL2BA tool by Oddoux
 and Gastin.  See http://www.lsv.ens-cachan.fr/~gastin/ltl2ba for more
