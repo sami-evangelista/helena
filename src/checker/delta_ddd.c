@@ -5,7 +5,7 @@
 #include "workers.h"
 #include "context.h"
 
-#if !defined(CFG_ALGO_DELTA_DDD)
+#if CFG_ALGO_DELTA_DDD != 1
 
 void delta_ddd() {}
 
@@ -19,7 +19,8 @@ typedef struct {
   bool_t dd_visit;
   bool_t recons[2];
   event_id_t e;
-#if defined(CFG_ACTION_BUILD_GRAPH)
+  hash_key_t h;
+#if CFG_ACTION_BUILD_GRAPH == 1
   uint32_t num;
 #endif
 } delta_ddd_state_t;
@@ -88,9 +89,9 @@ uint8_t RECONS_ID;
 #define DELTA_DDD_CAND_DEL  2
 #define DELTA_DDD_CAND_NONE 3
 
-#define DELTA_DDD_OWNER(h) (((h) & CFG_HASH_SIZE_M) % cfg_no_workers())
+#define DELTA_DDD_OWNER(h) (((h) & CFG_HASH_SIZE_M) % CFG_NO_WORKERS)
 
-#if defined(CFG_EVENT_UNDOABLE)
+#if CFG_EVENT_UNDOABLE == 1
 #define DELTA_DDD_VISIT_PRE_HEAP_PROCESS() {    \
     if(heap_size(heap) > MAX_LOCAL_HEAP_SIZE) {	\
       state_t copy = state_copy(s);		\
@@ -109,7 +110,7 @@ uint8_t RECONS_ID;
     s = func(w, curr, s, depth - 1);                    \
     event_undo(e, s);                                   \
   }
-#else  /*  !defined(CFG_EVENT_UNDOABLE)  */
+#else  /*  !CFG_EVENT_UNDOABLE == 1  */
 #define DELTA_DDD_VISIT_PRE_HEAP_PROCESS() {    \
     heap_pos = heap_get_position(heap);         \
   }
@@ -137,7 +138,7 @@ uint8_t RECONS_ID;
 
 void delta_ddd_barrier
 (worker_id_t w) {
-  if(cfg_parallel()) {
+  if(CFG_PARALLEL) {
     context_barrier_wait(&BARRIER);
   }
 }
@@ -161,14 +162,14 @@ delta_ddd_storage_t delta_ddd_storage_new
   delta_ddd_storage_t result;
 
   result = mem_alloc(SYSTEM_HEAP, sizeof(struct_delta_ddd_storage_t));
-  for(w = 0; w < cfg_no_workers(); w ++) {
+  for(w = 0; w < CFG_NO_WORKERS; w ++) {
     result->size[w] = 0;
   }
 
   /*
    *  initialisation of the state table
    */
-  for(i = 0; i < cfg_hash_size(); i ++) {
+  for(i = 0; i < CFG_HASH_SIZE; i ++) {
     result->ST[i].fst_child = UINT_MAX;
     result->ST[i].recons[0] = FALSE;
     result->ST[i].recons[1] = FALSE;
@@ -189,7 +190,7 @@ uint64_t delta_ddd_storage_size
 (delta_ddd_storage_t storage) {
   uint64_t result = 0;
   worker_id_t w;
-  for(w = 0; w < cfg_no_workers(); w ++) {
+  for(w = 0; w < CFG_NO_WORKERS; w ++) {
     result += storage->size[w];
   }
   return result;
@@ -289,7 +290,7 @@ bool_t delta_ddd_merge_candidate_set
   bool_t loop;
 
   CS_size[w] = 0;
-  for(x = 0; x < cfg_no_workers(); x ++) {
+  for(x = 0; x < CFG_NO_WORKERS; x ++) {
     for(i = 0; i < BOX_size[x][w]; i ++) {
       delta_ddd_candidate_t c = BOX[x][w][i];
       fst = pos = c.h % CS_max_size;
@@ -304,24 +305,26 @@ bool_t delta_ddd_merge_candidate_set
 
 	  /*  mark for reconstruction states in conflict with the candidate  */
 	  while(ST[slot].fst_child != UINT_MAX) {
-	    ST[slot].dd = TRUE;
-	    id = slot;
-	    while(id != S->root) {
-	      while(!(ST[id].father & 1)) {
-		id = ST[id].next;
-	      }
-	      id = ST[id].next;
-	      if(ST[id].dd_visit) {
-		break;
-	      } else {
-		ST[id].dd_visit = TRUE;
-	      }
-	    }
-	    slot = (slot + cfg_no_workers()) & CFG_HASH_SIZE_M;
+            if(ST[slot].h == c.h) {
+              ST[slot].dd = TRUE;
+              id = slot;
+              while(id != S->root) {
+                while(!(ST[id].father & 1)) {
+                  id = ST[id].next;
+                }
+                id = ST[id].next;
+                if(ST[id].dd_visit) {
+                  break;
+                } else {
+                  ST[id].dd_visit = TRUE;
+                }
+              }
+            }
+            slot = (slot + CFG_NO_WORKERS) & CFG_HASH_SIZE_M;
 	  }
 	  break;
 	case DELTA_DDD_CAND_NEW :
-#if defined(CFG_ACTION_BUILD_GRAPH)
+#if CFG_ACTION_BUILD_GRAPH == 1
 	  pos = (pos + 1) % CS_max_size;
 	  assert (pos != fst);
 #else
@@ -365,7 +368,7 @@ void delta_ddd_storage_delete_candidate
     case DELTA_DDD_CAND_NEW  :
       if(state_cmp_vector(s, CS[x][i].s)) {
 	CS[x][i].content = DELTA_DDD_CAND_DEL;
-#if defined(CFG_ACTION_BUILD_GRAPH)
+#if CFG_ACTION_BUILD_GRAPH == 1
 	CS[x][i].id = id;
 	break;
 #else
@@ -429,7 +432,7 @@ state_t delta_ddd_duplicate_detection_dfs
 }
 
 
-#if defined(CFG_ACTION_BUILD_GRAPH)
+#if CFG_ACTION_BUILD_GRAPH == 1
 void delta_ddd_remove_duplicates_around
 (delta_ddd_candidate_t * C,
  unsigned int i) {
@@ -495,10 +498,10 @@ delta_ddd_storage_id_t delta_ddd_insert_new_state
   uint8_t r = (RECONS_ID + 1) & 1;
   unsigned int id, fst = h & CFG_HASH_SIZE_M, slot = fst;
   while(ST[slot].fst_child != UINT_MAX) {
-    assert((slot = (slot + cfg_no_workers()) & CFG_HASH_SIZE_M) != fst);
+    assert((slot = (slot + CFG_NO_WORKERS) & CFG_HASH_SIZE_M) != fst);
   }
   s.next = s.fst_child = slot;
-#if defined(CFG_ACTION_BUILD_GRAPH)
+#if CFG_ACTION_BUILD_GRAPH == 1
   s.num = next_num ++;
 #endif
   ST[slot] = s;
@@ -530,22 +533,23 @@ void delta_ddd_insert_new_states
       no_new ++;
       ns.e = c.e;
       ns.father = 0;
+      ns.h = c.h;
       C[NCS[w][i]].id = delta_ddd_insert_new_state(w, c.h, ns, c.pred);
-#if defined(CFG_ACTION_BUILD_GRAPH)
+#if CFG_ACTION_BUILD_GRAPH == 1
       delta_ddd_remove_duplicates_around(C, NCS[w][i]);
 #endif
     }
   }
   S->size[w] += no_new;
   NEXT_LVLS[w] += no_new;
-#if defined(CFG_ACTION_BUILD_GRAPH)
+#if CFG_ACTION_BUILD_GRAPH == 1
   delta_ddd_write_nodes_graph(w);
 #endif
 
   delta_ddd_barrier(w);
 
   if(0 == w) {
-    for(x = 0; x < cfg_no_workers(); x ++) {
+    for(x = 0; x < CFG_NO_WORKERS; x ++) {
       for(i = 0; i < CS_size[x]; i ++) {
 	c = CS[x][NCS[x][i]];
 	if(DELTA_DDD_CAND_NEW == c.content) {
@@ -586,7 +590,7 @@ bool_t delta_ddd_duplicate_detection
   /*
    *  initialize heaps for duplicate detection
    */
-  if(cfg_event_undoable()) {
+  if(CFG_EVENT_UNDOABLE) {
     heap_reset(detect_evts_heaps[w]);
   }
   heap_reset(detect_heaps[w]);
@@ -596,7 +600,7 @@ bool_t delta_ddd_duplicate_detection
    *  merge the candidate set and mark states to reconstruct
    */
   delta_ddd_barrier(w);
-  if(delta_ddd_storage_size(S) >= 0.9 * cfg_hash_size()) {
+  if(delta_ddd_storage_size(S) >= 0.9 * CFG_HASH_SIZE) {
     raise_error("state table too small (increase --hash-size and rerun)");
   }
   if(!context_keep_searching()) {
@@ -621,7 +625,7 @@ bool_t delta_ddd_duplicate_detection
    */
   heap_reset(candidates_heaps[w]);
   BOX_tot_size[w] = 0;
-  for(x = 0; x < cfg_no_workers(); x ++) {
+  for(x = 0; x < CFG_NO_WORKERS; x ++) {
     BOX_size[w][x] = 0;
     all_terminated = all_terminated && LVL_TERMINATED[x];
   }
@@ -667,7 +671,7 @@ state_t delta_ddd_expand_dfs
      *  we have reached a leaf => we expand it
      */
     en = state_events_mem(s, heap);
-#if defined(CFG_ACTION_CHECK_SAFETY)
+#if CFG_ACTION_CHECK_SAFETY == 1
     if(state_check_property(s, en)) {
       if(!error_reported) {
 	error_reported = TRUE;
@@ -696,10 +700,10 @@ state_t delta_ddd_expand_dfs
      *  perform duplicate detection if the candidate set is full
      */
     size = 0;
-    for(x = 0; x < cfg_no_workers(); x ++) {
+    for(x = 0; x < CFG_NO_WORKERS; x ++) {
       size += BOX_tot_size[x];
     }
-    if(size >= cfg_delta_ddd_cand_set_size()) {
+    if(size >= CFG_DELTA_DDD_CAND_SET_SIZE) {
       delta_ddd_duplicate_detection(w);
     }
   } else {
@@ -739,7 +743,7 @@ void delta_ddd_expand
  unsigned int depth) {
   state_t s;
 
-  if(cfg_event_undoable()) {
+  if(CFG_EVENT_UNDOABLE) {
     heap_reset(expand_evts_heaps[w]);
   }
   heap_reset(expand_heaps[w]);
@@ -771,7 +775,7 @@ void * delta_ddd_worker
     ns.dd = ns.dd_visit = ns.recons[0] = FALSE;
     ns.recons[1] = ns.father = 1;
     ns.next = ns.fst_child = slot;
-#if defined(CFG_ACTION_BUILD_GRAPH)
+#if CFG_ACTION_BUILD_GRAPH == 1
     gf = context_graph_file();
     ns.num = next_num ++;
     fwrite(&t, sizeof(uint8_t), 1, gf);
@@ -806,7 +810,7 @@ void * delta_ddd_worker
     delta_ddd_expand(w, depth);
     depth ++;
     if(0 == w) {
-      for(x = 0; x < cfg_no_workers(); x ++) {
+      for(x = 0; x < CFG_NO_WORKERS; x ++) {
 	NEXT_LVL += NEXT_LVLS[x];
       }
       context_update_bfs_levels(depth);
@@ -832,9 +836,9 @@ void delta_ddd
 
   S = (delta_ddd_storage_t) context_storage();
   ST = S->ST;
-  pthread_barrier_init(&BARRIER, NULL, cfg_no_workers());
+  pthread_barrier_init(&BARRIER, NULL, CFG_NO_WORKERS);
   error_reported = FALSE;
-  for(w = 0; w < cfg_no_workers(); w ++) {
+  for(w = 0; w < CFG_NO_WORKERS; w ++) {
     seeds[w] = random_seed(w);
   }
   next_num = 0;
@@ -843,11 +847,11 @@ void delta_ddd
   /*
    *  initialisation of the heaps
    */
-  for(w = 0; w < cfg_no_workers(); w ++) {
+  for(w = 0; w < CFG_NO_WORKERS; w ++) {
     expand_heaps[w] = local_heap_new();
     detect_heaps[w] = local_heap_new();
     candidates_heaps[w] = local_heap_new();
-    if(cfg_event_undoable()) {
+    if(CFG_EVENT_UNDOABLE) {
       expand_evts_heaps[w] = local_heap_new();
       detect_evts_heaps[w] = local_heap_new();
     }
@@ -856,10 +860,10 @@ void delta_ddd
   /*
    *  initialisation of the mailboxes of workers
    */
-  BOX_max_size = (cfg_delta_ddd_cand_set_size() /
-                  (cfg_no_workers() * cfg_no_workers())) << 2;
-  for(w = 0; w < cfg_no_workers(); w ++) {
-    for(x = 0; x < cfg_no_workers(); x ++) {
+  BOX_max_size = (CFG_DELTA_DDD_CAND_SET_SIZE /
+                  (CFG_NO_WORKERS * CFG_NO_WORKERS)) << 2;
+  for(w = 0; w < CFG_NO_WORKERS; w ++) {
+    for(x = 0; x < CFG_NO_WORKERS; x ++) {
       s = BOX_max_size * sizeof(delta_ddd_candidate_t);
       BOX[w][x] = mem_alloc(SYSTEM_HEAP, s);
       for(i = 0; i < BOX_max_size; i ++) {
@@ -874,8 +878,8 @@ void delta_ddd
   /*
    *  initialisation of the candidate set
    */
-  CS_max_size = (cfg_delta_ddd_cand_set_size() / cfg_no_workers()) << 1;
-  for(w = 0; w < cfg_no_workers(); w ++) {
+  CS_max_size = (CFG_DELTA_DDD_CAND_SET_SIZE / CFG_NO_WORKERS) << 1;
+  for(w = 0; w < CFG_NO_WORKERS; w ++) {
     CS[w] = mem_alloc(SYSTEM_HEAP, CS_max_size *
                       sizeof(delta_ddd_candidate_t));
     NCS[w] = mem_alloc(SYSTEM_HEAP, CS_max_size * sizeof(uint32_t));
@@ -890,16 +894,16 @@ void delta_ddd
   /*
    *  free heaps and mailboxes
    */
-  for(w = 0; w < cfg_no_workers(); w ++) {
+  for(w = 0; w < CFG_NO_WORKERS; w ++) {
     mem_free(SYSTEM_HEAP, CS[w]);
     mem_free(SYSTEM_HEAP, NCS[w]);
-    for(x = 0; x < cfg_no_workers(); x ++) {
+    for(x = 0; x < CFG_NO_WORKERS; x ++) {
       mem_free(SYSTEM_HEAP, BOX[w][x]);
     }
     heap_free(candidates_heaps[w]);
     heap_free(expand_heaps[w]);
     heap_free(detect_heaps[w]);
-    if(cfg_event_undoable()) {
+    if(CFG_EVENT_UNDOABLE) {
       heap_free(expand_evts_heaps[w]);
       heap_free(detect_evts_heaps[w]);
     }      
@@ -907,4 +911,4 @@ void delta_ddd
   context_close_graph_file();
 }
 
-#endif  /*  defined(CFG_ALGO_DELTA_DDD)  */
+#endif  /*  CFG_ALGO_DELTA_DDD == 1  */

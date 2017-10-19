@@ -6,7 +6,7 @@ void mstate_free_void
 }
 
 
-#if defined(CFG_ACTION_CHECK_LTL)
+#if CFG_ACTION_CHECK_LTL == 1
 
 bool_t state_equal
 (state_t s,

@@ -47,7 +47,7 @@ mevent_list_t mevent_list_unserialise_mem
                           v, mevent_char_size_void, mevent_unserialise_void);
 }
 
-#if defined(CFG_ACTION_CHECK_LTL)
+#if CFG_ACTION_CHECK_LTL == 1
 
 bool_t event_is_dummy
 (event_t e) {

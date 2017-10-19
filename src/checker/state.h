@@ -18,7 +18,7 @@ typedef list_t state_list_t;
 void mstate_free_void
 (void * data);
 
-#if defined(CFG_ACTION_CHECK_LTL)
+#if CFG_ACTION_CHECK_LTL == 1
 
 /**
  *  state definition when doing LTL model checking

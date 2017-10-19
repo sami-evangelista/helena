@@ -36,10 +36,10 @@ versionFile=VERSION
 CCopt="-pthread -lm"
 
 commonFiles="bit_stream"
-checkerSrcFiles="bfs bfs_queue bit_stream buchi common comm_shmem config
-context ddfs_comm dbfs_comm delta_ddd dfs dfs_stack event graph heap hash_array
-hash_tbl list observer papi_stats prop reduction rwalk state simulator storage
-workers"
+checkerSrcFiles="bfs bfs_queue bit_stream buchi common comm_shmem
+context ddfs_comm dbfs_comm delta_ddd dfs dfs_stack event graph heap
+hash_array hash_tbl list observer papi_stats prop reduction rwalk
+state simulator storage workers"
 
 exitWithError () {
     rm -rf $tmpDir &> /dev/null

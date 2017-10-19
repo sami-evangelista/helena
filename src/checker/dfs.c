@@ -8,7 +8,7 @@
 #include "reduction.h"
 #include "workers.h"
 
-#if !defined(CFG_ALGO_DDFS) && !defined(CFG_ALGO_DFS)
+#if CFG_ALGO_DDFS == 0 && CFG_ALGO_DFS == 0
 
 void dfs() {}
 
@@ -25,9 +25,9 @@ state_t dfs_recover_state
  heap_t heap) {
   storage_id_t id;
 
-  if(cfg_event_undoable()) {
+  if(CFG_EVENT_UNDOABLE) {
     dfs_stack_event_undo(stack, now);
-  } else if(cfg_hash_compaction()) {
+  } else if(CFG_HASH_COMPACTION) {
     state_free(now);
     now = dfs_stack_top_state(stack, heap);
   } else {
@@ -43,7 +43,7 @@ state_t dfs_check_state
  event_list_t en,
  dfs_stack_t blue_stack,
  dfs_stack_t red_stack) { 
-#if defined(CFG_ACTION_CHECK_SAFETY)
+#if CFG_ACTION_CHECK_SAFETY == 1
   if(state_check_property(now, en)) {
     context_faulty_state(now);
     dfs_stack_create_trace(blue_stack, red_stack);
@@ -59,9 +59,9 @@ state_t dfs_main
  bool_t blue,
  dfs_stack_t blue_stack,
  dfs_stack_t red_stack) {
-  const bool_t por = cfg_por();
-  const bool_t proviso = cfg_proviso();
-  const bool_t edge_lean = cfg_edge_lean();
+  const bool_t por = CFG_POR;
+  const bool_t proviso = CFG_PROVISO;
+  const bool_t edge_lean = CFG_EDGE_LEAN;
   storage_id_t id_seed;
   bool_t push;
   dfs_stack_t stack = blue ? blue_stack : red_stack;
@@ -129,7 +129,7 @@ state_t dfs_main
        *  state is accepting and halt after if an accepting cycle has
        *  been found
        */
-#if defined(CFG_ACTION_CHECK_LTL)
+#if CFG_ACTION_CHECK_LTL == 1
       if(blue && state_accepting(now)) {
         context_incr_accepting(w, 1);
 	dfs_main(w, now, dfs_stack_top(stack), heap,
@@ -154,7 +154,7 @@ state_t dfs_main
       /*
        *  in distributed DFS we process the state to be later sent
        */
-      if(cfg_algo_ddfs()) {
+      if(CFG_ALGO_DDFS) {
 	en = dfs_stack_top_events(stack);
 	ddfs_comm_process_explored_state(w, id_top, en);
       }
@@ -198,7 +198,7 @@ state_t dfs_main
        *  if we check an LTL property, test whether the state reached
        *  is the seed.  exit the loop if this is the case
        */
-#if defined(CFG_ACTION_CHECK_LTL)
+#if CFG_ACTION_CHECK_LTL == 1
       if(!blue && (id == id_seed)) {
         dfs_stack_create_trace(blue_stack, red_stack);
         break;
@@ -275,12 +275,12 @@ void * dfs_worker
   storage_id_t id;
   heap_t heap = local_heap_new();
   state_t now = state_initial_mem(heap);
-  bool_t shuffle = cfg_parallel() || cfg_distributed();
-  bool_t states_stored = !cfg_event_undoable() && cfg_hash_compaction();
-  dfs_stack_t blue_stack = dfs_stack_new(wid * 2, cfg_dfs_stack_block_size(),
+  bool_t shuffle = CFG_PARALLEL || CFG_DISTRIBUTED;
+  bool_t states_stored = !CFG_EVENT_UNDOABLE && CFG_HASH_COMPACTION;
+  dfs_stack_t blue_stack = dfs_stack_new(wid * 2, CFG_DFS_STACK_BLOCK_SIZE,
                                          shuffle, states_stored);
-  dfs_stack_t red_stack = cfg_action_check_ltl() ?
-    dfs_stack_new(wid * 2 + 1, cfg_dfs_stack_block_size(),
+  dfs_stack_t red_stack = CFG_ACTION_CHECK_LTL ?
+    dfs_stack_new(wid * 2 + 1, CFG_DFS_STACK_BLOCK_SIZE,
 		   shuffle, states_stored)
     : NULL;
 
@@ -292,7 +292,7 @@ void * dfs_worker
    *  if state caching is on we keep waiting on the storage barrier
    *  since some other threads may still launch garbage collection
    */
-  if(cfg_parallel() && cfg_state_caching()) {
+  if(CFG_PARALLEL && CFG_STATE_CACHING) {
     storage_gc_barrier(S, w);
   }
 
@@ -309,13 +309,13 @@ void dfs
 
   S = context_storage();
 
-  if(cfg_algo_ddfs()) {
+  if(CFG_ALGO_DDFS) {
     ddfs_comm_start();
   }
   
   launch_and_wait_workers(&dfs_worker);
 
-  if(cfg_algo_ddfs()) {
+  if(CFG_ALGO_DDFS) {
     context_stop_search();
     ddfs_comm_end();
   }

@@ -2,7 +2,7 @@
 #include "model.h"
 #include "config.h"
 
-#if defined(CFG_MODEL_HAS_GRAPH_ROUTINES)
+#if CFG_MODEL_HAS_GRAPH_ROUTINES == 1
 #include "model_graph.h"
 #else
 typedef int model_graph_data_t;

@@ -7,8 +7,7 @@
 #include "reduction.h"
 #include "workers.h"
 
-#if !defined(CFG_ALGO_BFS) && !defined(CFG_ALGO_DBFS) &&        \
-  !defined(CFG_ALGO_FRONTIER)
+#if CFG_ALGO_BFS == 0 && CFG_ALGO_DBFS == 0 && CFG_ALGO_FRONTIER == 0
 
 void bfs() {}
 
@@ -29,25 +28,25 @@ worker_id_t bfs_thread_owner
   for(i = 0; i < sizeof(hash_key_t); i++) {
     result += (h >> (i * 8)) & 0xff;
   }
-  return result % cfg_no_workers();
+  return result % CFG_NO_WORKERS;
 }
 
 void bfs_wait_barrier
 () {
-  if(cfg_parallel()) {
+  if(CFG_PARALLEL) {
     context_barrier_wait(&BFS_BARRIER);
   }
 }
 
 void bfs_init_queue
 () {
-  bool_t levels = cfg_algo_dbfs() ? 1 : 2;
-  bool_t events_in_queue = cfg_edge_lean();
+  bool_t levels = CFG_ALGO_DBFS ? 1 : 2;
+  bool_t events_in_queue = CFG_EDGE_LEAN;
   uint16_t no_workers =
-    cfg_no_workers() + (cfg_algo_dbfs() ? cfg_no_comm_workers() : 0);
-  bool_t states_in_queue = cfg_hash_compaction();
+    CFG_NO_WORKERS + (CFG_ALGO_DBFS ? CFG_NO_COMM_WORKERS : 0);
+  bool_t states_in_queue = CFG_HASH_COMPACTION;
   
-  Q = bfs_queue_new(no_workers, cfg_bfs_queue_block_size(),
+  Q = bfs_queue_new(no_workers, CFG_BFS_QUEUE_BLOCK_SIZE,
                     states_in_queue, events_in_queue, levels);
 }
 
@@ -56,7 +55,7 @@ bool_t bfs_check_termination
   bool_t result = FALSE;
   uint16_t trials = 0;
   
-  if(cfg_algo_dbfs()) {
+  if(CFG_ALGO_DBFS) {
     dbfs_comm_send_all_pending_states(w);
     while(!(result = dbfs_comm_termination())
           && bfs_queue_local_is_empty(Q, w)) {
@@ -96,7 +95,7 @@ void bfs_report_trace
   context_set_trace(trace);
 }
 
-#if defined(CFG_EVENT_UNDOABLE)
+#if CFG_EVENT_UNDOABLE == 1
 #define bfs_back_to_s() {event_undo(e, s);}
 #else
 #define bfs_back_to_s() {state_free(succ);}
@@ -106,10 +105,10 @@ void * bfs_worker
 (void * arg) {
   const worker_id_t w = (worker_id_t) (unsigned long int) arg;
   const bool_t states_in_queue = bfs_queue_states_stored(Q);
-  const bool_t por = cfg_por();
-  const bool_t proviso = cfg_proviso();
-  const bool_t edge_lean = cfg_edge_lean();
-  const bool_t with_trace = cfg_action_check_safety() && cfg_algo_bfs();
+  const bool_t por = CFG_POR;
+  const bool_t proviso = CFG_PROVISO;
+  const bool_t edge_lean = CFG_EDGE_LEAN;
+  const bool_t with_trace = CFG_ACTION_CHECK_SAFETY && CFG_ALGO_BFS;
   uint32_t levels = 0;
   state_t s, succ;
   storage_id_t id_succ;
@@ -152,7 +151,7 @@ void * bfs_worker
         /**
          *  check the state property
          */
-#if defined(CFG_ACTION_CHECK_SAFETY)
+#if CFG_ACTION_CHECK_SAFETY == 1
         if(state_check_property(s, en)) {
           if(with_trace) {
             bfs_report_trace(item.id);
@@ -179,13 +178,13 @@ void * bfs_worker
         while(!list_is_empty(en)) {
           list_pick_first(en, &e);
           arcs ++;
-          if(cfg_event_undoable()) {
+          if(CFG_EVENT_UNDOABLE) {
             event_exec(e, s);
             succ = s;
           } else {
             succ = state_succ_mem(s, e, heap);
           }
-          if(!cfg_algo_dbfs()) {
+          if(!CFG_ALGO_DBFS) {
             storage_insert(S, succ, w, &is_new, &id_succ, &h);
           } else {
             h = state_hash(succ);
@@ -248,7 +247,7 @@ void * bfs_worker
          */
         bfs_queue_dequeue(Q, x, w);
         storage_set_cyan(S, item.id, w, FALSE);
-        if(cfg_algo_frontier()) {
+        if(CFG_ALGO_FRONTIER) {
           storage_remove(S, w, item.id);
         }
       }
@@ -258,7 +257,7 @@ void * bfs_worker
      *  with FRONTIER algorithm we delete all states of the previous
      *  level that were marked as garbage by the storage_remove calls
      */
-    if(cfg_algo_frontier()) {
+    if(CFG_ALGO_FRONTIER) {
       storage_gc_all(S, w);
     }
 
@@ -274,7 +273,7 @@ void * bfs_worker
 
 void bfs
 () {
-  const bool_t with_trace = cfg_action_check_safety() && cfg_algo_bfs();
+  const bool_t with_trace = CFG_ACTION_CHECK_SAFETY && CFG_ALGO_BFS;
   state_t s = state_initial();
   bool_t is_new;
   storage_id_t id;
@@ -285,25 +284,25 @@ void bfs
   
   S = context_storage();
   bfs_init_queue();
-  for(w = 0; w < cfg_no_workers(); w ++) {
+  for(w = 0; w < CFG_NO_WORKERS; w ++) {
     BFS_WAIT_TIME[w].tv_sec = 0;
     BFS_WAIT_TIME[w].tv_nsec = 1000;
   }
 
-  if(cfg_algo_dbfs()) {
+  if(CFG_ALGO_DBFS) {
     dbfs_comm_start(Q);
   }
 
-  pthread_barrier_init(&BFS_BARRIER, NULL, cfg_no_workers());
+  pthread_barrier_init(&BFS_BARRIER, NULL, CFG_NO_WORKERS);
   
-  if(cfg_algo_dbfs()) {
+  if(CFG_ALGO_DBFS) {
     h = state_hash(s);
     enqueue = dbfs_comm_state_owned(h);
   }
   
   if(enqueue) {
     storage_insert(S, s, 0, &is_new, &id, &h);
-    w = h % cfg_no_workers();
+    w = h % CFG_NO_WORKERS;
     item.id = id;
     item.s = s;
     item.e_set = FALSE;
@@ -319,7 +318,7 @@ void bfs
 
   bfs_queue_free(Q);
 
-  if(cfg_algo_dbfs()) {
+  if(CFG_ALGO_DBFS) {
     context_stop_search();
     dbfs_comm_end();
   }

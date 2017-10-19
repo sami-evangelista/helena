@@ -35,7 +35,7 @@ mevent_list_t mevent_list_unserialise_mem
  heap_t heap);
 
 
-#if defined(CFG_ACTION_CHECK_LTL)
+#if CFG_ACTION_CHECK_LTL == 1
 
 /**
  *  event definition when doing LTL model checking

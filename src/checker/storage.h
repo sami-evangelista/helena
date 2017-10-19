@@ -24,7 +24,7 @@
 /*****
  *  storage used by delta-ddd algorithm
  *****/
-#if defined (CFG_DELTA_DDD_STORAGE)
+#if CFG_DELTA_DDD_STORAGE == 1
 
 typedef delta_ddd_storage_t storage_t;
 typedef delta_ddd_storage_id_t storage_id_t;

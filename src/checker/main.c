@@ -21,15 +21,15 @@ int main
   init_heap();
   init_bit_stream();
   init_model();
-  if(cfg_distributed()) {
+  if(CFG_DISTRIBUTED) {
     init_comm_shmem();
   }
-  if(cfg_with_papi()) {
+  if(CFG_WITH_PAPI) {
     init_papi_stats();
   }
   init_context();
 
-  if(cfg_action_simulate()) { 
+  if(CFG_ACTION_SIMULATE) { 
     simulator();
   } else {
 
@@ -52,20 +52,20 @@ int main
     /**
      * launch the appropriate search algorithm
      */
-    if(cfg_algo_bfs() || cfg_algo_dbfs() || cfg_algo_frontier()) {
+    if(CFG_ALGO_BFS || CFG_ALGO_DBFS || CFG_ALGO_FRONTIER) {
       bfs();
-    } else if(cfg_algo_dfs() || cfg_algo_ddfs()) {
+    } else if(CFG_ALGO_DFS || CFG_ALGO_DDFS) {
       dfs();
-    } else if(cfg_algo_delta_ddd()) {
+    } else if(CFG_ALGO_DELTA_DDD) {
       delta_ddd();
-    } else if(cfg_algo_rwalk()) {
+    } else if(CFG_ALGO_RWALK) {
       rwalk();
     }
 
     /**
      * generation of the reachability graph report
      */
-    if(cfg_action_build_graph()
+    if(CFG_ACTION_BUILD_GRAPH
        && SEARCH_TERMINATED == context_termination_state()) {
       graph_make_report(CFG_GRAPH_FILE, CFG_RG_REPORT_FILE, NULL);
     }
@@ -74,10 +74,10 @@ int main
      * termination of all libraries
      */
     finalise_context();
-    if(cfg_distributed()) {
+    if(CFG_DISTRIBUTED) {
       finalise_comm_shmem();
     }
-    if(cfg_with_papi()) {
+    if(CFG_WITH_PAPI) {
       finalise_papi_stats();
     }
   }

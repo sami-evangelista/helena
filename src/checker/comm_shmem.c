@@ -2,7 +2,7 @@
 #include "config.h"
 #include "context.h"
 
-#if defined(CFG_DISTRIBUTED)
+#if CFG_DISTRIBUTED == 1
 #include "shmem.h"
 #endif
 
@@ -14,7 +14,7 @@ bool_t COMM_SHMEM_INITIALISED;
 
 void init_comm_shmem
 () {
-#if !defined(CFG_DISTRIBUTED)
+#if CFG_DISTRIBUTED == 0
   assert(0);
 #else
   shmem_init();
@@ -24,7 +24,7 @@ void init_comm_shmem
 
 void finalise_comm_shmem
 () {
-#if !defined(CFG_DISTRIBUTED)
+#if CFG_DISTRIBUTED == 0
   assert(0);
 #else
   comm_shmem_barrier();
@@ -35,7 +35,7 @@ void finalise_comm_shmem
 
 void comm_shmem_barrier
 () {
-#if !defined(CFG_DISTRIBUTED)
+#if CFG_DISTRIBUTED == 0
   assert(0);
 #else
   shmem_barrier_all();
@@ -48,7 +48,7 @@ void comm_shmem_put
  int size,
  int pe) {
   
-#if !defined(CFG_DISTRIBUTED)
+#if CFG_DISTRIBUTED == 0
   assert(0);
 #else
   /**
@@ -89,7 +89,7 @@ void comm_shmem_get
  void * src,
  int size,
  int pe) {
-#if !defined(CFG_DISTRIBUTED)
+#if CFG_DISTRIBUTED == 0
   assert(0);
 #else
   if(pe == shmem_my_pe()) {
@@ -113,7 +113,7 @@ void comm_shmem_get
 
 int comm_shmem_me
 () {
-#if !defined(CFG_DISTRIBUTED)
+#if CFG_DISTRIBUTED == 0
   return 0;
 #else
   return shmem_my_pe();
@@ -122,7 +122,7 @@ int comm_shmem_me
 
 int comm_shmem_pes
 () {
-#if !defined(CFG_DISTRIBUTED)
+#if CFG_DISTRIBUTED == 0
   return 1;
 #else
   return shmem_n_pes();
@@ -131,7 +131,7 @@ int comm_shmem_pes
 
 void * comm_shmem_malloc
 (int size) {
-#if !defined(CFG_DISTRIBUTED)
+#if CFG_DISTRIBUTED == 0
   assert(0);
 #else
   return shmem_malloc(size);

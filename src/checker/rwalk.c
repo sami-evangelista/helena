@@ -21,10 +21,10 @@ void * rwalk_worker
     heap_reset(heap);
     s = state_initial_mem(heap);
     trace = list_new(heap, sizeof(event_t), event_free_void);
-    for(i = 0; i < cfg_rwalk_max_depth() && context_keep_searching(); i ++) {
+    for(i = 0; i < CFG_RWALK_MAX_DEPTH && context_keep_searching(); i ++) {
       en = state_events_mem(s, heap);
       en_size = list_size(en);
-#if defined(CFG_ACTION_CHECK_SAFETY)
+#if CFG_ACTION_CHECK_SAFETY == 1
       if(state_check_property(s, en)) {
         
         /*  copy the trace to the system heap  */

@@ -7,7 +7,7 @@
 #include "papi.h"
 #endif
 
-#if defined(CFG_WITH_PAPI)
+#if CFG_WITH_PAPI == 1
 #define PAPI_STATS_NO_EVENTS 6
 int PAPI_STATS_ALL_EVENTS [PAPI_STATS_NO_EVENTS] = {
   PAPI_L1_TCM,
@@ -26,7 +26,7 @@ void init_papi_stats
 () {
   int i, rc, n;
   
-#if defined(CFG_WITH_PAPI)
+#if CFG_WITH_PAPI == 1
   if(PAPI_library_init(PAPI_VER_CURRENT) != PAPI_VER_CURRENT) {
     /*  do something here  */
   } else {
@@ -51,7 +51,7 @@ void init_papi_stats
 
 void finalise_papi_stats
 () {
-#if defined(CFG_WITH_PAPI)
+#if CFG_WITH_PAPI == 1
   if(PAPI_is_initialized()) {
     PAPI_shutdown();
   }
@@ -62,7 +62,7 @@ void finalise_papi_stats
 void papi_stats_get_stat_name
 (int stat,
  char * name) {
-#if defined(CFG_WITH_PAPI)
+#if CFG_WITH_PAPI == 1
   switch(stat) {
   case PAPI_L1_TCM: sprintf(name, "lvl1TotalCacheMiss"); break;
   case PAPI_L1_TCH: sprintf(name, "lvl1TotalCacheHit"); break;
@@ -77,7 +77,7 @@ void papi_stats_get_stat_name
 
 void papi_stats_output
 (FILE * f) {  
-#if defined(CFG_WITH_PAPI)
+#if CFG_WITH_PAPI == 1
   int i, rc, n;
   long long values[PAPI_STATS_NO_EVENTS];
   char stat_name[256];

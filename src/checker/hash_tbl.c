@@ -161,33 +161,33 @@ hash_tbl_t hash_tbl_default_new
    */
   attrs |= ATTR_CYAN;
   attrs |= ATTR_BLUE;
-  if(cfg_action_check_ltl()) {
+  if(CFG_ACTION_CHECK_LTL) {
     attrs |= ATTR_PINK;
     attrs |= ATTR_RED;
   }
-  if(cfg_state_caching() || cfg_algo_frontier()) {
+  if(CFG_STATE_CACHING || CFG_ALGO_FRONTIER) {
     attrs |= ATTR_GARBAGE;
   }
-  if(cfg_state_caching()) {
+  if(CFG_STATE_CACHING) {
     attrs |= ATTR_REFS;
   }
-  if(cfg_algo_bfs()) {
+  if(CFG_ALGO_BFS) {
     attrs |= ATTR_PRED;
     attrs |= ATTR_EVT;
   }
   
-  if(cfg_state_caching()) {
-    gc_threshold = cfg_state_caching_gc_threshold();
-    gc_ratio = cfg_state_caching_gc_ratio();
+  if(CFG_STATE_CACHING) {
+    gc_threshold = CFG_STATE_CACHING_GC_THRESHOLD;
+    gc_ratio = CFG_STATE_CACHING_GC_RATIO;
   } else {
     gc_threshold = 100;
     gc_ratio = 0;
   }
-  no_workers = cfg_no_workers();
-  if(cfg_distributed()) {
-    no_workers += cfg_no_comm_workers();
+  no_workers = CFG_NO_WORKERS;
+  if(CFG_DISTRIBUTED) {
+    no_workers += CFG_NO_COMM_WORKERS;
   }
-  return hash_tbl_new(cfg_hash_size(), no_workers, cfg_hash_compaction(),
+  return hash_tbl_new(CFG_HASH_SIZE, no_workers, CFG_HASH_COMPACTION,
                       gc_threshold, gc_ratio, attrs);
 }
 

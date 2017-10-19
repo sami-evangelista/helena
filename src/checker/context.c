@@ -63,7 +63,7 @@ void init_context
   CTX->error_msg = NULL;
   CTX->error_raised = FALSE;
 
-  if(cfg_action_simulate()) {
+  if(CFG_ACTION_SIMULATE) {
     return;
   }
   
@@ -107,10 +107,10 @@ void init_context
   CTX->keep_searching = TRUE;
   gettimeofday(&CTX->start_time, NULL);
   CTX->graph_file = NULL;
-  if(!cfg_action_check()) {
+  if(!CFG_ACTION_CHECK) {
     CTX->term_state = SEARCH_TERMINATED;
   } else {
-    if(cfg_hash_compaction()) {
+    if(CFG_HASH_COMPACTION) {
       CTX->term_state = NO_ERROR;
     } else {
       CTX->term_state = SUCCESS;
@@ -144,13 +144,13 @@ void context_output_trace
       if(!event_is_dummy(e)) {
         event_to_xml(e, out);
         event_exec(e, s);
-	if(cfg_trace_full()) {
+	if(CFG_TRACE_FULL) {
 	  state_to_xml(s, out);
 	}
       }
       event_free(e);
     }
-    if(cfg_trace_events()) {
+    if(CFG_TRACE_EVENTS) {
       if(l > 0) {
 	state_to_xml(s, out);
       }
@@ -176,7 +176,7 @@ void finalise_context
   size_t n = 0;
   int i;
 
-  if(!cfg_action_simulate()) {
+  if(!CFG_ACTION_SIMULATE) {
     gettimeofday(&CTX->end_time, NULL);
     CTX->exec_time = duration(CTX->start_time, CTX->end_time);
     CTX->keep_searching = FALSE;
@@ -188,7 +188,7 @@ void finalise_context
     /**
      *  make the report
      */
-    if(cfg_distributed()) {
+    if(CFG_DISTRIBUTED) {
       sprintf(file_name, "%s.%d", CFG_REPORT_FILE, context_proc_id());
       out = fopen(file_name, "w");
     } else {
@@ -205,7 +205,7 @@ void finalise_context
     fprintf(out, "<host>%s (pid = %d)</host>\n", name, getpid());
     fprintf(out, "</infoReport>\n");
     fprintf(out, "<searchReport>\n");
-    if(cfg_property()) {
+    if(CFG_PROPERTY) {
       fprintf(out, "<property>%s</property>\n", CFG_PROPERTY);
     }
     fprintf(out, "<searchResult>");
@@ -235,43 +235,43 @@ void finalise_context
     }
     fprintf(out, "<searchOptions>\n");
     fprintf(out, "<searchAlgorithm>");
-    if(cfg_algo_dfs()) {
+    if(CFG_ALGO_DFS) {
       fprintf(out, "depthSearch");
-    } else if(cfg_algo_bfs()) {
+    } else if(CFG_ALGO_BFS) {
       fprintf(out, "breadthSearch");
-    } else if(cfg_algo_ddfs()) {
+    } else if(CFG_ALGO_DDFS) {
       fprintf(out, "distributedDepthSearch");
-    } else if(cfg_algo_dbfs()) {
+    } else if(CFG_ALGO_DBFS) {
       fprintf(out, "distributedBreadthSearch");
-    } else if(cfg_algo_frontier()) {
+    } else if(CFG_ALGO_FRONTIER) {
       fprintf(out, "frontierSearch");
-    } else if(cfg_algo_rwalk()) {
+    } else if(CFG_ALGO_RWALK) {
       fprintf(out, "randomWalk");
-    } else if(cfg_algo_delta_ddd()) {
+    } else if(CFG_ALGO_DELTA_DDD) {
       fprintf(out, "deltaDDD");
     }
     fprintf(out, "</searchAlgorithm>\n");
     fprintf(out, "<workers>%d</workers>\n", CTX->no_workers);
-    if(cfg_hash_storage() || cfg_delta_ddd_storage()) {
-      fprintf(out, "<hashTableSize>%d</hashTableSize>\n", cfg_hash_size());
+    if(CFG_HASH_STORAGE || CFG_DELTA_DDD_STORAGE) {
+      fprintf(out, "<hashTableSize>%d</hashTableSize>\n", CFG_HASH_SIZE);
     }
-    if(cfg_distributed()) {
+    if(CFG_DISTRIBUTED) {
       fprintf(out, "<commWorkers>%d</commWorkers>\n", CTX->no_comm_workers);
       fprintf(out, "<shmemHeapSize>%d</shmemHeapSize>\n",
-              cfg_shmem_heap_size());
+              CFG_SHMEM_HEAP_SIZE);
     }
-    if(cfg_hash_compaction()) {
+    if(CFG_HASH_COMPACTION) {
       fprintf(out, "<hashCompact/>\n");
     }
-    if(cfg_por()) {
+    if(CFG_POR) {
       fprintf(out, "<partialOrder/>\n");
     }
-    if(cfg_state_caching()) {
+    if(CFG_STATE_CACHING) {
       fprintf(out, "<stateCaching/>\n");
     }
-    if(cfg_algo_delta_ddd()) {
+    if(CFG_ALGO_DELTA_DDD) {
       fprintf(out, "<candidateSetSize>%d</candidateSetSize>\n",
-	      cfg_delta_ddd_cand_set_size());
+	      CFG_DELTA_DDD_CAND_SET_SIZE);
     }
     fprintf(out, "</searchOptions>\n");
     fprintf(out, "</searchReport>\n");
@@ -292,11 +292,11 @@ void finalise_context
       fprintf(out, "<barrierTime>%.3f</barrierTime>\n",
 	      CTX->barrier_time / 1000000.0);
     }
-    if(cfg_algo_delta_ddd()) {
+    if(CFG_ALGO_DELTA_DDD) {
       fprintf(out, "<duplicateDetectionTime>%.3f</duplicateDetectionTime>\n",
 	      storage_dd_time(CTX->storage) / 1000000.0);
     }
-    if(cfg_state_caching()) {
+    if(CFG_STATE_CACHING) {
       fprintf(out, "<garbageCollectionTime>");
       fprintf(out, "%.3f</garbageCollectionTime>\n",
 	      storage_gc_time(CTX->storage) / 1000000.0);
@@ -309,7 +309,7 @@ void finalise_context
 	    (ssize > CTX->states_max_stored) ? ssize : CTX->states_max_stored);
     sum_processed = large_sum(CTX->states_processed, CTX->no_workers);
     fprintf(out, "<statesProcessed>%llu</statesProcessed>\n", sum_processed);
-    if(cfg_parallel()) {
+    if(CFG_PARALLEL) {
       min_processed = CTX->states_processed[0];
       max_processed = CTX->states_processed[0];
       avg_processed = sum_processed / CFG_NO_WORKERS;
@@ -331,7 +331,7 @@ void finalise_context
       fprintf(out, "<statesProcessedDev>%llu</statesProcessedDev>\n",
 	      dev_processed);
     }
-    if(cfg_action_check_ltl()) {
+    if(CFG_ACTION_CHECK_LTL) {
       fprintf(out, "<statesAccepting>%llu</statesAccepting>\n",
 	      large_sum(CTX->states_accepting, CTX->no_workers));
     }
@@ -343,7 +343,7 @@ void finalise_context
       fprintf(out, "<bfsLevels>%u</bfsLevels>\n", CTX->bfs_levels);
     }
     fprintf(out, "</graphStatistics>\n");
-    if(cfg_with_papi()) {
+    if(CFG_WITH_PAPI) {
       papi_stats_output(out);
     }
     fprintf(out, "<otherStatistics>\n");
@@ -354,34 +354,34 @@ void finalise_context
     }
     fprintf(out, "<eventsExecuted>%llu</eventsExecuted>\n",
 	    large_sum(CTX->evts_exec, CTX->no_workers));
-    if(cfg_algo_delta_ddd()) {
+    if(CFG_ALGO_DELTA_DDD) {
       fprintf(out, "<eventsExecutedDDD>%llu</eventsExecutedDDD>\n",
 	      large_sum(CTX->evts_exec_dd, CTX->no_workers));
       fprintf(out, "<eventsExecutedExpansion>%llu</eventsExecutedExpansion>\n",
 	      large_sum(CTX->evts_exec, CTX->no_workers) -
 	      large_sum(CTX->evts_exec_dd, CTX->no_workers));
     }
-    if(cfg_algo_rwalk()) {
+    if(CFG_ALGO_RWALK) {
       fprintf(out, "<eventExecPerSecond>%d</eventExecPerSecond>\n",
 	      (unsigned int) (1.0 * sum_processed /
 			      (CTX->exec_time / 1000000.0)));
     }
-    if(cfg_distributed()) {
+    if(CFG_DISTRIBUTED) {
       fprintf(out, "<bytesSent>%llu</bytesSent>\n", CTX->bytes_sent);
     }
     fprintf(out, "</otherStatistics>\n");
     fprintf(out, "</statisticsReport>\n");
     if(CTX->term_state == FAILURE) {
       fprintf(out, "<traceReport>\n");
-      if(cfg_trace_state()) {
+      if(CFG_TRACE_STATE) {
 	fprintf(out, "<traceState>\n");
 	state_to_xml(CTX->faulty_state, out);
 	fprintf(out, "</traceState>\n");
-      } else if(cfg_trace_full()) {
+      } else if(CFG_TRACE_FULL) {
 	fprintf(out, "<traceFull>\n");
 	context_output_trace(out);
 	fprintf(out, "</traceFull>\n");
-      } else if(cfg_trace_events()) {
+      } else if(CFG_TRACE_EVENTS) {
 	fprintf(out, "<traceEvents>\n");
 	context_output_trace(out);
 	fprintf(out, "</traceEvents>\n");
@@ -396,7 +396,7 @@ void finalise_context
      *  standard output so that it can be sent to the main process.  we
      *  prefix each line with [xml-PID]
      */
-    if(cfg_distributed()) {
+    if(CFG_DISTRIBUTED) {
       out = fopen(file_name, "r");
       while(getline(&buf, &n, out) != -1) {
 	printf("[xml-%d] %s", context_proc_id(), buf);
@@ -504,7 +504,7 @@ struct timeval context_start_time
 FILE * context_open_graph_file
 () {
   FILE * result = NULL;
-  if(cfg_action_build_graph()) {
+  if(CFG_ACTION_BUILD_GRAPH) {
     CTX->graph_file = fopen(CFG_GRAPH_FILE, "w");
     result = CTX->graph_file;
   }
@@ -605,7 +605,7 @@ void context_error
   }
   CTX->error_msg = mem_alloc(SYSTEM_HEAP, sizeof(char) * strlen(msg) + 1);
   strcpy(CTX->error_msg, msg);
-  if(!cfg_action_simulate()) {
+  if(!CFG_ACTION_SIMULATE) {
     CTX->term_state = ERROR;
     CTX->keep_searching = FALSE;
   }
@@ -615,7 +615,7 @@ void context_error
 
 void context_flush_error
 () {
-  if(cfg_action_simulate()) {
+  if(CFG_ACTION_SIMULATE) {
     if(CTX->error_raised) {
       mem_free(SYSTEM_HEAP, CTX->error_msg);
     }

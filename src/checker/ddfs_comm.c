@@ -2,7 +2,7 @@
 #include "ddfs_comm.h"
 #include "comm_shmem.h"
 
-#if defined(CFG_ALGO_DDFS) || defined(CFG_ALGO_DFS)
+#if CFG_ALGO_DDFS == 1 || CFG_ALGO_DFS == 1
 
 #define MAX_PES            100
 #define PRODUCE_PERIOD_MS  20
@@ -62,38 +62,16 @@ void ddfs_comm_process_explored_state
   void * pos;
 
   /**
-   *  if a communication strategy has been set we check if the state
-   *  must be sent
-   */
-#if defined(CFG_DDFS_COMM_STRAT_MINE)
-  if(storage_get_hash(S, id) % PES = ME) {
-    return;
-  }
-#endif
-#if defined(CFG_DDFS_COMM_STRAT_DEGREE)
-  if(list_size(en) < CFG_DDFS_COMM_STRAT_DEGREE) {
-    return;
-  }
-#endif
-#if defined(CFG_DDFS_COMM_STRAT_K)
-  BUF.k[w] ++;
-  if(BUF.k[w] < CFG_DDFS_COMM_STRAT_K) {
-    return;
-  }
-  BUF.k[w] = 0;
-#endif
-
-  /**
    *  put the state of worker w in its buffer
    */
   if(!BUF.full[w] && CAS(&BUF.status[w], BUCKET_OK, BUCKET_WRITE)) {
-    if(cfg_hash_compaction()) {
+    if(CFG_HASH_COMPACTION) {
       h = storage_get_hash(S, id);
     } else {
       storage_get_serialised(S, id, &s, &s_char_len, &h);
     }
     len = BASE_LEN;
-    if(!cfg_hash_compaction()) {
+    if(!CFG_HASH_COMPACTION) {
       len += sizeof(uint16_t) + s_char_len;
     }
     if(len + BUF.char_len[w] > BUFFER_WORKER_SIZE) {
@@ -125,7 +103,7 @@ void ddfs_comm_process_explored_state
       }
 
       /*  char length and state vector */
-      if(!cfg_hash_compaction()) {
+      if(!CFG_HASH_COMPACTION) {
 	memcpy(pos, &s_char_len, sizeof(uint16_t));
 	pos += sizeof(uint16_t);
 	memcpy(pos, s, s_char_len);
@@ -141,7 +119,7 @@ void * ddfs_comm_producer
   int pe;
   worker_id_t w;
   uint64_t size = 0, char_len = 0;
-  const worker_id_t my_worker_id = cfg_no_workers();
+  const worker_id_t my_worker_id = CFG_NO_WORKERS;
   
   while(context_keep_searching()) {
     context_sleep(PRODUCE_PERIOD);
@@ -162,7 +140,7 @@ void * ddfs_comm_producer
      */
     char_len = 0;
     size = 0;
-    for(w = 0; w < cfg_no_workers(); w ++) {
+    for(w = 0; w < CFG_NO_WORKERS; w ++) {
       
       /*  wait for the bucket of thread w to be ready  */
       while(!CAS(&BUF.status[w], BUCKET_OK, BUCKET_WRITE)) {
@@ -195,7 +173,7 @@ void * ddfs_comm_producer
 void * ddfs_comm_consumer
 (void * arg) {
   const comm_worker_id_t c = (comm_worker_id_t) (uint64_t) arg;
-  const worker_id_t w = c + cfg_no_workers();
+  const worker_id_t w = c + CFG_NO_WORKERS;
   bool_t f = FALSE;
   int pe;
   void * pos;
@@ -246,7 +224,7 @@ void * ddfs_comm_consumer
               pos += sizeof(bool_t);
             }
        
-	    if(cfg_hash_compaction()) {
+	    if(CFG_HASH_COMPACTION) {
 	      storage_insert_serialised(S, pos, s_char_len,
 					h, w, &is_new, &sid);
 	    } else {
@@ -293,7 +271,7 @@ void ddfs_comm_start
   assert(PES <= MAX_PES);
   
   S = context_storage();
-  for(w = 0; w < cfg_no_workers(); w ++) {
+  for(w = 0; w < CFG_NO_WORKERS; w ++) {
     BUF.status[w] = BUCKET_OK;
     BUF.size[w] = 0;
     BUF.char_len[w] = 0;
@@ -310,7 +288,7 @@ void ddfs_comm_start
 
   /*  launch the producer and consumer threads  */
   pthread_create(&PROD, NULL, &ddfs_comm_producer, NULL);
-  for(c = 0; c < cfg_no_comm_workers(); c ++) {
+  for(c = 0; c < CFG_NO_COMM_WORKERS; c ++) {
     pthread_create(&CONS[c], NULL, &ddfs_comm_consumer, (void *) (long) c);
   }
 }
@@ -321,7 +299,7 @@ void ddfs_comm_end
   void * dummy;
 
   pthread_join(PROD, &dummy);
-  for(c = 0; c < cfg_no_comm_workers(); c ++) {
+  for(c = 0; c < CFG_NO_COMM_WORKERS; c ++) {
     pthread_join(CONS[c], &dummy);
   }
 }

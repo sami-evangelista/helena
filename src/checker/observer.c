@@ -14,8 +14,8 @@ void * observer_worker
   int n = 0;
   pref[0] = 0;
   
-  if(cfg_with_observer()) {
-    if(cfg_distributed()) {
+  if(CFG_WITH_OBSERVER) {
+    if(CFG_DISTRIBUTED) {
       gethostname(name, 1024);
       sprintf(pref, "[%s:%d] ", name, getpid());
     }
@@ -35,7 +35,7 @@ void * observer_worker
     context_update_max_mem_used(mem);
     processed = context_processed();
     time = ((float) duration(context_start_time(), now)) / 1000000.0;
-    if(cfg_with_observer()) {
+    if(CFG_WITH_OBSERVER) {
       printf("\n%sTime elapsed    :   %8.2f s.\n", pref, time);
       printf("%sStates stored   :%'11llu\n", pref, stored);
       printf("%sStates processed:%'11llu\n", pref, processed);
@@ -46,20 +46,20 @@ void * observer_worker
     /*
      *  check for limits
      */
-    if(cfg_memory_limited() && mem > cfg_max_memory()) {
+    if(CFG_MEMORY_LIMITED && mem > CFG_MAX_MEMORY) {
       context_set_termination_state(MEMORY_EXHAUSTED);
     }
-    if(cfg_time_limited() && time > (float) CFG_MAX_TIME) {
+    if(CFG_TIME_LIMITED && time > (float) CFG_MAX_TIME) {
       context_set_termination_state(TIME_ELAPSED);
     }
-    if(cfg_state_limited() && processed > CFG_MAX_STATE) {
+    if(CFG_STATE_LIMITED && processed > CFG_MAX_STATE) {
       context_set_termination_state(STATE_LIMIT_REACHED);
     }
   }
   if(cpu_avg != 0) {
     context_set_avg_cpu_usage(cpu_avg);
   }
-  if(cfg_with_observer()) {
+  if(CFG_WITH_OBSERVER) {
     printf("\n%sdone.\n", pref);
   }
   return NULL;

@@ -239,24 +239,6 @@ class Config:
             W("#define CFG_MODEL_NAME \"" + model + "\"\n")
             W("#define CFG_LANGUAGE \"dve\"\n")
 
-        #  communication strategy of DDFS
-        if self.algo == DDFS:
-            if len(self.ddfsCommStrat) > 0:
-                W("#define CFG_DDFS_COMM_STRAT\n")                
-            K = False
-            D = False
-            M = False
-            for (strat, val) in self.ddfsCommStrat:
-                if strat == "K" and not K:
-                    W("#define CFG_DDFS_COMM_STRAT_K " + str(val) + "\n")
-                    K = True
-                elif strat == "D" and not D:
-                    W("#define CFG_DDFS_COMM_STRAT_DEGREE " + str(val) + "\n")
-                    D = True
-                elif strat == "M" and not M:
-                    W("#define CFG_DDFS_COMM_STRAT_MINE\n")
-                    M = True
-
         syms = [
             ("STATE_CACHING", self.stateCaching),
             ("DISTRIBUTED", self.algo in [ DBFS, DDFS ]),
@@ -302,51 +284,31 @@ class Config:
         if prop is None:
             prop = ""
         params = [
-            ("BFS_QUEUE_BLOCK_SIZE", self.bfsQueueBlockSize, "int"),
-            ("DELTA_DDD_CAND_SET_SIZE", self.candidateSetSize, "int"),
-            ("DFS_STACK_BLOCK_SIZE", self.dfsStackBlockSize, "int"),
-            ("HASH_SIZE", pow(2, self.hashSize), "int"),
-            ("HASH_SIZE_BITS", self.hashSize, "int"),
-            ("HASH_SIZE_M", pow(2, self.hashSize) - 1, "int"),
-            ("NO_WORKERS", self.workers, "int"),
-            ("NO_COMM_WORKERS", self.commWorkers, "int"),
-            ("RWALK_MAX_DEPTH", self.rwalkMaxDepth, "int"),
+            ("BFS_QUEUE_BLOCK_SIZE", self.bfsQueueBlockSize),
+            ("DELTA_DDD_CAND_SET_SIZE", self.candidateSetSize),
+            ("DFS_STACK_BLOCK_SIZE", self.dfsStackBlockSize),
+            ("HASH_SIZE", pow(2, self.hashSize)),
+            ("HASH_SIZE_BITS", self.hashSize),
+            ("HASH_SIZE_M", pow(2, self.hashSize) - 1),
+            ("NO_WORKERS", self.workers),
+            ("NO_COMM_WORKERS", self.commWorkers),
+            ("RWALK_MAX_DEPTH", self.rwalkMaxDepth),
             ("STATE_CACHING_GC_THRESHOLD",
-             self.stateCachingGcThreshold, "int"),
-            ("STATE_CACHING_GC_RATIO", self.stateCachingGcRatio, "float"),
-            ("SHMEM_HEAP_SIZE", self.shmemHeapSize, "int"),
-            ("MAX_MEMORY", self.memoryLimit, "int"),
-            ("MAX_TIME", self.timeLimit, "int"),
-            ("MAX_STATE", self.stateLimit, "int"),
-            ("PROPERTY", "\"" + prop + "\"", "char *")
+             self.stateCachingGcThreshold),
+            ("STATE_CACHING_GC_RATIO", self.stateCachingGcRatio),
+            ("SHMEM_HEAP_SIZE", self.shmemHeapSize),
+            ("MAX_MEMORY", self.memoryLimit),
+            ("MAX_TIME", self.timeLimit),
+            ("MAX_STATE", self.stateLimit),
+            ("PROPERTY", "\"" + prop + "\"")
         ]
         params = sorted(params, key = lambda p: p[0])
         
-        for s in [s for (s, c) in syms if c ]:
-            W("#define CFG_" + s + "\n")
-        for (p, v, t) in params:
+        for (s, c) in syms:
+            W("#define CFG_" + s + " " + ("1" if c else "0") + "\n")
+        for (p, v) in params:
             W("#define CFG_" + p + " " + str(v) + "\n")
-        W("\n")
-        for (s, c) in syms:
-            W("char cfg_" + s.lower() + "();\n")
-        for (p, v, t) in params:
-            W(t + " cfg_" + p.lower() + "();\n");
-
         W("\n#endif  /*  LIB_CONFIG  */\n")
-        f.close()
-
-        f = self.openFile("config.c", "w")
-        W = f.write
-        W("#include \"config.h\"\n\n")
-        for (s, c) in syms:
-            W("char cfg_" + s.lower() + "() { return ")
-            if c:
-                W("1")
-            else:
-                W("0")
-            W("; }\n");
-        for (p, v, t) in params:
-            W(t + " cfg_" + p.lower() + "() { return " + str(v) + "; }\n");
         f.close()
 
     def handleNumericalOption(self, attr, val):

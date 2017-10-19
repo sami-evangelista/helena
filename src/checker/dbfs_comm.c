@@ -2,8 +2,7 @@
 #include "dbfs_comm.h"
 #include "comm_shmem.h"
 
-#if defined(CFG_ALGO_BFS) || defined(CFG_ALGO_DBFS) || \
-  defined(CFG_ALGO_FRONTIER)
+#if CFG_ALGO_BFS == 1 || CFG_ALGO_DBFS == 1 || CFG_ALGO_FRONTIER == 1
 
 #define COMM_WAIT_TIME_MUS      2
 #define WORKER_WAIT_TIME_MUS    1
@@ -222,7 +221,7 @@ void dbfs_comm_process_state
 
 bool_t dbfs_comm_worker_process_incoming_states
 (comm_worker_id_t c) {
-  const worker_id_t w = c + cfg_no_workers();
+  const worker_id_t w = c + CFG_NO_WORKERS;
   worker_id_t x, d;
   uint32_t pos, tmp_pos, no_states;
   uint16_t s_len;
@@ -241,7 +240,7 @@ bool_t dbfs_comm_worker_process_incoming_states
     pos = 0;
     for(pe = 0; pe < PES; pe ++) {
       if(pe != ME) {
-        for(x = 0; x < cfg_no_workers(); x ++, pos += DBFS_HEAP_SIZE_WORKER) {
+        for(x = 0; x < CFG_NO_WORKERS; x ++, pos += DBFS_HEAP_SIZE_WORKER) {
 	  if(0 != H_BUFFER_DATA[x][pe].no_states) {
 	    result = TRUE;
 	    states_received = TRUE;
@@ -276,15 +275,15 @@ bool_t dbfs_comm_worker_process_incoming_states
                */
               if(is_new) {
                 item.id = sid;
-		d = h % cfg_no_workers();
-		if(cfg_hash_compaction()) {
+		d = h % CFG_NO_WORKERS;
+		if(CFG_HASH_COMPACTION) {
 		  heap_reset(COMM_HEAPS[c]);
 		  s = state_unserialise_mem(buffer + tmp_pos - s_len,
                                             COMM_HEAPS[c]);
 		  item.s = s;
 		}
                 bfs_queue_enqueue(Q, item, w, d);
-		if(cfg_hash_compaction()) {
+		if(CFG_HASH_COMPACTION) {
 		  state_free(item.s);
 		}
               }
@@ -303,7 +302,7 @@ bool_t dbfs_comm_all_buffers_empty
   int pe;
   worker_id_t w;
 
-  for(w = 0; w < cfg_no_workers(); w ++) {
+  for(w = 0; w < CFG_NO_WORKERS; w ++) {
     for(pe = 0; pe < PES; pe ++) {
       if(BUF.len[w][pe] != 0) {
 	return FALSE;
@@ -385,15 +384,15 @@ void dbfs_comm_start
   /* shmem initialisation */
   PES = comm_shmem_pes();
   ME = comm_shmem_me();
-  DBFS_HEAP_SIZE_WORKER = CFG_SHMEM_HEAP_SIZE / ((PES) * cfg_no_workers());
-  DBFS_HEAP_SIZE_PE = cfg_no_workers() * DBFS_HEAP_SIZE_WORKER;
+  DBFS_HEAP_SIZE_WORKER = CFG_SHMEM_HEAP_SIZE / ((PES) * CFG_NO_WORKERS);
+  DBFS_HEAP_SIZE_PE = CFG_NO_WORKERS * DBFS_HEAP_SIZE_WORKER;
   DBFS_HEAP_SIZE = DBFS_HEAP_SIZE_PE * (PES);
   assert(PES <= MAX_PES);
 
   /* initialise global variables */
   Q = q;
   S = context_storage();
-  for(w = 0; w < cfg_no_workers(); w ++) {
+  for(w = 0; w < CFG_NO_WORKERS; w ++) {
     BUF.heaps[w] = mem_alloc(SYSTEM_HEAP, sizeof(heap_t) * PES);
     BUF.ids[w] = mem_alloc(SYSTEM_HEAP, sizeof(hash_tbl_id_t *) * PES);
     BUF.len[w] = mem_alloc(SYSTEM_HEAP, sizeof(uint32_t) * PES);
@@ -406,7 +405,7 @@ void dbfs_comm_start
     if(ME > pe) {
       remote_pos -= DBFS_HEAP_SIZE_PE;
     }
-    for(w = 0; w < cfg_no_workers(); w ++) {
+    for(w = 0; w < CFG_NO_WORKERS; w ++) {
       H_BUFFER_DATA[w][pe].len = 0;
       H_BUFFER_DATA[w][pe].no_states = 0;
       if(ME == pe) {
@@ -429,7 +428,7 @@ void dbfs_comm_start
   }
   
   /* launch the communicator threads */
-  for(c = 0; c < cfg_no_comm_workers(); c ++) {
+  for(c = 0; c < CFG_NO_COMM_WORKERS; c ++) {
     COMM_HEAPS[c] = local_heap_new();
     pthread_create(&CW[c], NULL, &dbfs_comm_worker, (void *) (long) c);
   }
@@ -443,14 +442,14 @@ void dbfs_comm_end
   worker_id_t w;
   comm_worker_id_t c;
 
-  for(c = 0; c < cfg_no_comm_workers(); c ++) {
+  for(c = 0; c < CFG_NO_COMM_WORKERS; c ++) {
     pthread_join(CW[c], &dummy);
     heap_free(COMM_HEAPS[c]);
   }
 #if defined(DBFS_COMM_DEBUG)
   printf("[%d] all communicators terminated\n", ME);
 #endif
-  for(w = 0; w < cfg_no_workers(); w ++) {
+  for(w = 0; w < CFG_NO_WORKERS; w ++) {
     for(pe = 0; pe < PES; pe ++) {
       if(ME != pe) {
         hash_tbl_free(BUF.states[w][pe]);
