@@ -507,12 +507,6 @@ package body Pn.Compiler.Bit_Stream is
 	 end loop;
 	 Plc(L, "}");
       end;
-      procedure Gen_Lib_Free_Func is
-	 Prototype: constant String := "void free_" & Lib & " ()";
-      begin
-	 Plh(L, Prototype & ";");
-	 Plc(L, Prototype & " {}");
-      end;
       Comment: constant String :=
         "This library contains bit stream type description as well as " &
         "functions to manipulate these.";
@@ -521,7 +515,6 @@ package body Pn.Compiler.Bit_Stream is
       Plh(L, "#include ""stdint.h""");
       Gen_Bit_Stream_Type(L);
       Gen_Lib_Init_Func;
-      Gen_Lib_Free_Func;
       End_Library(L);
    end;
 

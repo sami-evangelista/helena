@@ -221,9 +221,6 @@ package body Pn.Compiler.Mappings is
       Prototype := "void " & Lib_Init_Func(Mappings_Lib) & Nl & "()";
       Plh(Lib, Prototype & ";");
       Plc(Lib, Prototype & " {}");
-      Prototype := "void " & Lib_Free_Func(Mappings_Lib) & Nl & "()";
-      Plh(Lib, Prototype & ";");
-      Plc(Lib, Prototype & " {}");
       End_Library(Lib);
    end;
 

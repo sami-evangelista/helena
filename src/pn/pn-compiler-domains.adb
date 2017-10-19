@@ -533,18 +533,9 @@ package body Pn.Compiler.Domains is
       for I in 1..T_Size(N) loop
          Gen_Trans_Domain(Ith_Trans(N, I), Lib);
       end loop;
-      Prototype :=
-	"void " & Lib_Init_Func(Domains_Lib) & Nl &
-	"()";
+      Prototype := "void " & Lib_Init_Func(Domains_Lib) & Nl & "()";
       Plh(Lib, Prototype & ";");
-      Plc(Lib, Prototype & " {");
-      Plc(Lib, "}");
-      Prototype :=
-	"void " & Lib_Free_Func(Domains_Lib) & Nl &
-	"()";
-      Plh(Lib, Prototype & ";");
-      Plc(Lib, Prototype & " {");
-      Plc(Lib, "}");
+      Plc(Lib, Prototype & " {}");
       End_Library(Lib);
    end;
 

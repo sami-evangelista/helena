@@ -77,14 +77,6 @@ package body Pn.Compiler.Model is
       end loop;
       Plc(L, "}");
       --=======================================================================
-      Prototype := "void " & Lib_Free_Func(Model_Lib) & " ()";
-      Plh(L, Prototype & ";");
-      Plc(L, Prototype & " {");
-      for I in Libs'Range loop
-	 Plc(L, 1, Lib_Free_Func(Libs(I)) & " ();");
-      end loop;
-      Plc(L, "}");
-      --=======================================================================
       Prototype := To_Ustring("void model_xml_parameters (FILE * out)");
       Plh(L, Prototype & ";");
       Plc(L, Prototype & " {");

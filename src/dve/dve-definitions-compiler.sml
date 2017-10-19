@@ -295,8 +295,7 @@ in
     stateDefH,
     "",
     "/*  model initialisation and termination  */",
-    "void init_model ();",
-    "void free_model ();" ]);
+    "void init_model ();" ]);
 
     (*
      *  C file
@@ -313,8 +312,6 @@ in
 	       sep   = "\n",
 	       final = "",
 	       fmt   = compileConstInit} consts,
-    "}",
-    "void free_model () {",
     "}" ])
 end
 

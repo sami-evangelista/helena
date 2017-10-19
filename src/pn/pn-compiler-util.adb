@@ -141,14 +141,7 @@ package body Pn.Compiler.Util is
       Plh(Lib, "#define TID_SIZE " & Tid_Size);
       Plh(Lib, "#define PID_SIZE " & Pid_Size);
       Nlh(Lib);
-      Prototype :=
-	"void " & Lib_Init_Func(Util_Lib) & Nl &
-	"()";
-      Plh(Lib, Prototype & ";");
-      Plc(Lib, Prototype & " {}");
-      Prototype :=
-	"void " & Lib_Free_Func(Util_Lib) & Nl &
-	"()";
+      Prototype := "void " & Lib_Init_Func(Util_Lib) & Nl & "()";
       Plh(Lib, Prototype & ";");
       Plc(Lib, Prototype & " {}");
       Gen_Id_Types(N, Lib);

@@ -46,16 +46,6 @@ package body Pn.Compiler.Constants is
          Plc(Lib, "}");
       end;
 
-      procedure Gen_Lib_Free_Func is
-         Prototype: Ustring;
-      begin
-         Prototype :=
-           "void " & Lib_Free_Func(Constants_Lib) & Nl &
-           "()";
-         Plh(Lib, Prototype & ";");
-         Plc(Lib, Prototype & " {}");
-      end;
-
    begin
       Init_Library(Constants_Lib, Comment, Path, Lib);
       Plh(Lib, "#include ""colors.h""");
@@ -64,7 +54,6 @@ package body Pn.Compiler.Constants is
          Gen_Const(Ith(Consts, I), Lib);
       end loop;
       Gen_Lib_Init_Func;
-      Gen_Lib_Free_Func;
       End_Library(Lib);
    end;
 

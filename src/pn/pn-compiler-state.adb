@@ -790,12 +790,7 @@ package body Pn.Compiler.State is
          Gen_Local_State(Ith_Place(N, I), L);
       end loop;
       Gen_State(N, L);
-      --=======================================================================
       Prototype := "void " & Lib_Init_Func(State_Lib) & " ()";
-      Plh(L, Prototype & ";");
-      Plc(L, Prototype & " {}");
-      --=======================================================================
-      Prototype := "void " & Lib_Free_Func(State_Lib) & " ()";
       Plh(L, Prototype & ";");
       Plc(L, Prototype & " {}");
       End_Library(L);

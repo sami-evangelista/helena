@@ -54,9 +54,6 @@ package Pn.Compiler is
    function Lib_Init_Func
      (Lib_Name: in Ustring) return Ustring;
 
-   function Lib_Free_Func
-     (Lib_Name: in Ustring) return Ustring;
-
    procedure Init_Library
      (Name   : in     Ustring;
       Comment: in     Ustring;

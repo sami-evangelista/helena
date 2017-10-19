@@ -38,21 +38,10 @@ package body Pn.Compiler.Classes is
          Plc(Lib, "}");
       end;
 
-      procedure Gen_Lib_Free_Func is
-         Prototype: constant Ustring :=
-           "void " & Lib_Free_Func(Colors_Lib) & Nl &
-           "()";
-      begin
-         Plh(Lib, Prototype & ";");
-         Plc(Lib, Prototype & " {");
-         Plc(Lib, "}");
-      end;
-
    begin
       Init_Library(Colors_Lib, Comment, Path, Lib);
       Compile(Get_Cls(N), Lib);
       Gen_Lib_Init_Func;
-      Gen_Lib_Free_Func;
       End_Library(Lib);
    end;
 

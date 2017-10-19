@@ -784,10 +784,6 @@ package body Pn.Compiler.Enabling_Test is
       Prototype := "void " & Lib_Init_Func(Enabling_Test_Lib) & Nl & "()";
       Plh(L, Prototype & ";");
       Plc(L, Prototype & " {}");
-      --=======================================================================
-      Prototype := "void " & Lib_Free_Func(Enabling_Test_Lib) & Nl & "()";
-      Plh(L, Prototype & ";");
-      Plc(L, Prototype & " {}");
       End_Library(L);
    end;
 

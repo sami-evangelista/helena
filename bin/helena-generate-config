@@ -338,7 +338,6 @@ class Config:
         f = self.openFile("config.c", "w")
         W = f.write
         W("#include \"config.h\"\n\n")
-        W("const int grut = 0;\n")
         for (s, c) in syms:
             W("char cfg_" + s.lower() + "() { return ")
             if c:

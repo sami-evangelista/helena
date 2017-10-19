@@ -670,3 +670,8 @@ void context_sleep
   nanosleep(&t, NULL);
   CTX->sleep_time += t.tv_nsec;
 }
+
+termination_state_t context_termination_state
+() {
+  return CTX->term_state;
+}

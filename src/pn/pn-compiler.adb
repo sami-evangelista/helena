@@ -116,7 +116,13 @@ package body Pn.Compiler is
    begin
       Interfaces.Gen(N, To_Ustring("."));
       Rename_File(To_String(H_File), To_String(File_Path), Success);
+      if not Success then
+         raise Constraint_Error;
+      end if;
       Delete_File(To_String(C_File), Success);
+      if not Success then
+         raise Constraint_Error;
+      end if;
    end;
 
 
@@ -151,12 +157,6 @@ package body Pn.Compiler is
      (Lib_Name: in Ustring) return Ustring is
    begin
       return "init_" & Lib_Name;
-   end;
-
-   function Lib_Free_Func
-     (Lib_Name: in Ustring) return Ustring is
-   begin
-      return "free_" & Lib_Name;
    end;
 
    procedure Init_Library

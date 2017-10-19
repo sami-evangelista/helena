@@ -31,9 +31,6 @@ package body Pn.Compiler.Funcs is
       Prototype := "void " & Lib_Init_Func(To_Ustring("funcs")) & Nl & "()";
       Plh(L, Prototype & ";");
       Plc(L, Prototype & " {}");
-      Prototype := "void " & Lib_Free_Func(To_Ustring("funcs")) & Nl & "()";
-      Plh(L, Prototype & ";");
-      Plc(L, Prototype & " {}");
       End_Library(L);
    end;
 

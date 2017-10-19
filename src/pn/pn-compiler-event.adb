@@ -147,10 +147,6 @@ package body Pn.Compiler.Event is
       Plh(L, Prototype & ";");
       Plc(L, Prototype & " {}");
       --=======================================================================
-      Prototype := "void " & Lib_Free_Func(Event_Lib) & Nl & "()";
-      Plh(L, Prototype & ";");
-      Plc(L, Prototype & " {}");
-      --=======================================================================
       for I in 1..T_Size(N) loop
          T := Ith_Trans(N, I);
 	 for F in Firing_Mode loop

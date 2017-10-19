@@ -160,4 +160,7 @@ void context_barrier_wait
 void context_sleep
 (struct timespec t);
 
+termination_state_t context_termination_state
+();
+
 #endif
