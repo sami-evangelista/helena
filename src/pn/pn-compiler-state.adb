@@ -601,7 +601,6 @@ package body Pn.Compiler.State is
            "   FILE *   out)");
       Plh(L, Prototype & ";");
       Plc(L, Prototype & " {");
-      Plc(L, 1, "fprintf (out, ""<state>\n"");");
       for I in 1..P_Size(N) loop
          P := Ith_Place(N, I);
          Comp := State_Component_Name(P);
@@ -614,7 +613,6 @@ package body Pn.Compiler.State is
          Plc(L, 1, "fprintf (out, ""</placeState>\n"");");
          Plc(L, 1, "}");
       end loop;
-      Plc(L, 1, "fprintf (out, ""</state>\n"");");
       Plc(L, "}");
       --=======================================================================
       Prototype := To_Ustring

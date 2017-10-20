@@ -4,7 +4,9 @@
  *)
 
 
-structure DveInitialStateCompiler: sig
+structure
+DveInitialStateCompiler:
+sig
 
     val gen: System.system * bool * TextIO.outstream * TextIO.outstream
 	     -> unit
@@ -29,8 +31,8 @@ fun gen (s: System.system, checks, hFile, cFile) = let
 	val procInit = Process.getInit proc
 	val stmt     =
 	    String.concat [
-	    "   result->", getCompName (PROCESS_STATE procName), " = ",
-	    getLocalStateName (procName, State.getName procInit), ";" ]
+	        "   result->", getCompName (PROCESS_STATE procName), " = ",
+	        getLocalStateName (procName, State.getName procInit), ";" ]
     in
 	stmt
     end
@@ -49,25 +51,25 @@ fun gen (s: System.system, checks, hFile, cFile) = let
 	then ""
 	else case init
 	      of Expr.ARRAY_INIT (pos, l) => let
-		     val nums = List.tabulate (List.length l, fn i => i)
-		     val l = ListPair.zip (nums, l)
-		     fun indexInit (i, init) =
-			 String.concat [
-			 "   result->", getCompName comp, "[",
-			 Int.toString i, "] = ",
-			 compileExpr "result" init (proc, map, comps, checks),
-			 ";" ]
-		 in
-		     concatLines (List.map indexInit l) ^ "\n"
-		 end
+		  val nums = List.tabulate (List.length l, fn i => i)
+		  val l = ListPair.zip (nums, l)
+		  fun indexInit (i, init) =
+		    String.concat [
+			"   result->", getCompName comp, "[",
+			Int.toString i, "] = ",
+			compileExpr "result" init (proc, map, comps, checks),
+			";" ]
+	      in
+		  concatLines (List.map indexInit l) ^ "\n"
+	      end
 	       | _ => String.concat [
-		      "   result->", getCompName comp, " = ",
-		      compileExpr "result" init (proc, map, comps, checks),
-		      ";\n" ]
+		         "   result->", getCompName comp, " = ",
+		         compileExpr "result" init (proc, map, comps, checks),
+		         ";\n" ]
     end
 
     fun generateGlobalVarInit var =
-	generateVarInit (var, NONE)
+      generateVarInit (var, NONE)
 
     fun generateLocalVarsInit proc = let
 	val procName = Process.getName proc
@@ -79,27 +81,27 @@ fun gen (s: System.system, checks, hFile, cFile) = let
     val protMem = "mstate_t mstate_initial_mem (heap_t heap)"
     val bodyMem =
 	concatLines [
-	protMem ^ " {",
-	"   mstate_t result = mem_alloc(heap, sizeof(struct_mstate_t));",
-	"   result->heap = heap;",
-	"",
-	"   /*  process state  */",
-	concatLines (List.map generateLocalStateInit procs),
-	"",
-	"   /*  global variables  */",
-	String.concat (List.map generateGlobalVarInit (System.getVars s)),
-	"",
-	"   /*  local variables  */",
-	String.concat (List.map generateLocalVarsInit procs),
-	"   return result;",
-	"}"
+	    protMem ^ " {",
+	    "   mstate_t result = mem_alloc(heap, sizeof(struct_mstate_t));",
+	    "   result->heap = heap;",
+	    "",
+	    "   /*  process state  */",
+	    concatLines (List.map generateLocalStateInit procs),
+	    "",
+	    "   /*  global variables  */",
+	    String.concat (List.map generateGlobalVarInit (System.getVars s)),
+	    "",
+	    "   /*  local variables  */",
+	    String.concat (List.map generateLocalVarsInit procs),
+	    "   return result;",
+	    "}"
 	]
     val prot = "mstate_t mstate_initial ()"
     val body =
 	concatLines [
-	prot ^ " {",
-	"   return mstate_initial_mem (SYSTEM_HEAP);",
-	"}"
+	    prot ^ " {",
+	    "   return mstate_initial_mem (SYSTEM_HEAP);",
+	    "}"
 	]
 in
     TextIO.output (hFile, prot ^ ";\n");

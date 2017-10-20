@@ -4,7 +4,9 @@
  *)
 
 
-structure DveCompilerMain: sig
+structure
+DveCompilerMain:
+sig
 
     val go: unit -> unit
 

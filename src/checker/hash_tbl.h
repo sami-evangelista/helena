@@ -251,7 +251,7 @@ void hash_tbl_set_pred
 (hash_tbl_t tbl,
  hash_tbl_id_t id,
  hash_tbl_id_t id_pred,
- event_id_t evt);
+ mevent_id_t evt);
 
 
 /**

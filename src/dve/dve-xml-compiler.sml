@@ -4,7 +4,9 @@
  *)
 
 
-structure DveXmlCompiler: sig
+structure
+DveXmlCompiler:
+sig
 
     val gen: System.system * TextIO.outstream * TextIO.outstream
 	     -> unit
@@ -17,7 +19,11 @@ fun compileStateToXml (s: System.system, hFile, cFile) = let
     val prot = "void mstate_to_xml (mstate_t s, FILE * out)"
     val body =
 	concatLines [
-	prot ^ " { assert(0); }"
+	    prot ^ " {",
+            "   fprintf(out, \"<stateDescription>\\n\");",
+	    "   mstate_print(s, out);",
+            "   fprintf(out, \"</stateDescription>\\n\");",
+            "}"
 	]
 in
     TextIO.output (hFile, prot ^ ";\n");
@@ -28,7 +34,11 @@ fun compileEventToXml (s: System.system, hFile, cFile) = let
     val prot = "void mevent_to_xml (mevent_t e, FILE * out)"
     val body =
 	concatLines [
-	prot ^ " { assert(0); }"
+	    prot ^ " {",
+            "   fprintf(out, \"<eventDescription>\\n\");",
+            "   mevent_print(e, out);",
+            "   fprintf(out, \"</eventDescription>\\n\");",
+            "}"
 	]
 in
     TextIO.output (hFile, prot ^ ";\n");
@@ -53,7 +63,7 @@ in
 end
 
 fun compileModelXmlParameters (s: System.system, hFile, cFile) = let
-    val prot = "void model_xml_parameters (FILE * out)"
+    val prot = "void model_xml_parameters(FILE * out)"
     val body =
 	concatLines [
 	prot ^ " {",

@@ -4,39 +4,40 @@
  *)
 
 
-structure DveCompiler: sig
-
-val compile:
-    string * string * bool * TextIO.outstream option
-    -> int
-
-val compileDir:
-    string * string * bool * TextIO.outstream option
-    -> unit
+structure
+DveCompiler:
+sig
+    
+    val compile:
+        string * string * bool * TextIO.outstream option
+        -> int
 
 end = struct
 
 open DveCompilerUtils
 
 fun compile (inFile, path, checks, errStream) = let
-    fun compile sys = let
-	val exported: string list ref = ref []
-	val files: string list ref = ref []
+    fun out file str = TextIO.output (file, str)
+    fun createFile fileName includes = let
+	val file = TextIO.openOut (OS.Path.concat (path, fileName))
+	val out = out file
 	val dateStr = Date.toString (Date.fromTimeUniv (Time.now ()))
-	fun out file str = TextIO.output (file, str)
-	fun createFile fileName includes = let
-	    val file = TextIO.openOut (OS.Path.concat (path, fileName))
-	    val out = out file
-	in
-	    out ("/*\n");
-	    out (" * File:            " ^ fileName ^ "\n");
-	    out (" * Generation date: " ^ dateStr ^ "\n");
-	    out (" *\n");
-	    out (" * Run-time checks: " ^ (Bool.toString checks) ^ "\n");
-	    out (" */\n\n");
-	    List.app (fn f => out ("#include \"" ^ f ^ "\"\n")) includes;
-	    file
-	end
+    in
+	out ("/*\n");
+	out (" * File:            " ^ fileName ^ "\n");
+	out (" * Generation date: " ^ dateStr ^ "\n");
+	out (" *\n");
+	out (" * Run-time checks: " ^ (Bool.toString checks) ^ "\n");
+	out (" */\n\n");
+	List.app (fn f => out ("#include \"" ^ f ^ "\"\n")) includes;
+	file
+    end
+    fun compileBuchi sys = let
+	val cFile = createFile "buchi.c" [ "buchi.h" ]
+    in
+	DveBuchiCompiler.gen (sys, checks, cFile)
+    end
+    fun compile sys = let
 	val hFile = createFile "model.h" [ "includes.h",
 					   "common.h",
 					   "heap.h",
@@ -45,12 +46,8 @@ fun compile (inFile, path, checks, errStream) = let
 	val sys = DveSimplifier.simplify sys
 	fun printComment comment = let
 	    fun print file = (
-		TextIO.output (file, "\n\n\n");
-		TextIO.output (file, "/*****\n");
-		TextIO.output (file, " *\n");
-		TextIO.output (file, " *  " ^ comment ^ "\n");
-		TextIO.output (file, " *\n");
-		TextIO.output (file, " *****/\n"))
+		out file "\n\n\n";
+		out file ("/* " ^ comment ^ " */\n"))
 	in
 	    print hFile;
 	    print cFile
@@ -60,7 +57,7 @@ fun compile (inFile, path, checks, errStream) = let
 	    "#define LIB_MODEL",
 	    "" ]
     in
-	TextIO.output (hFile, concatLines head);
+	out hFile (concatLines head);
 	printComment ("type definitions");
 	DveDefinitionsCompiler.gen (sys, hFile, cFile);
 	printComment ("configuration");
@@ -75,54 +72,31 @@ fun compile (inFile, path, checks, errStream) = let
  	DveHashFunctionCompiler.gen (sys, hFile, cFile);
 	printComment ("serialisation/unserialisation");
  	DveSerializerCompiler.gen (sys, hFile, cFile);
-	printComment ("xml serialisation");
+	printComment ("xml serialisation/unserialisation");
  	DveXmlCompiler.gen (sys, hFile, cFile);
-	TextIO.output (
-	hFile,
-	concatLines [ "#endif",
-		      "" ]);
+	out hFile "#endif\n";
 	TextIO.closeOut (hFile);
 	TextIO.closeOut (cFile)
     end
 in
     let
-	val f = TextIO.openOut (OS.Path.concat (path, "SRC_FILES"))
+        val f = TextIO.openOut (OS.Path.concat (path, "SRC_FILES"))
     in
 	TextIO.output (f, "model\n");
 	TextIO.closeOut (f)
     end;
     case DveParser.parse (inFile, errStream)
      of NONE => 1
-      | SOME sys => (compile sys; 0)
+      | SOME sys =>
+        (compile sys;
+         case System.getProp sys
+          of NONE => ()
+          |  SOME prop => compileBuchi sys;
+         0)
         handle Errors.CompilerError (lineNo, msg) =>
-	       (Errors.outputErrorMsg (errStream, inFile, SOME lineNo, msg);
-		1)
-end
-
-fun compileDir (inDir, outDir, checks, errStream) = let
-    val stream = OS.FileSys.openDir inDir
-    fun loop NONE = ()
-      | loop (SOME f) = let
-            val full   = OS.Path.concat (inDir, f)
-            val split  = OS.Path.splitBaseExt (f)
-            val model  = #base split
-            val ext    = #ext split
-            val outDir = OS.Path.concat (outDir, model)
-        in
-            if not (isSome ext) orelse valOf ext <> "dve"
-	    then ()
-            else (TextIO.print ("(*  model " ^ model ^ "  *)\n");
-                  (Posix.FileSys.mkdir (outDir, Posix.FileSys.S.irwxu)
-                   handle SysErr => ());
-                  compile (full, outDir, checks, errStream);
-		  ())
-                 handle Errors.CompilerError (lineNo, msg) =>
-			Errors.outputErrorMsg
-                            (errStream, full, SOME lineNo, msg);
-	    loop (OS.FileSys.readDir stream)
-        end
-in
-    loop (OS.FileSys.readDir stream)
+	       (Errors.outputErrorMsg (errStream,
+                                       inFile, SOME lineNo, msg);
+                1)
 end
 
 end

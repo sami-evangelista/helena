@@ -21,23 +21,23 @@ datatype event =
 	 int *         (*  id of the transition  *)
 	 string *      (*  process name  *)
 	 Trans.trans   (*  transition  *)
-       | SYNC of
-	 int *          (*  id of the sending process transition  *)
-	 int *          (*  id of the receiving process transition  *)
-	 string *       (*  sending process name  *)
-	 Trans.trans *  (*  sending process transition  *)
-	 string *       (*  receiving process name  *)
-	 Trans.trans    (*  receiving process transition  *)
+         | SYNC of
+	   int *          (*  id of the sending process transition  *)
+	   int *          (*  id of the receiving process transition  *)
+	   string *       (*  sending process name  *)
+	   Trans.trans *  (*  sending process transition  *)
+	   string *       (*  receiving process name  *)
+	   Trans.trans    (*  receiving process transition  *)
 
 (*  component of the state type  *)
 datatype state_comp =
 	 GLOBAL_VAR of Var.var
-       | LOCAL_VAR of string * Var.var
-       | PROCESS_STATE of string
+         | LOCAL_VAR of string * Var.var
+         | PROCESS_STATE of string
 
 datatype large_state_comp =
 	 PROCESS of string * state_comp list
-       | GLOBAL of state_comp list
+         | GLOBAL of state_comp list
 
 type mapping = (state_comp * string) list
 
@@ -59,16 +59,16 @@ fun arrayToStringFunc t = typeName t ^ "_toString"
 fun arrayToSMLStringFunc t = typeName t ^ "_toSMLString"
 
 fun getLocalStateType (proc) =
-    "P_" ^ (Utils.toLower proc) ^ "_STATE_TYPE"
+  "P_" ^ (Utils.toLower proc) ^ "_STATE_TYPE"
 
 fun getLocalStateToInt (proc) =
-    getLocalStateType proc ^ "_ToInt"
+  getLocalStateType proc ^ "_ToInt"
 
 fun getIntToLocalState (proc) =
-    "intTo_" ^ getLocalStateType proc
+  "intTo_" ^ getLocalStateType proc
 
 fun getLocalStateName (proc, state) =
-    "P_" ^ (Utils.toLower proc) ^ "_STATE_" ^ (Utils.toLower state)
+  "P_" ^ (Utils.toLower proc) ^ "_STATE_" ^ (Utils.toLower state)
 
 fun getLocalStateToString (proc) = getLocalStateType proc ^ "_ToString"
 
@@ -93,73 +93,73 @@ fun getCompDescription (GLOBAL_VAR v) = Var.getName v
 
 fun getCompToStringFuncName (PROCESS_STATE p) = getLocalStateToString p
   | getCompToStringFuncName comp = let
-	val var = valOf (getCompVar comp)
-	val t = Var.getTyp var
-    in
-	case t of Typ.ARRAY_TYPE _ => arrayToStringFunc t
-		| Typ.BASIC_TYPE _ => "baseToString"
-    end
+      val var = valOf (getCompVar comp)
+      val t = Var.getTyp var
+  in
+      case t of Typ.ARRAY_TYPE _ => arrayToStringFunc t
+	      | Typ.BASIC_TYPE _ => "baseToString"
+  end
 
 fun getCompToSMLStringFuncName (PROCESS_STATE p) = getLocalStateToSMLString p
   | getCompToSMLStringFuncName comp = let
-	val var = valOf (getCompVar comp)
-	val t = Var.getTyp var
-    in
-	case t of Typ.ARRAY_TYPE _ => arrayToSMLStringFunc t
-		| Typ.BASIC_TYPE _ => "baseToString"
-    end
+      val var = valOf (getCompVar comp)
+      val t = Var.getTyp var
+  in
+      case t of Typ.ARRAY_TYPE _ => arrayToSMLStringFunc t
+	      | Typ.BASIC_TYPE _ => "baseToString"
+  end
 
 fun getLargeCompName (GLOBAL _) = "GLOBAL"
   | getLargeCompName (PROCESS (p, _)) = "PROCESS_" ^ p
 
 fun isCompConst comp =
-    case getCompVar comp of NONE => false | SOME var => Var.getConst var
+  case getCompVar comp of NONE => false | SOME var => Var.getConst var
 
 fun getComp (comp, st) =
-    if isCompConst comp
-    then "(!" ^ (getCompName comp) ^ ")"
-    else "(#" ^ (getCompName comp) ^ " " ^ st ^ ")"
+  if isCompConst comp
+  then "(!" ^ (getCompName comp) ^ ")"
+  else "(#" ^ (getCompName comp) ^ " " ^ st ^ ")"
 
 fun getEventName (LOCAL (id, proc, tr)) =
-    String.concat [
-    "LOC_", Int.toString id,
-    "_P_", Utils.toLower proc,
-    "_T_", Utils.toLower (Trans.getSrc tr),
-    "_TO_", Utils.toLower (Trans.getDest tr) ]
+  String.concat [
+      "LOC_", Int.toString id,
+      "_P_", Utils.toLower proc,
+      "_T_", Utils.toLower (Trans.getSrc tr),
+      "_TO_", Utils.toLower (Trans.getDest tr) ]
   | getEventName (SYNC (id1, id2, proc1, tr1, proc2, tr2)) =
     String.concat [
-    "SYN_", Int.toString id1, "_", Int.toString id2,
-    "_P_", Utils.toLower proc1,
-    "_T_", Utils.toLower (Trans.getSrc tr1),
-    "_TO_", Utils.toLower (Trans.getDest tr1),
-    "_P_", Utils.toLower proc2,
-    "_T_", Utils.toLower (Trans.getSrc tr2),
-    "_TO_", Utils.toLower (Trans.getDest tr2) ]
+        "SYN_", Int.toString id1, "_", Int.toString id2,
+        "_P_", Utils.toLower proc1,
+        "_T_", Utils.toLower (Trans.getSrc tr1),
+        "_TO_", Utils.toLower (Trans.getDest tr1),
+        "_P_", Utils.toLower proc2,
+        "_T_", Utils.toLower (Trans.getSrc tr2),
+        "_TO_", Utils.toLower (Trans.getDest tr2) ]
 
 fun getEventName' (events, t) =
-    case List.find (fn LOCAL (id', _, _) => Trans.getId t = id'
-		     | SYNC  (id', id'', _, _, _, _) =>
-		       Trans.getId t = id' orelse
-		       Trans.getId t = id'')
-		   events of
-	NONE   => NONE
-      | SOME e => SOME (getEventName e)
+  case List.find (fn LOCAL (id', _, _) => Trans.getId t = id'
+		 | SYNC  (id', id'', _, _, _, _) =>
+		   Trans.getId t = id' orelse
+		   Trans.getId t = id'')
+		 events of
+      NONE   => NONE
+    | SOME e => SOME (getEventName e)
 
 fun getInitStateName (proc) =
-    "INIT_P_" ^ (Utils.toLower proc)
+  "INIT_P_" ^ (Utils.toLower proc)
 
 fun getImage (mapping: mapping,
 	      comp   : state_comp) =
-    case List.find (fn (c, _) => comp = c) mapping of
-	NONE          => raise Errors.InternalError
-      | SOME (_, img) => img
+  case List.find (fn (c, _) => comp = c) mapping of
+      NONE          => raise Errors.InternalError
+    | SOME (_, img) => img
 
 fun getVarImage (stateName: string)
 		(mapping: mapping,
 		 proc   : string option,
 		 varName: string) = let
     fun isLocalVar (LOCAL_VAR (p, var), _) =
-	(Var.getName var) = varName andalso SOME p = proc
+      (Var.getName var) = varName andalso SOME p = proc
       | isLocalVar _ = false
     fun isGlobalVar (GLOBAL_VAR var, _) = (Var.getName var) = varName
       | isGlobalVar _ = false
@@ -210,8 +210,8 @@ in
 		 (fn GLOBAL_VAR v => SOME (GLOBAL_VAR v) | _ => NONE) comps))
     ::
     List.map (fn p => PROCESS (p, List.filter (fn LOCAL_VAR (q, _) => p = q
-						| PROCESS_STATE q => p = q
-						| _ => false)
+					      | PROCESS_STATE q => p = q
+					      | _ => false)
 					      comps))
 	     (List.map Process.getName (System.getProcs sys))
 end
@@ -220,42 +220,45 @@ fun getSubComps (GLOBAL c) = c
   | getSubComps (PROCESS (_, c)) = c
 
 local
-fun build procs (s: System.system) = let
-    fun getLocalEventsProcess proc = let
-	fun map tr =
-	    if isSome (Trans.getSync tr)
-	       andalso Sync.getMode (valOf (Trans.getSync tr)) = Sync.SYNC
-	    then NONE
-	    else SOME (LOCAL (Trans.getId tr, Process.getName proc, tr))
+    fun build procs (s: System.system) = let
+        fun getLocalEventsProcess proc = let
+	    fun map tr =
+	      if isSome (Trans.getSync tr)
+	         andalso Sync.getMode (valOf (Trans.getSync tr)) = Sync.SYNC
+	      then NONE
+	      else SOME (LOCAL (Trans.getId tr, Process.getName proc, tr))
+        in
+	    List.mapPartial map (Process.getTrans proc)
+        end
+        val localEvents = List.concat (List.map getLocalEventsProcess procs)
+        fun getSyncEventsProcess proc = let
+	    fun map tr =
+	      case Trans.getSync tr
+	       of	NONE => NONE
+	              | SOME s =>
+		        if (Sync.getMode s) <> Sync.SYNC
+		        then NONE
+		        else SOME (Sync.getTyp s, Sync.getChan s,
+			           Process.getName proc, tr)
+        in
+	    List.mapPartial map (Process.getTrans proc)
+        end
+        fun match ((stype, schan, sproc, _), (rtype, rchan, rproc, _)) =
+	  (stype, rtype) = (Sync.SEND, Sync.RECV)
+	  andalso (schan = rchan)
+	  andalso (sproc <> rproc)
+        fun map ((_, _, sproc, str), (_, _, rproc, rtr)) =
+	  SYNC (Trans.getId str, Trans.getId rtr, sproc, str, rproc, rtr)
+        val syncTrans = List.concat (List.map getSyncEventsProcess procs)
+        val syncEvents = List.map map (Utils.zipPartial match syncTrans)
     in
-	List.mapPartial map (Process.getTrans proc)
+        localEvents @ syncEvents
     end
-    val localEvents = List.concat (List.map getLocalEventsProcess procs)
-    fun getSyncEventsProcess proc = let
-	fun map tr =
-	    case Trans.getSync tr
-	     of	NONE => NONE
-	      | SOME s =>
-		if (Sync.getMode s) <> Sync.SYNC
-		then NONE
-		else SOME (Sync.getTyp s, Sync.getChan s,
-			   Process.getName proc, tr)
-    in
-	List.mapPartial map (Process.getTrans proc)
-    end
-    fun match ((stype, schan, sproc, _), (rtype, rchan, rproc, _)) =
-	(stype, rtype) = (Sync.SEND, Sync.RECV)
-	andalso (schan = rchan)
-	andalso (sproc <> rproc)
-    fun map ((_, _, sproc, str), (_, _, rproc, rtr)) =
-	SYNC (Trans.getId str, Trans.getId rtr, sproc, str, rproc, rtr)
-    val syncTrans = List.concat (List.map getSyncEventsProcess procs)
-    val syncEvents = List.map map (Utils.zipPartial match syncTrans)
 in
-    localEvents @ syncEvents
-end
-in
-fun buildEvents (s: System.system) = build (System.getProcs s) s
+fun buildEvents (s: System.system) =
+  build (System.getProcs s) s
+fun buildProcEvents (s: System.system, proc) =
+  build [ System.getProc (s, proc) ] s
 end
 
 fun getGlobalVars comps = let
@@ -290,30 +293,30 @@ in
 end
 
 fun buildMapping comps =
-    List.map (fn comp => (comp, getCompName comp)) comps
+  List.map (fn comp => (comp, getCompName comp)) comps
 
 fun genComps comps =
-    Utils.fmt { init  = "{ ",
-		final = " }",
-		fmt   = (fn c => if isCompConst c
-				 then NONE
-				 else SOME (getCompName c)),
-		sep   = ", " } comps
+  Utils.fmt { init  = "{ ",
+	      final = " }",
+	      fmt   = (fn c => if isCompConst c
+			       then NONE
+			       else SOME (getCompName c)),
+	      sep   = ", " } comps
 
 fun genOneComp c = let
     fun oneVar c v =
-	case Var.getTyp v of
-	    Typ.ARRAY_TYPE (_, size) => let
-		fun getIth i = getCompName c ^ "_ITEM_" ^ (Int.toString i)
-		val indexes = List.tabulate (size, (fn i => i))
-	    in
-		(List.map getIth indexes,
-		 Utils.fmt { init  = (getCompName c) ^ " = (",
-			     final = ")",
-			     fmt   = fn i => SOME (getIth i),
-			     sep   = ", " } indexes)
-	    end	    
-	  | _ => ([ getCompName c ], getCompName c)
+      case Var.getTyp v of
+	  Typ.ARRAY_TYPE (_, size) => let
+	   fun getIth i = getCompName c ^ "_ITEM_" ^ (Int.toString i)
+	   val indexes = List.tabulate (size, (fn i => i))
+       in
+	   (List.map getIth indexes,
+	    Utils.fmt { init  = (getCompName c) ^ " = (",
+			final = ")",
+			fmt   = fn i => SOME (getIth i),
+			sep   = ", " } indexes)
+       end	    
+	| _ => ([ getCompName c ], getCompName c)
 in
     case c of GLOBAL_VAR v => oneVar c v
 	    | LOCAL_VAR (_, v) => oneVar c v
@@ -327,29 +330,29 @@ fun genAllComps (comps, prefix) = let
     fun name c = case prefix of NONE => getCompName c
 			      | SOME pref => pref ^ "_" ^ (getCompName c)
     fun oneVar c v =
-	case Var.getTyp v of
-	    Typ.ARRAY_TYPE (_, size) =>
-	    SOME (Utils.fmt {
-		  init  = (getCompName c) ^ " = (",
-		  final = ")",
-		  fmt   = fn i =>
-			     let
-				 val c = name c ^ "_ITEM_" ^ (Int.toString i)
-			     in
-				 l := c :: (!l);
-				 SOME c
-			     end,
-		  sep   = ", " }
-			    (List.tabulate (size, (fn i => i))))
-	    
-	  | _ => (l := (name c) :: (!l);
-		  SOME ((getCompName c) ^ " = " ^ (name c)))
+      case Var.getTyp v of
+	  Typ.ARRAY_TYPE (_, size) =>
+	  SOME (Utils.fmt {
+		     init  = (getCompName c) ^ " = (",
+		     final = ")",
+		     fmt   = fn i =>
+			        let
+				    val c = name c ^ "_ITEM_" ^ (Int.toString i)
+			        in
+				    l := c :: (!l);
+				    SOME c
+			        end,
+		     sep   = ", " }
+			  (List.tabulate (size, (fn i => i))))
+	       
+	| _ => (l := (name c) :: (!l);
+		SOME ((getCompName c) ^ " = " ^ (name c)))
     fun oneComp c =
-	if isCompConst c
-	then NONE
-	else case c of GLOBAL_VAR v => oneVar c v
-		     | LOCAL_VAR (_, v) => oneVar c v
-		     | PROCESS_STATE p => (
+      if isCompConst c
+      then NONE
+      else case c of GLOBAL_VAR v => oneVar c v
+		   | LOCAL_VAR (_, v) => oneVar c v
+		   | PROCESS_STATE p => (
 		       l := ("(" ^ (getLocalStateToInt p) ^ " " ^
 			     (name c) ^ ")") ::
 			    (!l);
@@ -364,9 +367,9 @@ end
 
 fun mappingToState mapping = let
     fun mapComp (comp, value) =
-	if isCompConst comp
-	then NONE
-	else SOME ((getCompName comp) ^ " =\n" ^ value)
+      if isCompConst comp
+      then NONE
+      else SOME ((getCompName comp) ^ " =\n" ^ value)
 in
     Utils.fmt {init  = "{\n",
 	       sep   = ",\n",
@@ -376,15 +379,15 @@ end
 
 fun updateMapping (mapping, comp, newValue) = let
     fun sameComp (c1, c2) =
-	case (c1, c2)
-	 of (GLOBAL_VAR var1, GLOBAL_VAR var2) =>
-	    Var.getName var1 = Var.getName var2
-	  | (LOCAL_VAR (proc1, var1), LOCAL_VAR (proc2, var2)) =>
-	    proc1 = proc2 andalso Var.getName var1 = Var.getName var2
-	  | (PROCESS_STATE (proc1), PROCESS_STATE (proc2)) =>
-	    proc1 = proc2
-	  | _ =>
-	    false
+      case (c1, c2)
+       of (GLOBAL_VAR var1, GLOBAL_VAR var2) =>
+	  Var.getName var1 = Var.getName var2
+	| (LOCAL_VAR (proc1, var1), LOCAL_VAR (proc2, var2)) =>
+	  proc1 = proc2 andalso Var.getName var1 = Var.getName var2
+	| (PROCESS_STATE (proc1), PROCESS_STATE (proc2)) =>
+	  proc1 = proc2
+	| _ =>
+	  false
 in
     case mapping of
 	[] => [(comp, newValue)]
@@ -403,22 +406,22 @@ in
     then ""
     else case index of
 	     Expr.INT (_, num) => let
-		 val comp = getVarComp (comps, proc, Expr.getVarName var)
-		 val varDef = valOf (getCompVar comp)
-		 val noCheck = case Var.getTyp varDef of
-				   Typ.ARRAY_TYPE (_, size) =>
-				   num < LargeInt.fromInt size
-				 | _ => false
-	     in
-		 if noCheck
-		 then ""
-		 else checkStr
-	     end
+	      val comp = getVarComp (comps, proc, Expr.getVarName var)
+	      val varDef = valOf (getCompVar comp)
+	      val noCheck = case Var.getTyp varDef of
+				Typ.ARRAY_TYPE (_, size) =>
+				num < LargeInt.fromInt size
+			      | _ => false
+	  in
+	      if noCheck
+	      then ""
+	      else checkStr
+	  end
 	   | _ => checkStr
 end
 
 fun compileInitVal (Typ.BASIC_TYPE _) =
-    Expr.INT (0, 0)
+  Expr.INT (0, 0)
   | compileInitVal (Typ.ARRAY_TYPE (_, n)) =
     Expr.ARRAY_INIT (0, Utils.constructList (Expr.INT (0, 0), n))
 
@@ -432,12 +435,12 @@ fun compileVarRef (stateName: string)
 in
     case var
      of Expr.ARRAY_ITEM (array, index) => let
-	    val comp = getVarComp (comps, proc, array)
-	    val t    = Var.getTyp (valOf (getCompVar comp))
-	in
-	    String.concat [
-	    v, " [", baseToInt (compileExpr stateName) index context, "]" ]
-	end
+	 val comp = getVarComp (comps, proc, array)
+	 val t    = Var.getTyp (valOf (getCompVar comp))
+     in
+	 String.concat [
+	     v, " [", baseToInt (compileExpr stateName) index context, "]" ]
+     end
       | Expr.SIMPLE_VAR (var) => v
 end
 and compileExpr (stateName: string)
@@ -449,64 +452,64 @@ and compileExpr (stateName: string)
     val compileExpr = compileExpr stateName
 in
     case e
-      (*  int  *)
+             (*  int  *)
      of Expr.INT (_, num) =>
 	if num >= 0
 	then LargeInt.toString num
 	else "(- " ^ (LargeInt.toString (~ num)) ^ ")"
-	
+	                                               
       (*  true  *)
       | Expr.BOOL_CONST (_, true) => "TRUE"
 
       (*  false  *)
       | Expr.BOOL_CONST (_, false) => "FALSE"
-	      
+	                                  
       (*  array initializer  *)
       | Expr.ARRAY_INIT (_, exprs) => let
-	    fun comp e = compileExpr e context
-	in
-	    listFormat {init  = "{",
-			sep   = ", ",
-			final = "}",
-			fmt   = comp} exprs
-	end
+	  fun comp e = compileExpr e context
+      in
+	  listFormat {init  = "{",
+		      sep   = ", ",
+		      final = "}",
+		      fmt   = comp} exprs
+      end
 
       (*  state of a process  *)
       | Expr.PROCESS_STATE (_, proc, state) =>
 	"((s->" ^ getProcessStateImage (mapping, proc) ^ " " ^
 	" == " ^ getLocalStateName (proc, state) ^ ") ? TRUE : FALSE)"
-			      
+			                               
       (*  local variable of another process  *)
       | Expr.PROCESS_VAR_REF (pos, proc, var) =>
 	compileVarRef stateName var (SOME proc, mapping, comps, checks)
-	
+	              
       (*  binary operations  *)
       | Expr.BIN_OP (pos, left, binOp, right) => let
-	    val l = compileExpr left context
-	    val r = compileExpr right context
-	    val p = Int.toString pos
+	  val l = compileExpr left context
+	  val r = compileExpr right context
+	  val p = Int.toString pos
 
-	    fun compileNumOp opStr =
-		l ^ " " ^ opStr ^ " " ^ r ^
-		(if checks
-		 then " handle Overflow => raise ModelError (" ^ p ^
-		      ", \"overflow\")"
-		 else "")
+	  fun compileNumOp opStr =
+	    l ^ " " ^ opStr ^ " " ^ r ^
+	    (if checks
+	     then " handle Overflow => raise ModelError (" ^ p ^
+		  ", \"overflow\")"
+	     else "")
 
-	    fun compileDivOp opStr =
-		l ^ " " ^ opStr ^ " " ^ r
-	    fun compileCompOp opStr =
-		"(" ^ l ^ " " ^ opStr ^ " " ^ r ^ ") ? TRUE : FALSE"
+	  fun compileDivOp opStr =
+	    l ^ " " ^ opStr ^ " " ^ r
+	  fun compileCompOp opStr =
+	    "(" ^ l ^ " " ^ opStr ^ " " ^ r ^ ") ? TRUE : FALSE"
 
-	    fun compileBoolOp opStr =
-		"(" ^ l ^ " " ^ opStr ^ " " ^ r ^ ") ? TRUE : FALSE"
+	  fun compileBoolOp opStr =
+	    "(" ^ l ^ " " ^ opStr ^ " " ^ r ^ ") ? TRUE : FALSE"
 
-	    fun compileBitOp opStr =
-		l ^ " " ^ opStr ^ " " ^ r
-	in
-	    "(" ^ (
-	    case binOp
-	     of	Expr.PLUS    => compileNumOp  "+"
+	  fun compileBitOp opStr =
+	    l ^ " " ^ opStr ^ " " ^ r
+      in
+	  "(" ^ (
+	  case binOp
+	   of	Expr.PLUS    => compileNumOp  "+"
 	      | Expr.MINUS   => compileNumOp  "-"
 	      | Expr.TIMES   => compileNumOp  "*"
 	      | Expr.DIV     => compileDivOp  "/"
@@ -526,30 +529,30 @@ in
 	      | Expr.XOR     => compileBitOp  "^"
 	      | any          =>
 		raise Errors.CompilerError
-			  (pos,
-			   "unimplemented feature in compiler: operator " ^
-			   Expr.binOpToString any))
-	    ^ ")"
-	end
-						 
+		      (pos,
+		       "unimplemented feature in compiler: operator " ^
+		       Expr.binOpToString any))
+	  ^ ")"
+      end
+						     
       (*  unary operations  *)
       | Expr.UN_OP (pos, unOp, right) => let
-	    val r = compileExpr right context
-	    val p = Int.toString pos
-	in
-	    "(" ^ (
-	    case unOp
-	     of	Expr.NOT    =>
+	  val r = compileExpr right context
+	  val p = Int.toString pos
+      in
+	  "(" ^ (
+	  case unOp
+	   of	Expr.NOT    =>
 		r ^ " ? FALSE : TRUE"
 	      | Expr.UMINUS =>
 		"- " ^ r 
 	      | Expr.NEG    =>
 		raise Errors.CompilerError
-			  (pos,
-			   "unimplemented feature in compiler: operator " ^
-			   Expr.unOpToString Expr.NEG))
-	    ^ ")"
-	end
+		      (pos,
+		       "unimplemented feature in compiler: operator " ^
+		       Expr.unOpToString Expr.NEG))
+	  ^ ")"
+      end
 
       (*  variable reference  *)
       | Expr.VAR_REF (pos, var) => compileVarRef stateName var context
@@ -558,5 +561,5 @@ end
 fun concatLines [] = ""
   | concatLines [ str ] = str
   | concatLines (str1 :: str2 :: tl) = str1 ^ "\n" ^ (concatLines (str2 :: tl))
-    
+                                                         
 end

@@ -73,15 +73,18 @@ def parseIntArgument(val, shortForm, longForm):
                 return None
 
 def parseCheckArgument(val):
-    S = re.search
-    if not(S("^CHECK-", val.upper())):
-        return (False, None)
+    if val.upper() == "CHECK":
+        return (True, None)
     else:
-        l = val.split("-")
-        if len(l) <> 2:
+        S = re.search
+        if not(S("^CHECK-", val.upper())):
             return (False, None)
         else:
-            return (True, l[1])
+            l = val.split("-")
+            if len(l) <> 2:
+                return (False, None)
+            else:
+                return (True, l[1])
 
 def printVersion():
     print "helena " + VERSION + " --- " + DATE
@@ -135,6 +138,7 @@ def printHelp():
 class Config:        
 
     def __init__(self):
+        self.language = None
         self.verbose = False
         self.version = False
         self.partialOrder = False
@@ -229,8 +233,8 @@ class Config:
         
         now = datetime.now()
         model = ""
-        language = self.inFileExt[1:]
-        if language == "dve":
+        self.language = self.inFileExt[1:].lower()
+        if self.language == "dve":
             (model, _) = os.path.splitext(os.path.basename(self.inFile))
             if model == "":
                 model = "model"
@@ -260,7 +264,7 @@ class Config:
             ("DFS_STACK_BLOCK_SIZE", self.dfsStackBlockSize),
             ("DISTRIBUTED", self.algo in [ DBFS, DDFS ]),
             ("EDGE_LEAN", self.edgeLean),
-            ("EVENT_UNDOABLE", self.inFileExt == ".lna"),
+            ("EVENT_UNDOABLE", self.language == "lna"),
             ("FILE_PATH", "\"" + os.path.realpath(self.inFile) + "\""),
             ("GRAPH_FILE", "\"graph.dat\""),
             ("HASH_COMPACTION", self.hashCompaction),
@@ -268,14 +272,14 @@ class Config:
             ("HASH_SIZE_M", pow(2, self.hashSize) - 1),
             ("HASH_SIZE", pow(2, self.hashSize)),
             ("HASH_STORAGE", self.algo not in [ DELTA_DDD, RWALK ]),
-            ("LANGUAGE", "\"" + language + "\""),
-            ("LANGUAGE_DVE", self.inFileExt == ".dve"),
-            ("LANGUAGE_LNA", self.inFileExt == ".lna"),
+            ("LANGUAGE", "\"" + self.language + "\""),
+            ("LANGUAGE_DVE", self.language == "dve"),
+            ("LANGUAGE_LNA", self.language == "lna"),
             ("MAX_MEMORY", self.memoryLimit),
             ("MAX_STATE", self.stateLimit),
             ("MAX_TIME", self.timeLimit),
             ("MEMORY_LIMITED", self.memoryLimit != 0),
-            ("MODEL_HAS_GRAPH_ROUTINES", self.inFileExt == ".lna"),
+            ("MODEL_HAS_GRAPH_ROUTINES", self.language == "lna"),
             ("MODEL_NAME", "\"" + model + "\""),
             ("NO_COMM_WORKERS", self.commWorkers),
             ("NO_WORKERS", self.workers),
@@ -432,19 +436,6 @@ class Config:
                         self.action = CHECK
                         self.prop = p
 
-            #  special case options
-            elif opt in [ "-dc", "--ddfs-comm-strategy" ]:
-                for s in val.split(","):
-                    recognized = True
-                    if S("^K[0-9]*", s):
-                        self.ddfsCommStrat.append(("K", int(s[1:])))
-                    elif S("^D[0-9]*", s):
-                        self.ddfsCommStrat.append(("D", int(s[1:])))
-                    elif s == "M":
-                        self.ddfsCommStrat.append(("M", None))
-                    else:
-                        recognized = False
-
             #  option that are handled directly by the helena script
             elif opt in [ "-md", "--model-directory" ]:
                 recognized = True
@@ -467,20 +458,22 @@ class Config:
         if len(sys.argv) >= 2:
             self.inFile = sys.argv[len(sys.argv) - 2]
             (f, self.inFileExt) = os.path.splitext(self.inFile)
+            self.language = self.inFileExt[1:].lower()
             if self.propFile is None:
                 self.propFile = f + ".prop" + self.inFileExt
         if len(sys.argv) >= 3:
             self.directory = sys.argv[len(sys.argv) - 1]
 
     def generatePropertyCode(self):
-        if self.action != CHECK \
-           or self.prop is None \
-           or self.propFile is None:
-            f = self.openFile("prop.h", "w")
-            f.close()
-            f = self.openFile("prop.c", "w")
-            f.close()
-        else:
+        f = self.openFile("prop.h", "w")
+        f.close()
+        f = self.openFile("prop.c", "w")
+        f.close()
+        if self.action == CHECK and self.language == "dve":
+            self.propType = LTL
+        elif self.action == CHECK and self.language == "lna":
+            if self.prop is None:
+                exitWithError("property name excepted for action check")
             cmd = "helena-generate-property "
             cmd = cmd + " " + self.prop + " " + self.propFile
             if self.directory is None:

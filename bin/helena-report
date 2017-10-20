@@ -268,15 +268,20 @@ def printTraceReport(r):
         if m != "1": return m + " * " + l
         else: return l
     def printState(e, d):
-        print "    {"
-        for s in e.getElementsByTagName("placeState"):
-            p = s.getElementsByTagName("place")[0].childNodes[0].nodeValue
-            l = ""
-            for t in s.getElementsByTagName("token"):
-                if l != "": l += " + "
-                l += printToken(t, d)
-            print "      " + p + " = " + l
-        print "    }"
+        descElement = e.getElementsByTagName("stateDescription")
+        if len(descElement) > 0:
+            desc = descElement[0].childNodes[0].nodeValue.strip()
+        else:
+            desc = "    {" + "\n"
+            for s in e.getElementsByTagName("placeState"):
+                p = s.getElementsByTagName("place")[0].childNodes[0].nodeValue
+                l = ""
+                for t in s.getElementsByTagName("token"):
+                    if l != "": l += " + "
+                    l += printToken(t, d)
+                desc += "      " + p + " = " + l + "\n"
+            desc += "    }"
+        print desc
     def printBinding(e, d):
         result = ""
         bs = e.getElementsByTagName("varBinding")
@@ -290,7 +295,7 @@ def printTraceReport(r):
     def printEvent(e, d):
         descElement = e.getElementsByTagName("eventDescription")
         if len(descElement) > 0:
-            desc = descElement[0].childNodes[0].nodeValue
+            desc = descElement[0].childNodes[0].nodeValue.strip()
         else:
             trans = e.getElementsByTagName("transition")
             trans = trans[0].childNodes[0].nodeValue
@@ -299,7 +304,7 @@ def printTraceReport(r):
             if len(l) > 0:
                 desc = desc + ", [" + printBinding(l[0], d) + "]"
             des = desc + ")"
-        print "    " + desc + " ->"
+        print desc + " ->"
     traceItem = {
         "enum"      : printEnum,
         "num"       : printNum,

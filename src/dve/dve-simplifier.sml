@@ -10,7 +10,9 @@
  *)
 
 
-structure DveSimplifier: sig
+structure
+DveSimplifier:
+sig
 
     val simplify: System.system -> System.system
 
@@ -69,28 +71,28 @@ fun simplifyExpr (e as (INT _)) = e
     (case evalExpr e
       of SOME i => INT (pos, LargeInt.fromInt i)
        | NONE   => let
-	     val ls = simplifyExpr left
-	     val rs = simplifyExpr right
-	 in
-	     case (ls, binOp, rs)
-	      of (BOOL_CONST (_, false), AND, _) => ls
-	       | (BOOL_CONST (_, true), AND, _) => rs
-	       | (INT (_, 0), AND, _) => ls
-	       | (INT (_, _), AND, _) => rs
-	       | (BOOL_CONST (_, true), OR, _) => ls
-	       | (BOOL_CONST (_, false), OR, _) => rs
-	       | (INT (_, 0), OR, _) => rs
-	       | (INT (_, _), OR, _) => ls
-	       | (_, AND, BOOL_CONST (_, false)) => rs
-	       | (_, AND, BOOL_CONST (_, true)) => ls
-	       | (_, AND, INT (_, 0)) => rs
-	       | (_, AND, INT (_, _)) => ls
-	       | (_, OR, BOOL_CONST (_, true)) => rs
-	       | (_, OR, BOOL_CONST (_, false)) => ls
-	       | (_, OR, INT (_, 0)) => ls
-	       | (_, OR, INT (_, _)) => rs
-	       | _ => BIN_OP (pos, ls, binOp, rs)
-	 end)
+	   val ls = simplifyExpr left
+	   val rs = simplifyExpr right
+       in
+	   case (ls, binOp, rs)
+	    of (BOOL_CONST (_, false), AND, _) => ls
+	     | (BOOL_CONST (_, true), AND, _) => rs
+	     | (INT (_, 0), AND, _) => ls
+	     | (INT (_, _), AND, _) => rs
+	     | (BOOL_CONST (_, true), OR, _) => ls
+	     | (BOOL_CONST (_, false), OR, _) => rs
+	     | (INT (_, 0), OR, _) => rs
+	     | (INT (_, _), OR, _) => ls
+	     | (_, AND, BOOL_CONST (_, false)) => rs
+	     | (_, AND, BOOL_CONST (_, true)) => ls
+	     | (_, AND, INT (_, 0)) => rs
+	     | (_, AND, INT (_, _)) => ls
+	     | (_, OR, BOOL_CONST (_, true)) => rs
+	     | (_, OR, BOOL_CONST (_, false)) => ls
+	     | (_, OR, INT (_, 0)) => ls
+	     | (_, OR, INT (_, _)) => rs
+	     | _ => BIN_OP (pos, ls, binOp, rs)
+       end)
   | simplifyExpr (e as (UN_OP (pos, unOp, right))) =
     (case evalExpr e of
 	 SOME i => INT (pos, LargeInt.fromInt i)
@@ -101,9 +103,9 @@ fun simplifyExpr (e as (INT _)) = e
 and simplifyVarRef (v as (SIMPLE_VAR _)) = v
   | simplifyVarRef (v as (ARRAY_ITEM (var, index))) =
     ARRAY_ITEM (var, simplifyExpr index)
-    
+               
 fun simplifyStat (ASSIGN (p, var, assign)) =
-    ASSIGN (p, var, simplifyExpr assign)
+  ASSIGN (p, var, simplifyExpr assign)
 
 fun simplifyTrans { pos, id, src, dest, guard, sync, effect } = let
     val guardEval = case guard of NONE => SOME 1
@@ -126,20 +128,19 @@ in
 end
 
 fun simplifyProcess { pos, name, vars, states, init, accept, trans } =
-    { pos    = pos,
-      name   = name,
-      vars   = vars,
-      states = states,
-      init   = init,
-      trans  = List.mapPartial simplifyTrans trans,
-      accept = accept }
-    
-fun simplify ({ t, glob, chans, procs, progs, prog }: System.system) =
-    { t     = t,
-      glob  = glob,
-      chans = chans,
-      procs = List.map simplifyProcess procs,
-      progs = progs,
-      prog  = prog }
-		 
+  { pos    = pos,
+    name   = name,
+    vars   = vars,
+    states = states,
+    init   = init,
+    trans  = List.mapPartial simplifyTrans trans,
+    accept = accept }
+      
+fun simplify ({ t, prop, glob, chans, procs }: System.system) =
+  { t     = t,
+    prop  = prop,
+    glob  = glob,
+    chans = chans,
+    procs = List.map simplifyProcess procs }
+      
 end

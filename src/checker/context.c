@@ -129,6 +129,17 @@ void init_context
   pthread_mutex_init(&CTX->ctx_mutex, NULL);
 }
 
+#define context_state_to_xml(s, out) {          \
+    fprintf(out, "<state>\n");                  \
+    state_to_xml(s, out);                       \
+    fprintf(out, "</state>\n");                 \
+  }
+
+#define context_event_to_xml(e, out) {          \
+    fprintf(out, "<event>\n");                  \
+    event_to_xml(e, out);                       \
+    fprintf(out, "</event>\n");                 \
+  }
 
 void context_output_trace
 (FILE * out) {
@@ -136,23 +147,23 @@ void context_output_trace
   state_t s = state_initial();
   list_size_t l;
 
-  state_to_xml(s, out);
+  context_state_to_xml(s, out);
   if(CTX->trace) {
     l = list_size(CTX->trace);
     while(!list_is_empty(CTX->trace)) {
       list_pick_first(CTX->trace, &e);
       if(!event_is_dummy(e)) {
-        event_to_xml(e, out);
+        context_event_to_xml(e, out);
         event_exec(e, s);
 	if(CFG_TRACE_FULL) {
-	  state_to_xml(s, out);
+	  context_state_to_xml(s, out);
 	}
       }
       event_free(e);
     }
     if(CFG_TRACE_EVENTS) {
       if(l > 0) {
-	state_to_xml(s, out);
+	context_state_to_xml(s, out);
       }
     }
   }
@@ -375,7 +386,7 @@ void finalise_context
       fprintf(out, "<traceReport>\n");
       if(CFG_TRACE_STATE) {
 	fprintf(out, "<traceState>\n");
-	state_to_xml(CTX->faulty_state, out);
+	context_state_to_xml(CTX->faulty_state, out);
 	fprintf(out, "</traceState>\n");
       } else if(CFG_TRACE_FULL) {
 	fprintf(out, "<traceFull>\n");

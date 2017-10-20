@@ -4,7 +4,9 @@
  *)
 
 
-structure DveEventExecutionCompiler: sig
+structure
+DveEventExecutionCompiler:
+sig
 
     val gen: System.system * bool * TextIO.outstream * TextIO.outstream
 	     -> unit
@@ -21,9 +23,9 @@ fun genEventExec (s: System.system, checks, hFile, cFile) = let
     fun compileExecEvent e = let
 
 	fun compileProcessStateChange (proc, newState) =
-	    String.concat [
-	    "      s->", getCompName (PROCESS_STATE proc), " = ",
-	    getLocalStateName(proc, newState), ";\n" ]		
+	  String.concat [
+	      "      s->", getCompName (PROCESS_STATE proc), " = ",
+	      getLocalStateName(proc, newState), ";\n" ]		
 
 	fun compileStat proc (Stat.ASSIGN (pos, var, value)) = let
 	    val comp = getVarComp (comps, SOME proc, Expr.getVarName var)
@@ -33,18 +35,18 @@ fun genEventExec (s: System.system, checks, hFile, cFile) = let
 		compileExpr "s" value (SOME proc, map, comps, checks)
 	in
 	    String.concat [
-	    "      ", varExpr, " = ",
-	    valueExpr, ";\n" ]
+	        "      ", varExpr, " = ",
+	        valueExpr, ";\n" ]
 	end
-							 
+							           
 	fun compileStatList proc stats =
-	    String.concat (List.map (compileStat proc) stats)
-				    
+	  String.concat (List.map (compileStat proc) stats)
+			
 	fun compileExecLocalEvent (proc, trans) =
-	    String.concat [
-	    compileStatList proc (Trans.getEffect trans),
-	    compileProcessStateChange (proc, Trans.getDest trans) ]
-    						  
+	  String.concat [
+	      compileStatList proc (Trans.getEffect trans),
+	      compileProcessStateChange (proc, Trans.getDest trans) ]
+    			
 	fun compileExecSyncEvent (proc1, trans1, proc2, trans2) = let
 	    (*  NB: proc1 is the sender and proc2 the receiver  *)
 	    val sl1  = Trans.getEffect trans1
@@ -61,34 +63,35 @@ fun genEventExec (s: System.system, checks, hFile, cFile) = let
 		 *  4 - changement of states of both processes
 		 *)
 		String.concat [
-		case (sent, recv) of
-		    (SOME dataSent, SOME (Expr.VAR_REF (pos, var))) => let
-			(*
-			 *  we have to take care here that the data sent and
-			 *  the receiving variable do not belong to the same
-			 *  process
-			 *)
-		    in
-			String.concat [
-			"      int_t dataSent = ",
-			compileExpr
-			    "s"
-			    dataSent (SOME proc1, map, comps, checks), ";\n",
-			"      ",
-			compileVarRef
-			    "s"
-			    var (SOME proc2, map, comps, checks),
-			" = dataSent;\n" ]
-		    end
-		  | _ => ""  (*  no data sent throught channel  *)
+		    case (sent, recv) of
+		        (SOME dataSent, SOME (Expr.VAR_REF (pos, var))) => let
+		     (*
+		      *  we have to take care here that the data sent and
+		      *  the receiving variable do not belong to the same
+		      *  process
+		      *)
+		     in
+			 String.concat [
+			     "      int_t dataSent = ",
+			     compileExpr
+                                 "s"
+			         dataSent (SOME proc1, map, comps, checks),
+                             ";\n",
+			     "      ",
+			     compileVarRef
+			         "s"
+			         var (SOME proc2, map, comps, checks),
+			     " = dataSent;\n" ]
+		     end
+		      | _ => ""  (*  no data sent throught channel  *)
 		]
 	in
 	    String.concat [
-	    sync,
-	    compileStatList proc1 sl1,
-	    compileStatList proc2 sl2,
-	    compileProcessStateChange (proc1, Trans.getDest trans1),
-	    compileProcessStateChange (proc2, Trans.getDest trans2) ]
+	        sync,
+	        compileStatList proc1 sl1,
+	        compileStatList proc2 sl2,
+	        compileProcessStateChange (proc1, Trans.getDest trans1),
+	        compileProcessStateChange (proc2, Trans.getDest trans2) ]
 	end
     in
 	case e
@@ -100,18 +103,18 @@ fun genEventExec (s: System.system, checks, hFile, cFile) = let
     val prot = "void mevent_exec (mevent_t e, mstate_t s)"
     val body =
 	concatLines [
-	prot ^ " {",
-	"   switch (e) {",
-	concatLines (
-	List.map (fn e => 
-		     concatLines [
-		     "   case " ^ (getEventName e) ^ ": {",
-		     compileExecEvent e ^ "      break;",
-		     "   }" ]) events
-	),
-	"   default: assert(0);",
-	"   }",
-	"}"
+	    prot ^ " {",
+	    "   switch (e) {",
+	    concatLines (
+	        List.map (fn e => 
+		             concatLines [
+		                 "   case " ^ (getEventName e) ^ ": {",
+		                 compileExecEvent e ^ "      break;",
+		                 "   }" ]) events
+	    ),
+	    "   default: assert(0);",
+	    "   }",
+	    "}"
 	]
 in
     TextIO.output (hFile, prot ^ ";\n");
@@ -122,7 +125,7 @@ fun genEventUndo (s: System.system, checks, hFile, cFile) = let
     val prot = "void mevent_undo (mevent_t e, mstate_t s)"
     val body =
 	concatLines [
-	prot ^ " { assert(0); }"
+	    prot ^ " { assert(0); }"
 	]
 in
     TextIO.output (hFile, prot ^ ";\n");
@@ -134,20 +137,20 @@ fun genStateSucc (s: System.system, checks, hFile, cFile) = let
 	"mstate_t mstate_succ_mem (mstate_t s, mevent_t e, heap_t heap)"
     val bodyMem =
 	concatLines [
-	protMem ^ " {",
-	"   mstate_t result = mem_alloc(heap, sizeof(struct_mstate_t));",
-	"   memcpy(result, s, sizeof(struct_mstate_t));",
-	"   result->heap = heap;",
-	"   mevent_exec(e, result);",
-	"   return result;",
-	"}"
+	    protMem ^ " {",
+	    "   mstate_t result = mem_alloc(heap, sizeof(struct_mstate_t));",
+	    "   memcpy(result, s, sizeof(struct_mstate_t));",
+	    "   result->heap = heap;",
+	    "   mevent_exec(e, result);",
+	    "   return result;",
+	    "}"
 	]
     val prot = "mstate_t mstate_succ(mstate_t s, mevent_t e)"
     val body =
 	concatLines [
-	prot ^ " {",
-	"   return mstate_succ_mem(s, e, SYSTEM_HEAP);",
-	"}"
+	    prot ^ " {",
+	    "   return mstate_succ_mem(s, e, SYSTEM_HEAP);",
+	    "}"
 	]
 in
     TextIO.output (hFile, prot ^ ";\n");
@@ -160,12 +163,12 @@ fun genStatePred (s: System.system, checks, hFile, cFile) = let
     val prot = "mstate_t mstate_pred (mstate_t s, mevent_t e)"
     val body =
 	concatLines [
-	prot ^ " {",
-	"   mstate_t result = NULL;",
-	"   assert(0);",
-	"   return result;",
-	"}",
-	""
+	    prot ^ " {",
+	    "   mstate_t result = NULL;",
+	    "   assert(0);",
+	    "   return result;",
+	    "}",
+	    ""
 	]
 in
     TextIO.output (hFile, prot ^ ";\n");

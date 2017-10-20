@@ -1,4 +1,5 @@
 #include "event.h"
+#include "reduction.h"
 
 void mevent_free_void
 (void * data) {

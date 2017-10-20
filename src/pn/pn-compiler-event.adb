@@ -408,7 +408,6 @@ package body Pn.Compiler.Event is
 	   "   FILE * out)");
       Plh(L, Prototype & ";");
       Plc(L, Prototype & " {");
-      Plc(L, 1, "if (!binding_only) { fprintf (out, ""<event>""); }");
       Plc(L, 1, "switch(e.tid) {");
       for I in 1..T_Size(N) loop
 	 T := Ith_Trans(N, I);
@@ -441,7 +440,6 @@ package body Pn.Compiler.Event is
       end loop;
       Plc(L, 1, "default: assert(0);");
       Plc(L, 1, "}");
-      Plc(L, 1, "if (!binding_only) { fprintf (out, ""</event>\n""); }");
       Plc(L, "}");
       --=========================================================
       Prototype := To_Ustring

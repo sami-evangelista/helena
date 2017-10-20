@@ -4,7 +4,9 @@
  *)
 
 
-structure DveEnablingTestCompiler: sig
+structure
+DveEnablingTestCompiler:
+sig
 
     val gen: System.system * bool * TextIO.outstream * TextIO.outstream
 	     -> unit
@@ -12,30 +14,30 @@ end = struct
 
 open DveCompilerUtils
 
-fun compileGetEnabledEvents getEvents funcName
-			    (s: System.system, checks, hFile, cFile) = let
+fun compileGetEnabledEvents
+        funcName (s: System.system, checks, hFile, cFile) = let
 
-    val events = getEvents s
+    val events = buildEvents s
     val comps  = buildStateComps s
 
-    fun compileIsEventEnabled (e, checks) = let
+    fun compileIsEventEnabled e = let
 	val mapping = buildMapping comps
 	fun compileStateTest (procName, trans) =
-	    "(s->" ^
-	    getCompName (PROCESS_STATE procName) ^ " == " ^
-	    getLocalStateName (procName, Trans.getSrc trans) ^ ")"
+	  "(s->" ^
+	  getCompName (PROCESS_STATE procName) ^ " == " ^
+	  getLocalStateName (procName, Trans.getSrc trans) ^ ")"
 	fun compileStateTest2 (procName1, trans1, procName2, trans2) =
-	    String.concat [
-	    "(s->", getCompName (PROCESS_STATE procName1), " == ",
-	    getLocalStateName (procName1, Trans.getSrc trans1), ") && ",
-	    "(s->", getCompName (PROCESS_STATE procName2), " == ",
-	    getLocalStateName (procName2, Trans.getSrc trans2), ")" ]
+	  String.concat [
+	      "(s->", getCompName (PROCESS_STATE procName1), " == ",
+	      getLocalStateName (procName1, Trans.getSrc trans1), ") && ",
+	      "(s->", getCompName (PROCESS_STATE procName2), " == ",
+	      getLocalStateName (procName2, Trans.getSrc trans2), ")" ]
 	fun compileGuardTest (procName, trans) =
-	    case Trans.getGuard trans
-	     of NONE => ""
- 	      | SOME e =>
-		" && " ^
-		compileExpr "s" e (SOME procName, mapping, comps, checks)
+	  case Trans.getGuard trans
+	   of NONE => ""
+ 	    | SOME e =>
+	      " && " ^
+	      compileExpr "s" e (SOME procName, mapping, comps, checks)
     in
 	case e of
 	    LOCAL (_, p, t) =>
@@ -48,17 +50,16 @@ fun compileGetEnabledEvents getEvents funcName
     fun testName e = "is_enabled_" ^ (getEventName e)
 
     fun compileIsEnabledTest e =
-	String.concat [ "\n#define ", testName e, "(s) (",
-			compileIsEventEnabled (e, checks), ")" ]
+      String.concat [ "\n#define ", testName e, "(s) (",
+		      compileIsEventEnabled e, ")" ]
 
     fun compileTest (enVar, noVar) e =
-	String.concat [
-	    "   if(is_enabled_", getEventName e,
-	    " (s)) { e = ", getEventName e,
-            "; list_append(result, &e); }" ]
+      String.concat [
+	  "   if(", testName e, "(s)) { e = ", getEventName e,
+          "; list_append(result, &e); }" ]
 
     val protMem = String.concat [ "list_t " ^ funcName ^ "_mem" ^
-			       " (mstate_t s, heap_t heap)" ]
+			          " (mstate_t s, heap_t heap)" ]
     val bodyMem = [
 	protMem ^ " {",
         "   mevent_t e;",
@@ -77,8 +78,8 @@ fun compileGetEnabledEvents getEvents funcName
     val body = concatLines body
 
     fun compileFuncs events =
-	List.app (fn f => TextIO.output (hFile, f))
-		 (List.map compileIsEnabledTest events)
+      List.app (fn f => TextIO.output (hFile, f))
+	       (List.map compileIsEnabledTest events)
 in
     compileFuncs events;
     TextIO.output (hFile, "\n" ^ prot ^ ";\n");
@@ -87,14 +88,14 @@ in
     TextIO.output (cFile, "\n" ^ bodyMem ^ "\n")
 end
 
-fun compileGetEnabledEvent getEvents funcName
-			   (s: System.system, checks, hFile, cFile) = let
+fun compileGetEnabledEvent
+        funcName (s: System.system, checks, hFile, cFile) = let
     val prot    = String.concat [
-		  "mevent_t ", funcName,
-		  " (mstate_t s, mevent_t e)" ]
+	    "mevent_t ", funcName,
+	    " (mstate_t s, mevent_t e)" ]
     val protMem = String.concat [
-		  "mevent_t ", funcName, "_mem",
-		  " (mstate_t s, mevent_t e, heap_t heap)" ]
+	    "mevent_t ", funcName, "_mem",
+	    " (mstate_t s, mevent_t e, heap_t heap)" ]
     val body    = concatLines [ prot, " { return e; }" ]
     val bodyMem = concatLines [ protMem, " { return e; }" ]
 in
@@ -108,8 +109,6 @@ fun gen (s, checks, hFile, cFile) = (
     TextIO.output (hFile, "#include \"list.h\"");
     TextIO.output (hFile, "/*  enabling test functions  */");
     TextIO.output (cFile, "/*  enabling test functions  */");
-    compileGetEnabledEvent
-	buildEvents "mstate_event" (s, checks, hFile, cFile);
-    compileGetEnabledEvents
-	buildEvents "mstate_events" (s, checks, hFile, cFile))
+    compileGetEnabledEvent "mstate_event" (s, checks, hFile, cFile);
+    compileGetEnabledEvents "mstate_events" (s, checks, hFile, cFile))
 end

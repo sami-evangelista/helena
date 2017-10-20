@@ -123,7 +123,7 @@ def plot(values, typ, title, f):
 
 def BLELengthsFigure():
     if withBLELengths:
-        return "\\scalebox{0.9}{\\includegraphics{ble-lengths}}\n"
+        return "\\\\\\scalebox{0.9}{\\includegraphics{ble-lengths}}\n"
     else:
         return ""
 

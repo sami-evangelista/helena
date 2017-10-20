@@ -24,16 +24,16 @@ structure Typ = struct
 
 datatype basic_typ =
 	 BYTE
-       | INT
-		    
+         | INT
+	       
 datatype typ =
 	 BASIC_TYPE of basic_typ
-       | ARRAY_TYPE of basic_typ * int
+         | ARRAY_TYPE of basic_typ * int
 
 fun getBaseType t =
-    case t
-     of BASIC_TYPE bt      => bt
-      |	ARRAY_TYPE (bt, _) => bt
+  case t
+   of BASIC_TYPE bt      => bt
+     |	ARRAY_TYPE (bt, _) => bt
 
 end
 
@@ -43,42 +43,42 @@ structure Expr = struct
 
 datatype bin_op =
 	 PLUS
-       | MINUS
-       | TIMES
-       | DIV
-       | MOD
-       | IMPLY
-       | AND
-       | OR
-       | EQ
-       | NEQ
-       | INF
-       | SUP
-       | INF_EQ
-       | SUP_EQ
-       | LSHIFT
-       | RSHIFT
-       | AND_BIT
-       | OR_BIT
-       | XOR
+         | MINUS
+         | TIMES
+         | DIV
+         | MOD
+         | IMPLY
+         | AND
+         | OR
+         | EQ
+         | NEQ
+         | INF
+         | SUP
+         | INF_EQ
+         | SUP_EQ
+         | LSHIFT
+         | RSHIFT
+         | AND_BIT
+         | OR_BIT
+         | XOR
 
 datatype un_op =
 	 NOT
-       | NEG
-       | UMINUS
+         | NEG
+         | UMINUS
 
 datatype expr =
 	 INT of Pos.pos * LargeInt.int
-       | BIN_OP of Pos.pos * expr * bin_op * expr
-       | UN_OP of Pos.pos * un_op * expr
-       | VAR_REF of Pos.pos * var_ref
-       | BOOL_CONST of Pos.pos * bool
-       | ARRAY_INIT of Pos.pos * expr list
-       | PROCESS_STATE of Pos.pos * string * string
-       | PROCESS_VAR_REF of Pos.pos * string * var_ref
+         | BIN_OP of Pos.pos * expr * bin_op * expr
+         | UN_OP of Pos.pos * un_op * expr
+         | VAR_REF of Pos.pos * var_ref
+         | BOOL_CONST of Pos.pos * bool
+         | ARRAY_INIT of Pos.pos * expr list
+         | PROCESS_STATE of Pos.pos * string * string
+         | PROCESS_VAR_REF of Pos.pos * string * var_ref
      and var_ref =
 	 SIMPLE_VAR of string
-       | ARRAY_ITEM of string * expr
+         | ARRAY_ITEM of string * expr
 
 fun getPos (INT (p, _)) = p
   | getPos (BOOL_CONST (p, _)) = p
@@ -157,13 +157,13 @@ in
 end
 
 fun accessedVars e =
-    fold (fn (e, l) => case e
-			of VAR_REF (_, v) => (accessedVarsInVarRef v) @ l
-			 | _ => l) [] e
+  fold (fn (e, l) => case e
+		      of VAR_REF (_, v) => (accessedVarsInVarRef v) @ l
+		       | _ => l) [] e
 and accessedVarsInVarRef (SIMPLE_VAR v) =  [ v ]
   | accessedVarsInVarRef (ARRAY_ITEM (v, index)) = v :: (accessedVars (index))
 
-	
+	                                                    
 fun toDve (INT (_, n)) = if n > 0
 			 then LargeInt.toString n
 			 else "(- " ^ (LargeInt.toString (~ n)) ^ ")"
@@ -186,7 +186,7 @@ and refToDve (SIMPLE_VAR v) = v
 
 fun dnf e = let
     fun removeImply (BIN_OP (p, l, IMPLY, r)) =
-	BIN_OP (p, UN_OP (p, NOT, removeImply l), OR, removeImply r)
+      BIN_OP (p, UN_OP (p, NOT, removeImply l), OR, removeImply r)
       | removeImply (BIN_OP (p, l, binOp as _, r)) =
 	BIN_OP (p, removeImply l, binOp, removeImply r)
       | removeImply (UN_OP (p, unOp as _, r)) =
@@ -206,7 +206,7 @@ fun dnf e = let
       | neg (e as _) true = UN_OP (0, NOT, e)
       | neg (e as _) false = e
     fun dnf' (e as BIN_OP (pe, BIN_OP (p', a, OR, b), AND, c)) =
-	dnf' (BIN_OP (0, BIN_OP (0, a, AND, c), OR, BIN_OP(0, b, AND, c)))
+      dnf' (BIN_OP (0, BIN_OP (0, a, AND, c), OR, BIN_OP(0, b, AND, c)))
       | dnf' (e as BIN_OP (pe, a, AND, BIN_OP (p', b, OR, c))) =
 	dnf' (BIN_OP (0, BIN_OP (0, a, AND, b), OR, BIN_OP(0, a, AND, c)))
       | dnf' (e as _) = e
@@ -248,31 +248,31 @@ fun dual EQ NEQ     = true
 
 fun isContradiction e = let
     fun getList (BIN_OP (p, l, OR, r)) =
-	(getList l) @ (getList r)
+      (getList l) @ (getList r)
       | getList (BIN_OP (p, l, AND, r)) =
 	[ (List.hd (getList l)) @ (List.hd (getList r)) ]
       | getList e = [[e]]
     fun checkConjunction [] = false
       | checkConjunction (e :: l) = let
-	    fun findOpposite [] = false
-	      | findOpposite (e' :: l) =
-		(case (e, e') of
-		     (BIN_OP (_, l, binOp, r), BIN_OP (_, l', binOp', r')) =>
-		     ((dual binOp binOp')
-		      andalso
-		      (((same l l') andalso (same r r'))
-		       orelse
-		       ((same l r') andalso (same r l'))))
+	  fun findOpposite [] = false
+	    | findOpposite (e' :: l) =
+	      (case (e, e') of
+		   (BIN_OP (_, l, binOp, r), BIN_OP (_, l', binOp', r')) =>
+		   ((dual binOp binOp')
+		    andalso
+		    (((same l l') andalso (same r r'))
 		     orelse
-		     ((binOp, binOp') = (EQ, EQ) andalso
-		      (((same l l') andalso (diff r r')) orelse
-		       ((same l r') andalso (diff r l')))
-		     )
-		   | _ => false)
-		orelse (findOpposite l)
-	in
-	    (findOpposite l) orelse (checkConjunction l)
-	end
+		     ((same l r') andalso (same r l'))))
+		   orelse
+		   ((binOp, binOp') = (EQ, EQ) andalso
+		    (((same l l') andalso (diff r r')) orelse
+		     ((same l r') andalso (diff r l')))
+		   )
+		 | _ => false)
+	      orelse (findOpposite l)
+      in
+	  (findOpposite l) orelse (checkConjunction l)
+      end
 in
     List.all checkConjunction (getList (dnf e))
 end
@@ -284,8 +284,8 @@ end
 structure State = struct
 
 type state = {
-     pos : Pos.pos,
-     name: string
+    pos : Pos.pos,
+    name: string
 }
 
 fun getPos ({ pos, ... }: state)  = pos
@@ -306,18 +306,18 @@ structure Sync = struct
 
 datatype sync_mode =
 	 SYNC
-       | ASYNC
+         | ASYNC
 
 datatype sync_type =
 	 RECV
        | SEND
 
 type sync = {
-     pos : Pos.pos,
-     mode: sync_mode,
-     chan: string,
-     typ : sync_type,
-     data: Expr.expr option
+    pos : Pos.pos,
+    mode: sync_mode,
+    chan: string,
+    typ : sync_type,
+    data: Expr.expr option
 }
 
 fun getPos ({ pos, ... }: sync) = pos
@@ -328,17 +328,17 @@ fun getData ({ data, ... }: sync) = data
 
 
 fun toDve ({ mode, chan, typ, data, ... }: sync) =
-    String.concat [ case mode of SYNC => "sync " | ASYNC => "async ",
-		    chan,
-		    case typ of RECV  => "?" | SEND => "!",
-		    case data of NONE => "" | SOME e => Expr.toDve e
-		  ]
+  String.concat [ case mode of SYNC => "sync " | ASYNC => "async ",
+		  chan,
+		  case typ of RECV  => "?" | SEND => "!",
+		  case data of NONE => "" | SOME e => Expr.toDve e
+		]
 
 fun accessedVars ({ data, ... }: sync) =
-    case data of SOME data => Expr.accessedVars data | _ => []
+  case data of SOME data => Expr.accessedVars data | _ => []
 
 fun modifiedVars ({ typ = RECV, data = SOME data, ... }: sync) =
-    Expr.accessedVars data
+  Expr.accessedVars data
   | modifiedVars _ = []
 
 end
@@ -348,11 +348,11 @@ end
 structure Var = struct
 
 type var = {
-     pos  : Pos.pos,
-     const: bool,
-     typ  : Typ.typ,
-     name : string,
-     init : Expr.expr option 
+    pos  : Pos.pos,
+    const: bool,
+    typ  : Typ.typ,
+    name : string,
+    init : Expr.expr option 
 }
 
 fun getPos ({ pos, ... }: var) = pos
@@ -361,7 +361,7 @@ fun getTyp ({ typ, ... }: var) = typ
 fun getName ({ name, ... }: var) = name
 fun getInit ({ init, ... }: var) = init
 
-				   
+				       
 fun getVar (l, name) = let
     fun isVar v = (getName v = name)
 in
@@ -370,13 +370,13 @@ end
 
 
 fun toDve { pos, const, typ, name, init } =
-    (if const then "const " else "") ^
-    (case Typ.getBaseType typ of Typ.BYTE => "byte" | Typ.INT => "int") ^ " " ^
-    name ^
-    (case typ of Typ.BASIC_TYPE _      => ""
-	       | Typ.ARRAY_TYPE (_, n) => "[" ^ Int.toString n ^ "]") ^
-    (case init of NONE => "" | SOME value => " = " ^ (Expr.toDve value)) ^
-    ";"
+  (if const then "const " else "") ^
+  (case Typ.getBaseType typ of Typ.BYTE => "byte" | Typ.INT => "int") ^ " " ^
+  name ^
+  (case typ of Typ.BASIC_TYPE _      => ""
+	     | Typ.ARRAY_TYPE (_, n) => "[" ^ Int.toString n ^ "]") ^
+  (case init of NONE => "" | SOME value => " = " ^ (Expr.toDve value)) ^
+  ";"
 
 end
 
@@ -385,9 +385,9 @@ end
 structure Channel = struct
 
 type channel = {
-     pos : Pos.pos,
-     name: string,
-     size: int
+    pos : Pos.pos,
+    name: string,
+    size: int
 }
 
 fun getChannel (l, name) = let
@@ -398,9 +398,9 @@ end
 
 
 fun toDve ({ name, size, ... }: channel) =
-    "channel " ^ name ^
-    (if size > 0 then "[" ^ (Int.toString size) ^ "]" else "") ^
-    ";"
+  "channel " ^ name ^
+  (if size > 0 then "[" ^ (Int.toString size) ^ "]" else "") ^
+  ";"
 
 end
 
@@ -414,38 +414,20 @@ datatype stat =
 		   Expr.expr       (*  value assigned  *)
 
 fun toDve s =
-    case s of
-	ASSIGN (p, var, assign) =>
-	(Expr.refToDve var) ^ " = " ^ (Expr.toDve assign)
+  case s of
+      ASSIGN (p, var, assign) =>
+      (Expr.refToDve var) ^ " = " ^ (Expr.toDve assign)
 
 fun accessedVars s =
-    case s of ASSIGN (_, var, value) =>
-	      (Expr.accessedVarsInVarRef var) @ (Expr.accessedVars value)
+  case s of ASSIGN (_, var, value) =>
+	    (Expr.accessedVarsInVarRef var) @ (Expr.accessedVars value)
 
 fun modifiedVars s =
-    case s of ASSIGN (_, var, _) => SOME (Expr.getVarName var)
+  case s of ASSIGN (_, var, _) => SOME (Expr.getVarName var)
 
 fun foldExpr f v s =
-    case s of ASSIGN (_, var, value) =>
-	      Expr.fold f (Expr.fold f v (Expr.VAR_REF (0, var))) value
-
-end
-
-
-
-structure Progress = struct
-
-type progress = {
-     pos : Pos.pos,
-     name: string,
-     map : Expr.expr
-}
-
-fun getPos ({ pos, ... }: progress) = pos
-fun getName ({ name, ... }: progress) = name
-fun getMap ({ map, ... }: progress) = map
-
-fun getProgress (l, name) = valOf (List.find (fn p => getName p = name) l)
+  case s of ASSIGN (_, var, value) =>
+	    Expr.fold f (Expr.fold f v (Expr.VAR_REF (0, var))) value
 
 end
 
@@ -454,13 +436,13 @@ end
 structure Trans = struct
 
 type trans = {
-     pos   : Pos.pos,
-     id    : int,
-     src   : string,
-     dest  : string,
-     guard : Expr.expr option,
-     sync  : Sync.sync option,
-     effect: Stat.stat list
+    pos   : Pos.pos,
+    id    : int,
+    src   : string,
+    dest  : string,
+    guard : Expr.expr option,
+    sync  : Sync.sync option,
+    effect: Stat.stat list
 }
 
 fun getPos ({ pos, ... }: trans) = pos
@@ -472,21 +454,21 @@ fun getSync ({ sync, ... }: trans) = sync
 fun getEffect ({ effect, ... }: trans) = effect
 
 fun toDve ({ src, dest, guard, sync, effect, ... }: trans) =
-    String.concat [
-    src, " -> ", dest, " {\n",
-    case guard
-     of NONE   => ""
-      | SOME g => "      guard " ^ (Expr.toDve g) ^ ";\n",
-    case sync
-     of NONE   => ""
-      | SOME s => "      " ^ (Sync.toDve s) ^ ";\n",
-    case effect
-     of [] => ""
-      | l  => "      effect " ^ (ListFormat.fmt {init  = "",
-						     sep   = ", ",
-						     fmt   = Stat.toDve,
-						     final = ";\n"} effect),
-    "     }" ]
+  String.concat [
+      src, " -> ", dest, " {\n",
+      case guard
+       of NONE   => ""
+        | SOME g => "      guard " ^ (Expr.toDve g) ^ ";\n",
+      case sync
+       of NONE   => ""
+        | SOME s => "      " ^ (Sync.toDve s) ^ ";\n",
+      case effect
+       of [] => ""
+        | l  => "      effect " ^ (ListFormat.fmt {init  = "",
+						   sep   = ", ",
+						   fmt   = Stat.toDve,
+						   final = ";\n"} effect),
+      "     }" ]
 
 fun accessedVars ({ src, dest, guard, sync, effect, ... }: trans) = let
     val inGuard  = if isSome guard then Expr.accessedVars (valOf guard) else []
@@ -518,9 +500,9 @@ in
 end
 
 fun channelUsed ({ sync, ... }: trans) =
-    case sync
-     of NONE => NONE
-      | SOME sync => SOME (Sync.getChan sync)
+  case sync
+   of NONE => NONE
+    | SOME sync => SOME (Sync.getChan sync)
 
 end
 
@@ -529,13 +511,13 @@ end
 structure Process = struct
 
 type process = {
-     pos   : Pos.pos,
-     name  : string,
-     vars  : Var.var list,
-     states: State.state list,
-     init  : State.state,
-     accept: State.state list,
-     trans : Trans.trans list
+    pos   : Pos.pos,
+    name  : string,
+    vars  : Var.var list,
+    states: State.state list,
+    init  : State.state,
+    accept: State.state list,
+    trans : Trans.trans list
 }
 
 fun getPos ({ pos, ... }: process) = pos
@@ -557,26 +539,26 @@ fun toDve { pos, name, vars, states, init, trans, accept } = let
 					     fmt   = State.getName }
 in
     String.concat [
-    "process ", name, " {\n",
-    ListFormat.fmt { init  = "",
-		     sep   = "\n",
-		     final = "\n",
-		     fmt   = Var.toDve } vars,
-    "state  ", stateListToString states,
-    "init   ", State.getName init, ";\n",
-    case accept
-     of [] => ""
-      | _ => "accept " ^ (stateListToString accept),
-    "trans  ", ListFormat.fmt { init  = "\n   ",
-				sep   = ",\n   ",
-				final = ";\n",
-				fmt   = Trans.toDve } trans,
-    "}"
+        "process ", name, " {\n",
+        ListFormat.fmt { init  = "",
+		         sep   = "\n",
+		         final = "\n",
+		         fmt   = Var.toDve } vars,
+        "state  ", stateListToString states,
+        "init   ", State.getName init, ";\n",
+        case accept
+         of [] => ""
+          | _ => "accept " ^ (stateListToString accept),
+        "trans  ", ListFormat.fmt { init  = "\n   ",
+				    sep   = ",\n   ",
+				    final = ";\n",
+				    fmt   = Trans.toDve } trans,
+        "}"
     ]
 end
 
 fun outgoingTrans proc state =
-    List.filter (fn t => Trans.getSrc t = State.getName state) (getTrans proc)
+  List.filter (fn t => Trans.getSrc t = State.getName state) (getTrans proc)
 
 
 fun splitOutgoingTransitions proc state = let
@@ -586,18 +568,18 @@ fun splitOutgoingTransitions proc state = let
     val result = ref [t]
     fun split t t' [] = []
       | split t t' (l :: tail) = let
-	    val tail = split t t' tail
-	in
-	    (if List.exists (fn u => Trans.getId u = Trans.getId t) l
-		andalso List.exists (fn u => Trans.getId u = Trans.getId t') l
-	     then
-		 [
-		  List.filter (fn u => Trans.getId u <> Trans.getId t) l,
-		  List.filter (fn u => Trans.getId u <> Trans.getId t') l
-		 ]
-	     else [ l ])
-	    @ tail
-	end
+	  val tail = split t t' tail
+      in
+	  (if List.exists (fn u => Trans.getId u = Trans.getId t) l
+	      andalso List.exists (fn u => Trans.getId u = Trans.getId t') l
+	   then
+	       [
+		 List.filter (fn u => Trans.getId u <> Trans.getId t) l,
+		 List.filter (fn u => Trans.getId u <> Trans.getId t') l
+	       ]
+	   else [ l ])
+	  @ tail
+      end
     fun filter [] = []
       | filter (t :: tail) =
 	if List.exists (fn t' => t = t') tail
@@ -630,14 +612,14 @@ end
 
 
 fun onlyAccessLocalVars proc tr =
-    List.all (fn t => #2 (accessedVars proc t) = []) tr
+  List.all (fn t => #2 (accessedVars proc t) = []) tr
 
 
 fun noProcessStateTest proc trans =
-    List.all (fn t => Trans.foldExprs
-			  (fn (e, b) => b andalso
-					case e of Expr.PROCESS_STATE _ => false
-						| _ => true) true t) trans
+  List.all (fn t => Trans.foldExprs
+			(fn (e, b) => b andalso
+				      case e of Expr.PROCESS_STATE _ => false
+					      | _ => true) true t) trans
 
 
 fun channelAccessed (proc: process) trans = let
@@ -652,13 +634,13 @@ end
 
 
 fun usesChannel (proc: process) chan =
-    List.exists (fn t => case Trans.channelUsed t of
-			     NONE       => false
-			   | SOME chan' => chan = chan')
-		(#trans proc)
+  List.exists (fn t => case Trans.channelUsed t of
+			   NONE       => false
+			 | SOME chan' => chan = chan')
+	      (#trans proc)
 
 fun hasLocalVariable ({vars, ...}: process) name =
-    List.exists (fn v => Var.getName v = name) vars
+  List.exists (fn v => Var.getName v = name) vars
 
 end
 
@@ -671,29 +653,30 @@ datatype system_type =
        | ASYNCHRONOUS
 
 type system = {
-     t    : system_type,
-     glob : Var.var list,
-     chans: Channel.channel list,
-     procs: Process.process list,
-     progs: Progress.progress list,
-     prog : (Pos.pos * string) option (*  progress measure used, if any  *)
+    t    : system_type,
+    prop : string option,
+    glob : Var.var list,
+    chans: Channel.channel list,
+    procs: Process.process list
 }
 
 fun getVars ({ glob, ... }: system) = glob
 fun getChans ({ chans, ... }: system) = chans
-fun getProcs ({ procs, ... }: system) = procs
-fun getProg ({ prog, ... }: system) = prog
-fun getProgs ({ progs, ... }: system) = progs
-
+fun getProcs ({ procs, prop, ... }: system) =
+  case prop
+   of NONE => procs
+   |  SOME proc => List.filter (fn p => (Process.getName p) <> proc) procs
 fun getProc ({ procs, ... }: system, p) = Process.getProcess (procs, p)
-
-fun toDve ({ t, glob, chans, procs, progs, prog }: system,
+fun getProp ({ prop, ... }: system) = prop
+                                                             
+fun toDve ({ t, prop, glob, chans, procs }: system,
 	   fileName) = let
     val f = TextIO.openOut fileName
     fun writeVar v = TextIO.output (f, (Var.toDve v) ^ "\n")
     fun writeChannel c = TextIO.output (f, (Channel.toDve c) ^ "\n")
-    fun writeProcess c = (TextIO.output (f, "\n");
-			  TextIO.output (f, (Process.toDve c) ^ "\n"))
+    fun writeProcess c = (
+        TextIO.output (f, "\n");
+        TextIO.output (f, (Process.toDve c) ^ "\n"))
 in
     List.app writeVar glob;
     TextIO.output (f, "\n");
@@ -702,41 +685,42 @@ in
     TextIO.output (f, "\n\nsystem ");
     TextIO.output (f, case t of SYNCHRONOUS  => "sync"
 			      | ASYNCHRONOUS => "async");
-    case prog of NONE => ()
-	       | SOME (_, prog) => TextIO.output (f, " progress " ^ prog);
+    case prop
+     of NONE => ()
+     |  SOME prop => TextIO.output (f, " property " ^ prop);
     TextIO.output (f, ";\n");
     TextIO.closeOut f
 end
 
 fun channelUsers ({ chans, procs, ... }: system) chan =
-    List.filter (fn p => Process.usesChannel p chan) procs
+  List.filter (fn p => Process.usesChannel p chan) procs
 
 fun getCoIndependentStates ({ chans, procs, ... }: system) = let
     fun areCoIndependantStates states =
-	List.all (fn (p, s, t) => Process.onlyAccessLocalVars p t) states
-	andalso
-	List.all (fn (p, s, t) => Process.noProcessStateTest p t) states
-	andalso let
-	    val names = List.map (fn (p, _, _) => Process.getName p) states
-	    val chans = List.concat (List.map (fn (p, s, t) =>
-						  Process.channelAccessed p t)
-					      states)
-	    val chans = Utils.mergeStringList chans
-	in
-	    List.all
-		(fn c => List.all
-			     (fn p => (List.exists (fn n =>
-						       n = Process.getName p)
-						   names)
-				      orelse
-				      (not (Process.usesChannel p c)))
-			     procs)
-		chans
-	end
+      List.all (fn (p, s, t) => Process.onlyAccessLocalVars p t) states
+      andalso
+      List.all (fn (p, s, t) => Process.noProcessStateTest p t) states
+      andalso let
+	  val names = List.map (fn (p, _, _) => Process.getName p) states
+	  val chans = List.concat (List.map (fn (p, s, t) =>
+						Process.channelAccessed p t)
+					    states)
+	  val chans = Utils.mergeStringList chans
+      in
+	  List.all
+	      (fn c => List.all
+			   (fn p => (List.exists (fn n =>
+						     n = Process.getName p)
+						 names)
+				    orelse
+				    (not (Process.usesChannel p c)))
+			   procs)
+	      chans
+      end
     fun case1 s = areCoIndependantStates [ s ]
     fun case2 (sp, sq) = areCoIndependantStates [ sp, sq ]
     fun case3 (sp, sq, sr) = areCoIndependantStates [ sp, sq, sr ]
-		   (*
+    (*
     (*  get all the couples (process p, state of process p)  *)
     val states =
 	List.concat
@@ -764,22 +748,22 @@ fun getCoIndependentStates ({ chans, procs, ... }: system) = let
 			       (ListXProd.mapX
 				    (fn (s1, (s2, s3)) => (s1, s2, s3))
 				    (states, states'))
-		    *)
+    *)
     val res = []
-       (*
+    (*
 	List.map (fn s => [ s ]) (List.filter case1 states)
 	@
 	List.map (fn (sp, sq) => [sp, sq]) (List.filter case2 states')
 	@
 	List.map (fn (sp, sq, sr) => [sp, sq, sr]) (List.filter case3 states'')
-	*)
+    *)
     fun included sub super =
-	(List.length sub < List.length super) andalso
-	(List.all (fn (p, s, _) => List.exists (fn (p', s', _) =>
-						   (Process.getName p, s) =
-						   (Process.getName p', s'))
-					       super)
-		  sub)
+      (List.length sub < List.length super) andalso
+      (List.all (fn (p, s, _) => List.exists (fn (p', s', _) =>
+						 (Process.getName p, s) =
+						 (Process.getName p', s'))
+					     super)
+		sub)
 in
     List.filter
 	(fn states => not (List.exists
@@ -788,21 +772,21 @@ in
 end
 
 fun areIndependent ((p1, t1), (p2, t2)) =
-    (Process.getName p1) <> (Process.getName p2) andalso let
-	fun intersectEmpty ([], _) = true
-	  | intersectEmpty (_, []) = true
-	  | intersectEmpty (v1 :: l1, v2 :: l2) =
-	    if v1 = v2
-	    then false
-	    else if v1 > v2
-	    then intersectEmpty (v1 :: l1, l2)
-	    else intersectEmpty (l1, v2 :: l2)
-	val (_, glob1) = Process.accessedVars p1 t1
-	val (_, glob2) = Process.accessedVars p2 t2
-    in
-	intersectEmpty (glob1, glob2)
-	andalso Process.noProcessStateTest p1 [ t1 ]
-	andalso Process.noProcessStateTest p2 [ t2 ]
-    end
+  (Process.getName p1) <> (Process.getName p2) andalso let
+      fun intersectEmpty ([], _) = true
+	| intersectEmpty (_, []) = true
+	| intersectEmpty (v1 :: l1, v2 :: l2) =
+	  if v1 = v2
+	  then false
+	  else if v1 > v2
+	  then intersectEmpty (v1 :: l1, l2)
+	  else intersectEmpty (l1, v2 :: l2)
+      val (_, glob1) = Process.accessedVars p1 t1
+      val (_, glob2) = Process.accessedVars p2 t2
+  in
+      intersectEmpty (glob1, glob2)
+      andalso Process.noProcessStateTest p1 [ t1 ]
+      andalso Process.noProcessStateTest p2 [ t2 ]
+  end
 
 end

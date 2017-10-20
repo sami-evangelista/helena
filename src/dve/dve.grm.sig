@@ -40,7 +40,7 @@ val TRANS:  'a * 'a -> (svalue,'a) token
 val SYSTEM:  'a * 'a -> (svalue,'a) token
 val SYNC:  'a * 'a -> (svalue,'a) token
 val STATE:  'a * 'a -> (svalue,'a) token
-val PROGRESS:  'a * 'a -> (svalue,'a) token
+val PROPERTY:  'a * 'a -> (svalue,'a) token
 val PROCESS:  'a * 'a -> (svalue,'a) token
 val NOT:  'a * 'a -> (svalue,'a) token
 val OR:  'a * 'a -> (svalue,'a) token

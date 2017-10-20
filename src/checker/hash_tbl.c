@@ -19,7 +19,7 @@
 #define ATTR_GARBAGE_WIDTH  1
 #define ATTR_REFS_WIDTH     8
 #define ATTR_PRED_WIDTH     (CHAR_BIT * sizeof(hash_tbl_id_t))
-#define ATTR_EVT_WIDTH      (CHAR_BIT * sizeof(event_id_t))
+#define ATTR_EVT_WIDTH      (CHAR_BIT * sizeof(mevent_id_t))
 
 #define NO_ATTRS 8
 
@@ -617,7 +617,7 @@ void hash_tbl_set_pred
 (hash_tbl_t tbl,
  hash_tbl_id_t id,
  hash_tbl_id_t id_pred,
- event_id_t evt) {
+ mevent_id_t evt) {
   assert(hash_tbl_has_attr(tbl, ATTR_PRED) &&
          hash_tbl_has_attr(tbl, ATTR_EVT));
   hash_tbl_set_attr(tbl, id, ATTR_PRED_POS(tbl),
@@ -909,8 +909,8 @@ list_t hash_tbl_get_trace
 (hash_tbl_t tbl,
  hash_tbl_id_t id) {
   hash_tbl_id_t id_pred;
-  event_id_t evt;
-  list_t result = list_new(SYSTEM_HEAP, sizeof(event_id_t), NULL);
+  mevent_id_t evt;
+  list_t result = list_new(SYSTEM_HEAP, sizeof(mevent_id_t), NULL);
   
   while(id != (id_pred = hash_tbl_get_attr(tbl, id, ATTR_PRED_POS(tbl),
                                            ATTR_PRED_WIDTH))) {

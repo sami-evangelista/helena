@@ -32,22 +32,18 @@ datatype system_comp =
 	 A_PROCESS of Process.process |
 	 A_CHANNEL_LIST of Channel.channel list |
 	 A_VAR_LIST of Var.var list |
-	 A_PROGRESS of Progress.progress |
-	 A_PROGRESS_USE of Pos.pos * string |
-	 A_SYSTEM_TYPE of System.system_type
+	 A_SYSTEM_TYPE of System.system_type * string option
 			  
 			  
-fun extractComponents [] = (NONE, [], [], [], [], NONE) |
+fun extractComponents [] = (NONE, NONE, [], [], []) |
     extractComponents (comp :: comps) = let
-	val (t, vars, channels, procs, progs, prog) = extractComponents comps
+	val (t, prop, vars, channels, procs) = extractComponents comps
     in
 	case comp
-	 of A_PROCESS p      => (t, vars, channels, p :: procs, progs, prog) |
-	    A_VAR_LIST v     => (t, v @ vars,  channels, procs, progs, prog) |
-	    A_CHANNEL_LIST c => (t, vars,  c @ channels, procs, progs, prog) |
-	    A_SYSTEM_TYPE t  => (SOME t, vars, channels, procs, progs, prog) |
-	    A_PROGRESS p     => (t, vars, channels, procs, p :: progs, prog) |
-	    A_PROGRESS_USE p => (t, vars, channels, procs, progs, SOME p)
+	 of A_PROCESS p             => (t, prop, vars, channels, p :: procs) |
+	    A_VAR_LIST v            => (t, prop, v @ vars,  channels, procs) |
+	    A_CHANNEL_LIST c        => (t, prop, vars,  c @ channels, procs) |
+	    A_SYSTEM_TYPE (t, prop) => (SOME t, prop, vars, channels, procs)
     end
 
 val tid = ref 0
@@ -84,7 +80,7 @@ val tid = ref 0
 | OR
 | NOT
 | PROCESS
-| PROGRESS
+| PROPERTY
 | STATE
 | SYNC
 | SYSTEM
@@ -154,9 +150,8 @@ val tid = ref 0
 | assert_clause
 | assert_list
 | assert_cond
-| progress of Progress.progress
-| progress_use of Pos.pos * string
 | process_var_list of Var.var list
+| property_def of string option
 | transitions of Trans.trans list
 | trans_list of Trans.trans list
 | trans_def of Trans.trans
@@ -171,7 +166,7 @@ val tid = ref 0
 | stat_list of Stat.stat list
 | stat of Stat.stat
 | assign_stat of Stat.stat
-| system_type of System.system_type
+| system_type of System.system_type * string option
 | type_ref of Typ.basic_typ
 
 %left IMPLY
@@ -198,18 +193,17 @@ spec :
 system_comp_list
 (let val _ = tid := 0
      val comps = system_comp_list
-     val (sys_type, vars, channels, processes, progs, prog) =
+     val (sys_type, prop, vars, channels, processes) =
 	 extractComponents comps
  in
      case sys_type
       of NONE => raise Errors.ParseError
 			   (1, "system type expected (sync / async)")
        | SOME t => { t     = t,
+                     prop  = prop,
 		     glob  = vars,
 		     chans = channels,
-		     procs = processes,
-		     progs = progs,
-		     prog  = prog }
+		     procs = processes }
  end)
 
 
@@ -232,12 +226,6 @@ var_list
 |
 system_type
 (A_SYSTEM_TYPE system_type)
-|
-progress
-(A_PROGRESS progress)
-|
-progress_use
-(A_PROGRESS_USE progress_use)
 
 
 
@@ -596,19 +584,6 @@ IDENT LARRAY expr RARRAY
 
 
 
-		(*  Progress measures  *)
-progress :
-PROGRESS IDENT COLON expr SEMICOLON
-({ pos  = IDENTleft,
-   name = IDENT,
-   map  = expr })
-
-progress_use :
-USE PROGRESS IDENT SEMICOLON
-(IDENTleft, IDENT)
-
-
-
 		(*  Miscellaneous  *)
 
 type_ref :
@@ -638,9 +613,15 @@ expr COMMA expr_list
 
 		(*  System type  *)
 system_type :
-SYSTEM SYNC SEMICOLON
+SYSTEM SYNC property_def SEMICOLON
 (raise Errors.ParseError (SYSTEMleft,
 			  "unimplemented feature: synchronous systems"))
 |
-SYSTEM ASYNC SEMICOLON
-(System.ASYNCHRONOUS)
+SYSTEM ASYNC property_def SEMICOLON
+(System.ASYNCHRONOUS, property_def)
+       
+property_def :
+(NONE)
+|
+PROPERTY IDENT
+(SOME IDENT)
