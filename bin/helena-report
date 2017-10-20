@@ -103,7 +103,7 @@ options = {
     "partialOrder"            : "Partial order reduction",
     "hashCompact"             : "Hash compaction",
     "stateCaching"            : "State caching",
-    "candidateSetSize"        : "Candidate set size (for --algo=delta-ddd) = ",
+    "candidateSetSize"        : "Candidate set size (for Delta-DDD) = ",
     "hashTableSize"           : "Hash table size = ",
     "shmemHeapSize"           : "SHMEM heap size = " }
 optionsWithVal = {

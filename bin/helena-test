@@ -22,10 +22,10 @@ if __name__ == "__main__":
 
     baseCmd = "helena"
     baseOptions = [
-        ["--report-file=report.xml"],
-        ["--hash-size=20"],
-        ["--state-limit=1000000"],
-        ["--time-limit=60"]
+        ["-o=report.xml"],
+        ["-t=20"],
+        ["-sl=1000000"],
+        ["-tl=60"]
     ]
     exploreOptions = baseOptions + [
         ["-N=build-graph", "-N=explore"],
@@ -63,7 +63,7 @@ if __name__ == "__main__":
         ("-S=1", [["-A=dfs"]]),
         ("-N=build-graph", [["-A=delta-ddd"]])
     ]
-    postCmd = "cp report.xml __TEST_DIR__"
+    postCmd = "cp report.xml %d"
 
     #  create model lists
     lnaModels = []
@@ -114,5 +114,5 @@ if __name__ == "__main__":
             pf.close()
 
     #  generate the script
-    generator.genScript(out = outScript)
+    generator.genScript(out = outScript, timeout = 70)
     exit(0)
