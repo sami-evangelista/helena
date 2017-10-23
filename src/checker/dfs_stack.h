@@ -155,10 +155,9 @@ bool_t dfs_stack_proviso
 
 /**
  * @brief Create a trace in the global context from the initial state to the
- *        state on top of blue_stack (or red_stack != NULL).
+ *        state on top of the stack.
  */
 void dfs_stack_create_trace
-(dfs_stack_t blue_stack,
- dfs_stack_t red_stack);
+(dfs_stack_t stack);
 
 #endif

@@ -24,9 +24,7 @@ void * rwalk_worker
     for(i = 0; i < CFG_RWALK_MAX_DEPTH && context_keep_searching(); i ++) {
       en = state_events_mem(s, heap);
       en_size = list_size(en);
-#if CFG_ACTION_CHECK_SAFETY == 1
-      if(state_check_property(s, en)) {
-        
+      if(CFG_ACTION_CHECK_SAFETY && state_check_property(s, en)) {
         /*  copy the trace to the system heap  */
         new_trace = list_new(SYSTEM_HEAP, sizeof(event_t), event_free_void);
         while(!list_is_empty(trace)) {
@@ -38,7 +36,6 @@ void * rwalk_worker
         context_set_trace(new_trace);
 	break;
       }
-#endif
       if(0 != en_size) {
         list_pick_random(en, &e, &seed);
 	event_exec(e, s);

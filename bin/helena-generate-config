@@ -234,7 +234,10 @@ class Config:
         now = datetime.now()
         model = ""
         self.language = self.inFileExt[1:].lower()
-        if self.language == "dve":
+        if self.language == "lna":
+            languageLong = "helena"
+        elif self.language == "dve":
+            languageLong = "DVE"
             (model, _) = os.path.splitext(os.path.basename(self.inFile))
             if model == "":
                 model = "model"
@@ -272,7 +275,7 @@ class Config:
             ("HASH_SIZE_M", pow(2, self.hashSize) - 1),
             ("HASH_SIZE", pow(2, self.hashSize)),
             ("HASH_STORAGE", self.algo not in [ DELTA_DDD, RWALK ]),
-            ("LANGUAGE", "\"" + self.language + "\""),
+            ("LANGUAGE", "\"" + languageLong + "\""),
             ("LANGUAGE_DVE", self.language == "dve"),
             ("LANGUAGE_LNA", self.language == "lna"),
             ("MAX_MEMORY", self.memoryLimit),
@@ -379,8 +382,12 @@ class Config:
             #  numerical options
             elif opt in [ "-W", "--workers" ]:
                 recognized = self.handleNumericalOption("workers", val)
+                if self.workers == 0:
+                    recognized = False
             elif opt in [ "-C", "--comm-workers" ]:
                 recognized = self.handleNumericalOption("commWorkers", val)
+                if self.commWorkers == 0:
+                    recognized = False
             elif opt in [ "-a", "--capacity" ]:
                 recognized = self.handleNumericalOption("capacity", val)
             elif opt in [ "-cs", "--candidate-set-size" ]:
@@ -466,6 +473,7 @@ class Config:
 
     def generatePropertyCode(self):
         f = self.openFile("prop.h", "w")
+        f.write("#define state_check_property(now, en) FALSE\n")
         f.close()
         f = self.openFile("prop.c", "w")
         f.close()

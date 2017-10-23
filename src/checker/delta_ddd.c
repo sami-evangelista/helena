@@ -671,15 +671,13 @@ state_t delta_ddd_expand_dfs
      *  we have reached a leaf => we expand it
      */
     en = state_events_mem(s, heap);
-#if CFG_ACTION_CHECK_SAFETY == 1
-    if(state_check_property(s, en)) {
+    if(CFG_ACTION_CHECK_SAFETY && state_check_property(s, en)) {
       if(!error_reported) {
 	error_reported = TRUE;
 	context_faulty_state(s);
 	delta_ddd_create_trace(now);
       }
     }
-#endif
     en_size = list_size(en);
     if(0 == en_size) {
       context_incr_dead(w, 1);
@@ -852,10 +850,8 @@ void delta_ddd
     expand_heaps[w] = local_heap_new();
     detect_heaps[w] = local_heap_new();
     candidates_heaps[w] = local_heap_new();
-    if(CFG_EVENT_UNDOABLE) {
-      expand_evts_heaps[w] = local_heap_new();
-      detect_evts_heaps[w] = local_heap_new();
-    }
+    expand_evts_heaps[w] = local_heap_new();
+    detect_evts_heaps[w] = local_heap_new();
   }
 
   /*
@@ -904,10 +900,8 @@ void delta_ddd
     heap_free(candidates_heaps[w]);
     heap_free(expand_heaps[w]);
     heap_free(detect_heaps[w]);
-    if(CFG_EVENT_UNDOABLE) {
-      heap_free(expand_evts_heaps[w]);
-      heap_free(detect_evts_heaps[w]);
-    }      
+    heap_free(expand_evts_heaps[w]);
+    heap_free(detect_evts_heaps[w]);
   }
   context_close_graph_file();
 }

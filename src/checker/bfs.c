@@ -151,15 +151,13 @@ void * bfs_worker
         /**
          *  check the state property
          */
-#if CFG_ACTION_CHECK_SAFETY == 1
-        if(state_check_property(s, en)) {
+        if(CFG_ACTION_CHECK_SAFETY && state_check_property(s, en)) {
           if(with_trace) {
             bfs_report_trace(item.id);
           } else {
             context_faulty_state(s);
           }
         }
-#endif
         
         /**
          *  apply edge lean reduction after checking state property

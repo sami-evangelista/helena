@@ -19,7 +19,6 @@ typedef uint32_t node_t;
 
 void graph_make_report
 (char * in_file,
- char * out_file,
- char * dot_file);
+ char * out_file);
 
 #endif

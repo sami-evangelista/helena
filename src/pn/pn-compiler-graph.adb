@@ -73,25 +73,25 @@ package body Pn.Compiler.Graph is
       Plc(L, "}");
       --=======================================================================
       Plh(L, "typedef struct {");
-      Plh(L, 1, "FILE *         out;");
-      Plh(L, 1, "mstate_t       now;");
-      Plh(L, 1, "mstate_t       proj;");
-      Plh(L, 1, "mstate_t       all;");
-      Plh(L, 1, "int64_t        top;");
-      Plh(L, 1, "mevent_t *     stack;");
-      Plh(L, 1, "hash_tbl_t     storage;");
-      Plh(L, 1, "bool_t         in_terminal;");
-      Plh(L, 1, "bool_t         alt_bit;");
-      Plh(L, 1, "mstate_t       dead[MAX_DEAD];");
-      Plh(L, 1, "uint32_t       no_dead;");
-      Plh(L, 1, "uint32_t       terminals;");
-      Plh(L, 1, "harray_t       qlive_events;");
-      Plh(L, 1, "harray_t       live_events;");
-      Plh(L, 1, "uint32_t       min_card[" & P_Size(N) & "];");
-      Plh(L, 1, "uint32_t       max_card[" & P_Size(N) & "];");
-      Plh(L, 1, "uint32_t       min_mult[" & P_Size(N) & "];");
-      Plh(L, 1, "uint32_t       max_mult[" & P_Size(N) & "];");
-      Plh(L, 1, "tr_id_t        current_tid;");
+      Plh(L, 1, "FILE * out;");
+      Plh(L, 1, "mstate_t now;");
+      Plh(L, 1, "mstate_t proj;");
+      Plh(L, 1, "mstate_t all;");
+      Plh(L, 1, "int64_t top;");
+      Plh(L, 1, "mevent_t * stack;");
+      Plh(L, 1, "hash_tbl_t storage;");
+      Plh(L, 1, "bool_t in_terminal;");
+      Plh(L, 1, "bool_t alt_bit;");
+      Plh(L, 1, "mstate_t dead[MAX_DEAD];");
+      Plh(L, 1, "uint32_t no_dead;");
+      Plh(L, 1, "uint32_t terminals;");
+      Plh(L, 1, "harray_t qlive_events;");
+      Plh(L, 1, "harray_t live_events;");
+      Plh(L, 1, "uint32_t min_card[" & P_Size(N) & "];");
+      Plh(L, 1, "uint32_t max_card[" & P_Size(N) & "];");
+      Plh(L, 1, "uint32_t min_mult[" & P_Size(N) & "];");
+      Plh(L, 1, "uint32_t max_mult[" & P_Size(N) & "];");
+      Plh(L, 1, "tr_id_t current_tid;");
       Plh(L, "} struct_model_graph_data_t;");
       Plh(L, "typedef struct_model_graph_data_t * model_graph_data_t;");
       --=======================================================================
@@ -234,8 +234,10 @@ package body Pn.Compiler.Graph is
       Plc(L, Prototype & " {");
       Plc(L, 1, "mstate_free (data->now);");
       Plc(L, 1, "mstate_free (data->proj);");
+      Plc(L, "#if ACTION_BUILD_GRAPH == 1");
       Plc(L, 1, "hash_tbl_fold (data->storage, " &
 	    "&model_graph_fold, (void *) data);");
+      Plc(L, "#endif");
       Plc(L, "}");
       --=======================================================================
       Prototype := To_Ustring
@@ -298,8 +300,10 @@ package body Pn.Compiler.Graph is
          Plc(L, 1, "data->proj->" & C & ".card = s->" & C & ".card;");
          Plc(L, 1, "data->proj->" & C & ".mult = s->" & C & ".mult;");
          Plc(L, 1, "data->proj->" & C & ".heap = s->" & C & ".heap;");
+         Plc(L, "#if ACTION_BUILD_GRAPH == 1");
 	 Plc(L, 1, "hash_tbl_insert(data->storage, data->proj, " &
 	       "0, &b, &id, &h);");
+         Plc(L, "#endif");
 	 Plc(L, 1, Local_State_Init_Func(P) &
 	       "(data->proj->" & C & ", SYSTEM_HEAP);");
 	 Plc(L, 1, "if (s->" & C &

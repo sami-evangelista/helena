@@ -148,10 +148,7 @@ void dfs_stack_write
       fwrite(&len, sizeof(int), 1, f);
       state_serialise(item.s, buffer);
       fwrite(buffer, len, 1, f);
-      state_free(item.s);
     }
-    list_free(item.en);
-    event_free(item.e);
   }
   fclose(f);
   stack->files ++;
@@ -243,13 +240,6 @@ void dfs_stack_pop
   dfs_stack_item_t item = stack->blocks[stack->current]->items[stack->top];
   
   assert(0 != stack->size);
-  if(stack->states_stored) {
-    state_free(item.s);
-  }
-  list_free(item.en);
-  if(item.e_set) {
-    event_free(item.e);
-  }
   heap_set_position(h, item.heap_pos);
   stack->top --;
   stack->size --;
@@ -298,9 +288,6 @@ event_list_t dfs_stack_compute_events
   bool_t reduced;
 
   assert(0 != stack->size);
-  if(item.en) {
-    list_free(item.en);
-  }
   item.heap_pos = heap_get_position(h);
   
   if(filter) {
@@ -376,29 +363,20 @@ bool_t dfs_stack_proviso
 }
 
 void dfs_stack_create_trace
-(dfs_stack_t blue_stack,
- dfs_stack_t red_stack) {
+(dfs_stack_t stack) {
   event_t e;
-  dfs_stack_t stack, stacks[2];
   dfs_stack_item_t item;
   int i;
   event_list_t trace = list_new(SYSTEM_HEAP, sizeof(event_t), event_free_void);
 
-  stacks[0] = red_stack;
-  stacks[1] = blue_stack;
-  for(i = 0; i < 2; i ++) {
-    stack = stacks[i];
-    if(stack) {
-      dfs_stack_pop(stack);
-      while(stack->size > 0) {
-        item = stack->blocks[stack->current]->items[stack->top];
-        if(item.e_set) {
-          e = event_copy(item.e);
-          list_prepend(trace, &e);
-        }
-        dfs_stack_pop(stack);
-      }
+  dfs_stack_pop(stack);
+  while(stack->size > 0) {
+    item = stack->blocks[stack->current]->items[stack->top];
+    if(item.e_set) {
+      e = event_copy(item.e);
+      list_prepend(trace, &e);
     }
+    dfs_stack_pop(stack);
   }
   context_set_trace(trace);
 }

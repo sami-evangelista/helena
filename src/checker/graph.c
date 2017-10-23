@@ -668,30 +668,10 @@ void graph_make_statistics
 
 
 
-/*
- *  Function: graph_dot_export
- */
-void graph_dot_export
-(graph_t g,
- char * in_file,
- char * out_file) {
-  FILE * f = fopen(out_file, "w");
-
-  fprintf(f, "digraph %s {\n", model_name());
-  fprintf(f, "}\n");
-  fclose(f);
-}
-
-
-
 void graph_make_report
 (char * in_file,
- char * out_file,
- char * dot_file) {
+ char * out_file) {
   graph_t g = graph_load(in_file, SYSTEM_HEAP);
   graph_make_statistics(g, out_file);
-  if(dot_file) {
-    graph_dot_export(g, in_file, out_file);
-  }
   graph_free(g);
 }

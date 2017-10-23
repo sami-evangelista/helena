@@ -103,7 +103,7 @@ state_t state_unserialise_mem
   
   result->b = 0;
   memcpy(&(result->b), v, bsize);
-  result->m = mstate_unserialise(v + bsize);
+  result->m = mstate_unserialise_mem(v + bsize, heap);
   result->heap = heap;
   return result;
 }

@@ -14,7 +14,7 @@ void dfs() {}
 
 #else
 
-#define DFS_HEAP_SIZE 100000
+#define DFS_MAX_HEAP_SIZE 100000
 
 storage_t S;
 
@@ -28,10 +28,8 @@ state_t dfs_recover_state
   if(CFG_EVENT_UNDOABLE) {
     dfs_stack_event_undo(stack, now);
   } else if(CFG_HASH_COMPACTION) {
-    state_free(now);
     now = dfs_stack_top_state(stack, heap);
   } else {
-    state_free(now);
     id = dfs_stack_top(stack);
     now = storage_get_mem(S, id, w, heap);
   }
@@ -41,51 +39,44 @@ state_t dfs_recover_state
 state_t dfs_check_state
 (state_t now,
  event_list_t en,
- dfs_stack_t blue_stack,
- dfs_stack_t red_stack) { 
-#if CFG_ACTION_CHECK_SAFETY == 1
-  if(state_check_property(now, en)) {
+ dfs_stack_t stack) { 
+  if(CFG_ACTION_CHECK_SAFETY && state_check_property(now, en)) {
     context_faulty_state(now);
-    dfs_stack_create_trace(blue_stack, red_stack);
+    dfs_stack_create_trace(stack);
   }
-#endif
 }
 
-state_t dfs_main
-(worker_id_t w,
- state_t now,
- storage_id_t id,
- heap_t heap,
- bool_t blue,
- dfs_stack_t blue_stack,
- dfs_stack_t red_stack) {
+void * dfs_worker
+(void * arg) {
   const bool_t por = CFG_POR;
   const bool_t proviso = CFG_PROVISO;
   const bool_t edge_lean = CFG_EDGE_LEAN;
-  storage_id_t id_seed;
-  bool_t push;
-  dfs_stack_t stack = blue ? blue_stack : red_stack;
-  state_t copy;
+  const worker_id_t w = (worker_id_t) (unsigned long int) arg;
+  const uint32_t wid = context_global_worker_id(w);
+  const bool_t shuffle = CFG_PARALLEL || CFG_DISTRIBUTED;
+  const bool_t states_stored = !CFG_EVENT_UNDOABLE && CFG_HASH_COMPACTION;
+  hash_key_t h;
+  heap_t heap = local_heap_new();
+  state_t copy, now = state_initial_mem(heap);
+  dfs_stack_t stack = dfs_stack_new(wid, CFG_DFS_STACK_BLOCK_SIZE,
+                                    shuffle, states_stored);
+  storage_id_t id, id_seed, id_top;
+  bool_t push, blue = TRUE, is_new;
   event_t e;
   event_t * e_ref;
-  bool_t is_new;
   event_list_t en;
-  storage_id_t id_top;
-  hash_key_t h;
+  uint32_t red_stack_size = 0;
+
 
   /*
-   *  push the root state on the stack
+   *  push the initial state on the stack
    */
-  storage_ref(S, w, id);
-  dfs_stack_push(stack, id, now);
+  storage_insert(S, now, w, &is_new, &id_top, &h);
+  storage_ref(S, w, id_top);
+  storage_set_cyan(S, id_top, w, TRUE);
+  dfs_stack_push(stack, id_top, now);
   en = dfs_stack_compute_events(stack, now, por, NULL);
-  if(blue) {
-    storage_set_cyan(S, id, w, TRUE);
-  } else {
-    id_seed = id;
-    storage_set_pink(S, id, w, TRUE);
-  }
-  dfs_check_state(now, en, blue_stack, red_stack);
+  dfs_check_state(now, en, stack);
 
   /*
    *  search loop
@@ -99,9 +90,9 @@ state_t dfs_main
     storage_gc(S, w);
     
     /*
-     *  reinitialise the heap if its current size exceeds DFS_HEAP_SIZE
+     *  reinitialise the heap if its current size exceeds DFS_MAX_HEAP_SIZE
      */
-    if(heap_size(heap) >= DFS_HEAP_SIZE) {
+    if(heap_size(heap) >= DFS_MAX_HEAP_SIZE) {
       copy = state_copy(now);
       heap_reset(heap);
       now = state_copy_mem(copy, heap);
@@ -126,19 +117,16 @@ state_t dfs_main
 
       /*
        *  we check an ltl property => launch the red search if the
-       *  state is accepting and halt after if an accepting cycle has
-       *  been found
+       *  state is accepting
        */
-#if CFG_ACTION_CHECK_LTL == 1
-      if(blue && state_accepting(now)) {
+      if(CFG_ACTION_CHECK_LTL && blue && state_accepting(now)) {
         context_incr_accepting(w, 1);
-	dfs_main(w, now, dfs_stack_top(stack), heap,
-                 FALSE, blue_stack, red_stack);
-	if(!context_keep_searching()) {
-          break;
-	}
+        id_seed = dfs_stack_top(stack);
+        blue = FALSE;
+        red_stack_size = 0;
+        dfs_stack_compute_events(stack, now, FALSE, NULL);
+        goto loop_start;
       }
-#endif
 
       /* 
        * put new colors on the popped state as it leaves the stack
@@ -149,6 +137,9 @@ state_t dfs_main
         storage_set_blue(S, id_top, TRUE);
       } else {
         storage_set_red(S, id_top, TRUE);
+        if(red_stack_size == 0) {
+          blue = TRUE;
+        }
       }
 
       /*
@@ -198,12 +189,10 @@ state_t dfs_main
        *  if we check an LTL property, test whether the state reached
        *  is the seed.  exit the loop if this is the case
        */
-#if CFG_ACTION_CHECK_LTL == 1
-      if(!blue && (id == id_seed)) {
-        dfs_stack_create_trace(blue_stack, red_stack);
+      if(CFG_ACTION_CHECK_LTL && !blue && (id == id_seed)) {
+        dfs_stack_create_trace(stack);
         break;
       }
-#endif
       
       /*
        *  see if it must be pushed on the stack to be processed
@@ -251,6 +240,7 @@ state_t dfs_main
           storage_set_cyan(S, id, w, TRUE);
         } else {
           storage_set_pink(S, id, w, TRUE);
+          red_stack_size ++;
         }
 
         /*
@@ -259,34 +249,10 @@ state_t dfs_main
 	if(blue && (0 == list_size(en))) {
 	  context_incr_dead(w, 1);
 	}
-        dfs_check_state(now, en, blue_stack, red_stack);
+        dfs_check_state(now, en, stack);
       }
     }
   }
-  return now;
-}
-
-void * dfs_worker
-(void * arg) {
-  worker_id_t w = (worker_id_t) (unsigned long int) arg;
-  uint32_t wid = context_global_worker_id(w);
-  hash_key_t h;
-  bool_t dummy;
-  storage_id_t id;
-  heap_t heap = local_heap_new();
-  state_t now = state_initial_mem(heap);
-  bool_t shuffle = CFG_PARALLEL || CFG_DISTRIBUTED;
-  bool_t states_stored = !CFG_EVENT_UNDOABLE && CFG_HASH_COMPACTION;
-  dfs_stack_t blue_stack = dfs_stack_new(wid * 2, CFG_DFS_STACK_BLOCK_SIZE,
-                                         shuffle, states_stored);
-  dfs_stack_t red_stack = CFG_ACTION_CHECK_LTL ?
-    dfs_stack_new(wid * 2 + 1, CFG_DFS_STACK_BLOCK_SIZE,
-		   shuffle, states_stored)
-    : NULL;
-
-  storage_insert(S, now, w, &dummy, &id, &h);
-  storage_set_cyan(S, id, w, TRUE);
-  now = dfs_main(w, now, id, heap, TRUE, blue_stack, red_stack);
 
   /**
    *  if state caching is on we keep waiting on the storage barrier
@@ -296,16 +262,15 @@ void * dfs_worker
     storage_gc_barrier(S, w);
   }
 
-  dfs_stack_free(blue_stack);
-  dfs_stack_free(red_stack);
-  state_free(now);
+  dfs_stack_free(stack);
   heap_free(heap);
+
+  return NULL;
 }
 
 void dfs
 () {
   worker_id_t w;
-  void * dummy;
 
   S = context_storage();
 
