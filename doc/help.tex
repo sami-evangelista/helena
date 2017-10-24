@@ -133,16 +133,11 @@ range. For the same reason, try to limit capacities of places. Option
 
 
 \paragraph{Storage methods}
-We advise to proceed as follows when verifying a property :
-\begin{itemize}
-\item Use a partial search with hash compaction method (option
-  \longForm{hash-compaction}).  This method can explore a large
-  portion of the state space and report errors much faster.
-\item If no error is found during the first stage, use the default
-  storage method without compression technique.
-\item If the second search ran out of memory, use compression
-  techniques (option \longForm{delta}) and rerun the search.
-\end{itemize}
+When analysing a property, we advise to first use a partial search
+with hash compaction method (option \longForm{hash-compaction}).  This
+method can explore a large portion of the state space and report
+errors much faster.  Then, if no error is found during this first
+stage, a second search can be launched.
 
 
 \paragraph{Run time checks}

@@ -109,6 +109,7 @@ def printHelp():
     print "  -t   --hash-size=N"
     print "  -W   --workers=N"
     print "  -C   --comm-workers=N"
+    print "  -R   --random-succs"
     print "  -cs  --candidate-set-size=N"
     print "  -hs  --shmem-heap-size=N"
     #print "  -mf  --machine-file=FILE"
@@ -146,6 +147,7 @@ class Config:
         self.hashCompaction = False
         self.edgeLean = False
         self.withPapi = False
+        self.randomSuccs = False
         self.withObserver = True
         self.workers = 1
         self.commWorkers = 1
@@ -175,15 +177,13 @@ class Config:
         self.candidateSetSize = 10 ** 5
         self.stateCachingGcThreshold = 50
         self.stateCachingGcRatio = 0.01
+        self.maxTraceLength = 1000
 
     #  correct inconsistencies in received arguments
     def correct(self):
         if self.action == BUILD_GRAPH:
             self.algo = DELTA_DDD
             self.prop = ""
-            self.stateCaching = False
-            self.hashCompaction = False
-            self.partialOrder = False
             self.workers = 1
         elif self.action == CHECK and self.propType == LTL:
             self.algo = DFS
@@ -192,30 +192,31 @@ class Config:
                 self.traceType = EVENTS
         elif self.action == SIMULATE:
             self.runTimeChecks = True
-        if self.algo == BFS:
-            self.stateCaching = False
-        elif self.algo == FRONTIER:
-            self.stateCaching = False
+        if self.algo == FRONTIER:
             self.traceType = STATE
-        elif self.algo == RWALK:
-            self.stateCaching = False
-            self.hashCompaction = False
-            self.partialOrder = False
-            self.edgeLean = False
-        elif self.algo == DELTA_DDD:
-            self.stateCaching = False
-            self.hashCompaction = False
-            self.partialOrder = False
-            self.edgeLean = False
-        elif self.algo == DDFS:
-            self.partialOrder = False
-            self.stateCaching = False
-            self.edgeLean = False
         elif self.algo == DBFS:
-            self.partialOrder = False
-            self.stateCaching = False
-            self.edgeLean = False
             self.traceType = STATE
+
+        #  state caching only available in DFS
+        self.stateCaching = self.stateCaching and self.algo in [
+            DFS ]
+
+        #  hash compaction not available for random walk and delta-ddd
+        self.hashCompaction = self.hashCompaction and self.algo not in [
+            RWALK, DELTA_DDD ]
+
+        #  hash compaction not available for random walk, delta-ddd and
+        #  distributed algoritms
+        self.partialOrder = self.partialOrder and self.algo not in [
+            RWALK, DELTA_DDD, DDFS, DBFS ]
+
+        #  same for edge-lean reduction
+        self.edgeLean = self.edgeLean and self.algo not in [
+            RWALK, DELTA_DDD, DDFS, DBFS ]
+
+        #  random successors selection only available for DFS and DDFS
+        self.randomSuccs = self.randomSuccs and self.algo in [
+            DFS, DDFS ]
 
     def openFile(self, name, mode):
         if self.directory is None:
@@ -282,6 +283,7 @@ class Config:
             ("MAX_MEMORY", self.memoryLimit),
             ("MAX_STATE", self.stateLimit),
             ("MAX_TIME", self.timeLimit),
+            ("MAX_TRACE_LENGTH", self.maxTraceLength),
             ("MEMORY_LIMITED", self.memoryLimit != 0),
             ("MODEL_HAS_GRAPH_ROUTINES", self.language == "lna"),
             ("MODEL_NAME", "\"" + model + "\""),
@@ -292,6 +294,7 @@ class Config:
             ("PROPERTY", "\"" + prop + "\""),
             ("PROVISO", self.partialOrder and self.propType is not None and
              self.propType != DEADLOCK),
+            ("RANDOM_SUCCS", self.randomSuccs),
             ("REPORT_FILE", "\"report.xml\""),
             ("RG_REPORT_FILE", "\"rg-report.xml\""),
             ("RWALK_MAX_DEPTH", self.rwalkMaxDepth),
@@ -377,6 +380,8 @@ class Config:
                 self.stateCaching = (val is None) or val == "1"
             elif opt in [ "-H", "--hash-compaction" ]:
                 self.hashCompaction = (val is None) or val == "1"
+            elif opt in [ "-R", "--random-succs" ]:
+                self.randomSuccs = (val is None) or val == "1"
             elif opt in [ "-wp", "--with-papi" ]:
                 self.withPapi = (val is None) or val == "1"
 

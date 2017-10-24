@@ -53,7 +53,7 @@ void * dfs_worker
   const bool_t edge_lean = CFG_EDGE_LEAN;
   const worker_id_t w = (worker_id_t) (unsigned long int) arg;
   const uint32_t wid = context_global_worker_id(w);
-  const bool_t shuffle = CFG_PARALLEL || CFG_DISTRIBUTED;
+  const bool_t shuffle = CFG_PARALLEL || CFG_DISTRIBUTED || CFG_RANDOM_SUCCS;
   const bool_t states_stored = !CFG_EVENT_UNDOABLE && CFG_HASH_COMPACTION;
   hash_key_t h;
   heap_t heap = local_heap_new();

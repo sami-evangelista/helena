@@ -99,10 +99,12 @@ algorithms = {
     "randomWalk"              : "Random walk",
     "deltaDDD"                : "Delta-DDD" }
 options = {
-    "searchAlgorithm"         : "Search algorithm = ",
+    "edgeLean"                : "Edge-lean reduction",
     "partialOrder"            : "Partial order reduction",
-    "hashCompact"             : "Hash compaction",
+    "hashCompaction"          : "Hash compaction",
     "stateCaching"            : "State caching",
+    "randomSuccs"             : "Random successor selection",
+    "searchAlgorithm"         : "Search algorithm = ",
     "candidateSetSize"        : "Candidate set size (for Delta-DDD) = ",
     "hashTableSize"           : "Hash table size = ",
     "shmemHeapSize"           : "SHMEM heap size = " }
@@ -312,29 +314,32 @@ def printTraceReport(r):
         "struct"    : printStruct,
         "container" : printContainer,
         "state"     : printState,
-        "event"     : printEvent
-        }
+        "event"     : printEvent }
     traceTypes = {
         "traceFull"  : "The following run invalidates the property.",
         "traceEvents": "The following run invalidates the property.",
-        "traceState" : "The following state invalidates the property."
-        }
+        "traceState" : "The following state invalidates the property." }
     for item in r.childNodes:
         name = item.nodeName
         if name in traceTypes:
-            print "    " +  traceTypes[name] + "\n"
-            for sub in item.childNodes:
-                name = sub.nodeName
-                if name in traceItem:
-                    traceItem[name](sub, traceItem)
+            if len(item.getElementsByTagName("traceTooLong")) > 0:
+                print "\
+    A run invalidating the property has been found but is too long to be\n\
+    displayed.  If depth-first search was used, try running the search\n\
+    again with option --random-succs to try finding another such run."
+            else:
+                print "    " + traceTypes[name] + "\n"
+                for sub in item.childNodes:
+                    name = sub.nodeName
+                    if name in traceItem:
+                        traceItem[name](sub, traceItem)
 
 def printDoc(doc):
     printer = {
         "infoReport"      : printInfoReport,
         "searchReport"    : printSearchReport,
         "statisticsReport": printStatisticsReport,
-        "traceReport"     : printTraceReport
-        }
+        "traceReport"     : printTraceReport }
     report = doc.getElementsByTagName("helenaReport")
     print "Helena report"
     printDashes(0)

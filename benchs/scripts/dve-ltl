@@ -17,6 +17,7 @@ for(_, _, files) in os.walk(inDir):
 
 cmd = "helena"
 opts = [
+    ["-tr=events"],
     ["-N=check"],
     ["-o=report.xml"],
     ["-t=26"],

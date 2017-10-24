@@ -45,16 +45,6 @@ conflicting options, the last ones will prevail.
 \item\optionDef{V}{version}\\ Prints the version number and exit.
 \item\optionDef{v}{verbose}\\ This option activates the verbose
   mode.  Helena prints a message at each step.
-\item\optionDef{g}{progress=LEVEL}\\ \texttt{LEVEL} can then take
-  one of these three values:
-  \begin{itemize}
-  \item \texttt{no-compile} --- Helena stops after the generation of
-    source files.
-  \item \texttt{no-check} --- Helena launches compilation but does not
-    launches the search.
-  \item \texttt{no-report} --- Helena launches the search but does not
-    print any report.
-  \end{itemize}
 \item\optionDef{N}{action=ACTION}\\
   This indicates the action performed by Helena on the model.
   \texttt{ACTION} must have one of the following values:
@@ -75,24 +65,35 @@ conflicting options, the last ones will prevail.
     \texttt{prop} (which must be a property defined in the model file)
     is verified.
   \end{itemize}
-\item\optionDef{p}{property-file=FILE-NAME}\\
-  File \texttt{FILE-NAME} contains the definition of the property to
-  check specified with option \longForm{action=CHECK-prop}.  By
-  default, if the input file of the model is \texttt{model.lna},
-  Helena will try opening file \texttt{model.prop.lna} to look for the
-  property definition.
-\item\optionDef{md}{model-directory=DIRECTORY}\\
-  All generated files such as source files are put in directory
-  \texttt{DIRECTORY} instead of
-  \texttt{\~{}/.helena/models/lna/my-net}.
+\item\optionDef{g}{progress=LEVEL}\\ \texttt{LEVEL} can then take
+  one of these three values:
+  \begin{itemize}
+  \item \texttt{no-compile} --- Helena stops after the generation of
+    source files.
+  \item \texttt{no-check} --- Helena launches compilation but does not
+    launches the search.
+  \item \texttt{no-report} --- Helena launches the search but does not
+    print any report.
+  \end{itemize}
+\item\optionDef{b[=\{0|1\}]}{observer[=\{0|1\}]}\\ Turn on (if 1) or
+  off (if 0) the observer thread that prints some progression
+  informations during the search.  It is turned on by default.
+\item\optionDef{p}{property-file=FILE-NAME}\\ File \texttt{FILE-NAME}
+  contains the definition of the property to check specified with
+  option \longForm{action=CHECK-prop}.  By default, if the input file
+  of the model is \texttt{model.lna}, Helena will try opening file
+  \texttt{model.prop.lna} to look for the property definition.
+\item\optionDef{md}{model-directory=DIRECTORY}\\ All generated files
+  such as source files are put in directory \texttt{DIRECTORY} instead
+  of \texttt{\~{}/.helena/models/lna/my-net}.
 \end{description}
 
 \subsection{Search options}
 \begin{description}
-\item\optionDef{A=ALGO-TYPE}{algo=ALGO-TYPE}\\ This option is used
-  to indicate to Helena the type of search that must be used to
-  explore the state space. Five search modes are available. They
-  correspond to the three following possible values for parameter
+\item\optionDef{A=ALGO-TYPE}{algo=ALGO-TYPE}\\ This option is used to
+  indicate to Helena the type of search that must be used to explore
+  the state space. Five search modes are available. They correspond to
+  the three following possible values for parameter
   \texttt{ALGO-TYPE}:
 \begin{itemize}
 \item\texttt{DFS} --- The state space is explored using a depth-first
@@ -105,10 +106,10 @@ conflicting options, the last ones will prevail.
   space contains cycles.
 \item\texttt{DELTA-DDD} --- The state space is explored using a
   parallel breadth-first search based on state compression.
-\item\texttt{RWALK} --- Helena explores the state space using a
-  random walk.  The principle is to randomly select at each state an
-  enabled transition, execute it and reiterate this process.  The walk
-  is reinitiated each time a deadlock state is met.  If no limit is
+\item\texttt{RWALK} --- Helena explores the state space using a random
+  walk.  The principle is to randomly select at each state an enabled
+  transition, execute it and reiterate this process.  The walk is
+  reinitiated each time a deadlock state is met.  If no limit is
   specified (see Section~\ref{subsection:limits}) the search will last
   forever.
 \end{itemize}
@@ -117,6 +118,11 @@ conflicting options, the last ones will prevail.
   value is 22.
 \item\optionDef{W=N}{workers=N}\\ Specify the number of working
   threads that will perform the search.
+\item\optionDef{R[=\{0|1\}]}{random-succs[=\{0|1\}]}\\ Turn on (if 1)
+  or off (if 0) the randomised successor selection.  This is only
+  valid if algorithm \texttt{DFS} is used.  This option is useful if
+  the counter-example produced is too long.  Using randomisation can
+  often produce a smaller counter-example.
 \item\optionDef{cs=N}{candidate-set-size=N}\\ Set the candidate set
   size of algorithm \texttt{DELTA-DDD}.  100~000 is the default value.
   Increasing it may consume more memory but can fasten the search.
@@ -125,23 +131,26 @@ conflicting options, the last ones will prevail.
 
 \subsection{Reduction techniques}
 \begin{description}
-\item\optionDef{H}{hash-compaction}\\ The hash compaction storage
-  method is used.  Its principle is to only store a hash signature of
-  each visited state.  In case of hash conflict, Helena will not
-  necessarily explore the whole state space and may report that no
-  error has been found whereas one could exist.
-\item\optionDef{P}{partial-order}\\ Specify if partial order
-  reductions are applied during the search.  Partial order methods try
-  to alleviate the state explosion problem by limiting the exploration
-  of multiple paths that are redundant with respect to the desired
-  property.  This causes some states to be never explored during the
-  search.  The reductions done depend on the property verified.  If
-  there is no property checked, the reduction done only preserves the
-  existence of deadlock states.
-\item\optionDef{S}{state-caching}\\ The principle of state caching is
-  to only store a subset of visited states in such a way that
-  termination is still guaranteed.  Other visited states are
-  forgotten.  This technique can be very efficient but can also
+\item\optionDef{H[=\{0|1\}]}{hash-compaction[=\{0|1\}]}\\ The hash
+  compaction storage method is used.  Its principle is to only store a
+  hash signature of each visited state.  In case of hash conflict,
+  Helena will not necessarily explore the whole state space and may
+  report that no error has been found whereas one could exist.
+\item\optionDef{P[=\{0|1\}]}{partial-order[=\{0|1\}]}\\ Specify if
+  partial order reductions are applied during the search.  Partial
+  order methods try to alleviate the state explosion problem by
+  limiting the exploration of multiple paths that are redundant with
+  respect to the desired property.  This causes some states to be
+  never explored during the search.  The reductions done depend on the
+  property verified.  If there is no property checked, the reduction
+  done only preserves the existence of deadlock states.
+\item\optionDef{E[=\{0|1\}]}{edge-lean[=\{0|1\}]}\\ Edge-lean
+  reduction is used.  This one allows to prune some arcs of the
+  reachability graph, hence reducing the search time.
+\item\optionDef{S[=\{0|1\}]}{state-caching[=\{0|1\}]}\\ The principle
+  of state caching is to only store a subset of visited states in such
+  a way that termination is still guaranteed.  Other visited states
+  are forgotten.  This technique can be very efficient but can also
   considerably increase the execution time by revisiting forgotten
   states.
 \end{description}
@@ -165,11 +174,11 @@ conflicting options, the last ones will prevail.
   preprocessor symbol \texttt{SYMBOL-NAME}.
 \item\optionDef{a=N}{capacity=N}\\ The default capacity of places is
   set to \texttt{N}.
-\item\optionDef{r}{run-time-checks}\\ Activate run time checks such
-  as: division by 0, expressions out of range, capacity of places
-  exceeded, \dots. If this option is not activated, and such an error
-  occurs during the analysis, Helena may either crash, either produce
-  wrong results.
+\item\optionDef{r[=\{0|1\}]}{run-time-checks[=\{0|1\}]}\\ Activate run
+  time checks such as: division by 0, expressions out of range,
+  capacity of places exceeded, \dots. If this option is not activated,
+  and such an error occurs during the analysis, Helena may either
+  crash, either produce wrong results.
 \item\optionDef{L}{link=OBJECT-FILE}\\ Add file \texttt{OBJECT-FILE}
   to the files linked by Helena when compiling the net.  Please
   consult Chapter~\ref{chapter_interfacing} for further help on this

@@ -1,0 +1,38 @@
+#!/bin/bash
+
+getStat () {
+    s=$1
+    l=$(grep -m1 "<$s>" $f)
+    result=${l##<$s>}
+    result=${result%%</$s>}
+    echo $result
+}
+
+find out-ltl -name report.xml | while read f
+do
+    m=$(getStat model)
+    r=$(getStat searchResult)
+    s=$(getStat statesStored)
+    a=$(getStat arcs)
+    if [ $r = propertyViolated ]
+    then
+        r=ERROR
+    elif [ $r = propertyHolds ]
+    then
+        r=OK
+    elif [ $r = timeElapsed ]
+    then
+        r=OOT
+    elif [ $r = error ]
+    then
+        r=OOM
+    fi
+    echo "$m;$r;$s;$a"
+done | sort -n -k3 -t';' | while read l
+do
+    m=$(echo $l | cut -d';' -f1)
+    r=$(echo $l | cut -d';' -f2)
+    s=$(echo $l | cut -d';' -f3)
+    a=$(echo $l | cut -d';' -f4)
+    printf "%25s %8s %12d %12d\n" $m $r $s $a
+done

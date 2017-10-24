@@ -147,23 +147,25 @@ void context_output_trace
   state_t s = state_initial();
   list_size_t l;
 
-  context_state_to_xml(s, out);
   if(CTX->trace) {
-    l = list_size(CTX->trace);
-    while(!list_is_empty(CTX->trace)) {
-      list_pick_first(CTX->trace, &e);
-      if(!event_is_dummy(e)) {
-        context_event_to_xml(e, out);
-        event_exec(e, s);
-	if(CFG_TRACE_FULL) {
-	  context_state_to_xml(s, out);
-	}
+    if(list_size(CTX->trace) > CFG_MAX_TRACE_LENGTH) {
+      fprintf(out, "<traceTooLong/>\n");
+    } else {
+      context_state_to_xml(s, out);
+      l = list_size(CTX->trace);
+      while(!list_is_empty(CTX->trace)) {
+        list_pick_first(CTX->trace, &e);
+        if(!event_is_dummy(e)) {
+          context_event_to_xml(e, out);
+          event_exec(e, s);
+          if(CFG_TRACE_FULL) {
+            context_state_to_xml(s, out);
+          }
+        }
+        event_free(e);
       }
-      event_free(e);
-    }
-    if(CFG_TRACE_EVENTS) {
-      if(l > 0) {
-	context_state_to_xml(s, out);
+      if(CFG_TRACE_EVENTS && l > 0) {
+        context_state_to_xml(s, out);
       }
     }
   }
@@ -271,14 +273,20 @@ void finalise_context
       fprintf(out, "<shmemHeapSize>%d</shmemHeapSize>\n",
               CFG_SHMEM_HEAP_SIZE);
     }
-    if(CFG_HASH_COMPACTION) {
-      fprintf(out, "<hashCompact/>\n");
-    }
     if(CFG_POR) {
       fprintf(out, "<partialOrder/>\n");
     }
     if(CFG_STATE_CACHING) {
       fprintf(out, "<stateCaching/>\n");
+    }
+    if(CFG_HASH_COMPACTION) {
+      fprintf(out, "<hashCompaction/>\n");
+    }
+    if(CFG_RANDOM_SUCCS) {
+      fprintf(out, "<randomSuccs/>\n");
+    }
+    if(CFG_EDGE_LEAN) {
+      fprintf(out, "<edgeLean/>\n");
     }
     if(CFG_ALGO_DELTA_DDD) {
       fprintf(out, "<candidateSetSize>%d</candidateSetSize>\n",
