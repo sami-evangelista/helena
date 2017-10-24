@@ -127,8 +127,7 @@ order_t event_cmp
 bool_t event_are_independent
 (event_t e,
  event_t f) {
-  /*  not implemented  */
-  assert(0);
+  return mevent_are_independent(e.m, f.m);
 }
 
 unsigned int event_char_size
