@@ -11,122 +11,121 @@ def exitWithUsage(exitCode):
     print "helena-test input-dir output-test-script"
     exit(exitCode)
 
-if __name__ == "__main__":
-    if len(sys.argv) != 3:
-        exitWithUsage(1)
-
-    inDir  = sys.argv[1]
-    outScript  = sys.argv[2]
-
-    generator = test_gen.TestScriptGenerator()
-
-    baseCmd = "helena"
-    baseOptions = [
-        ["-o=report.xml"],
-        ["-t=20"],
-        ["-sl=1000000"],
-        ["-tl=60"]
-    ]
-    exploreOptions = baseOptions + [
-        ["-N=build-graph", "-N=explore"],
-        ["-A=dfs", "-A=bfs", "-A=frontier", "-A=rwalk", "-A=delta-ddd"],
-        ["-W=1", "-W=4"],
-        ["-S=1", "-S=0"],
-        ["-H=0", "-H=1"],
-        ["-E=0", "-E=1"]
-    ]
-    porOptions = [
-        "-P=0", "-P=1"
-    ]
-    lnaExploreOptions = exploreOptions + [ porOptions ]
-    dveExploreOptions = exploreOptions
-    ltlOptions = baseOptions + [
-        ["-tr=events"],
-        ["-A=dfs"],
-        ["-W=1"],
-        ["-S=1", "-S=0"],
-        ["-H=0", "-H=1"]
-    ]
-    lnaLtlOptions = ltlOptions + [ porOptions ]
-    dveLtlOptions = ltlOptions
-    safetyOptions = baseOptions + [
-        ["-A=dfs", "-A=bfs", "-A=frontier", "-A=rwalk", "-A=delta-ddd"],
-        ["-W=1", "-W=2", "-W=3", "-W=4"],
-        ["-S=1", "-S=0"],
-        ["-H=0", "-H=1"],
-        ["-E=0", "-E=1"]
-    ]
-    lnaSafetyOptions = safetyOptions + [ porOptions ]
-    requires = [
-        ("-H=1", [["-A=dfs"], ["-A=bfs"], ["-A=frontier"]]),
-        ("-P=1", [["-A=dfs"], ["-A=bfs"], ["-A=frontier"]]),
-        ("-E=1", [["-A=dfs"], ["-A=bfs"], ["-A=frontier"]]),
-        ("-S=1", [["-A=dfs"]]),
-        ("-N=build-graph", [["-A=delta-ddd"]])
-    ]
-    postCmd = "cp report.xml %d"
-
-    #  create model lists
-    lnaModels = []
-    dveModels = []
-    dveLtlModels = []
-    for(_, _, files) in os.walk(inDir):
-        for f in files:
-            (f, ext) = os.path.splitext(f)
-            if ext == ".lna":
-                (_, ext2) = os.path.splitext(f)
-                if ext2 != ".prop":
-                    lnaModels.append(os.path.abspath(inDir + os.sep + f + ext))
-            elif ext == ".dve":
-                (_, ext2) = os.path.splitext(f)
-                m = os.path.abspath(inDir + os.sep + f + ext)
-                if ext2[1:5] == "prop":
-                    dveLtlModels.append(m)
-                else:
-                    dveModels.append(m)
-
-    #  1st test: exploration and graph generation for lna models
-    t = test_gen.Test(baseCmd, options = lnaExploreOptions + [ lnaModels ],
-                      requires = requires, postCmd = postCmd)
-    #generator.addTest(t)
-
-    #  2nd test: exploration and graph generation for dve models
-    t = test_gen.Test(baseCmd, options = dveExploreOptions + [ dveModels ],
-                      requires = requires, postCmd = postCmd)
-    #generator.addTest(t)
-
-    #  3nd test: check properties of LNA models
-    for f in lnaModels:
-        (m, ext) = os.path.splitext(f)
-        propFile = m + ".prop.lna"
-        if os.path.exists(propFile):
-            pf = open(propFile)
-            for str in pf:
-                fields = str.split()
-                if len(fields) >= 3 and fields[1] == "property":
-                    prop = fields[2].split(":")[0]
-                    if fields[0] == "ltl":
-                        opts = lnaLtlOptions + [ ["-N=check-" + prop],
-                                                 [f]]
-                    elif fields[0] == "state":
-                        opts = lnaSafetyOptions + [ ["-N=check-" + prop],
-                                                    [f]]
-                    else:
-                        opts = []
-                    t = test_gen.Test(baseCmd,
-                                      options = opts,
-                                      requires = requires,
-                                      postCmd = postCmd)
-                    generator.addTest(t)
-            pf.close()
-
-    #  4nd test: check LTL properties of DVE models
-    t = test_gen.Test(baseCmd,
-                      options = [["-N=check"]] + dveLtlOptions +
-                      [ dveLtlModels ],
-                      requires = requires, postCmd = postCmd)
-    generator.addTest(t)
-
-    #  generate the script
-    generator.genScript(out = outScript, timeout = 70)
+if __name__ != "__main__":
     exit(0)
+    
+if len(sys.argv) != 3:
+    exitWithUsage(1)
+
+inDir  = sys.argv[1]
+outScript  = sys.argv[2]
+
+generator = test_gen.TestScriptGenerator()
+
+baseCmd = "helena"
+baseOptions = [
+    ["-o=report.xml"],
+    ["-t=20"],
+    ["-sl=1000000"],
+    ["-tl=60"]
+]
+exploreOptions = baseOptions + [
+    ["-N=build-graph", "-N=explore"],
+    ["-A=dfs", "-A=bfs", "-A=frontier", "-A=rwalk", "-A=delta-ddd"],
+    ["-W=1", "-W=4"],
+    ["-S=1", "-S=0"],
+    ["-H=0", "-H=1"],
+    ["-E=0", "-E=1"]
+]
+porOptions = [
+    "-P=0", "-P=1"
+]
+lnaExploreOptions = exploreOptions + [ porOptions ]
+dveExploreOptions = exploreOptions
+ltlOptions = baseOptions + [
+    ["-tr=events"],
+    ["-A=dfs"],
+    ["-W=1"],
+    ["-S=1", "-S=0"],
+    ["-H=0", "-H=1"]
+]
+lnaLtlOptions = ltlOptions + [ porOptions ]
+dveLtlOptions = ltlOptions
+safetyOptions = baseOptions + [
+    ["-A=dfs", "-A=bfs", "-A=frontier", "-A=rwalk", "-A=delta-ddd"],
+    ["-W=1", "-W=4"],
+    ["-S=1", "-S=0"],
+    ["-H=0", "-H=1"],
+    ["-E=0", "-E=1"]
+]
+lnaSafetyOptions = safetyOptions + [ porOptions ]
+requires = [
+    ("-H=1", [["-A=dfs"], ["-A=bfs"], ["-A=frontier"]]),
+    ("-P=1", [["-A=dfs"], ["-A=bfs"], ["-A=frontier"]]),
+    ("-E=1", [["-A=dfs"], ["-A=bfs"], ["-A=frontier"]]),
+    ("-S=1", [["-A=dfs"]]),
+    ("-N=build-graph", [["-A=delta-ddd"]])
+]
+postCmd = "cp report.xml %d"
+
+#  create model lists
+lnaModels = []
+dveModels = []
+dveLtlModels = []
+for(_, _, files) in os.walk(inDir):
+    for f in files:
+        (f, ext) = os.path.splitext(f)
+        if ext == ".lna":
+            (_, ext2) = os.path.splitext(f)
+            if ext2 != ".prop":
+                lnaModels.append(os.path.abspath(inDir + os.sep + f + ext))
+        elif ext == ".dve":
+            (_, ext2) = os.path.splitext(f)
+            m = os.path.abspath(inDir + os.sep + f + ext)
+            if ext2[1:5] == "prop":
+                dveLtlModels.append(m)
+            else:
+                dveModels.append(m)
+
+#  1st test: exploration and graph generation for lna models
+t = test_gen.Test(baseCmd, options = lnaExploreOptions + [ lnaModels ],
+                  requires = requires, postCmd = postCmd)
+generator.addTest(t)
+
+#  2nd test: exploration and graph generation for dve models
+t = test_gen.Test(baseCmd, options = dveExploreOptions + [ dveModels ],
+                  requires = requires, postCmd = postCmd)
+generator.addTest(t)
+
+#  3nd test: check properties of LNA models
+for f in lnaModels:
+    (m, ext) = os.path.splitext(f)
+    propFile = m + ".prop.lna"
+    if os.path.exists(propFile):
+        pf = open(propFile)
+        for str in pf:
+            fields = str.split()
+            if len(fields) >= 3 and fields[1] == "property":
+                prop = fields[2].split(":")[0]
+                if fields[0] == "ltl":
+                    opts = lnaLtlOptions + [ ["-N=check-" + prop], [f]]
+                elif fields[0] == "state":
+                    opts = lnaSafetyOptions + [ ["-N=check-" + prop], [f]]
+                else:
+                    opts = []
+                t = test_gen.Test(baseCmd,
+                                  options = opts,
+                                  requires = requires,
+                                  postCmd = postCmd)
+                generator.addTest(t)
+        pf.close()
+
+#  4nd test: check LTL properties of DVE models
+t = test_gen.Test(baseCmd,
+                  options = [["-N=check"]] + dveLtlOptions + [ dveLtlModels ],
+                  requires = requires, postCmd = postCmd)
+generator.addTest(t)
+
+#  generate the script
+generator.genScript(out = outScript, timeout = 70)
+exit(0)

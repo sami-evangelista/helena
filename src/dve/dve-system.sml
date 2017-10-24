@@ -720,7 +720,6 @@ fun getCoIndependentStates ({ chans, procs, ... }: system) = let
     fun case1 s = areCoIndependantStates [ s ]
     fun case2 (sp, sq) = areCoIndependantStates [ sp, sq ]
     fun case3 (sp, sq, sr) = areCoIndependantStates [ sp, sq, sr ]
-    (*
     (*  get all the couples (process p, state of process p)  *)
     val states =
 	List.concat
@@ -734,9 +733,7 @@ fun getCoIndependentStates ({ chans, procs, ... }: system) = let
 	List.concat
 	    (List.map (fn (p, s) => let
 			      val trans = Process.splitOutgoingTransitions p s
-			  in
-			      List.map (fn l => (p, s, l)) trans
-			  end)
+			  in List.map (fn l => (p, s, l)) trans end)
 		      states)
     val states' = List.filter (fn ((p, _, _), (q, _, _)) =>
 				  (Process.getName p) < (Process.getName q))
@@ -748,15 +745,12 @@ fun getCoIndependentStates ({ chans, procs, ... }: system) = let
 			       (ListXProd.mapX
 				    (fn (s1, (s2, s3)) => (s1, s2, s3))
 				    (states, states'))
-    *)
-    val res = []
-    (*
+    val res = 
 	List.map (fn s => [ s ]) (List.filter case1 states)
 	@
 	List.map (fn (sp, sq) => [sp, sq]) (List.filter case2 states')
 	@
 	List.map (fn (sp, sq, sr) => [sp, sq, sr]) (List.filter case3 states'')
-    *)
     fun included sub super =
       (List.length sub < List.length super) andalso
       (List.all (fn (p, s, _) => List.exists (fn (p', s', _) =>

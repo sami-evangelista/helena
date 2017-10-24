@@ -4,11 +4,14 @@
  *)
 
 
-structure DveHashFunctionCompiler: sig
+structure
+DveHashFunctionCompiler:
+sig
 
-    val gen: System.system * TextIO.outstream * TextIO.outstream
-	     -> unit
-
+    val gen:
+        System.system * TextIO.outstream * TextIO.outstream
+	-> unit
+                    
 end = struct
 
 open DveCompilerUtils
@@ -17,9 +20,9 @@ fun compileStateHash (s: System.system, hFile, cFile) = let
     val prot = "hash_key_t mstate_hash (mstate_t s)"
     val body =
 	concatLines [
-	prot ^ " {",
-	"  return bit_vector_hash((bit_vector_t) s, STATE_VECTOR_SIZE);",
-	"}"
+	    prot ^ " {",
+	    "  return bit_vector_hash((bit_vector_t) s, STATE_VECTOR_SIZE);",
+	    "}"
 	]
 in
     TextIO.output (hFile, prot ^ ";\n");

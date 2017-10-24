@@ -14,8 +14,8 @@ sig
 end = struct
 
 open DveCompilerUtils
-
-fun gen (sys, checks, out) = let
+    
+fun genBuchi (sys, checks, out) = let
     val comps  = buildStateComps sys
     val procName = valOf (System.getProp sys)
     val proc = System.getProc (sys, procName)
@@ -90,5 +90,25 @@ fun gen (sys, checks, out) = let
 in
     TextIO.output (out, concatLines code)
 end
+
+fun gen (sys, checks, out) =
+  case System.getProp sys
+   of NONE => let
+       val l = [
+           "bstate_t bstate_initial ()",
+           "{ return 0;}",
+           "bool_t bstate_accepting (bstate_t b)",
+           "{ return FALSE;}",
+           "void bstate_succs",
+           "(bstate_t b, mstate_t s, bstate_t * succs,",
+           "unsigned int * no_succs)",
+           "{ *no_succs = 0;}",
+           "order_t bevent_cmp(bevent_t e, bevent_t f)",
+           "{ return LESS;}"
+       ]
+   in
+       TextIO.output (out, concatLines l)
+   end
+   |  _ => genBuchi (sys, checks, out) 
                     
 end

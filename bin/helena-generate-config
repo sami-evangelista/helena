@@ -187,8 +187,9 @@ class Config:
             self.workers = 1
         elif self.action == CHECK and self.propType == LTL:
             self.algo = DFS
+            self.edgeLean = False
             if self.traceType == STATE:
-                self.traceType = FULL
+                self.traceType = EVENTS
         elif self.action == SIMULATE:
             self.runTimeChecks = True
         if self.algo == BFS:

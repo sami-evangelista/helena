@@ -15,6 +15,7 @@ in
    dve-event-execution-compiler.sml
    dve-hash-function-compiler.sml
    dve-initial-state-compiler.sml
+   dve-independence-relation-compiler.sml
    dve.grm.sig
    dve.lex.sml
    dve.grm.sml

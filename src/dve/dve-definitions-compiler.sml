@@ -233,7 +233,6 @@ in
           "void mevent_print(mevent_t e, FILE * out);",
           "mevent_id_t mevent_id(mevent_t e);",
           "order_t mevent_cmp(mevent_t e, mevent_t f);",
-          "bool_t mevent_are_independent(mevent_t e, mevent_t f);",
           "bool_t mevent_is_safe(mevent_t e);",
           "unsigned int mevent_safe_set(mevent_t e);",
           "bool_t mevent_is_visible(mevent_t e);"
@@ -269,10 +268,6 @@ in
          "   if(e < f) return LESS;",
          "   if(e > f) return GREATER;",
          "   return EQUAL;",
-         "}",
-         "",
-         "bool_t mevent_are_independent(mevent_t e, mevent_t f) {",
-         "   return FALSE;",
          "}",
          "",
          "bool_t mevent_is_safe(mevent_t e) {",

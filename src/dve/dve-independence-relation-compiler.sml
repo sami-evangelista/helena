@@ -1,27 +1,22 @@
 (*
  *  File:
  *     dve-independence-relation-compiler.sml
- *
- *  Created:
- *     Nov. 17, 2008
- *
- *  Generate:
- *     structure DveIndependenceRelation: INDEPENDENCE_RELATION = struct
- *        structure Model = DveModel
- *        ...
- *     end
  *)
 
 
-structure DveIndependenceRelationCompiler: sig
+structure
+DveIndependenceRelationCompiler:
+sig
 
-    val gen: System.system -> string list
+    val gen:
+        System.system * TextIO.outstream * TextIO.outstream
+	-> unit
 
 end = struct
 
 open DveCompilerUtils
 
-fun compileAreIndependent (s: System.system) = let
+fun compileAreIndependent (s: System.system, hFile, cFile) = let
 
     val procs = System.getProcs s
     val events = buildEvents s
@@ -50,20 +45,44 @@ fun compileAreIndependent (s: System.system) = let
 	 System.areIndependent ((Process.getProcess (procs, p2), t2),
 				(Process.getProcess (procs, p4), t4))
       | areIndependent (e1, e2) = areIndependent (e2, e1)
-
-    fun twoEvents (e1, e2) =
-	if areIndependent (e1, e2)
-	then String.concat [
-	     " (", getEventName e1, ", ", getEventName e2, ") => true\n  |" ]
-	else ""
+                 
+    val switch =
+        List.map (fn e => let
+                      val test = List.foldl
+                                     (fn (f, test) =>
+                                         test ^
+                                         (if areIndependent (e, f)
+                                          then " || f == " ^ (getEventName f)
+                                          else ""))
+                                     "FALSE" events
+                  in
+                      if test = "FALSE"
+                      then ""
+                      else "      case " ^ getEventName e ^
+                           ": return (" ^ test ^ ") ? TRUE : FALSE;"
+                  end) events
+    val switch = concatLines (List.filter (fn t => t <> "") switch)
+                 
+    val prot = concatLines
+                   [ "bool_t mevent_are_independent",
+                     "(mevent_t e,",
+                     " mevent_t f)" ]
+    val body = prot ^
+               (concatLines [
+                     " {",
+                     "   switch(e) {",
+                     switch,
+                     "      default: return FALSE;",
+                     "   }",
+                     "}" ])
 in
-    [ "val areIndependent = fn\n   " ] @
-    ListXProd.mapX twoEvents (events, events) @
-    [ " _ => false\n" ]
+    TextIO.output (hFile, prot ^ ";\n");
+    TextIO.output (cFile, body ^ "\n")
 end
 
-fun compilePersistentSet (s: System.system) = let
+fun compilePersistentSet (s: System.system, hFile, cFile) = let
     val ls = System.getCoIndependentStates s
+    val events = buildEvents s
     fun oneCase l = let
 	val t = List.concat (List.map (fn (_, _, t) => t) l)
 	val test = 
@@ -71,7 +90,7 @@ fun compilePersistentSet (s: System.system) = let
 	    init  = "(fn e => false",
 	    sep   = "",
 	    final = ") ",
-	    fmt   = (fn t => (" orelse " ^ (case getEventName' t
+	    fmt   = (fn t => (" orelse " ^ (case getEventName' (events, t)
 					     of	NONE   => "false"
 					      | SOME e => e ^ " = e")))
 	    } t
@@ -90,22 +109,24 @@ fun compilePersistentSet (s: System.system) = let
 	"      List.filter ", test, "e"
 	]
     end
-in
-    "fun persistentSet (s, e) = " ^
-    (if ls = []
-     then "e\n"
-     else "\n" ^ (listFormat {
-		  init  = "   ",
-		  sep   = "\n   else ",
-		  final = "\n   else e\n",
-		  fmt   = oneCase } ls))
+    val prot = [
+            "bool_t mevent_is_safe",
+            "(mevent_t e)" ]
+    val body = prot @ [
+            " {",
+            "}" ]
+in                  
+    TextIO.output (cFile, "/*fun persistentSet (s, e) = " ^
+                          (if ls = []
+                           then "e*/\n"
+                           else "\n" ^ (listFormat {
+		                             init  = "   ",
+		                             sep   = "\n   else ",
+		                             final = "\n   else e\n",
+		                             fmt   = oneCase } ls) ^ "*/"))
 end
 
-fun gen s =
-    [ "structure DveIndependenceRelation: INDEPENDENCE_RELATION = ",
-      "struct\n",
-      "open DveDefinitions\n" ] @
-    compileAreIndependent s @
-    [ compilePersistentSet s,
-      "end\n" ]
+fun gen (s, hFile, cFile) = (
+    compileAreIndependent (s, hFile, cFile))
+  
 end

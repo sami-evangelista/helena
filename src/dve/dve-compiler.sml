@@ -74,6 +74,8 @@ fun compile (inFile, path, checks, errStream) = let
  	DveSerializerCompiler.gen (sys, hFile, cFile);
 	printComment ("xml serialisation/unserialisation");
  	DveXmlCompiler.gen (sys, hFile, cFile);
+	printComment ("independence relation");
+ 	DveIndependenceRelationCompiler.gen (sys, hFile, cFile);
 	out hFile "#endif\n";
 	TextIO.closeOut (hFile);
 	TextIO.closeOut (cFile)
@@ -89,9 +91,7 @@ in
      of NONE => 1
       | SOME sys =>
         (compile sys;
-         case System.getProp sys
-          of NONE => ()
-          |  SOME prop => compileBuchi sys;
+         compileBuchi sys;
          0)
         handle Errors.CompilerError (lineNo, msg) =>
 	       (Errors.outputErrorMsg (errStream,
