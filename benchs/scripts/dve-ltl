@@ -28,7 +28,7 @@ opts = [
     ["-H=0"],
     dveLtlModels
 ]
-post = "cp report.xml %d"
+post = "mv report.xml %d"
     
 t = test_gen.Test(cmd, options = opts, postCmd = post)
 generator = test_gen.TestScriptGenerator()

@@ -81,7 +81,6 @@ lamport_nonatomic.2.prop4    ERROR           51           77
             lifts.3.prop4    ERROR          168          175
             lifts.4.prop4    ERROR          168          175
             lifts.5.prop4    ERROR          168          175
-            lifts.5.prop4    ERROR          168          175
 lamport_nonatomic.1.prop3    ERROR          182          247
 lamport_nonatomic.1.prop4    ERROR          182          247
 lamport_nonatomic.3.prop3    ERROR          196          261
@@ -373,6 +372,7 @@ lamport_nonatomic.5.prop2    ERROR        55639       135508
      pgm_protocol.5.prop4       OK       382739       894808
      pgm_protocol.5.prop3       OK       388745       908430
         elevator2.3.prop1    ERROR       446316      5450995
+       train-gate.7.prop2    ERROR       486412       666476
          elevator.3.prop3       OK       495463      1374477
         szymanski.5.prop3    ERROR       497144       694981
         szymanski.5.prop4    ERROR       497144       694981
