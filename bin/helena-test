@@ -66,7 +66,7 @@ requires = [
     ("-S=1", [["-A=dfs"]]),
     ("-N=build-graph", [["-A=delta-ddd"]])
 ]
-postCmd = "cp report.xml %d"
+postCmd = "mv report.xml %d"
 
 #  create model lists
 lnaModels = []

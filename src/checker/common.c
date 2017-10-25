@@ -234,16 +234,14 @@ uint64_t large_sum
 float mem_usage() {
   float result = 0.0;
   FILE * f;
-  char name[30];
   unsigned int size = 0;
   
-  snprintf(name, 30, "/proc/%u/statm", (unsigned) getpid());
-  f = fopen(name, "r");
+  f = fopen("/proc/self/statm", "r");
   if(f) {
     fscanf(f, "%u", &size);
   }
   fclose(f);
-  return (float) size / 1024.0;
+  return (float) size / 1000.0;
 }
 
 unsigned long cpu_total
