@@ -31,20 +31,11 @@ When invoked, Helena proceeds as follows:
   is displayed.
 \end{enumerate}
 
-Each option has a short form preceded by a single \texttt{-} and a
-long form preceded by \longForm{}.  Most options take an argument.  To
-invoke Helena on a file \texttt{my-net.lna} with an option
-\texttt{opt} having argument \texttt{arg}, simply type \texttt{helena
-  -opt=arg my-net.lna}.  In addition, let us note that the options are
-interpreted in the order in which they are found.  Hence, in case of
-conflicting options, the last ones will prevail.
-
 \subsection{General options}
 \begin{description}
-\item\optionDef{h}{help}\\ Prints a help message and exit.
+\item\optionDef{h}{help}\\ Prints an help message and exit.
 \item\optionDef{V}{version}\\ Prints the version number and exit.
-\item\optionDef{v}{verbose}\\ This option activates the verbose
-  mode.  Helena prints a message at each step.
+\item\optionDef{v}{verbose}\\ Be verbose.
 \item\optionDef{N}{action=ACTION}\\
   This indicates the action performed by Helena on the model.
   \texttt{ACTION} must have one of the following values:

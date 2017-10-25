@@ -277,6 +277,7 @@ do
     case $arg in
 	-v|--verbose) verbose=1 ;;
 	-h|--help) $configGenerator -h dummy dummy ; exit 0 ;;
+	-h=*|--help=*) $configGenerator $arg dummy dummy ; exit 0 ;;
 	-V|--version) $configGenerator -V dummy dummy ; exit 0 ;;
 	-md=*|--model-directory=*)
 	    modelDir=${arg:$idx}
