@@ -3,11 +3,9 @@
 #include "config.h"
 #include "papi_stats.h"
 
-#ifdef CFG_WITH_PAPI
-#include "papi.h"
-#endif
-
 #if CFG_WITH_PAPI == 1
+#include "papi.h"
+
 #define PAPI_STATS_NO_EVENTS 6
 int PAPI_STATS_ALL_EVENTS [PAPI_STATS_NO_EVENTS] = {
   PAPI_L1_TCM,

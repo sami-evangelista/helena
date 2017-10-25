@@ -31,9 +31,9 @@ void * observer_worker
     if(context_keep_searching()) {
       cpu_avg = (cpu + (n - 1) * cpu_avg) / n;
     }
+    processed = context_processed();
     context_update_max_states_stored(stored);
     context_update_max_mem_used(mem);
-    processed = context_processed();
     time = ((float) duration(context_start_time(), now)) / 1000000.0;
     if(CFG_WITH_OBSERVER) {
       printf("\n%sTime elapsed    :   %8.2f s.\n", pref, time);

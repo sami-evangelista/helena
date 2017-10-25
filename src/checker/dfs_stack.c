@@ -83,8 +83,13 @@ dfs_stack_t dfs_stack_new
 void dfs_stack_free
 (dfs_stack_t stack) {
   int i;
+  char buffer[256];
 
   if(stack) {
+    for(i = 0; i < stack->files; i ++) {
+      sprintf(buffer, "STACK-%d-%d", stack->id, i);
+      unlink(buffer);
+    }
     for(i = 0; i < DFS_STACK_BLOCKS; i ++) {
       if(stack->blocks[i]) {
 	dfs_stack_block_free(stack->blocks[i]);
