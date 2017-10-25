@@ -71,8 +71,8 @@ def helpMessage(o):
         return """-h[=opt], --help[=opt]
 
 Prints help and exit.  If an option is provided, a specific help
-message for this option is printed.  If opt=FULL a detail help for all
-options is printed."""
+message for this option is printed.  If opt=FULL a detailed help for
+all options is printed."""
     elif o in [ "V", "version" ]:
         return """-V, --version
 

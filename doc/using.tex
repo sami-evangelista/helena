@@ -1,1 +1,92 @@
-he<tab>p<tab><return>detail<help-echo><help-echo><help-echo><help-echo><help-echo><help-echo><help-echo><help-echo><help-echo><help-echo><help-echo><help-echo><down-mouse-1><mouse-movement><mouse-movement><mouse-movement><mouse-movement><mouse-movement><mouse-movement><mouse-movement><mouse-movement><mouse-movement><mouse-movement><mouse-movement><mouse-movement><mouse-movement><mouse-movement><mouse-movement><mouse-movement><mouse-movement><mouse-movement><drag-mouse-1><help-echo><down-mouse-1><mouse-1><tab><tab><help-echo>
+\newcommand\optionDef[2]{\shortForm{#1}, \longForm{#2}}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Invoking Helena}
+\label{section_invoking_helena}
+Using Helena consists of writing the description of the high level net
+in a file, e.g., \texttt{my-net.lna}, and the properties expressed on
+this net in a second file, e.g., \texttt{my-net.prop.lna}, and to
+invoke Helena on this file.  The command line of Helena has the
+following form:
+\begin{verbatim}
+helena [options] my-net.lna
+\end{verbatim}
+
+When invoked, Helena proceeds as follows:
+\begin{enumerate}
+\item If the net described in file \texttt{my-net.lna} is
+  \texttt{my-net}, the directory \texttt{\~{}/.helena/models/lna/my-net}
+  is created.
+\item A set of C source files and a Makefile are put in directory
+  \texttt{\~{}/.helena/models/lna/my-net/src}.
+\item These files are compiled and an executable is created which
+  corresponds to the actual model checker for the specific net.
+\item The compiled executable is launched.
+\item Once the search is finished, a report is displayed on the
+  standard output.  If a property was checked, this report indicates
+  whether the desired property is verified or not.  In the second
+  case, a path leading from the initial marking to the faulty marking
+  is displayed.
+\end{enumerate}
+
+You may find in the \texttt{HELP.md} file of the distribution a
+detailed help on all available options.  Alternatively you may invoke
+Helena as follows to get this help:
+\begin{verbatim}
+helena -h=FULL
+\end{verbatim}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Additional utilities}
+\label{section_utilities}
+Together with Helena are installed several utilities that we briefly
+describe here.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{The \toolName{helena-report} utility}
+The purpose of \toolName{helena-report} is to print an XML report that
+has been created by Helena.  This utility is useful in the case where
+you have already invoked Helena on a net and you do not want to launch
+the search again.  Here is an example of use of this utility:
+\begin{verbatim}
+helena my-net.lna
+helena-report my-net
+\end{verbatim}
+where \texttt{my-net} is the name of the net of file \texttt{my-net.lna}.
+The search report will then be printed to the standard output.\\
+Alternatively, you can directly pass to \toolName{helena-report} an
+xml report previously generated.  For example the following sequence
+of commands is equivalent to the previous one:
+\begin{verbatim}
+helena --report-file=my_report.xml my-net.lna
+helena-report my_report.xml
+\end{verbatim}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{The \toolName{helena-graph} utility}
+\label{sec:helena-graph}
+Helena can build the reachability graph of a net in order to display
+some statistics on, e.g., its strongly connected components.  This is
+the purpose of the \longForm{action=BUILD-GRAPH} option.  This option
+is only meaningful if used in conjunction with the
+\toolName{helena-graph} utility.  Let us assume that the file
+\texttt{my-net.lna} contains the description of net \texttt{my-net}.
+A typical use of this combination is
+\begin{verbatim}
+helena --action=BUILD-GRAPH my-net.lna
+helena-graph my-net my_rg_report.pdf
+\end{verbatim}
+\begin{itemize}
+\item The first command explores the reachability graph of the net and
+  stores it on disk in the model directory (in \texttt{\~{}/.helena},
+  by default).
+\item The second command reads this file and produces a report
+  containing various informations on the graph e.g., in-/out-degrees
+  of nodes, shape of the BFS level graph, SCCs of the graph, dead
+  markings, live transitions, \ldots
+\end{itemize}
+The output format of this report can be pdf or xml.  In the case of a
+pdf report, you will need pdflatex as well as the Gnuplot python
+library on your system.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{The \toolName{helena-generate-interface} utility}
+This tool is used to generate a C header file containing the
+translation of types, constants, and functions that can then be used
+in imported modules.  Please consult Chapter~\ref{chapter_interfacing}
+for further help on this tool.
