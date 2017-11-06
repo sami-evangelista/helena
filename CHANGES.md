@@ -1,7 +1,7 @@
-Version 2.4 (???)
+# Version 2.4 (???)
 * fixed a few bugs in the user guide
 
-Version 2.3 (April 1th, 2013)
+# Version 2.3 (April 1th, 2013)
 * improved reachability graph report
 * new feature: let section of transitions
 * new feature: description of transitions
@@ -15,11 +15,11 @@ Version 2.3 (April 1th, 2013)
   left or right)
 * fixed a bug caused by state caching reduction
 
-Version 2.2 (October 1th, 2012)
+# Version 2.2 (October 1th, 2012)
 * new feature: inhibitor arcs
 * minor bug fixes
 
-Version 2.1 (May 1th, 2012)
+# Version 2.1 (May 1th, 2012)
 *  new feature: net parameters
 *  new feature: interactive simulator (--action=simulate)
 *  fixed a bug in transition evaluation when input tuples had guards
