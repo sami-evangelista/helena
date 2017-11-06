@@ -48,11 +48,14 @@ bool_t TERM = FALSE;
 uint8_t TERM_COLOR = TOKEN_WHITE;
 bool_t TOKEN_SENT = FALSE;
 
-/* remotely accessible items */
-static char H[CFG_SHMEM_HEAP_SIZE];
-static buffer_data_t H_BUFFER_DATA[CFG_NO_WORKERS][MAX_PES];
-static bool_t H_TOKEN = TOKEN_NONE;
-static bool_t H_TERM = FALSE;
+#define POS_TOKEN 0
+#define POS_TERM sizeof(uint8_t)
+#define POS_DATA                                        \
+  (sizeof(uint8_t) + sizeof(bool_t) +                   \
+   sizeof(buffer_data_t) * CFG_NO_WORKERS * PES)
+#define POS_BUFFER(w, pe)                               \
+  (sizeof(uint8_t) + sizeof(bool_t) +                   \
+   sizeof(buffer_data_t) * (w + pe * CFG_NO_WORKERS))
 
 
 
@@ -99,7 +102,7 @@ void dbfs_comm_poll_remote_pe
   buffer_data_t data;
   
   do {
-    comm_shmem_get(&data, &H_BUFFER_DATA[w][ME], sizeof(buffer_data_t), pe);
+    comm_shmem_get(&data, POS_BUFFER(w, ME), sizeof(buffer_data_t), pe);
     if(data.no_states > 0) {
       context_sleep(WORKER_WAIT_TIME);
     }
@@ -144,7 +147,7 @@ void dbfs_comm_send_buffer
 #if defined(DBFS_COMM_DEBUG)
   assert(pos == BUF.len[w][pe]);
 #endif
-  comm_shmem_put(H + BUF.remote_pos[w][pe], buffer, pos, pe);
+  comm_shmem_put(BUF.remote_pos[w][pe], buffer, pos, pe);
 
   /**
    * send my data to the remote PE
@@ -155,7 +158,7 @@ void dbfs_comm_send_buffer
   assert(data.len > 0);
   assert(data.no_states > 0);
 #endif  
-  comm_shmem_put(&H_BUFFER_DATA[w][ME], &data, sizeof(buffer_data_t), pe);
+  comm_shmem_put(POS_BUFFER(w, ME), &data, sizeof(buffer_data_t), pe);
 
   if(pe < ME) {
     TERM_COLOR = TOKEN_BLACK;
@@ -241,13 +244,16 @@ bool_t dbfs_comm_worker_process_incoming_states
     for(pe = 0; pe < PES; pe ++) {
       if(pe != ME) {
         for(x = 0; x < CFG_NO_WORKERS; x ++, pos += DBFS_HEAP_SIZE_WORKER) {
-	  if(0 != H_BUFFER_DATA[x][pe].no_states) {
+          comm_shmem_get(&data, POS_BUFFER(x, pe), sizeof(buffer_data_t), ME);
+	  if(0 != data.no_states) {
 	    result = TRUE;
 	    states_received = TRUE;
-            comm_shmem_get(buffer, H + pos, H_BUFFER_DATA[x][pe].len, ME);
-            no_states = H_BUFFER_DATA[x][pe].no_states;
-            H_BUFFER_DATA[x][pe].no_states = 0;
-            H_BUFFER_DATA[x][pe].len = 0;
+            comm_shmem_get(buffer, POS_DATA + pos, data.len, ME);
+            no_states = data.no_states;
+            data.no_states = 0;
+            data.len = 0;
+            comm_shmem_put(POS_BUFFER(x, pe), &data,
+                           sizeof(buffer_data_t), ME);
 	    tmp_pos = 0;
             while((no_states --) > 0) {
 
@@ -313,44 +319,74 @@ bool_t dbfs_comm_all_buffers_empty
 }
 
 
+void dbfs_comm_send_token
+(uint8_t token,
+ int pe) {
+  comm_shmem_put(POS_TOKEN, &token, sizeof(uint8_t), pe);
+}
+
+
+void dbfs_comm_send_term
+(int pe) {
+  bool_t term = TRUE;
+  
+  comm_shmem_put(POS_TERM, &term, sizeof(bool_t), pe);
+}
+
+
+uint8_t dbfs_comm_recv_token
+() {
+  uint8_t result;
+  
+  comm_shmem_get(&result, POS_TOKEN, sizeof(uint8_t), ME);
+  return result;
+}
+
+
+bool_t dbfs_comm_recv_term
+() {
+  bool_t result;
+  
+  comm_shmem_get(&result, POS_TERM, sizeof(bool_t), ME);
+  return result;
+}
+
+
 void dbfs_comm_check_termination
 () {
-  worker_id_t w;
-  int pe, next, qe;
-  bool_t b, all_empty;
-  buffer_data_t data;
-  uint8_t recv, sent;
+  int pe, next;
+  uint8_t to_send, token;
+  bool_t term;
 
   if(bfs_queue_is_empty(Q) && dbfs_comm_all_buffers_empty()) {
     next = (ME + 1) % PES;
+    token = dbfs_comm_recv_token();
+    term = dbfs_comm_recv_term();
     if(0 == ME) {
-      if(!TOKEN_SENT || H_TOKEN == TOKEN_BLACK) {
-	sent = TOKEN_WHITE;
-	H_TOKEN = TOKEN_NONE;
+      if(!TOKEN_SENT || TOKEN_BLACK == token) {
 	TOKEN_SENT = TRUE;
-	comm_shmem_put(&H_TOKEN, &sent, sizeof(bool_t), next);
-      } else if(H_TOKEN == TOKEN_WHITE) {
-	/*  termination  */
+	dbfs_comm_send_token(TOKEN_NONE, ME);
+	dbfs_comm_send_token(TOKEN_WHITE, next);
+      } else if(TOKEN_WHITE == token) {
 	TERM = TRUE;
-	comm_shmem_put(&H_TERM, &TERM, sizeof(bool_t), next);
+        dbfs_comm_send_term(next);
       }
-    } else if(H_TERM) {
+    } else if(term) {
       TERM = TRUE;
-      comm_shmem_put(&H_TERM, &TERM, sizeof(bool_t), next);
-    } else if(H_TOKEN != TOKEN_NONE) {
-      recv = H_TOKEN;
-      H_TOKEN = TOKEN_NONE;
-      if(recv == TOKEN_BLACK) {
-	sent = TOKEN_BLACK;
-      } else if(recv == TOKEN_WHITE) {
-	sent = TERM_COLOR;
-	if(TERM_COLOR == TOKEN_BLACK) {
+      dbfs_comm_send_term(next);
+    } else if(token != TOKEN_NONE) {
+      dbfs_comm_send_token(TOKEN_NONE, ME);
+      if(TOKEN_BLACK == token) {
+	to_send = TOKEN_BLACK;
+      } else if(TOKEN_WHITE == token) {
+	to_send = TERM_COLOR;
+	if(TOKEN_BLACK == TERM_COLOR) {
 	  TERM_COLOR = TOKEN_WHITE;
 	}
       } else {
 	assert(0);
-      }      
-      comm_shmem_put(&H_TOKEN, &sent, sizeof(uint8_t), next);
+      }    
+      dbfs_comm_send_token(to_send, next);
     }
   }
 }
@@ -380,13 +416,15 @@ void dbfs_comm_start
   int pe, remote_pos;
   worker_id_t w;
   comm_worker_id_t c;
+  buffer_data_t data;
   
   /* shmem initialisation */
   PES = comm_shmem_pes();
   ME = comm_shmem_me();
-  DBFS_HEAP_SIZE_WORKER = CFG_SHMEM_HEAP_SIZE / ((PES) * CFG_NO_WORKERS);
+  DBFS_HEAP_SIZE_WORKER =
+    (CFG_SHMEM_HEAP_SIZE - POS_DATA) / ((PES - 1) * CFG_NO_WORKERS);
   DBFS_HEAP_SIZE_PE = CFG_NO_WORKERS * DBFS_HEAP_SIZE_WORKER;
-  DBFS_HEAP_SIZE = DBFS_HEAP_SIZE_PE * (PES);
+  DBFS_HEAP_SIZE = DBFS_HEAP_SIZE_PE * (PES - 1);
   assert(PES <= MAX_PES);
 
   /* initialise global variables */
@@ -401,13 +439,14 @@ void dbfs_comm_start
     BUF.states[w] = mem_alloc(SYSTEM_HEAP, sizeof(hash_tbl_t) * PES);
   }
   for(pe = 0; pe < PES; pe ++) {
-    remote_pos = ME * DBFS_HEAP_SIZE_PE;
+    remote_pos = POS_DATA + ME * DBFS_HEAP_SIZE_PE;
     if(ME > pe) {
       remote_pos -= DBFS_HEAP_SIZE_PE;
     }
     for(w = 0; w < CFG_NO_WORKERS; w ++) {
-      H_BUFFER_DATA[w][pe].len = 0;
-      H_BUFFER_DATA[w][pe].no_states = 0;
+      data.len = 0;
+      data.no_states = 0;
+      comm_shmem_put(POS_BUFFER(w, pe), &data, sizeof(buffer_data_t), ME);
       if(ME == pe) {
         BUF.remote_pos[w][pe] = 0;
 	BUF.no_ids[w][pe] = 0;

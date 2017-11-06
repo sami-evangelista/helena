@@ -7,10 +7,10 @@
 #endif
 
 #define COMM_SHMEM_CHUNK_SIZE 10000
-#define COMM_SHMEM_DEBUG
+#define COMM_SHMEM_DEBUG_XXX
 
 pthread_mutex_t COMM_SHMEM_MUTEX;
-bool_t COMM_SHMEM_INITIALISED;
+void * COMM_SHMEM_HEAP;
 
 void init_comm_shmem
 () {
@@ -18,6 +18,7 @@ void init_comm_shmem
   assert(0);
 #else
   shmem_init();
+  COMM_SHMEM_HEAP = shmem_malloc(CFG_SHMEM_HEAP_SIZE);
   pthread_mutex_init(&COMM_SHMEM_MUTEX, NULL);
 #endif
 }
@@ -27,7 +28,7 @@ void finalise_comm_shmem
 #if CFG_DISTRIBUTED == 0
   assert(0);
 #else
-  comm_shmem_barrier();
+  shmem_free(COMM_SHMEM_HEAP);
   shmem_finalize();
   pthread_mutex_destroy(&COMM_SHMEM_MUTEX);
 #endif
@@ -43,7 +44,7 @@ void comm_shmem_barrier
 }
 
 void comm_shmem_put
-(void * dst,
+(uint32_t pos,
  void * src,
  int size,
  int pe) {
@@ -56,29 +57,27 @@ void comm_shmem_put
    * instead which seems equivalent.
    */
   if(pe == shmem_my_pe()) {
-    memcpy(dst, src, size);
+    memcpy(COMM_SHMEM_HEAP + pos, src, size);
   } else {
 #if defined(COMM_SHMEM_DEBUG)
-    printf("%d put %d bytes at %p to %d\n",
-	   shmem_my_pe(), size , dst, pe);
+    printf("%d put %d bytes at %d to %d\n", shmem_my_pe(), size, pos, pe);
 #endif
     context_increase_bytes_sent(size);
     pthread_mutex_lock(&COMM_SHMEM_MUTEX);
     while(size) {
       if(size < COMM_SHMEM_CHUNK_SIZE) {
-	shmem_putmem(dst, src, size, pe);
+	shmem_putmem(COMM_SHMEM_HEAP + pos, src, size, pe);
 	size = 0;
       } else {
-	shmem_putmem(dst, src, COMM_SHMEM_CHUNK_SIZE, pe);
+	shmem_putmem(COMM_SHMEM_HEAP + pos, src, COMM_SHMEM_CHUNK_SIZE, pe);
 	size -= COMM_SHMEM_CHUNK_SIZE;
-	dst += COMM_SHMEM_CHUNK_SIZE;
+	pos += COMM_SHMEM_CHUNK_SIZE;
 	src += COMM_SHMEM_CHUNK_SIZE;
       }
     }
     pthread_mutex_unlock(&COMM_SHMEM_MUTEX);
 #if defined(COMM_SHMEM_DEBUG)
-    printf("%d put %d bytes at %p to %d done\n",
-	   shmem_my_pe(), size , dst, pe);
+    printf("%d put done\n", shmem_my_pe());
 #endif
   }
 #endif
@@ -86,26 +85,24 @@ void comm_shmem_put
 
 void comm_shmem_get
 (void * dst,
- void * src,
+ uint32_t pos,
  int size,
  int pe) {
 #if CFG_DISTRIBUTED == 0
   assert(0);
 #else
   if(pe == shmem_my_pe()) {
-    memcpy(dst, src, size);
+    memcpy(dst, COMM_SHMEM_HEAP + pos, size);
   } else {
 #if defined(COMM_SHMEM_DEBUG)
-    printf("%d get %d bytes at %p from %d\n",
-	   shmem_my_pe(), size , dst, pe);
+    printf("%d get %d bytes at %d from %d\n", shmem_my_pe(), size, pos, pe);
 #endif
     context_increase_bytes_sent(size);
     pthread_mutex_lock(&COMM_SHMEM_MUTEX);
-    shmem_getmem(dst, src, size, pe);
+    shmem_getmem(dst, COMM_SHMEM_HEAP + pos, size, pe);
     pthread_mutex_unlock(&COMM_SHMEM_MUTEX);
 #if defined(COMM_SHMEM_DEBUG)
-    printf("%d get %d bytes at %p from %d done\n",
-	   shmem_my_pe(), size , dst, pe);
+    printf("%d get done\n", shmem_my_pe());
 #endif
   }
 #endif

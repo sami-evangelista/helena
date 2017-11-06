@@ -36,7 +36,7 @@ void comm_shmem_barrier
  * @brief comm_shmem_put
  */
 void comm_shmem_put
-(void * dst,
+(uint32_t pos,
  void * src,
  int size,
  int pe);
@@ -47,7 +47,7 @@ void comm_shmem_put
  */
 void comm_shmem_get
 (void * dst,
- void * src,
+ uint32_t pos, 
  int size,
  int pe);
 
