@@ -12,8 +12,8 @@ helena [options] my-net.lna
 ### -h[=opt], --help[=opt]
 
 Prints help and exit.  If an option is provided, a specific help
-message for this option is printed.  If opt=FULL a detail help for all
-options is printed.
+message for this option is printed.  If opt=FULL a detailed help for
+all options is printed.
 
 ### -V, --version
 
@@ -151,8 +151,8 @@ with search algorithm DFS.
 
 ### -ml=N, --memory-limit=N
 
-The memory used by Helena is limited to N% of the available RAM.  When
-this limit is reached the search stops as soon as possible.
+The memory used by Helena is limited to N megabyte.  When this limit
+is reached the search stops as soon as possible.
 
 ### -tl=N, --time-limit=N
 
