@@ -199,8 +199,8 @@ with search algorithm DFS."""
     elif o in [ "ml", "memory-limit" ]:
         return """-ml=N, --memory-limit=N
 
-The memory used by Helena is limited to N% of the available RAM.  When
-this limit is reached the search stops as soon as possible."""
+The memory used by Helena is limited to N megabyte.  When this limit
+is reached the search stops as soon as possible."""
     elif o in [ "tl", "time-limit" ]:
         return """-tl=N, --time-limit=N
 

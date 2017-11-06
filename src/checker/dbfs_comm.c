@@ -354,7 +354,7 @@ bool_t dbfs_comm_recv_term
 
 void dbfs_comm_check_termination
 () {
-  int pe, next;
+  int next;
   uint8_t to_send, token;
   bool_t term;
 
@@ -380,9 +380,7 @@ void dbfs_comm_check_termination
 	to_send = TOKEN_BLACK;
       } else if(TOKEN_WHITE == token) {
 	to_send = TERM_COLOR;
-	if(TOKEN_BLACK == TERM_COLOR) {
-	  TERM_COLOR = TOKEN_WHITE;
-	}
+        TERM_COLOR = TOKEN_WHITE;
       } else {
 	assert(0);
       }    
@@ -417,6 +415,7 @@ void dbfs_comm_start
   worker_id_t w;
   comm_worker_id_t c;
   buffer_data_t data;
+  uint8_t token;
   
   /* shmem initialisation */
   PES = comm_shmem_pes();
@@ -426,6 +425,10 @@ void dbfs_comm_start
   DBFS_HEAP_SIZE_PE = CFG_NO_WORKERS * DBFS_HEAP_SIZE_WORKER;
   DBFS_HEAP_SIZE = DBFS_HEAP_SIZE_PE * (PES - 1);
   assert(PES <= MAX_PES);
+  TERM = FALSE;
+  comm_shmem_put(POS_TERM, &TERM, sizeof(bool_t), ME);
+  token = TOKEN_NONE;
+  comm_shmem_put(POS_TOKEN, &token, sizeof(uint8_t), ME);
 
   /* initialise global variables */
   Q = q;
