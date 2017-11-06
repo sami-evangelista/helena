@@ -430,8 +430,8 @@ class Config:
         self.hashCompaction = self.hashCompaction and self.algo not in [
             RWALK, DELTA_DDD ]
 
-        #  hash compaction not available for random walk, delta-ddd and
-        #  distributed algoritms
+        #  partial order reduction not available for random walk,
+        #  delta-ddd and distributed algoritms
         self.partialOrder = self.partialOrder and self.algo not in [
             RWALK, DELTA_DDD, DDFS, DBFS ]
 
