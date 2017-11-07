@@ -50,9 +50,6 @@ package Prop.Ltl is
      (Op   : in Ltl_Un_Op;
       Right: in Ltl_Expr) return Ltl_Expr;
 
-   function To_Helena
-     (E: in Ltl_Expr) return Ustring;
-
    function To_Spin
      (E: in Ltl_Expr) return Ustring;
 
@@ -74,9 +71,6 @@ private
 
    function Get_Type
      (P: in Ltl_Property_Record) return Property_Type;
-
-   function To_Helena
-     (P: in Ltl_Property_Record) return Ustring;
 
    procedure Compile_Definition
      (P  : in Ltl_Property_Record;

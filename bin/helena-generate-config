@@ -688,8 +688,7 @@ class Config:
         f = self.openFile("prop.h", "w")
         f.write("#define state_check_property(now, en) FALSE\n")
         f.close()
-        f = self.openFile("prop.c", "w")
-        f.close()
+        self.openFile("prop.c", "w").close()
         if self.action == CHECK and self.language == "dve":
             self.propType = LTL
         elif self.action == CHECK and self.language == "lna":
@@ -704,7 +703,7 @@ class Config:
             if os.system(cmd):
                 exit(1)
             else:
-                f = self.openFile("CFG_PROPERTY", "r")
+                f = self.openFile("PROPERTY", "r")
                 lines = f.readlines()
                 f.close()
                 i = 0
@@ -715,10 +714,10 @@ class Config:
                     else:
                         self.propositions.append(prop)
                     i = i + 1
-                if self.directory is None:
-                    os.remove("CFG_PROPERTY")
-                else:
-                    os.remove(self.directory + os.sep + "CFG_PROPERTY")
+                path = "PROPERTY"
+                if self.directory is not None:
+                    path = self.directory + os.sep + path
+                os.remove(path)
 
     def outputModelOptions(self):
         opts = []

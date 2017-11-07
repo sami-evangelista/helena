@@ -26,21 +26,6 @@ package body Prop.State is
       end if;
    end;
 
-   function To_Helena
-     (S: in State_Property_Record) return Ustring is
-      Result: Ustring := Null_String;
-      C     : State_Property_Comp;
-   begin
-      Result :=
-	"state property " & S.Name & ": " & Nl &
-	"   reject " & To_Helena(S.Reject) & ";";
-      for I in 1..Length(S.Accepts) loop
-         C := Ith(S.Accepts, I);
-         Result := Result & Nl & "   accept " & To_Helena(C) & ";";
-      end loop;
-      return Result;
-   end;
-
    procedure Compile_Definition
      (P  : in State_Property_Record;
       Lib: in Library;
@@ -99,16 +84,6 @@ package body Prop.State is
       Result.Deadlock := False;
       Result.Prop := Prop;
       return Result;
-   end;
-
-   function To_Helena
-     (C: in State_Property_Comp) return Ustring is
-   begin
-      if C.Deadlock then
-	 return To_Ustring("deadlock");
-      else
-	 return C.Prop;
-      end if;
    end;
 
    function Compile_Evaluation

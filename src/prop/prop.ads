@@ -64,9 +64,6 @@ package Prop is
      (P   : in Property;
       Name: in Ustring);
 
-   function To_Helena
-     (P: in Property) return Ustring;
-
    procedure Compile_Definition
      (P  : in Property;
       Lib: in Library;
@@ -83,9 +80,6 @@ package Prop is
 
    function Get_Type
      (P: in Property_Record) return Property_Type is abstract;
-
-   function To_Helena
-     (P: in Property_Record) return Ustring is abstract;
 
    procedure Compile_Definition
      (P  : in Property_Record;
@@ -124,9 +118,6 @@ package Prop is
    function Get
      (P   : in Property_List;
       Name: in Ustring) return Property;
-
-   function To_Helena
-     (P: in Property_List) return Ustring;
 
 
 

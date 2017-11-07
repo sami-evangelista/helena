@@ -33,12 +33,6 @@ package body Prop is
       P.Name := Name;
    end;
 
-   function To_Helena
-     (P: in Property) return Ustring is
-   begin
-      return To_Helena(P.all);
-   end;
-
    procedure Compile_Definition
      (P  : in Property;
       Lib: in Library;
@@ -123,21 +117,6 @@ package body Prop is
       Result := Get(P.Properties);
       pragma Assert(Result /= null);
       return Result;
-   end;
-
-   function To_Helena
-     (P: in Property_List) return Ustring is
-      function To_Helena
-        (P: in Property) return String is
-      begin
-         return To_String(To_Helena(P));
-      end;
-      function To_Helena is
-         new PAP.Generic_To_String(To_String => To_Helena,
-                                   Separator => (1 => Nl),
-                                   Empty     => "");
-   begin
-      return To_Ustring(To_Helena(P.Properties));
    end;
 
 end Prop;

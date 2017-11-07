@@ -29,8 +29,6 @@ darray_t darray_new
 
 void darray_free
 (darray_t darray) {
-  int32_t i;
-
   if(heap_has_mem_free(darray->heap)) {
     if(darray->items) {
       mem_free(darray->heap, darray->items);

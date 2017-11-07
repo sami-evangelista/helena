@@ -58,8 +58,8 @@ begin
       Out_Dir := To_Ustring(Argument(3));
       Parse_Properties(In_File, P);
 
-      --  generate the C code for the property and put the name of propositions
-      --  appearing in the property in file CFG_PROPERTY
+      --  generate the C code for the property and put the name of
+      --  propositions appearing in the property in file PROPERTY
       if not Contains(P, Prop) then
 	 Put_Line(To_String("error: property '" & Prop & "' is undefined"));
 	 Set_Exit_Status(Failure);
@@ -67,7 +67,7 @@ begin
 	 Pr := Get(P, Prop);
 	 Create(F, Out_File,
 		Normalize_Pathname
-		  (To_String(Out_Dir) & Dir_Separator & "CFG_PROPERTY"));
+		  (To_String(Out_Dir) & Dir_Separator & "PROPERTY"));
 	 case Get_Type(Pr) is
 	    when A_Ltl_Property      => Put_Line(F, "LTL");
 	    when A_State_Property    => Put_Line(F, "STATE");

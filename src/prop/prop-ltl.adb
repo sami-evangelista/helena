@@ -28,22 +28,12 @@ package body Prop.Ltl is
       return A_Ltl_Property;
    end;
 
-   function To_Helena
-     (P: in Ltl_Property_Record) return Ustring is
-      Result: Ustring;
-   begin
-      Result :=
-	"ltl property " & P.Name & ": " & Nl &
-	"   " & To_Helena(P.E) & ";";
-      return Result;
-   end;
-
    procedure Compile_Definition
      (P  : in Ltl_Property_Record;
       Lib: in Library;
       Dir: in String) is
       Exec   : constant Gnat.Os_Lib.String_Access :=
-	Locate_Exec_On_Path ("helena-ltl2ba");
+        Locate_Exec_On_Path ("helena-ltl2ba");
       Success: Boolean;
       Args   : constant Argument_List :=
 	(1 => new String'("-f"),
@@ -56,6 +46,7 @@ package body Prop.Ltl is
       else
 	 Spawn(Exec.all, Args, Success);
       end if;
+      Plh(Lib, "#define state_check_property(now, en) FALSE");
    end;
 
    function Get_Propositions
@@ -175,12 +166,6 @@ package body Prop.Ltl is
 	    Result := E.Prop;
       end case;
       return Result;
-   end;
-
-   function To_Helena
-     (E: in Ltl_Expr) return Ustring is
-   begin
-      return Convert(E, True);
    end;
 
    function To_Spin

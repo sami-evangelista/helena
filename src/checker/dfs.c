@@ -60,7 +60,7 @@ void * dfs_worker
   const bool_t proviso = CFG_PROVISO;
   const bool_t edge_lean = CFG_EDGE_LEAN;
   const bool_t shuffle = CFG_PARALLEL || CFG_DISTRIBUTED || CFG_RANDOM_SUCCS;
-  const bool_t cndfs = CFG_PARALLEL || CFG_DISTRIBUTED;
+  const bool_t cndfs = check_ltl && (CFG_PARALLEL || CFG_DISTRIBUTED);
   const bool_t states_stored = !CFG_EVENT_UNDOABLE && CFG_HASH_COMPACTION;
   uint32_t i;
   hash_key_t h;
@@ -75,7 +75,7 @@ void * dfs_worker
   event_list_t en;
   uint32_t red_stack_size = 0;
   red_processed_t proc;
-  darray_t red_states = check_ltl ?
+  darray_t red_states = cndfs ?
     darray_new(SYSTEM_HEAP, sizeof(red_processed_t)) : NULL;
 
   /*
@@ -159,8 +159,8 @@ void * dfs_worker
         
         /*
          * termination of the red DFS.  if cndfs we wait for all
-         * accepting states of the red_states to become red and then
-         * mark all states of the red_states as red
+         * accepting states of the red_states set to become red and
+         * then mark all states of this set as red
          */
         if(0 == red_stack_size) {
           blue = TRUE;
@@ -281,8 +281,14 @@ void * dfs_worker
     }
   }
 
+  /*
+   * free everything
+   */
   dfs_stack_free(stack);
   heap_free(heap);
+  if(cndfs) {
+    darray_free(red_states);
+  }
 
   return NULL;
 }

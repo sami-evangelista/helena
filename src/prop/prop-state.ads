@@ -57,9 +57,6 @@ package Prop.State is
    function New_Predicate
      (Prop: in Ustring) return State_Property_Comp;
 
-   function To_Helena
-     (C: in State_Property_Comp) return Ustring;
-
    function Compile_Evaluation
      (C: in State_Property_Comp) return Ustring;
 
@@ -98,9 +95,6 @@ private
 
    function Get_Type
      (P: in State_Property_Record) return Property_Type;
-
-   function To_Helena
-     (S: in State_Property_Record) return Ustring;
 
    procedure Compile_Definition
      (P  : in State_Property_Record;
