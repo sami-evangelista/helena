@@ -1,5 +1,10 @@
-# Version 2.4 (???)
-* fixed a few bugs in the user guide
+# Version 3.0
+* all search algorithms have been parallelized
+* new reduction: edge-lean (option --edge-lean)
+* support for DVE models (POR, option -P, is not supported for these
+  for now)
+* option --state-caching is deprecated
+* option --algo=frontier is deprecated
 
 # Version 2.3 (April 1th, 2013)
 * improved reachability graph report
@@ -20,6 +25,6 @@
 * minor bug fixes
 
 # Version 2.1 (May 1th, 2012)
-*  new feature: net parameters
-*  new feature: interactive simulator (--action=simulate)
-*  fixed a bug in transition evaluation when input tuples had guards
+* new feature: net parameters
+* new feature: interactive simulator (--action=simulate)
+* fixed a bug in transition evaluation when input tuples had guards
