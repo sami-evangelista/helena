@@ -7,35 +7,28 @@
 #define ATTR_BLUE_POS(tbl)     (tbl->attr_pos[1])
 #define ATTR_PINK_POS(tbl)     (tbl->attr_pos[2])
 #define ATTR_RED_POS(tbl)      (tbl->attr_pos[3])
-#define ATTR_GARBAGE_POS(tbl)  (tbl->attr_pos[4])
-#define ATTR_REFS_POS(tbl)     (tbl->attr_pos[5])
-#define ATTR_PRED_POS(tbl)     (tbl->attr_pos[6])
-#define ATTR_EVT_POS(tbl)      (tbl->attr_pos[7])
+#define ATTR_PRED_POS(tbl)     (tbl->attr_pos[4])
+#define ATTR_EVT_POS(tbl)      (tbl->attr_pos[5])
 
-#define ATTR_CYAN_WIDTH     1
-#define ATTR_BLUE_WIDTH     1
-#define ATTR_PINK_WIDTH     1
-#define ATTR_RED_WIDTH      1
-#define ATTR_GARBAGE_WIDTH  1
-#define ATTR_REFS_WIDTH     8
-#define ATTR_PRED_WIDTH     (CHAR_BIT * sizeof(hash_tbl_id_t))
-#define ATTR_EVT_WIDTH      (CHAR_BIT * sizeof(mevent_id_t))
+#define ATTR_CYAN_WIDTH 1
+#define ATTR_BLUE_WIDTH 1
+#define ATTR_PINK_WIDTH 1
+#define ATTR_RED_WIDTH  1
+#define ATTR_PRED_WIDTH (CHAR_BIT * sizeof(hash_tbl_id_t))
+#define ATTR_EVT_WIDTH  (CHAR_BIT * sizeof(mevent_id_t))
 
-#define NO_ATTRS 8
+#define NO_ATTRS 6
 
 typedef uint8_t bucket_status_t;
 
 struct struct_hash_tbl_t {
   bool_t hash_compaction;
-  uint8_t gc_threshold;
-  float gc_ratio;
   uint32_t attrs;
   uint32_t attrs_char_size;
   uint32_t attr_pos[NO_ATTRS];
   uint16_t no_workers;
   uint64_t hash_size;
   pthread_barrier_t barrier;
-  uint64_t gc_time;
   heap_t heap;
   int64_t * size;
   rseed_t * seeds;
@@ -45,9 +38,6 @@ struct struct_hash_tbl_t {
   bit_vector_t hc_attrs;
   bit_vector_t * state;
   uint16_t * state_len;
-  hash_tbl_id_t ** garbages;
-  uint64_t * no_garbages;
-  uint64_t * max_garbages;
   bool_t * done;
 };
 typedef struct struct_hash_tbl_t struct_hash_tbl_t;
@@ -73,16 +63,12 @@ hash_tbl_t hash_tbl_new
 (uint64_t hash_size,
  uint16_t no_workers,
  bool_t hash_compaction,
- uint8_t gc_threshold,
- float gc_ratio,
  uint32_t attrs) {
   const heap_t heap = SYSTEM_HEAP;
   const uint32_t attrs_width[NO_ATTRS] = { ATTR_CYAN_WIDTH * no_workers,
                                            ATTR_BLUE_WIDTH,
                                            ATTR_PINK_WIDTH * no_workers,
                                            ATTR_RED_WIDTH,
-                                           ATTR_GARBAGE_WIDTH,
-                                           ATTR_REFS_WIDTH,
                                            ATTR_PRED_WIDTH,
                                            ATTR_EVT_WIDTH };
   uint32_t attrs_bit_size = 0;
@@ -93,8 +79,6 @@ hash_tbl_t hash_tbl_new
   
   result = mem_alloc(heap, sizeof(struct_hash_tbl_t));
   result->hash_compaction = hash_compaction;
-  result->gc_threshold = gc_threshold;
-  result->gc_ratio = gc_ratio;
   result->attrs = attrs;
   for(i = 0; i < NO_ATTRS; i ++) {
     if(hash_tbl_has_attr(result, 1 << i)) {
@@ -115,9 +99,6 @@ hash_tbl_t hash_tbl_new
   result->hash = mem_alloc(heap, hash_size * sizeof(hash_key_t));
   result->status = mem_alloc(heap, hash_size * sizeof(bucket_status_t));
   result->update_status = mem_alloc(heap, hash_size * sizeof(bucket_status_t));
-  result->garbages = mem_alloc(heap, no_workers * sizeof(hash_tbl_id_t *));
-  result->max_garbages = mem_alloc(heap, no_workers * sizeof(uint64_t));
-  result->no_garbages = mem_alloc(heap, no_workers * sizeof(uint64_t));
   result->done = mem_alloc(heap, no_workers * sizeof(bool_t));
   if(hash_compaction) {
     result->hc_attrs = mem_alloc(heap, hash_size * result->attrs_char_size);
@@ -129,9 +110,6 @@ hash_tbl_t hash_tbl_new
   for(w = 0; w < result->no_workers; w ++) {
     result->size[w] = 0;
     result->seeds[w] = random_seed(w);
-    result->no_garbages[w] = 0;
-    result->max_garbages[w] = 0;
-    result->garbages[w] = NULL;
     result->done[w] = FALSE;
   }
   for(i = 0; i < result->hash_size; i++) {
@@ -142,7 +120,6 @@ hash_tbl_t hash_tbl_new
       result->state_len[i] = 0;
     }
   }
-  result->gc_time = 0;
   pthread_barrier_init(&result->barrier, NULL, no_workers);
   return result;
 
@@ -150,8 +127,6 @@ hash_tbl_t hash_tbl_new
 
 hash_tbl_t hash_tbl_default_new
 () {
-  uint8_t gc_threshold;
-  float gc_ratio;
   uint32_t attrs = 0;
   uint16_t no_workers;
 
@@ -165,30 +140,16 @@ hash_tbl_t hash_tbl_default_new
     attrs |= ATTR_PINK;
     attrs |= ATTR_RED;
   }
-  if(CFG_STATE_CACHING || CFG_ALGO_FRONTIER) {
-    attrs |= ATTR_GARBAGE;
-  }
-  if(CFG_STATE_CACHING) {
-    attrs |= ATTR_REFS;
-  }
   if(CFG_ALGO_BFS) {
     attrs |= ATTR_PRED;
     attrs |= ATTR_EVT;
   }
   
-  if(CFG_STATE_CACHING) {
-    gc_threshold = CFG_STATE_CACHING_GC_THRESHOLD;
-    gc_ratio = CFG_STATE_CACHING_GC_RATIO;
-  } else {
-    gc_threshold = 100;
-    gc_ratio = 0;
-  }
   no_workers = CFG_NO_WORKERS;
   if(CFG_DISTRIBUTED) {
     no_workers += CFG_NO_COMM_WORKERS;
   }
-  return hash_tbl_new(CFG_HASH_SIZE, no_workers, CFG_HASH_COMPACTION,
-                      gc_threshold, gc_ratio, attrs);
+  return hash_tbl_new(CFG_HASH_SIZE, no_workers, CFG_HASH_COMPACTION, attrs);
 }
 
 void hash_tbl_free
@@ -207,19 +168,11 @@ void hash_tbl_free
     mem_free(SYSTEM_HEAP, tbl->state);
     mem_free(SYSTEM_HEAP, tbl->state_len);
   }
-  for(w = 0; w < tbl->no_workers; w ++) {
-    if(tbl->garbages[w]) {
-      mem_free(SYSTEM_HEAP, tbl->garbages[w]);
-    }
-  }
   mem_free(SYSTEM_HEAP, tbl->size);
   mem_free(SYSTEM_HEAP, tbl->seeds);
   mem_free(SYSTEM_HEAP, tbl->hash);
   mem_free(SYSTEM_HEAP, tbl->status);
   mem_free(SYSTEM_HEAP, tbl->update_status);
-  mem_free(SYSTEM_HEAP, tbl->garbages);
-  mem_free(SYSTEM_HEAP, tbl->no_garbages);
-  mem_free(SYSTEM_HEAP, tbl->max_garbages);
   mem_free(SYSTEM_HEAP, tbl->done);
   mem_free(SYSTEM_HEAP, tbl);
 }
@@ -411,37 +364,6 @@ void hash_tbl_insert_serialised
   hash_tbl_insert_real(tbl, NULL, w, s, s_char_len, is_new, id, &h, TRUE);
 }
 
-void hash_tbl_put_in_garbages
-(hash_tbl_t tbl,
- worker_id_t w,
- hash_tbl_id_t id) {
-  hash_tbl_id_t * tmp;
-  uint64_t i;
-
-  /**
-   *  reallocate the garbage array of worker w if necessary
-   */
-  if(tbl->max_garbages[w] == 0) {
-    tbl->garbages[w] = mem_alloc(tbl->heap, sizeof(hash_tbl_id_t));
-    tbl->max_garbages[w] = 1;
-  } else if(tbl->max_garbages[w] == tbl->no_garbages[w]) {
-    tmp = tbl->garbages[w];
-    tbl->max_garbages[w] *= 2;
-    tbl->garbages[w] = mem_alloc(tbl->heap,
-                                 sizeof(hash_tbl_id_t) * tbl->max_garbages[w]);
-    for(i = 0; i < tbl->no_garbages[w]; i ++) {
-      tbl->garbages[w][i] = tmp[i];
-    }
-    mem_free(tbl->heap, tmp);
-  }
-
-  /**
-   *  put the id in the garbage array of worker w
-   */
-  tbl->garbages[w][tbl->no_garbages[w]] = id;
-  tbl->no_garbages[w] ++;
-}
-
 state_t hash_tbl_get
 (hash_tbl_t tbl,
  hash_tbl_id_t id,
@@ -554,14 +476,6 @@ bool_t hash_tbl_get_red
     hash_tbl_get_attr(tbl, id, ATTR_RED_POS(tbl), ATTR_RED_WIDTH);
 }
 
-bool_t hash_tbl_get_garbage
-(hash_tbl_t tbl,
- hash_tbl_id_t id) {
-  assert(hash_tbl_has_attr(tbl, ATTR_GARBAGE));
-  return (bool_t)
-    hash_tbl_get_attr(tbl, id, ATTR_GARBAGE_POS(tbl), ATTR_GARBAGE_WIDTH);
-}
-
 void hash_tbl_set_cyan
 (hash_tbl_t tbl,
  hash_tbl_id_t id,
@@ -598,19 +512,6 @@ void hash_tbl_set_red
   assert(hash_tbl_has_attr(tbl, ATTR_RED));
   hash_tbl_set_attr(tbl, id, ATTR_RED_POS(tbl),
                     ATTR_RED_WIDTH, (uint64_t) red);
-}
-
-void hash_tbl_set_garbage
-(hash_tbl_t tbl,
- worker_id_t w,
- hash_tbl_id_t id,
- bool_t garbage) {
-  assert(hash_tbl_has_attr(tbl, ATTR_GARBAGE));
-  hash_tbl_set_attr(tbl, id, ATTR_GARBAGE_POS(tbl),
-                    ATTR_GARBAGE_WIDTH, garbage);
-  if(garbage) {
-    hash_tbl_put_in_garbages(tbl, w, id);
-  }
 }
 
 void hash_tbl_set_pred
@@ -651,13 +552,6 @@ void hash_tbl_erase
   hash_tbl_erase_real(tbl, w, id, BUCKET_EMPTY);
 }
 
-void hash_tbl_remove
-(hash_tbl_t tbl,
- worker_id_t w,
- hash_tbl_id_t id) {
-  hash_tbl_set_garbage(tbl, w, id, TRUE);
-}
-
 void hash_tbl_get_serialised
 (hash_tbl_t tbl,
  hash_tbl_id_t id,
@@ -668,222 +562,6 @@ void hash_tbl_get_serialised
   (*s) = tbl->state[id] + tbl->attrs_char_size;
   (*size) = tbl->state_len[id];
   (*h) = tbl->hash[id];
-}
-
-void hash_tbl_change_refs
-(hash_tbl_t tbl,
- worker_id_t w,
- hash_tbl_id_t id,
- int update) {
-  bit_stream_t bits;
-  uint8_t refs;
-
-  if(hash_tbl_has_attr(tbl, ATTR_REFS)) {
-    BIT_STREAM_INIT_ON_ATTRS(tbl, id, bits);
-    bit_stream_move(bits, ATTR_REFS_POS(tbl));
-    if(tbl->no_workers > 0) {
-      while(!CAS(&tbl->update_status[id], BUCKET_READY, BUCKET_WRITE)) {
-        context_sleep(SLEEP_TIME);
-      }
-    }
-  
-    /*  read the reference counter  */
-    bit_stream_get(bits, refs, ATTR_REFS_WIDTH);
-    assert(((int) refs + update) >= 0);
-    
-    /*  and write it back after update */
-    refs += update;
-    bit_stream_start(bits);
-    bit_stream_move(bits, ATTR_REFS_POS(tbl));
-    bit_stream_set(bits, refs, ATTR_REFS_WIDTH);
-  
-    /*  update the garbage flag */
-    if(hash_tbl_has_attr(tbl, ATTR_GARBAGE)) {
-      bit_stream_start(bits);
-      bit_stream_move(bits, ATTR_GARBAGE_POS(tbl));
-      bit_stream_set(bits, (0 == refs) ? 1 : 0, ATTR_GARBAGE_WIDTH);
-      if(0 == refs) {
-        hash_tbl_put_in_garbages(tbl, w, id);
-      }
-    }
-    tbl->update_status[id] = BUCKET_READY;
-  }
-}
-
-void hash_tbl_ref
-(hash_tbl_t tbl,
- worker_id_t w,
- hash_tbl_id_t id) {
-  hash_tbl_change_refs(tbl, w, id, 1);
-}
-
-void hash_tbl_unref
-(hash_tbl_t tbl,
- worker_id_t w,
- hash_tbl_id_t id) {
-  hash_tbl_change_refs(tbl, w, id, - 1);
-}
-
-void hash_tbl_barrier
-(hash_tbl_t tbl) {
-  if(tbl->no_workers > 1) {
-    context_barrier_wait(&tbl->barrier);
-  }
-}
-    
-uint64_t hash_tbl_gc_real
-(hash_tbl_t tbl,
- worker_id_t w,
- uint64_t first_slot,
- uint64_t to_delete) {
-  lna_timer_t t;
-  uint64_t i, j, id, deleted, scanned;
-
-  if(0 == w) {
-    lna_timer_init(&t);
-    lna_timer_start(&t);
-  }
-  hash_tbl_barrier(tbl);
-
-  /**
-   *  delete up to to_delete states starting from first_slot
-   */
-  i = first_slot;
-  deleted = 0;
-  scanned = 0;
-  while(deleted < to_delete) {
-    scanned ++;
-    id = tbl->garbages[w][i];
-    if(tbl->status[id] == BUCKET_READY && hash_tbl_get_garbage(tbl, id)) {  
-      if(CAS(&tbl->update_status[id], BUCKET_READY, BUCKET_WRITE)) {
-
-        /**
-         *  the gc flag has been unset after I set it
-         */
-        if(!hash_tbl_get_garbage(tbl, id)) {
-          tbl->status[id] = BUCKET_READY;
-        } else {
-
-          /**
-           *  erase the state
-           */
-	  hash_tbl_erase_real(tbl, w, id, BUCKET_DEL);
-
-          /**
-           *  if the next bucket is empty then all deleted buckets
-           *  before this one can be also be set to empty
-           */
-          if(tbl->status[(id + 1) % tbl->hash_size] == BUCKET_EMPTY) {
-            while(tbl->status[id] == BUCKET_DEL) {
-              tbl->status[id] = BUCKET_EMPTY;
-              if(0 == id) {
-                id = tbl->hash_size - 1;
-              } else {
-                id --;
-              }
-            }
-          }
-          deleted ++;
-        }
-      }
-    }
-    i = (i + 1) % tbl->no_garbages[w];
-    if(i == first_slot) {
-      to_delete = 0;
-    }
-  }
-    
-  /**
-   *  replace emptied slots
-   */
-  if(i > first_slot) {
-    for(j = 0; j + first_slot < i; j ++) {
-      tbl->garbages[w][first_slot + j] =
-        tbl->garbages[w][tbl->no_garbages[w] - j - 1];
-    }
-  } else if(i < first_slot) {
-    for(j = 0; j < i && j < first_slot - i; j ++) {
-      tbl->garbages[w][j] = tbl->garbages[w][first_slot - j - 1];
-    }
-  }
-
-  tbl->no_garbages[w] -= scanned;
-  hash_tbl_barrier(tbl);
-  if(0 == w) {
-    lna_timer_stop(&t);
-    tbl->gc_time += lna_timer_value(t);
-  }
-  return deleted;
-}
-    
-void hash_tbl_gc
-(hash_tbl_t tbl,
- worker_id_t w) {
-  uint64_t to_delete, first_slot, deleted;
-  
-  if(hash_tbl_has_attr(tbl, ATTR_GARBAGE)
-     && hash_tbl_size(tbl) >= ((tbl->hash_size * tbl->gc_threshold) / 100)) {
-    if(tbl->no_garbages[w] == 0) {
-      first_slot = 0;
-      to_delete = 0;
-    } else {  
-      first_slot = random_int(&tbl->seeds[w]) % tbl->no_garbages[w];
-      to_delete =
-      (uint64_t) ((double) hash_tbl_size(tbl) * tbl->gc_ratio) /
-        (tbl->no_workers);
-    }
-    deleted = hash_tbl_gc_real(tbl, w, first_slot, to_delete);
-
-    /**
-     *  stop if we could not delete more than 10% of states to delete.
-     *  all workers must be aware of this.  hence the barrier
-     */
-    if(10 * deleted < to_delete) {
-      raise_error("could not delete states (increase --hash-size and rerun)");
-    }
-    hash_tbl_barrier(tbl);
-  }
-}
-    
-void hash_tbl_gc_all
-(hash_tbl_t tbl,
- worker_id_t w) {
-  if(hash_tbl_has_attr(tbl, ATTR_GARBAGE)) {
-    hash_tbl_gc_real(tbl, w, 0, tbl->no_garbages[w]);
-  }
-}
-
-uint64_t hash_tbl_gc_time
-(hash_tbl_t tbl) {
-  return tbl->gc_time;
-}
-
-/**
- *  hash_tbl_gc_barrier is called by a worker that has finished its
- *  search.  it keeps performing exactly three barriers to synchronise
- *  with other threads that are still working and may call hash_tbl_gc
- *  (garbage collection) which also performs exactly three barriers.
- */
-void hash_tbl_gc_barrier
-(hash_tbl_t tbl,
- worker_id_t w) {
-  worker_id_t x;
-  bool_t loop = TRUE;
-
-  if(hash_tbl_has_attr(tbl, ATTR_GARBAGE)) {
-    while(loop) {
-      hash_tbl_barrier(tbl);
-      tbl->done[w] = TRUE;
-      hash_tbl_barrier(tbl);
-      loop = FALSE;
-      for(x = 0; x < tbl->no_workers; x ++) {
-        if(!tbl->done[x]) {
-          loop = TRUE;
-        }
-      }
-      hash_tbl_barrier(tbl);
-    }
-  }
 }
 
 void hash_tbl_fold

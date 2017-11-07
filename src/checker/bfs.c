@@ -7,7 +7,7 @@
 #include "reduction.h"
 #include "workers.h"
 
-#if CFG_ALGO_BFS == 0 && CFG_ALGO_DBFS == 0 && CFG_ALGO_FRONTIER == 0
+#if CFG_ALGO_BFS == 0 && CFG_ALGO_DBFS == 0
 
 void bfs() {}
 
@@ -240,23 +240,11 @@ void * bfs_worker
         context_incr_evts_exec(w, arcs);
 
         /**
-         *  the state leaves the queue => we unset its cyan bit and
-         *  delete it from storage if algo is FRONTIER.
+         *  the state leaves the queue => we unset its cyan bit
          */
         bfs_queue_dequeue(Q, x, w);
         storage_set_cyan(S, item.id, w, FALSE);
-        if(CFG_ALGO_FRONTIER) {
-          storage_remove(S, w, item.id);
-        }
       }
-    }
-    
-    /**
-     *  with FRONTIER algorithm we delete all states of the previous
-     *  level that were marked as garbage by the storage_remove calls
-     */
-    if(CFG_ALGO_FRONTIER) {
-      storage_gc_all(S, w);
     }
 
     /**

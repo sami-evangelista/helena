@@ -40,7 +40,6 @@ def mergeReports(refDoc, docs):
                            ("eventsExecuted", False),
                            ("eventsExecutedDDD", False),
                            ("eventsExecutedExpansion", False),
-                           ("garbageCollectionTime", False),
                            ("host", False),
                            ("maxMemoryUsed", False),
                            ("searchResult", False),
@@ -62,19 +61,20 @@ def exitWithError(errMsg):
     sys.stderr.write(errMsg + "\n")
     exit(1)
 
-if len(sys.argv) == 1:
-    print "usage: helena-merge-reports report-0.xml .. report-N.xml"
-    exit(1)
-else:
-    docs = list()
-    for xml in sys.argv[1:]:
-        try:
-            docs.append(parse(xml))
-        except:
-            exitWithError("error: could not parse file " + xml)
-    docRef = docs[0]
-    mergeReports(docRef, docs)
-    out = open("report.xml", "w")
-    out.write(docRef.toprettyxml(indent = '  '))
-    out.close()
-exit(0)
+if __name__ == "__main__":
+    if len(sys.argv) == 1:
+        print "usage: helena-merge-reports report-0.xml .. report-N.xml"
+        exit(1)
+    else:
+        docs = list()
+        for xml in sys.argv[1:]:
+            try:
+                docs.append(parse(xml))
+            except:
+                exitWithError("error: could not parse file " + xml)
+        docRef = docs[0]
+        mergeReports(docRef, docs)
+        out = open("report.xml", "w")
+        out.write(docRef.toprettyxml(indent = '  '))
+        out.close()
+    exit(0)

@@ -32,7 +32,6 @@ void ddfs_comm_end
  */
 void ddfs_comm_process_explored_state
 (worker_id_t w,
- storage_id_t id,
- event_list_t en);
+ storage_id_t id);
 
 #endif

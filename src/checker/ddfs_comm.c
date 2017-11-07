@@ -49,8 +49,7 @@ typedef struct {
 
 void ddfs_comm_process_explored_state
 (worker_id_t w,
- storage_id_t id,
- event_list_t en) {
+ storage_id_t id) {
   uint16_t s_char_len, len;
   bit_vector_t s;
   bool_t red = FALSE, blue = FALSE;
@@ -244,11 +243,6 @@ void * ddfs_comm_consumer
             }
             if(red && storage_has_attr(S, ATTR_RED)) {
               storage_set_red(S, sid, TRUE);
-            }
-
-            /*  if the state is new it may be garbage collected  */
-            if(is_new && storage_has_attr(S, ATTR_GARBAGE)) {
-              storage_set_garbage(S, w, sid, TRUE);
             }
           }
         }

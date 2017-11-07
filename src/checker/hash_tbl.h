@@ -35,8 +35,6 @@ hash_tbl_t hash_tbl_new
 (uint64_t hash_size,
  uint16_t no_workers,
  bool_t hash_compaction,
- uint8_t gc_threshold,
- float gc_ratio,
  uint32_t attrs);
 
 
@@ -102,15 +100,6 @@ void hash_tbl_insert_serialised
  * @brief hash_tbl_erase
  */
 void hash_tbl_erase
-(hash_tbl_t tbl,
- worker_id_t w,
- hash_tbl_id_t id);
-
-
-/**
- * @brief hash_tbl_remove
- */
-void hash_tbl_remove
 (hash_tbl_t tbl,
  worker_id_t w,
  hash_tbl_id_t id);
@@ -235,16 +224,6 @@ bool_t hash_tbl_get_red
 
 
 /**
- * @brief hash_tbl_set_garbage
- */
-void hash_tbl_set_garbage
-(hash_tbl_t tbl,
- worker_id_t w,
- hash_tbl_id_t id,
- bool_t garbage);
-
-
-/**
  * @brief hash_tbl_set_pred
  */
 void hash_tbl_set_pred
@@ -252,55 +231,6 @@ void hash_tbl_set_pred
  hash_tbl_id_t id,
  hash_tbl_id_t id_pred,
  mevent_id_t evt);
-
-
-/**
- * @brief hash_tbl_ref
- */
-void hash_tbl_ref
-(hash_tbl_t tbl,
- worker_id_t w,
- hash_tbl_id_t id);
-
-
-/**
- * @brief hash_tbl_unref
- */
-void hash_tbl_unref
-(hash_tbl_t tbl,
- worker_id_t w,
- hash_tbl_id_t id);
-
-
-/**
- * @brief hash_tbl_gc
- */
-void hash_tbl_gc
-(hash_tbl_t tbl,
- worker_id_t w);
-
-
-/**
- * @brief hash_tbl_gc_all
- */
-void hash_tbl_gc_all
-(hash_tbl_t tbl,
- worker_id_t w);
-
-
-/**
- * @brief hash_tbl_gc_barrier
- */
-void hash_tbl_gc_barrier
-(hash_tbl_t tbl,
- worker_id_t w);
-
-
-/**
- * @brief hash_tbl_gc_time
- */
-uint64_t hash_tbl_gc_time
-(hash_tbl_t tbl);
 
 
 /**

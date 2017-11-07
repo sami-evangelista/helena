@@ -52,7 +52,7 @@ int main
     /**
      * launch the appropriate search algorithm
      */
-    if(CFG_ALGO_BFS || CFG_ALGO_DBFS || CFG_ALGO_FRONTIER) {
+    if(CFG_ALGO_BFS || CFG_ALGO_DBFS) {
       bfs();
     } else if(CFG_ALGO_DFS || CFG_ALGO_DDFS) {
       dfs();

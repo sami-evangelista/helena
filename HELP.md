@@ -80,9 +80,6 @@ algorithms are available:
 * DFS - The state space is explored using a depth-first search.  This
    is the default.
 * BFS - The state space is explored using a breadth-first search.
-* FRONTIER - The state space is explored using a breadth-first search
-   but only the states of the current level are kept in memory.  This
-   algorithm will not terminate if the state space contains cycles.
 * DELTA-DDD - The state space is explored using a parallel
    breadth-first search based on state compression.
 * RWALK - A random walk is used.  The principle is to randomly select
@@ -137,15 +134,6 @@ preserves the existence of deadlock states.
 Activate/deactivate edge-lean reduction.  This one allows to prune
 some arcs of the reachability graph, hence reducing the search
 time.
-
-### -S[={0|1}], --state-caching[={0|1}]
-
-Activate/deactivate state caching.  Its principle is to only store a
-subset of visited states in such a way that termination is still
-guaranteed.  Other visited states are forgotten.  This technique can
-be very efficient but can also considerably increase the execution
-time by revisiting forgotten states.  State caching is only available
-with search algorithm DFS.
 
 ## Limit options
 

@@ -30,7 +30,6 @@ BFS         = "BFS"
 DFS         = "DFS"
 DBFS        = "DBFS"
 DDFS        = "DDFS"
-FRONTIER    = "FRONTIER"
 RWALK       = "RWALK"
 DELTA_DDD   = "DELTA-DDD"
 
@@ -50,7 +49,7 @@ GENERAL_OPTS = ("General options",
 SEARCH_OPTS = ("Search and storage options",
                [ "A", "t", "W", "R", "cs" ])
 REDUCTION_OPTS = ("Reduction techniques",
-                  [ "H", "P", "E", "S" ])
+                  [ "H", "P", "E" ])
 LIMIT_OPTS = ("Limit options",
               [ "ml", "tl", "sl" ])
 MODEL_OPTS = ("Model options",
@@ -132,9 +131,6 @@ algorithms are available:
 * DFS - The state space is explored using a depth-first search.  This
    is the default.
 * BFS - The state space is explored using a breadth-first search.
-* FRONTIER - The state space is explored using a breadth-first search
-   but only the states of the current level are kept in memory.  This
-   algorithm will not terminate if the state space contains cycles.
 * DELTA-DDD - The state space is explored using a parallel
    breadth-first search based on state compression.
 * RWALK - A random walk is used.  The principle is to randomly select
@@ -187,15 +183,6 @@ preserves the existence of deadlock states."""
 Activate/deactivate edge-lean reduction.  This one allows to prune
 some arcs of the reachability graph, hence reducing the search
 time."""
-    elif o in [ "S", "state-caching" ]:
-        return """-S[={0|1}], --state-caching[={0|1}]
-
-Activate/deactivate state caching.  Its principle is to only store a
-subset of visited states in such a way that termination is still
-guaranteed.  Other visited states are forgotten.  This technique can
-be very efficient but can also considerably increase the execution
-time by revisiting forgotten states.  State caching is only available
-with search algorithm DFS."""
     elif o in [ "ml", "memory-limit" ]:
         return """-ml=N, --memory-limit=N
 
@@ -282,7 +269,7 @@ def printHelpShort():
    -wp  --with-papi[={0|1}]
  
  Search and storage options
-   -A   --algo={BFS|DFS|FRONTIER|DELTA-DDD|RWALK}
+   -A   --algo={BFS|DFS|DELTA-DDD|RWALK}
    -t   --hash-size=N
    -W   --workers=N
    -C   --comm-workers=N
@@ -293,7 +280,6 @@ def printHelpShort():
    -H   --hash-compaction[={0|1}]
    -P   --partial-order[={0|1}]
    -E   --edge-lean[={0|1}]
-   -S   --state-caching[={0|1}]
  
  Limit options
    -ml  --memory-limit=N
@@ -368,7 +354,6 @@ class Config:
         self.verbose = False
         self.version = False
         self.partialOrder = False
-        self.stateCaching = False
         self.hashCompaction = False
         self.edgeLean = False
         self.withPapi = False
@@ -400,8 +385,6 @@ class Config:
         self.rwalkMaxDepth = 10 ** 3
         self.shmemHeapSize = 10 ** 6
         self.candidateSetSize = 10 ** 5
-        self.stateCachingGcThreshold = 50
-        self.stateCachingGcRatio = 0.01
         self.maxTraceLength = 1000
 
     #  correct inconsistencies in received arguments
@@ -417,14 +400,8 @@ class Config:
                 self.traceType = EVENTS
         elif self.action == SIMULATE:
             self.runTimeChecks = True
-        if self.algo == FRONTIER:
+        if self.algo == DBFS:
             self.traceType = STATE
-        elif self.algo == DBFS:
-            self.traceType = STATE
-
-        #  state caching only available in DFS
-        self.stateCaching = self.stateCaching and self.algo in [
-            DFS ]
 
         #  hash compaction not available for random walk and delta-ddd
         self.hashCompaction = self.hashCompaction and self.algo not in [
@@ -485,7 +462,6 @@ class Config:
             ("ALGO_DDFS", self.algo == DDFS),
             ("ALGO_DELTA_DDD", self.algo == DELTA_DDD),
             ("ALGO_DFS", self.algo == DFS),
-            ("ALGO_FRONTIER", self.algo == FRONTIER),
             ("ALGO_RWALK", self.algo == RWALK),
             ("BFS_QUEUE_BLOCK_SIZE", self.bfsQueueBlockSize),
             ("DATE", "\"" + now.strftime("%B, %d, %Y at %H:%M:%S") + "\""),
@@ -524,9 +500,6 @@ class Config:
             ("RG_REPORT_FILE", "\"rg-report.xml\""),
             ("RWALK_MAX_DEPTH", self.rwalkMaxDepth),
             ("SHMEM_HEAP_SIZE", self.shmemHeapSize),
-            ("STATE_CACHING_GC_RATIO", self.stateCachingGcRatio),
-            ("STATE_CACHING_GC_THRESHOLD", self.stateCachingGcThreshold),
-            ("STATE_CACHING", self.stateCaching),
             ("STATE_LIMITED", self.stateLimit != 0),
             ("TIME_LIMITED", self.timeLimit != 0),
             ("TRACE_EVENTS", self.traceType == EVENTS),
@@ -600,8 +573,6 @@ class Config:
                 self.edgeLean = (val is None) or val == "1"
             elif opt in [ "-r", "--run-time-checks" ]:
                 self.runTimeChecks = (val is None) or val == "1"
-            elif opt in [ "-S", "--state-caching" ]:
-                self.stateCaching = (val is None) or val == "1"
             elif opt in [ "-H", "--hash-compaction" ]:
                 self.hashCompaction = (val is None) or val == "1"
             elif opt in [ "-R", "--random-succs" ]:
@@ -670,7 +641,7 @@ class Config:
             #  enum options
             elif opt in [ "-A", "--algo" ]:
                 recognized = self.handleEnumOption \
-                             ("algo", val, [BFS, DBFS, DFS, DDFS, FRONTIER, \
+                             ("algo", val, [BFS, DBFS, DFS, DDFS, \
                                             DELTA_DDD, RWALK])
             elif opt in [ "-tr", "--trace-type" ]:
                 recognized = self.handleEnumOption \

@@ -256,8 +256,6 @@ void finalise_context
       fprintf(out, "distributedDepthSearch");
     } else if(CFG_ALGO_DBFS) {
       fprintf(out, "distributedBreadthSearch");
-    } else if(CFG_ALGO_FRONTIER) {
-      fprintf(out, "frontierSearch");
     } else if(CFG_ALGO_RWALK) {
       fprintf(out, "randomWalk");
     } else if(CFG_ALGO_DELTA_DDD) {
@@ -275,9 +273,6 @@ void finalise_context
     }
     if(CFG_POR) {
       fprintf(out, "<partialOrder/>\n");
-    }
-    if(CFG_STATE_CACHING) {
-      fprintf(out, "<stateCaching/>\n");
     }
     if(CFG_HASH_COMPACTION) {
       fprintf(out, "<hashCompaction/>\n");
@@ -314,11 +309,6 @@ void finalise_context
     if(CFG_ALGO_DELTA_DDD) {
       fprintf(out, "<duplicateDetectionTime>%.3f</duplicateDetectionTime>\n",
 	      storage_dd_time(CTX->storage) / 1000000.0);
-    }
-    if(CFG_STATE_CACHING) {
-      fprintf(out, "<garbageCollectionTime>");
-      fprintf(out, "%.3f</garbageCollectionTime>\n",
-	      storage_gc_time(CTX->storage) / 1000000.0);
     }
     fprintf(out, "</timeStatistics>\n");
     fprintf(out, "<graphStatistics>\n");

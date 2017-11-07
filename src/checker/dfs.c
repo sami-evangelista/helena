@@ -1,4 +1,5 @@
 #include "config.h"
+#include "darray.h"
 #include "dfs.h"
 #include "model.h"
 #include "storage.h"
@@ -15,6 +16,13 @@ void dfs() {}
 #else
 
 #define DFS_MAX_HEAP_SIZE 100000
+
+const struct timespec DFS_WAIT_RED_SLEEP_TIME = { 0, 10 };
+
+typedef struct {
+  bool_t accepting;
+  storage_id_t id;  
+} red_processed_t;
 
 storage_t S;
 
@@ -36,25 +44,25 @@ state_t dfs_recover_state
   return now;
 }
 
-state_t dfs_check_state
-(state_t now,
- event_list_t en,
- dfs_stack_t stack) { 
-  if(CFG_ACTION_CHECK_SAFETY && state_check_property(now, en)) {
-    context_faulty_state(now);
-    dfs_stack_create_trace(stack);
-  }
-}
+#define dfs_check_state(now, en, stack)                                 \
+  if(check_safety && state_check_property(now, en)) {                   \
+    context_faulty_state(now);                                          \
+    dfs_stack_create_trace(stack);                                      \
+  }                                                                     \
 
 void * dfs_worker
 (void * arg) {
+  const worker_id_t w = (worker_id_t) (unsigned long int) arg;
+  const uint32_t wid = context_global_worker_id(w);
+  const bool_t check_ltl = CFG_ACTION_CHECK_LTL;
+  const bool_t check_safety = CFG_ACTION_CHECK_SAFETY;
   const bool_t por = CFG_POR;
   const bool_t proviso = CFG_PROVISO;
   const bool_t edge_lean = CFG_EDGE_LEAN;
-  const worker_id_t w = (worker_id_t) (unsigned long int) arg;
-  const uint32_t wid = context_global_worker_id(w);
   const bool_t shuffle = CFG_PARALLEL || CFG_DISTRIBUTED || CFG_RANDOM_SUCCS;
+  const bool_t cndfs = CFG_PARALLEL || CFG_DISTRIBUTED;
   const bool_t states_stored = !CFG_EVENT_UNDOABLE && CFG_HASH_COMPACTION;
+  uint32_t i;
   hash_key_t h;
   heap_t heap = local_heap_new();
   state_t copy, now = state_initial_mem(heap);
@@ -66,13 +74,14 @@ void * dfs_worker
   event_t * e_ref;
   event_list_t en;
   uint32_t red_stack_size = 0;
-
+  red_processed_t proc;
+  darray_t red_states = check_ltl ?
+    darray_new(SYSTEM_HEAP, sizeof(red_processed_t)) : NULL;
 
   /*
    *  push the initial state on the stack
    */
   storage_insert(S, now, w, &is_new, &id_top, &h);
-  storage_ref(S, w, id_top);
   storage_set_cyan(S, id_top, w, TRUE);
   dfs_stack_push(stack, id_top, now);
   en = dfs_stack_compute_events(stack, now, por, NULL);
@@ -83,11 +92,6 @@ void * dfs_worker
    */
   while(dfs_stack_size(stack) && context_keep_searching()) {
   loop_start:
-
-    /*
-     *  launch garbage collection on the storage, if necessary
-     */
-    storage_gc(S, w);
     
     /*
      *  reinitialise the heap if its current size exceeds DFS_MAX_HEAP_SIZE
@@ -119,12 +123,15 @@ void * dfs_worker
        *  we check an ltl property => launch the red search if the
        *  state is accepting
        */
-      if(CFG_ACTION_CHECK_LTL && blue && state_accepting(now)) {
+      if(check_ltl && blue && state_accepting(now)) {
         context_incr_accepting(w, 1);
         id_seed = dfs_stack_top(stack);
         blue = FALSE;
-        red_stack_size = 0;
-        dfs_stack_compute_events(stack, now, FALSE, NULL);
+        red_stack_size = 1;
+        dfs_stack_compute_events(stack, now, por, NULL);
+        if(cndfs) {
+          darray_reset(red_states);
+        }
         goto loop_start;
       }
 
@@ -136,9 +143,41 @@ void * dfs_worker
 	storage_set_cyan(S, id_top, w, FALSE);
         storage_set_blue(S, id_top, TRUE);
       } else {
-        storage_set_red(S, id_top, TRUE);
-        if(red_stack_size == 0) {
+        
+        /*
+         * if cdnfs we put the popped state in red_states and in
+         * sequential ndfs we directly mark it as red.
+         */
+        if(cndfs) {
+          proc.accepting = state_accepting(now);
+          proc.id = id_top;
+          darray_push(red_states, &proc);
+        } else {
+          storage_set_red(S, id_top, TRUE);
+        }
+        red_stack_size --;
+        
+        /*
+         * termination of the red DFS.  if cndfs we wait for all
+         * accepting states of the red_states to become red and then
+         * mark all states of the red_states as red
+         */
+        if(0 == red_stack_size) {
           blue = TRUE;
+          if(cndfs) {
+            for(i = 0; i < darray_size(red_states); i ++) {
+              proc = * ((red_processed_t *) darray_ith(red_states, i));
+              if(proc.accepting && proc.id != id_top) {
+                while(!storage_get_red(S, proc.id)) {
+                  context_sleep(DFS_WAIT_RED_SLEEP_TIME);
+                }
+              }
+            }
+            for(i = 0; i < darray_size(red_states); i ++) {
+              proc = * ((red_processed_t *) darray_ith(red_states, i));
+              storage_set_red(S, proc.id, TRUE);
+            }
+          }
         }
       }
 
@@ -146,8 +185,7 @@ void * dfs_worker
        *  in distributed DFS we process the state to be later sent
        */
       if(CFG_ALGO_DDFS) {
-	en = dfs_stack_top_events(stack);
-	ddfs_comm_process_explored_state(w, id_top, en);
+	ddfs_comm_process_explored_state(w, id_top);
       }
 
       /*
@@ -158,12 +196,6 @@ void * dfs_worker
       if(dfs_stack_size(stack)) {
         now = dfs_recover_state(stack, now, w, heap);
       }
-
-      /*
-       *  the state leaves the stack => we decrease its reference
-       *  counter
-       */
-      storage_unref(S, w, id_top);
     }
 
     /**
@@ -173,7 +205,7 @@ void * dfs_worker
     else {
       
       /*
-       *  get the next event to process on the top state and excute it
+       *  get the next event to process on the top state and execute it
        */
       dfs_stack_pick_event(stack, &e);
       event_exec(e, now);
@@ -186,10 +218,11 @@ void * dfs_worker
       storage_insert(S, now, w, &is_new, &id, &h);
 
       /*
-       *  if we check an LTL property, test whether the state reached
-       *  is the seed.  exit the loop if this is the case
+       *  if we check an LTL property and are in the red search, test
+       *  whether the state reached is the seed.  exit the loop if
+       *  this is the case
        */
-      if(CFG_ACTION_CHECK_LTL && !blue && (id == id_seed)) {
+      if(check_ltl && !blue && (id == id_seed)) {
         dfs_stack_create_trace(stack);
         break;
       }
@@ -220,12 +253,6 @@ void * dfs_worker
       } else {
 
         /*
-         *  the state enters the stack => we increase its reference
-         *  counter
-         */
-        storage_ref(S, w, id);
-
-        /*
          *  push the successor state on the stack and then set some
          *  color on it
          */
@@ -254,14 +281,6 @@ void * dfs_worker
     }
   }
 
-  /**
-   *  if state caching is on we keep waiting on the storage barrier
-   *  since some other threads may still launch garbage collection
-   */
-  if(CFG_PARALLEL && CFG_STATE_CACHING) {
-    storage_gc_barrier(S, w);
-  }
-
   dfs_stack_free(stack);
   heap_free(heap);
 
@@ -270,16 +289,11 @@ void * dfs_worker
 
 void dfs
 () {
-  worker_id_t w;
-
   S = context_storage();
-
   if(CFG_ALGO_DDFS) {
     ddfs_comm_start();
   }
-  
   launch_and_wait_workers(&dfs_worker);
-
   if(CFG_ALGO_DDFS) {
     context_stop_search();
     ddfs_comm_end();

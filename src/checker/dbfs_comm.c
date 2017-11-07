@@ -2,7 +2,7 @@
 #include "dbfs_comm.h"
 #include "comm_shmem.h"
 
-#if CFG_ALGO_BFS == 1 || CFG_ALGO_DBFS == 1 || CFG_ALGO_FRONTIER == 1
+#if CFG_ALGO_BFS == 1 || CFG_ALGO_DBFS == 1
 
 #define COMM_WAIT_TIME_MUS      2
 #define WORKER_WAIT_TIME_MUS    1
@@ -461,7 +461,7 @@ void dbfs_comm_start
 				   * WORKER_STATE_BUFFER_LEN);
         BUF.heaps[w][pe] = local_heap_new();
         BUF.states[w][pe] = hash_tbl_new(WORKER_STATE_BUFFER_LEN * 2,
-					 1, FALSE, 100, 0, 0);
+					 1, FALSE, 0);
 	hash_tbl_set_heap(BUF.states[w][pe], BUF.heaps[w][pe]);
         dbfs_comm_reinit_buffer(w, pe);
         remote_pos += DBFS_HEAP_SIZE_WORKER;

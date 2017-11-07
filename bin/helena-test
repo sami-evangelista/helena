@@ -31,9 +31,8 @@ baseOptions = [
 ]
 exploreOptions = baseOptions + [
     ["-N=build-graph", "-N=explore"],
-    ["-A=dfs", "-A=bfs", "-A=frontier", "-A=rwalk", "-A=delta-ddd"],
+    ["-A=dfs", "-A=bfs", "-A=rwalk", "-A=delta-ddd"],
     ["-W=1", "-W=4"],
-    ["-S=1", "-S=0"],
     ["-H=0", "-H=1"],
     ["-E=0", "-E=1"]
 ]
@@ -46,24 +45,21 @@ ltlOptions = baseOptions + [
     ["-tr=events"],
     ["-A=dfs"],
     ["-W=1"],
-    ["-S=1", "-S=0"],
     ["-H=0", "-H=1"]
 ]
 lnaLtlOptions = ltlOptions + [ porOptions ]
 dveLtlOptions = ltlOptions
 safetyOptions = baseOptions + [
-    ["-A=dfs", "-A=bfs", "-A=frontier", "-A=rwalk", "-A=delta-ddd"],
+    ["-A=dfs", "-A=bfs", "-A=rwalk", "-A=delta-ddd"],
     ["-W=1", "-W=4"],
-    ["-S=1", "-S=0"],
     ["-H=0", "-H=1"],
     ["-E=0", "-E=1"]
 ]
 lnaSafetyOptions = safetyOptions + [ porOptions ]
 requires = [
-    ("-H=1", [["-A=dfs"], ["-A=bfs"], ["-A=frontier"]]),
-    ("-P=1", [["-A=dfs"], ["-A=bfs"], ["-A=frontier"]]),
-    ("-E=1", [["-A=dfs"], ["-A=bfs"], ["-A=frontier"]]),
-    ("-S=1", [["-A=dfs"]]),
+    ("-H=1", [["-A=dfs"], ["-A=bfs"]]),
+    ("-P=1", [["-A=dfs"], ["-A=bfs"]]),
+    ("-E=1", [["-A=dfs"], ["-A=bfs"]]),
     ("-N=build-graph", [["-A=delta-ddd"]])
 ]
 postCmd = "mv report.xml %d"

@@ -93,7 +93,6 @@ terminationStates = {
 algorithms = {
     "breadthSearch"           : "Breadth-first search",
     "depthSearch"             : "Depth-first search",
-    "frontierSearch"          : "Frontier search",
     "distributedDepthSearch"  : "Distributed depth-first searches",
     "distributedBreadthSearch": "Distributed breadth-first searches",
     "randomWalk"              : "Random walk",
@@ -102,7 +101,6 @@ options = {
     "edgeLean"                : "Edge-lean reduction",
     "partialOrder"            : "Partial order reduction",
     "hashCompaction"          : "Hash compaction",
-    "stateCaching"            : "State caching",
     "randomSuccs"             : "Random successor selection",
     "searchAlgorithm"         : "Search algorithm = ",
     "candidateSetSize"        : "Candidate set size (for Delta-DDD) = ",
@@ -120,7 +118,6 @@ optionsWithUnits = {
 statistics = {
     "searchTime"              : "Search time               ",
     "duplicateDetectionTime"  : "   for duplicate detection",
-    "garbageCollectionTime"   : "   for garbage collection ",
     "barrierTime"             : "   for local barrier wait ",
     "sleepTime"               : "   for sleep              ",
     "compilationTime"         : "Model compilation         ",
@@ -158,7 +155,6 @@ statistics = {
 statisticsUnits = {
     "searchTime"              : "s.",
     "duplicateDetectionTime"  : "s.",
-    "garbageCollectionTime"   : "s.",
     "compilationTime"         : "s.",
     "barrierTime"             : "s. (sum over all threads)",
     "sleepTime"               : "s. (sum over all threads)",

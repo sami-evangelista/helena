@@ -16,10 +16,8 @@
 #define ATTR_BLUE     2
 #define ATTR_PINK     4
 #define ATTR_RED      8
-#define ATTR_GARBAGE  16
-#define ATTR_REFS     32
-#define ATTR_PRED     64
-#define ATTR_EVT      128
+#define ATTR_PRED     16
+#define ATTR_EVT      32
 
 /*****
  *  storage used by delta-ddd algorithm
@@ -34,7 +32,6 @@ typedef delta_ddd_storage_id_t storage_id_t;
 #define storage_size         delta_ddd_storage_size
 #define storage_barrier_time delta_ddd_storage_barrier_time
 #define storage_dd_time      delta_ddd_storage_dd_time
-#define storage_gc_time(...) 0
 
 
 /*****
@@ -51,7 +48,6 @@ typedef hash_tbl_id_t storage_id_t;
 #define storage_insert            hash_tbl_insert
 #define storage_insert_hashed     hash_tbl_insert_hashed
 #define storage_insert_serialised hash_tbl_insert_serialised
-#define storage_remove            hash_tbl_remove
 #define storage_get_serialised    hash_tbl_get_serialised
 #define storage_get               hash_tbl_get
 #define storage_get_mem           hash_tbl_get_mem
@@ -65,14 +61,7 @@ typedef hash_tbl_id_t storage_id_t;
 #define storage_get_pink          hash_tbl_get_pink
 #define storage_set_red           hash_tbl_set_red
 #define storage_get_red           hash_tbl_get_red
-#define storage_set_garbage       hash_tbl_set_garbage
 #define storage_set_pred          hash_tbl_set_pred
-#define storage_ref               hash_tbl_ref
-#define storage_unref             hash_tbl_unref
-#define storage_gc                hash_tbl_gc
-#define storage_gc_all            hash_tbl_gc_all
-#define storage_gc_time           hash_tbl_gc_time
-#define storage_gc_barrier        hash_tbl_gc_barrier
 #define storage_has_attr          hash_tbl_has_attr
 #define storage_get_trace         hash_tbl_get_trace
 #define storage_dd_time(...)      0
