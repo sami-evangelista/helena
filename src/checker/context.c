@@ -17,7 +17,6 @@ typedef struct {
   FILE * graph_file;
   char * error_msg;
   termination_state_t term_state;
-  storage_t storage;
 
   /*  for the trace context  */
   bool_t faulty_state_found;
@@ -37,6 +36,8 @@ typedef struct {
   uint64_t states_max_stored;
   uint64_t barrier_time;
   uint64_t sleep_time;
+  uint64_t dd_time;
+  uint64_t storage_size;
   unsigned int bfs_levels;
   bool_t bfs_levels_ok;
   float max_mem_used;
@@ -101,7 +102,6 @@ void init_context
   CTX->avg_cpu_usage = 0.0;
   CTX->no_workers = no_workers;
   CTX->no_comm_workers = no_comm_workers;
-  CTX->storage = storage_new();
   CTX->faulty_state_found = FALSE;
   CTX->trace = NULL;
   CTX->keep_searching = TRUE;
@@ -177,7 +177,6 @@ void finalise_context
 () {
   FILE * out;
   void * dummy;
-  uint64_t ssize;
   uint64_t sum_processed;
   uint64_t min_processed;
   uint64_t max_processed;
@@ -248,7 +247,7 @@ void finalise_context
     }
     fprintf(out, "<searchOptions>\n");
     fprintf(out, "<searchAlgorithm>");
-    if(CFG_ALGO_DFS) {
+    if(CFG_ALGO_DFS || CFG_ALGO_TARJAN) {
       fprintf(out, "depthSearch");
     } else if(CFG_ALGO_BFS) {
       fprintf(out, "breadthSearch");
@@ -308,14 +307,11 @@ void finalise_context
     }
     if(CFG_ALGO_DELTA_DDD) {
       fprintf(out, "<duplicateDetectionTime>%.3f</duplicateDetectionTime>\n",
-	      storage_dd_time(CTX->storage) / 1000000.0);
+	      CTX->dd_time / 1000000.0);
     }
     fprintf(out, "</timeStatistics>\n");
     fprintf(out, "<graphStatistics>\n");
-    ssize = storage_size(CTX->storage);
-    fprintf(out, "<statesStored>%llu</statesStored>\n", ssize);
-    fprintf(out, "<statesMaxStored>%llu</statesMaxStored>\n",
-	    (ssize > CTX->states_max_stored) ? ssize : CTX->states_max_stored);
+    fprintf(out, "<statesStored>%llu</statesStored>\n", CTX->storage_size);
     sum_processed = large_sum(CTX->states_processed, CTX->no_workers);
     fprintf(out, "<statesProcessed>%llu</statesProcessed>\n", sum_processed);
     if(CFG_PARALLEL) {
@@ -423,7 +419,6 @@ void finalise_context
     free(CTX->arcs);
     free(CTX->evts_exec);
     free(CTX->evts_exec_dd);
-    storage_free(CTX->storage);
     free(CTX->workers);
     if(CTX->trace) {
       list_free(CTX->trace);
@@ -472,11 +467,6 @@ void context_set_trace
     CTX->term_state = FAILURE;
   }
   pthread_mutex_unlock(&CTX->ctx_mutex);
-}
-
-storage_t context_storage
-() {
-  return CTX->storage;
 }
 
 bool_t context_keep_searching
@@ -683,4 +673,14 @@ void context_sleep
 termination_state_t context_termination_state
 () {
   return CTX->term_state;
+}
+
+void context_set_storage_size
+(uint64_t storage_size) {
+  CTX->storage_size = storage_size;
+}
+
+void context_set_dd_time
+(uint64_t dd_time) {
+  CTX->dd_time = dd_time;
 }

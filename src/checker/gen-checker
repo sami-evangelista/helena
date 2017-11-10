@@ -27,7 +27,6 @@ reduction
 rwalk
 simulator
 state
-storage
 workers"
 
 toolName=helena-generate-checker

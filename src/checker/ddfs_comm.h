@@ -10,14 +10,14 @@
 
 #include "includes.h"
 #include "context.h"
-#include "storage.h"
+#include "hash_tbl.h"
 
 
 /**
  * @brief ddfs_comm_start
  */
 void ddfs_comm_start
-();
+(hash_tbl_t h);
 
 
 /**
@@ -32,6 +32,6 @@ void ddfs_comm_end
  */
 void ddfs_comm_process_explored_state
 (worker_id_t w,
- storage_id_t id);
+ hash_tbl_id_t id);
 
 #endif

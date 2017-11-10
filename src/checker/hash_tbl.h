@@ -20,6 +20,20 @@
 #include "heap.h"
 #include "config.h"
 
+
+/**
+ * state attribute definitions
+ */
+#define ATTR_CYAN     0
+#define ATTR_BLUE     1
+#define ATTR_PINK     2
+#define ATTR_RED      3
+#define ATTR_PRED     4
+#define ATTR_EVT      5
+#define ATTR_INDEX    6
+#define ATTR_LOWLINK  7
+#define ATTR_LIVE     8
+
 typedef struct struct_hash_tbl_t * hash_tbl_t;
 
 typedef uint64_t hash_tbl_id_t;
@@ -144,22 +158,43 @@ hash_key_t hash_tbl_get_hash
 
 
 /**
- * @brief hash_tbl_set_cyan
+ * @brief hash_tbl_get_attr
  */
-void hash_tbl_set_cyan
+uint64_t hash_tbl_get_attr
 (hash_tbl_t tbl,
  hash_tbl_id_t id,
- worker_id_t w,
- bool_t cyan);
+ uint32_t attr);
 
 
 /**
- * @brief hash_tbl_get_cyan
+ * @brief hash_tbl_set_attr
  */
-bool_t hash_tbl_get_cyan
+void hash_tbl_set_attr
 (hash_tbl_t tbl,
  hash_tbl_id_t id,
+ uint32_t attr,
+ uint64_t val);
+
+
+/**
+ * @brief hash_tbl_get_worker_attr
+ */
+uint64_t hash_tbl_get_worker_attr
+(hash_tbl_t tbl,
+ hash_tbl_id_t id,
+ uint32_t attr,
  worker_id_t w);
+
+
+/**
+ * @brief hash_tbl_set_worker_attr
+ */
+void hash_tbl_set_worker_attr
+(hash_tbl_t tbl,
+ hash_tbl_id_t id,
+ uint32_t attr,
+ worker_id_t w,
+ uint64_t val);
 
 
 /**
@@ -168,69 +203,6 @@ bool_t hash_tbl_get_cyan
 bool_t hash_tbl_get_any_cyan
 (hash_tbl_t tbl,
  hash_tbl_id_t id);
-
-
-/**
- * @brief hash_tbl_set_blue
- */
-void hash_tbl_set_blue
-(hash_tbl_t tbl,
- hash_tbl_id_t id,
- bool_t blue);
-
-
-/**
- * @brief hash_tbl_get_blue
- */
-bool_t hash_tbl_get_blue
-(hash_tbl_t tbl,
- hash_tbl_id_t id);
-
-
-/**
- * @brief hash_tbl_set_pink
- */
-void hash_tbl_set_pink
-(hash_tbl_t tbl,
- hash_tbl_id_t id,
- worker_id_t w,
- bool_t pink);
-
-
-/**
- * @brief hash_tbl_get_pink
- */
-bool_t hash_tbl_get_pink
-(hash_tbl_t tbl,
- hash_tbl_id_t id,
- worker_id_t w);
-
-
-/**
- * @brief hash_tbl_set_red
- */
-void hash_tbl_set_red
-(hash_tbl_t tbl,
- hash_tbl_id_t id,
- bool_t red);
-
-
-/**
- * @brief hash_tbl_get_red
- */
-bool_t hash_tbl_get_red
-(hash_tbl_t tbl,
- hash_tbl_id_t id);
-
-
-/**
- * @brief hash_tbl_set_pred
- */
-void hash_tbl_set_pred
-(hash_tbl_t tbl,
- hash_tbl_id_t id,
- hash_tbl_id_t id_pred,
- mevent_id_t evt);
 
 
 /**

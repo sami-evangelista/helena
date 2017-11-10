@@ -13,10 +13,6 @@
 #include "state.h"
 #include "event.h"
 
-typedef uint32_t delta_ddd_storage_id_t;
-
-typedef struct struct_delta_ddd_storage_t * delta_ddd_storage_t;
-
 
 /**
  * @brief delta_ddd
@@ -26,37 +22,17 @@ void delta_ddd
 
 
 /**
- * @brief delta_ddd_storage_new
+ * @brief Report on the delta-ddd search progress.
  */
-delta_ddd_storage_t delta_ddd_storage_new
+void delta_ddd_progress_report
+(uint64_t * states_stored);
+
+
+/**
+ * @brief Finalisation of the DELTA-DDD.  Used to free data allocated
+ *        by delta_ddd.
+ */
+void delta_ddd_finalise
 ();
-
-
-/**
- * @brief delta_ddd_storage_free
- */
-void delta_ddd_storage_free
-(delta_ddd_storage_t storage);
-
-
-/**
- * @brief delta_ddd_storage_size
- */
-uint64_t delta_ddd_storage_size
-(delta_ddd_storage_t storage);
-
-
-/**
- * @brief delta_ddd_storage_barrier_time
- */
-uint64_t delta_ddd_storage_barrier_time
-(delta_ddd_storage_t storage);
-
-
-/**
- * @brief delta_ddd_storage_dd_time
- */
-uint64_t delta_ddd_storage_dd_time
-(delta_ddd_storage_t storage);
 
 #endif

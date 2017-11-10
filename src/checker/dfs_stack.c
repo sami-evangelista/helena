@@ -6,7 +6,7 @@
 #define DFS_STACK_BLOCKS 2
 
 typedef struct {
-  storage_id_t id;
+  hash_tbl_id_t id;
   event_list_t en;
   event_t e;
   bool_t e_set;
@@ -139,7 +139,7 @@ void dfs_stack_write
     fwrite(buffer, w, 1, f);
 
     /*  state id  */
-    fwrite(&item.id, sizeof(storage_id_t), 1, f);
+    fwrite(&item.id, sizeof(hash_tbl_id_t), 1, f);
 
     /*  proviso info  */
     if(CFG_PROVISO) {
@@ -187,7 +187,7 @@ void dfs_stack_read
     item.e_set = TRUE;
     
     /*  state id  */
-    fread(&item.id, sizeof(storage_id_t), 1, f);
+    fread(&item.id, sizeof(hash_tbl_id_t), 1, f);
 
     /*  proviso info  */
     if(CFG_PROVISO) {
@@ -209,7 +209,7 @@ void dfs_stack_read
 
 void dfs_stack_push
 (dfs_stack_t stack,
- storage_id_t sid,
+ hash_tbl_id_t sid,
  state_t s) {
   heap_t h = stack->heaps[stack->current];
   dfs_stack_item_t item;
@@ -258,7 +258,7 @@ void dfs_stack_pop
   }
 }
 
-storage_id_t dfs_stack_top
+hash_tbl_id_t dfs_stack_top
 (dfs_stack_t stack) {
   assert(0 != stack->size);
   return stack->blocks[stack->current]->items[stack->top].id;

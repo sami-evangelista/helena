@@ -9,15 +9,16 @@
 #define LIB_DBFS_COMM
 
 #include "includes.h"
-#include "storage.h"
 #include "bfs_queue.h"
+#include "hash_tbl.h"
 
 
 /**
  * @brief dbfs_comm_start
  */
 void dbfs_comm_start
-(bfs_queue_t q);
+(hash_tbl_t h,
+ bfs_queue_t q);
 
 
 /**

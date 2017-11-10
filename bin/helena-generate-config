@@ -32,6 +32,7 @@ DBFS        = "DBFS"
 DDFS        = "DDFS"
 RWALK       = "RWALK"
 DELTA_DDD   = "DELTA-DDD"
+TARJAN      = "TARJAN"
 
 #  trace types
 FULL        = "FULL"
@@ -463,6 +464,7 @@ class Config:
             ("ALGO_DELTA_DDD", self.algo == DELTA_DDD),
             ("ALGO_DFS", self.algo == DFS),
             ("ALGO_RWALK", self.algo == RWALK),
+            ("ALGO_TARJAN", self.algo == TARJAN),
             ("BFS_QUEUE_BLOCK_SIZE", self.bfsQueueBlockSize),
             ("DATE", "\"" + now.strftime("%B, %d, %Y at %H:%M:%S") + "\""),
             ("DELTA_DDD_CAND_SET_SIZE", self.candidateSetSize),
@@ -642,7 +644,7 @@ class Config:
             elif opt in [ "-A", "--algo" ]:
                 recognized = self.handleEnumOption \
                              ("algo", val, [BFS, DBFS, DFS, DDFS, \
-                                            DELTA_DDD, RWALK])
+                                            DELTA_DDD, RWALK, TARJAN])
             elif opt in [ "-tr", "--trace-type" ]:
                 recognized = self.handleEnumOption \
                              ("traceType", val, [FULL, EVENTS, STATE])

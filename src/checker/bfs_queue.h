@@ -17,6 +17,7 @@
 #define LIB_BFS_QUEUE
 
 #include "bfs.h"
+#include "hash_tbl.h"
 
 
 /**
@@ -24,14 +25,14 @@
  * @brief  items of the BFS queue
  *
  * The queue stores state identifiers.  If states cannot be recovered
- * from the storage (e.g., if hash-compaction is one) we also need to
- * save the full state descriptor.  In some case (e.g. edge-lean
+ * from the hash table (e.g., if hash-compaction is one) we also need
+ * to save the full state descriptor.  In some case (e.g. edge-lean
  * reduction, we also store the event that generated the state from
  * the successor).  e_set = TRUE if and only if the event e is
  * relevant.  Otherwise it is false, e.g. for the initial state.
  */
 typedef struct {
-  storage_id_t id;
+  hash_tbl_id_t id;
   state_t s;
   event_t e;
   bool_t e_set;

@@ -7,9 +7,15 @@
 
 #if CFG_ALGO_DELTA_DDD != 1
 
-void delta_ddd() {}
+void delta_ddd() { assert(0); }
+void delta_ddd_progress_report(uint64_t * states_stored) { assert(0); }
+void delta_ddd_finalise() { assert(0); }
 
 #else
+
+typedef uint32_t delta_ddd_storage_id_t;
+
+typedef struct struct_delta_ddd_storage_t * delta_ddd_storage_t;
 
 typedef struct {
   delta_ddd_storage_id_t fst_child;
@@ -141,11 +147,6 @@ void delta_ddd_barrier
   if(CFG_PARALLEL) {
     context_barrier_wait(&BARRIER);
   }
-}
-
-uint64_t delta_ddd_storage_dd_time
-(delta_ddd_storage_t storage) {
-  return storage->dd_time;
 }
 
 
@@ -833,7 +834,7 @@ void delta_ddd
   unsigned int i, s;
   FILE * gf;
 
-  S = (delta_ddd_storage_t) context_storage();
+  S = delta_ddd_storage_new();
   ST = S->ST;
   pthread_barrier_init(&BARRIER, NULL, CFG_NO_WORKERS);
   error_reported = FALSE;
@@ -887,6 +888,16 @@ void delta_ddd
   }
 
   launch_and_wait_workers(&delta_ddd_worker);
+}
+
+void delta_ddd_progress_report
+(uint64_t * states_stored) {
+  *states_stored = delta_ddd_storage_size(S);
+}
+
+void delta_ddd_finalise
+() {
+  worker_id_t w, x;
 
   /*
    *  free heaps and mailboxes
@@ -903,7 +914,12 @@ void delta_ddd
     heap_free(expand_evts_heaps[w]);
     heap_free(detect_evts_heaps[w]);
   }
+
+  context_set_storage_size(delta_ddd_storage_size(S));
+  context_set_dd_time(S->dd_time);
+  
   context_close_graph_file();
+  delta_ddd_storage_free(S);
 }
 
-#endif  /*  CFG_ALGO_DELTA_DDD == 1  */
+#endif

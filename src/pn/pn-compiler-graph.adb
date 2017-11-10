@@ -27,7 +27,7 @@ package body Pn.Compiler.Graph is
       Plh(L, "#include ""hash_tbl.h""");
       Plh(L, "#include ""config.h""");
       Plh(L, "#include ""hash_array.h""");
-      Plh(L, "#include ""storage.h""");
+      Plh(L, "#include ""hash_tbl.h""");
       Nlh(L);
       Plh(L, "#define MAX_DEAD 10");
       --=======================================================================
@@ -79,7 +79,7 @@ package body Pn.Compiler.Graph is
       Plh(L, 1, "mstate_t all;");
       Plh(L, 1, "int64_t top;");
       Plh(L, 1, "mevent_t * stack;");
-      Plh(L, 1, "hash_tbl_t storage;");
+      Plh(L, 1, "hash_tbl_t tbl;");
       Plh(L, 1, "bool_t in_terminal;");
       Plh(L, 1, "bool_t alt_bit;");
       Plh(L, 1, "mstate_t dead[MAX_DEAD];");
@@ -105,7 +105,7 @@ package body Pn.Compiler.Graph is
 	    "sizeof (struct_model_graph_data_t));");
       Plc(L, 1, "(*data)->stack = mem_alloc (SYSTEM_HEAP, " &
 	    "sizeof (mevent_t) * no_states);");
-      Pc(L, 1, "(*data)->storage = hash_tbl_new");
+      Pc(L, 1, "(*data)->tbl = hash_tbl_new");
       Plc(L, "(4194304, 1, FALSE, 0);");
       Plc(L, 1, "mstate_init ((*data)->all, SYSTEM_HEAP);");
       Plc(L, 1, "(*data)->qlive_events = harray_new " &
@@ -131,7 +131,7 @@ package body Pn.Compiler.Graph is
       Plc(L, Prototype & " {");
       Plc(L, 1, "unsigned int i;");
       Plc(L, 1, "mstate_free ((*data)->all);");
-      Plc(L, 1, "hash_tbl_free ((*data)->storage);");
+      Plc(L, 1, "hash_tbl_free ((*data)->tbl);");
       Plc(L, 1, "harray_free ((*data)->qlive_events);");
       Plc(L, 1, "harray_free ((*data)->live_events);");
       Plc(L, 1, "mem_free (SYSTEM_HEAP, (*data)->stack);");
@@ -235,7 +235,7 @@ package body Pn.Compiler.Graph is
       Plc(L, 1, "mstate_free (data->now);");
       Plc(L, 1, "mstate_free (data->proj);");
       Plc(L, "#if ACTION_BUILD_GRAPH == 1");
-      Plc(L, 1, "hash_tbl_fold (data->storage, " &
+      Plc(L, 1, "hash_tbl_fold (data->tbl, " &
 	    "&model_graph_fold, (void *) data);");
       Plc(L, "#endif");
       Plc(L, "}");
@@ -301,7 +301,7 @@ package body Pn.Compiler.Graph is
          Plc(L, 1, "data->proj->" & C & ".mult = s->" & C & ".mult;");
          Plc(L, 1, "data->proj->" & C & ".heap = s->" & C & ".heap;");
          Plc(L, "#if ACTION_BUILD_GRAPH == 1");
-	 Plc(L, 1, "hash_tbl_insert(data->storage, data->proj, " &
+	 Plc(L, 1, "hash_tbl_insert(data->tbl, data->proj, " &
 	       "0, &b, &id, &h);");
          Plc(L, "#endif");
 	 Plc(L, 1, Local_State_Init_Func(P) &

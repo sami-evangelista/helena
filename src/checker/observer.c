@@ -1,7 +1,12 @@
 #include "config.h"
 #include "observer.h"
 #include "context.h"
-#include "storage.h"
+#include "bfs.h"
+#include "delta_ddd.h"
+#include "dfs.h"
+
+typedef void (* progress_report_func_t) (uint64_t *);
+typedef void (* finalise_func_t) (void);
 
 void * observer_worker
 (void * arg) {
@@ -12,8 +17,23 @@ void * observer_worker
   uint64_t stored;
   char name[100], pref[100];
   int n = 0;
-  pref[0] = 0;
+  progress_report_func_t progress_report;
+  finalise_func_t finalise;
+
+  if(CFG_ALGO_DFS || CFG_ALGO_DDFS || CFG_ALGO_TARJAN) {
+    progress_report = dfs_progress_report;
+    finalise = dfs_finalise;
+  } else if(CFG_ALGO_BFS || CFG_ALGO_DBFS) {
+    progress_report = bfs_progress_report;
+    finalise = bfs_finalise;
+  } else if(CFG_ALGO_DELTA_DDD) {
+    progress_report = delta_ddd_progress_report;
+    finalise = delta_ddd_finalise;
+  } else {
+    assert(0);
+  }
   
+  pref[0] = 0;  
   if(CFG_WITH_OBSERVER) {
     if(CFG_DISTRIBUTED) {
       gethostname(name, 1024);
@@ -25,7 +45,7 @@ void * observer_worker
     n ++;
     sleep(1);
     gettimeofday(&now, NULL);
-    stored = storage_size(context_storage());
+    progress_report(&stored);
     mem = mem_usage();
     cpu = context_cpu_usage();
     if(context_keep_searching()) {
@@ -62,5 +82,6 @@ void * observer_worker
   if(CFG_WITH_OBSERVER) {
     printf("\n%sdone.\n", pref);
   }
+  finalise();
   return NULL;
 }

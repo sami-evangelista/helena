@@ -39,7 +39,7 @@ commonFiles="bit_stream"
 checkerSrcFiles="bfs bfs_queue bit_stream buchi common comm_shmem
 context darray ddfs_comm dbfs_comm delta_ddd dfs dfs_stack event graph heap
 hash_array hash_tbl list observer papi_stats prop reduction rwalk
-state simulator storage workers"
+state simulator workers"
 
 exitWithError () {
     rm -rf $tmpDir &> /dev/null

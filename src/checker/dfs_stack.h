@@ -11,7 +11,7 @@
  * is empty), a block is read from disk and put in B1.
  *
  * The stack stores state identifiers unless some technique preventing
- * the recovery of states from the storage is used (e.g., hash
+ * the recovery of states from the hash table is used (e.g., hash
  * compaction).  In this case, the stack also stores full states.  The
  * stack also stores enabled events of states.
  */
@@ -20,8 +20,8 @@
 #define LIB_DFS_STACK
 
 #include "includes.h"
-#include "storage.h"
 #include "config.h"
+#include "hash_tbl.h"
 
 /**
  * @typedef the stack type
@@ -64,7 +64,7 @@ unsigned int dfs_stack_size
  */
 void dfs_stack_push
 (dfs_stack_t stack,
- storage_id_t sid,
+ hash_tbl_id_t sid,
  state_t s);
 
 
@@ -78,7 +78,7 @@ void dfs_stack_pop
 /**
  * @brief Return the item on top of the stack
  */
-storage_id_t dfs_stack_top
+hash_tbl_id_t dfs_stack_top
 (dfs_stack_t stack);
 
 

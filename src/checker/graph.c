@@ -22,6 +22,10 @@ void model_graph_scc_enter(model_graph_data_t mdata, bool_t terminal) {}
 void model_graph_scc_exit(model_graph_data_t mdata) {}
 #endif
 
+
+#define GRAPH_MAX_BFS_LEVELS 65536
+
+
 typedef struct {
   edge_num_t num;
   node_t dest;
@@ -140,6 +144,7 @@ graph_t graph_load
  heap_t  heap) {
   unsigned int max = 4;
   graph_t result = NULL;
+
   while(NULL == result) {
     result = graph_load_main(in_file, heap, max);
     max = max * 2;
@@ -273,10 +278,13 @@ void graph_bfs
   data->ble = 0;
   data->max_ble = 0;
   data->avg_ble = 0.0;
-  data->states = mem_alloc(SYSTEM_HEAP, sizeof(uint32_t) * 65536);
-  data->edges = mem_alloc(SYSTEM_HEAP, sizeof(uint32_t) * 65536);
-  data->ble_lengths = mem_alloc(SYSTEM_HEAP, sizeof(uint32_t) * 65536);
-  for(i = 0; i < 65536; i ++) {
+  data->states = mem_alloc(SYSTEM_HEAP,
+                           sizeof(uint32_t) * GRAPH_MAX_BFS_LEVELS);
+  data->edges = mem_alloc(SYSTEM_HEAP,
+                          sizeof(uint32_t) * GRAPH_MAX_BFS_LEVELS);
+  data->ble_lengths = mem_alloc(SYSTEM_HEAP,
+                                sizeof(uint32_t) * GRAPH_MAX_BFS_LEVELS);
+  for(i = 0; i < GRAPH_MAX_BFS_LEVELS; i ++) {
     data->ble_lengths[i] = 0;
   }
 

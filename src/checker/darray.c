@@ -77,9 +77,43 @@ void darray_push
 }
 
 
-void * darray_ith
+void * darray_pop
+(darray_t darray) {
+  void * result;
+
+  assert(darray->no_items);
+  darray->no_items --;
+  result = darray_item(darray, darray->no_items);
+  return result;
+}
+
+
+void * darray_top
+(darray_t darray) {
+  void * result;
+
+  assert(darray->no_items);
+  result = darray_item(darray, darray->no_items - 1);
+  return result;
+}
+
+
+void * darray_get
 (darray_t darray,
  darray_index_t i) {
   assert(i >= 0 && i < darray->no_items);
   return darray_item(darray, i);
+}
+
+
+void darray_set
+(darray_t darray,
+ darray_index_t i,
+ void * item) {
+  assert(i >= 0 && i <= darray->no_items);
+  if(i == darray->no_items) {
+    darray_push(darray, item);
+  } else {
+    memcpy(darray_item(darray, i), item, darray->sizeof_item);
+  }
 }

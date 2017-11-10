@@ -11,7 +11,6 @@
 #include "includes.h"
 #include "model.h"
 #include "event.h"
-#include "storage.h"
 
 
 /**
@@ -66,9 +65,6 @@ void context_stop_search
 
 void context_faulty_state
 (state_t s);
-
-storage_t context_storage
-();
 
 bool_t context_keep_searching
 ();
@@ -162,5 +158,11 @@ void context_sleep
 
 termination_state_t context_termination_state
 ();
+
+void context_set_storage_size
+(uint64_t storage_size);
+
+void context_set_dd_time
+(uint64_t dd_time);
 
 #endif

@@ -54,7 +54,7 @@ int main
      */
     if(CFG_ALGO_BFS || CFG_ALGO_DBFS) {
       bfs();
-    } else if(CFG_ALGO_DFS || CFG_ALGO_DDFS) {
+    } else if(CFG_ALGO_DFS || CFG_ALGO_DDFS || CFG_ALGO_TARJAN) {
       dfs();
     } else if(CFG_ALGO_DELTA_DDD) {
       delta_ddd();

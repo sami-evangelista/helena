@@ -32,7 +32,7 @@ typedef struct {
 const struct timespec COMM_WAIT_TIME = { 0, COMM_WAIT_TIME_MUS * 1000 };
 const struct timespec WORKER_WAIT_TIME = { 0, WORKER_WAIT_TIME_MUS * 1000 };
 
-storage_t S;
+hash_tbl_t H;
 bfs_queue_t Q;
 pthread_t CW[CFG_NO_COMM_WORKERS];
 heap_t COMM_HEAPS[CFG_NO_COMM_WORKERS];
@@ -191,7 +191,7 @@ void dbfs_comm_process_state
  hash_key_t h) {
   const uint16_t len = state_char_size(s);
   const int pe = dbfs_comm_state_owner(h);
-  storage_id_t id;
+  hash_tbl_id_t id;
   uint32_t no;
   bool_t is_new;
 
@@ -232,7 +232,7 @@ bool_t dbfs_comm_worker_process_incoming_states
   hash_key_t h;
   buffer_data_t data;
   char buffer[DBFS_HEAP_SIZE_WORKER];
-  storage_id_t sid;
+  hash_tbl_id_t sid;
   bfs_queue_item_t item;
   state_t s;
   int pe;
@@ -259,7 +259,7 @@ bool_t dbfs_comm_worker_process_incoming_states
 
               /**
                * read the state from the buffer and insert it in the
-               * storage
+               * hash table
                */
 
               /* hash value */
@@ -271,8 +271,8 @@ bool_t dbfs_comm_worker_process_incoming_states
               tmp_pos += sizeof(uint16_t);
           
               /* insert the state */
-              storage_insert_serialised(S, buffer + tmp_pos, s_len,
-                                        h, w, &is_new, &sid);
+              hash_tbl_insert_serialised(H, buffer + tmp_pos, s_len,
+                                         h, w, &is_new, &sid);
               tmp_pos += s_len;
 
               /**
@@ -410,7 +410,8 @@ void * dbfs_comm_worker
 
 
 void dbfs_comm_start
-(bfs_queue_t q) {
+(hash_tbl_t h,
+ bfs_queue_t q) {
   int pe, remote_pos;
   worker_id_t w;
   comm_worker_id_t c;
@@ -432,7 +433,7 @@ void dbfs_comm_start
 
   /* initialise global variables */
   Q = q;
-  S = context_storage();
+  H = h;
   for(w = 0; w < CFG_NO_WORKERS; w ++) {
     BUF.heaps[w] = mem_alloc(SYSTEM_HEAP, sizeof(heap_t) * PES);
     BUF.ids[w] = mem_alloc(SYSTEM_HEAP, sizeof(hash_tbl_id_t *) * PES);

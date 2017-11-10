@@ -47,7 +47,6 @@ void darray_reset
 (darray_t darray);
 
 
-
 /**
  * @brief darray_push
  */
@@ -57,10 +56,33 @@ void darray_push
 
 
 /**
- * @brief darray_ith
+ * @brief darray_pop
  */
-void * darray_ith
+void * darray_pop
+(darray_t darray);
+
+
+/**
+ * @brief darray_top
+ */
+void * darray_top
+(darray_t darray);
+
+
+/**
+ * @brief darray_get
+ */
+void * darray_get
 (darray_t darray,
  darray_index_t i);
+
+
+/**
+ * @brief darray_set
+ */
+void darray_set
+(darray_t darray,
+ darray_index_t i,
+ void * item);
 
 #endif

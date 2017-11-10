@@ -2,7 +2,7 @@
 #include "ddfs_comm.h"
 #include "comm_shmem.h"
 
-#if CFG_ALGO_DDFS == 1 || CFG_ALGO_DFS == 1
+#if CFG_ALGO_DDFS == 1 || CFG_ALGO_DFS == 1 || CFG_ALGO_TARJAN == 1
 
 #define MAX_PES            100
 #define PRODUCE_PERIOD_MS  20
@@ -30,7 +30,7 @@ const struct timespec CONSUME_WAIT_TIME = { 0, CONSUME_WAIT_MS * 1000000 };
 const struct timespec WAIT_TIME = { 0, 10 };
 
 ddfs_comm_buffers_t BUF;
-storage_t S;
+hash_tbl_t H;
 uint16_t BASE_LEN;
 pthread_t PROD;
 pthread_t CONS[CFG_NO_COMM_WORKERS];
@@ -49,7 +49,7 @@ typedef struct {
 
 void ddfs_comm_process_explored_state
 (worker_id_t w,
- storage_id_t id) {
+ hash_tbl_id_t id) {
   uint16_t s_char_len, len;
   bit_vector_t s;
   bool_t red = FALSE, blue = FALSE;
@@ -61,9 +61,9 @@ void ddfs_comm_process_explored_state
    */
   if(!BUF.full[w] && CAS(&BUF.status[w], BUCKET_OK, BUCKET_WRITE)) {
     if(CFG_HASH_COMPACTION) {
-      h = storage_get_hash(S, id);
+      h = hash_tbl_get_hash(H, id);
     } else {
-      storage_get_serialised(S, id, &s, &s_char_len, &h);
+      hash_tbl_get_serialised(H, id, &s, &s_char_len, &h);
     }
     len = BASE_LEN;
     if(!CFG_HASH_COMPACTION) {
@@ -84,15 +84,15 @@ void ddfs_comm_process_explored_state
       pos += sizeof(hash_key_t);
      
       /*  blue attribute  */
-      if(storage_has_attr(S, ATTR_BLUE)) {
-        blue = storage_get_blue(S, id);
+      if(hash_tbl_has_attr(H, ATTR_BLUE)) {
+        blue = hash_tbl_get_attr(H, id, ATTR_BLUE);
         memcpy(pos, &blue, sizeof(bool_t));
         pos += sizeof(bool_t);
       }
           
       /*  red attribute  */
-      if(storage_has_attr(S, ATTR_RED)) {
-        red = storage_get_red(S, id);
+      if(hash_tbl_has_attr(H, ATTR_RED)) {
+        red = hash_tbl_get_attr(H, id, ATTR_RED);
         memcpy(pos, &red, sizeof(bool_t));
         pos += sizeof(bool_t);
       }
@@ -176,7 +176,7 @@ void * ddfs_comm_consumer
   int pe;
   void * pos;
   uint16_t s_char_len, len;
-  storage_id_t sid;
+  hash_tbl_id_t sid;
   bit_vector_t s;
   bool_t red = FALSE, blue = FALSE, is_new;
   char buffer[CFG_SHMEM_HEAP_SIZE];
@@ -189,7 +189,7 @@ void * ddfs_comm_consumer
 
     /**
      * get states put by remote PEs in their heap and put these in my
-     * local storage
+     * local hash table
      */
     for(pe = 0; pe < PES; pe ++) {
       if(ME != pe) {
@@ -211,20 +211,20 @@ void * ddfs_comm_consumer
             pos += sizeof(hash_key_t);
                     
             /*  get blue attribute  */
-            if(storage_has_attr(S, ATTR_BLUE)) {
+            if(hash_tbl_has_attr(H, ATTR_BLUE)) {
               memcpy(&blue, pos, sizeof(bool_t));
               pos += sizeof(bool_t);
             }
           
             /*  get red attribute  */
-            if(storage_has_attr(S, ATTR_RED)) {
+            if(hash_tbl_has_attr(H, ATTR_RED)) {
               memcpy(&red, pos, sizeof(bool_t));
               pos += sizeof(bool_t);
             }
        
 	    if(CFG_HASH_COMPACTION) {
-	      storage_insert_serialised(S, pos, s_char_len,
-					h, w, &is_new, &sid);
+	      hash_tbl_insert_serialised(H, pos, s_char_len,
+                                         h, w, &is_new, &sid);
 	    } else {
 	    
 	      /*  get state vector char length  */
@@ -232,17 +232,17 @@ void * ddfs_comm_consumer
 	      pos += sizeof(uint16_t);
             
 	      /*  get state vector and insert it  */
-	      storage_insert_serialised(S, pos, s_char_len,
-		h, w, &is_new, &sid);
+	      hash_tbl_insert_serialised(H, pos, s_char_len,
+                                         h, w, &is_new, &sid);
 	      pos += s_char_len;
 	    }
 
             /*  set the blue and red attribute of the state  */
-            if(blue && storage_has_attr(S, ATTR_BLUE)) {
-              storage_set_blue(S, sid, TRUE);
+            if(blue && hash_tbl_has_attr(H, ATTR_BLUE)) {
+              hash_tbl_set_attr(H, sid, ATTR_BLUE, TRUE);
             }
-            if(red && storage_has_attr(S, ATTR_RED)) {
-              storage_set_red(S, sid, TRUE);
+            if(red && hash_tbl_has_attr(H, ATTR_RED)) {
+              hash_tbl_set_attr(H, sid, ATTR_BLUE, TRUE);
             }
           }
         }
@@ -253,7 +253,7 @@ void * ddfs_comm_consumer
 }
 
 void ddfs_comm_start
-() {
+(hash_tbl_t h) {
   worker_id_t w;
   comm_worker_id_t c;
   int i = 0;
@@ -264,7 +264,7 @@ void ddfs_comm_start
   ME = comm_shmem_me();
   assert(PES <= MAX_PES);
   
-  S = context_storage();
+  H = h;
   for(w = 0; w < CFG_NO_WORKERS; w ++) {
     BUF.status[w] = BUCKET_OK;
     BUF.size[w] = 0;
@@ -272,8 +272,8 @@ void ddfs_comm_start
     BUF.full[w] = FALSE;
   }
   BASE_LEN = sizeof(hash_key_t)
-    + (storage_has_attr(S, ATTR_BLUE) ? sizeof(bool_t) : 0)
-    + (storage_has_attr(S, ATTR_RED) ? sizeof(bool_t) : 0);
+    + (hash_tbl_has_attr(H, ATTR_BLUE) ? sizeof(bool_t) : 0)
+    + (hash_tbl_has_attr(H, ATTR_RED) ? sizeof(bool_t) : 0);
   for(i = 0; i < MAX_PES; i ++) {
     LOCK = LOCK_AVAILABLE;
     data.produced[i] = FALSE;
