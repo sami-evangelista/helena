@@ -15,7 +15,7 @@ void * rwalk_worker
   unsigned int en_size;
   heap_t heap;
   event_list_t trace, new_trace;
-
+    
   heap = local_heap_new();
   while(context_keep_searching()) {
     heap_reset(heap);
@@ -59,4 +59,13 @@ void * rwalk_worker
 void rwalk
 () {
   launch_and_wait_workers(&rwalk_worker);
+}
+
+void rwalk_progress_report
+(uint64_t * states_stored) {
+  *states_stored = 0;
+}
+
+void rwalk_finalise
+() {
 }

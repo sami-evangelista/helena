@@ -4,6 +4,7 @@
 #include "bfs.h"
 #include "delta_ddd.h"
 #include "dfs.h"
+#include "rwalk.h"
 
 typedef void (* progress_report_func_t) (uint64_t *);
 typedef void (* finalise_func_t) (void);
@@ -29,6 +30,9 @@ void * observer_worker
   } else if(CFG_ALGO_DELTA_DDD) {
     progress_report = delta_ddd_progress_report;
     finalise = delta_ddd_finalise;
+  } else if(CFG_ALGO_RWALK) {
+    progress_report = rwalk_progress_report;
+    finalise = rwalk_finalise;
   } else {
     assert(0);
   }

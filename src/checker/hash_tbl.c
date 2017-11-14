@@ -79,7 +79,8 @@ const struct timespec SLEEP_TIME = { 0, 10 };
   }
 
 hash_tbl_t hash_tbl_new
-(uint64_t hash_size,
+(bool_t use_system_heap,
+ uint64_t hash_size,
  uint16_t no_workers,
  bool_t hash_compaction,
  uint32_t attrs) {
@@ -89,7 +90,7 @@ hash_tbl_t hash_tbl_new
   worker_id_t w;
   uint32_t pos = 0, width;
   
-  result = mem_alloc(heap, sizeof(struct_hash_tbl_t));
+  result = mem_alloc(SYSTEM_HEAP, sizeof(struct_hash_tbl_t));
   result->hash_compaction = hash_compaction;
   result->attrs = attrs;
   for(i = 0; i < NO_ATTRS; i ++) {
@@ -106,9 +107,9 @@ hash_tbl_t hash_tbl_new
   if(pos % 8 != 0) {
     result->attrs_char_size ++;
   }  
+  result->heap = use_system_heap ? SYSTEM_HEAP : local_heap_new();
   result->no_workers = no_workers;
   result->hash_size = hash_size;
-  result->heap = heap;
   result->size = mem_alloc(heap, no_workers * sizeof(uint64_t));
   result->hash = mem_alloc(heap, hash_size * sizeof(hash_key_t));
   result->status = mem_alloc(heap, hash_size * sizeof(bucket_status_t));
@@ -165,7 +166,8 @@ hash_tbl_t hash_tbl_default_new
   if(CFG_DISTRIBUTED) {
     no_workers += CFG_NO_COMM_WORKERS;
   }
-  return hash_tbl_new(CFG_HASH_SIZE, no_workers, CFG_HASH_COMPACTION, attrs);
+  return hash_tbl_new(FALSE, CFG_HASH_SIZE, no_workers,
+                      CFG_HASH_COMPACTION, attrs);
 }
 
 void hash_tbl_free
@@ -178,7 +180,7 @@ void hash_tbl_free
   } else {
     for(i = 0; i < tbl->hash_size; i++) {
       if(tbl->state[i]) {
-        mem_free(SYSTEM_HEAP, tbl->state[i]);
+        mem_free(tbl->heap, tbl->state[i]);
       }
     }
     mem_free(SYSTEM_HEAP, tbl->state);
@@ -188,13 +190,15 @@ void hash_tbl_free
   mem_free(SYSTEM_HEAP, tbl->hash);
   mem_free(SYSTEM_HEAP, tbl->status);
   mem_free(SYSTEM_HEAP, tbl->update_status);
+  if(tbl->heap) {
+    heap_free(tbl->heap);
+  }
   mem_free(SYSTEM_HEAP, tbl);
 }
 
-void hash_tbl_set_heap
-(hash_tbl_t tbl,
- heap_t h) {
-  tbl->heap = h;
+void hash_tbl_reset
+(hash_tbl_t tbl) {
+  heap_reset(tbl->heap);
 }
 
 uint64_t hash_tbl_size

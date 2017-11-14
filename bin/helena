@@ -17,6 +17,7 @@ RUN="./helena-checker"
 
 #  executable names
 lnaGenerator=helena-generate
+pnmlGenerator=helena-generate-pnml
 dveGenerator=helena-generate-dve
 checkerGenerator=helena-generate-checker
 configGenerator=helena-generate-config
@@ -106,6 +107,7 @@ createEnvironment () {
     createDirectory $helenaDir/models
     createDirectory $helenaDir/models/lna
     createDirectory $helenaDir/models/dve
+    createDirectory $helenaDir/models/pnml
     echo $version > $helenaDir/$versionFile
 }
 
@@ -220,6 +222,11 @@ generateLNA () {
 generateDVE () {
     checkExecutable $dveGenerator
     $dveGenerator $* $tmpDir || exitWithError
+}
+
+generatePNML () {
+    checkExecutable $pnmlGenerator
+    $pnmlGenerator $* $tmpDir || exitWithError
 }
 
 generateChecker () {
@@ -360,6 +367,11 @@ case $extension in
 	language=dve
 	CCopt=$CCopt" -fpack-struct"
 	generateDVE $modelFile
+	;;
+    pnml)
+	language=pnml
+	CCopt=$CCopt" -fpack-struct"
+	generatePNML $modelFile
 	;;
     *)
 	error "cannot determine type of input model"

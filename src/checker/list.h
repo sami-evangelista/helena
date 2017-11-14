@@ -25,6 +25,7 @@ typedef void (* list_app_func_t) (void *, void *);
 typedef uint32_t (* list_char_size_func_t) (void *);
 typedef void (* list_serialise_func_t) (void *, char *);
 typedef void (* list_unserialise_func_t) (char *, heap_t, void *);
+typedef int (* list_item_cmp_func_t) (void *, void *);
 
 
 /**
@@ -55,6 +56,15 @@ list_size_t list_size
  */
 void list_free
 (list_t list);
+
+
+/**
+ * @brief list_copy
+ */
+list_t list_copy
+(list_t list,
+ heap_t heap,
+ list_free_func_t free_func);
 
 
 /**
@@ -105,6 +115,15 @@ void list_prepend
 void list_append
 (list_t list,
  void * item);
+
+
+/**
+ * @brief list_insert_sorted
+ */
+void list_insert_sorted
+(list_t list,
+ void * item,
+ list_item_cmp_func_t item_cmp_func);
 
 
 /**

@@ -1,7 +1,7 @@
 #include "config.h"
 #include "simulator.h"
+#include "model.h"
 #include "list.h"
-#include "state.h"
 #include "event.h"
 #include "context.h"
 

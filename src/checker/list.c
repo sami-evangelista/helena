@@ -63,6 +63,20 @@ list_size_t list_size
   return list->no_items;
 }
 
+list_t list_copy
+(list_t list,
+ heap_t heap,
+ list_free_func_t free_func) {
+  list_t result;
+  list_node_t ptr;
+
+  result = list_new(heap, list->sizeof_item, free_func);
+  for(ptr = list->first; ptr; ptr = ptr->next) {
+    list_append(result, ptr->item);
+  }
+  return result;
+}
+
 void list_first
 (list_t list,
  void * item) {
@@ -143,6 +157,35 @@ void list_append
     list->last = ptr;
   }
   list->no_items ++;
+}
+
+void list_insert_sorted
+(list_t list,
+ void * item,
+ list_item_cmp_func_t item_cmp_func) {
+  list_node_t ptr = list->first;
+  list_node_t new_node;
+  int cmp = 1;
+
+  while(ptr && (cmp = item_cmp_func(ptr->item, item)) == -1) {
+    ptr = ptr->next;
+  }
+  if(cmp != 0) {
+    if(ptr == list->first) {
+      list_prepend(list, item);
+    } else if(NULL == ptr) {
+      list_append(list, item);
+    } else {
+      new_node = mem_alloc(list->heap, sizeof(struct_list_node_t));
+      new_node->item = mem_alloc(list->heap, list->sizeof_item);
+      memcpy(new_node->item, item, list->sizeof_item);
+      new_node->prev = ptr->prev;
+      new_node->next = ptr;
+      ptr->prev->next = new_node;
+      ptr->prev = new_node;
+      list->no_items ++;
+    }
+  }
 }
 
 void list_pick_last

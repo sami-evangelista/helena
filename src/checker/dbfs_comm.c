@@ -91,6 +91,7 @@ void dbfs_comm_reinit_buffer
   for(i = 0; i < BUF.no_ids[w][pe]; i ++) {
     hash_tbl_erase(BUF.states[w][pe], 0, BUF.ids[w][pe][i]);
   }
+  hash_tbl_reset(BUF.states[w][pe]);
   BUF.len[w][pe] = 0;
   BUF.no_ids[w][pe] = 0;
 }
@@ -461,9 +462,8 @@ void dbfs_comm_start
         BUF.ids[w][pe] = mem_alloc(SYSTEM_HEAP, sizeof(hash_tbl_id_t)
 				   * WORKER_STATE_BUFFER_LEN);
         BUF.heaps[w][pe] = local_heap_new();
-        BUF.states[w][pe] = hash_tbl_new(WORKER_STATE_BUFFER_LEN * 2,
+        BUF.states[w][pe] = hash_tbl_new(FALSE, WORKER_STATE_BUFFER_LEN * 2,
 					 1, FALSE, 0);
-	hash_tbl_set_heap(BUF.states[w][pe], BUF.heaps[w][pe]);
         dbfs_comm_reinit_buffer(w, pe);
         remote_pos += DBFS_HEAP_SIZE_WORKER;
       }

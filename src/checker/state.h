@@ -10,6 +10,7 @@
 
 #include "model.h"
 #include "heap.h"
+#include "list.h"
 #include "prop.h"
 #include "config.h"
 

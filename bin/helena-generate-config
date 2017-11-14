@@ -440,7 +440,9 @@ class Config:
         model = ""
         self.language = self.inFileExt[1:].lower()
         if self.language == "lna":
-            languageLong = "helena"
+            languageLong = "Helena"
+        elif self.language == "pnml":
+            languageLong = "Petri net"
         elif self.language == "dve":
             languageLong = "DVE"
             (model, _) = os.path.splitext(os.path.basename(self.inFile))
@@ -472,7 +474,7 @@ class Config:
             ("DFS_STACK_BLOCK_SIZE", self.dfsStackBlockSize),
             ("DISTRIBUTED", self.algo in [ DBFS, DDFS ]),
             ("EDGE_LEAN", self.edgeLean),
-            ("EVENT_UNDOABLE", self.language == "lna"),
+            ("EVENT_UNDOABLE", self.language in [ "lna", "pnml" ]),
             ("FILE_PATH", "\"" + os.path.realpath(self.inFile) + "\""),
             ("GRAPH_FILE", "\"graph.dat\""),
             ("HASH_COMPACTION", self.hashCompaction),
@@ -483,6 +485,7 @@ class Config:
             ("LANGUAGE", "\"" + languageLong + "\""),
             ("LANGUAGE_DVE", self.language == "dve"),
             ("LANGUAGE_LNA", self.language == "lna"),
+            ("LANGUAGE_PNML", self.language == "pnml"),
             ("MAX_MEMORY", self.memoryLimit),
             ("MAX_STATE", self.stateLimit),
             ("MAX_TIME", self.timeLimit),

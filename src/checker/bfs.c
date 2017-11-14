@@ -1,4 +1,5 @@
 #include "bfs.h"
+#include "list.h"
 #include "bfs_queue.h"
 #include "config.h"
 #include "context.h"
@@ -7,6 +8,7 @@
 #include "prop.h"
 #include "reduction.h"
 #include "workers.h"
+#include "state.h"
 
 #if CFG_ALGO_BFS == 0 && CFG_ALGO_DBFS == 0
 
@@ -324,6 +326,7 @@ void bfs_finalise
     bfs_queue_free(Q);
     context_set_storage_size(hash_tbl_size(H));
     hash_tbl_free(H);
+    H = NULL;
   }
 }
 

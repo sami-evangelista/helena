@@ -16,4 +16,19 @@
 void rwalk
 ();
 
+
+/**
+ * @brief Report on the RWALK progress.
+ */
+void rwalk_progress_report
+(uint64_t * states_stored);
+
+
+/**
+ * @brief Finalisation of the RWALK.  Used to free data allocated by
+ *        rwalk.
+ */
+void rwalk_finalise
+();
+
 #endif

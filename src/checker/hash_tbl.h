@@ -46,7 +46,8 @@ typedef void (* hash_tbl_fold_func_t)
  * @brief hash_tbl_new
  */
 hash_tbl_t hash_tbl_new
-(uint64_t hash_size,
+(bool_t use_system_heap,
+ uint64_t hash_size,
  uint16_t no_workers,
  bool_t hash_compaction,
  uint32_t attrs);
@@ -215,11 +216,10 @@ void hash_tbl_fold
 
 
 /**
- * @brief hash_tbl_set_heap
+ * @brief hash_tbl_reset
  */
-void hash_tbl_set_heap
-(hash_tbl_t tbl,
- heap_t h);
+void hash_tbl_reset
+(hash_tbl_t tbl);
 
 
 /**

@@ -46,29 +46,30 @@ state_t dfs_recover_state
 }
 
 #define dfs_push_new_state(id, is_s0) {                                 \
-  dfs_stack_push(stack, id, now);                                       \
-  e_ref = is_s0 && edge_lean ? &e : NULL;                               \
-  en = dfs_stack_compute_events(stack, now, por, e_ref);                \
-  if(blue) {                                                            \
-    hash_tbl_set_worker_attr(H, id, ATTR_CYAN, w, TRUE);                \
-  } else {                                                              \
-    hash_tbl_set_worker_attr(H, id, ATTR_PINK, w, TRUE);                \
-    red_stack_size ++;                                                  \
-  }                                                                     \
-  if(tarjan) {                                                          \
-    darray_push(scc_stack, &id);                                        \
-    hash_tbl_set_attr(H, id, ATTR_INDEX, index);                        \
-    hash_tbl_set_attr(H, id, ATTR_LOWLINK, index);                      \
-    hash_tbl_set_attr(H, id, ATTR_LIVE, TRUE);                          \
-    index ++;                                                           \
-  }                                                                     \
-  if(blue && (0 == list_size(en))) {                                    \
-    context_incr_dead(w, 1);                                            \
-  }                                                                     \
-  if(check_safety && state_check_property(now, en)) {                   \
-    context_faulty_state(now);                                          \
-    dfs_stack_create_trace(stack);                                      \
-  }                                                                     \
+    /*printf("-----\n");state_print(now, stdout); printf("%d\n", state_hash(now));printf("-----\n"); */ \
+    dfs_stack_push(stack, id, now);                                     \
+    e_ref = is_s0 && edge_lean ? &e : NULL;                             \
+    en = dfs_stack_compute_events(stack, now, por, e_ref);              \
+    if(blue) {                                                          \
+      hash_tbl_set_worker_attr(H, id, ATTR_CYAN, w, TRUE);              \
+    } else {                                                            \
+      hash_tbl_set_worker_attr(H, id, ATTR_PINK, w, TRUE);              \
+      red_stack_size ++;                                                \
+    }                                                                   \
+    if(tarjan) {                                                        \
+      darray_push(scc_stack, &id);                                      \
+      hash_tbl_set_attr(H, id, ATTR_INDEX, index);                      \
+      hash_tbl_set_attr(H, id, ATTR_LOWLINK, index);                    \
+      hash_tbl_set_attr(H, id, ATTR_LIVE, TRUE);                        \
+      index ++;                                                         \
+    }                                                                   \
+    if(blue && (0 == list_size(en))) {                                  \
+      context_incr_dead(w, 1);                                          \
+    }                                                                   \
+    if(check_safety && state_check_property(now, en)) {                 \
+      context_faulty_state(now);                                        \
+      dfs_stack_create_trace(stack);                                    \
+    }                                                                   \
   }
   
 
@@ -364,6 +365,7 @@ void dfs_finalise
   if(H) {
     context_set_storage_size(hash_tbl_size(H));
     hash_tbl_free(H);
+    H = NULL;
   }
 }
 
