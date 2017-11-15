@@ -59,6 +59,13 @@ void list_free
 
 
 /**
+ * @brief list_reset
+ */
+void list_reset
+(list_t list);
+
+
+/**
  * @brief list_copy
  */
 list_t list_copy

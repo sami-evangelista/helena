@@ -21,8 +21,12 @@ class Node:
         self.nid = nid
         self.name = name
         self.arcs = []
+        self.inputArcsSet = False
+        self.outputArcsSet = False
     def getNum(self):
         return self.num
+    def getSNum(self):
+        return str(self.num)
     def getId(self):
         return self.nid
     def getName(self):
@@ -30,6 +34,8 @@ class Node:
     def getArcs(self):
         return self.arcs
     def addArc(self, arc):
+        self.inputArcsSet = False
+        self.outputArcsSet = False
         self.arcs.append(arc)
     def getInOrOutArcs(self, func):
         result = []
@@ -38,9 +44,51 @@ class Node:
                 result.append(a)
         return result
     def getOutputArcs(self):
-        return self.getInOrOutArcs("getSrc")
+        if not self.outputArcsSet:
+            self.outputArcs = self.getInOrOutArcs("getSrc")
+            self.outputArcsSet = True
+        return self.outputArcs
     def getInputArcs(self):
-        return self.getInOrOutArcs("getTarget")
+        if not self.inputArcsSet:
+            self.inputArcs = self.getInOrOutArcs("getTarget")
+            self.inputArcsSet = True
+        return self.inputArcs
+    def getPreOrPostSet(self, net, arcs):
+        result = []
+        for a in arcs:
+            result.append(net.getNode(a.getOtherEnd(self.nid)))
+        return result
+    def getPreSet(self, net):
+        return self.getPreOrPostSet(net, self.getInputArcs())
+    def getPostSet(self, net):
+        return self.getPreOrPostSet(net, self.getOutputArcs())
+    def getUpdated(self, net):
+        if isinstance(self, Place):
+            dom = [ (self.getInputArcs(), 1), (self.getOutputArcs(), -1)]
+        else:
+            dom = [ (self.getInputArcs(), -1), (self.getOutputArcs(), 1)]
+        l = []
+        for arcs, mult in dom:            
+            for a in arcs:
+                l.append((mult * a.getValuation(),
+                          net.getNode(a.getOtherEnd(self.nid))))
+        #  sort and merge the list
+        l = sorted(l, key = lambda val: val[1])
+        result = []
+        prev = None
+        for val, n in l:
+            if prev is None:
+                result.append((val, n))
+                prev = val, n
+            else:
+                valPrev, nPrev = prev
+                if nPrev == n and valPrev + val == 0:
+                    result.pop()
+                    prev = None
+                else:
+                    result.append((val, n))
+                    prev = val, n
+        return result        
         
     
 class Place(Node):
@@ -54,6 +102,7 @@ class Place(Node):
 class Trans(Node):
     def __init__(self, num, nid, name):
         Node.__init__(self, num, nid, name)
+        
     
 class Arc:
     def __init__(self, aid, src, target):
@@ -79,8 +128,12 @@ class Net:
         self.P = []
         self.T = []
         self.A = []
-        self.capacity = 10
+        self.capacity = 256
         self.name = ""
+    def setCapacity(self, capacity):
+        self.capacity = capacity
+    def getCapacity(self):
+        return self.capacity
     def setName(self, name):
         self.name =  name
     def addPlace(self, p):
@@ -96,6 +149,28 @@ class Net:
             src.addArc(a)
     def getNode(self, nid):
         return next(n for n in self.N if n.getId() == nid)
+    def printNet(self):
+        print ">>>>> PLACES <<<<<"
+        for p in sorted(self.P, key = lambda p: p.getName()):
+            print p.getName() + " = " + str(p.getInit())
+        print
+        print ">>>>> TRANSITIONS <<<<<"
+        for t in sorted(self.T, key = lambda t: t.getName()):
+            line = ""
+            for arcs in [ t.getInputArcs(), t.getOutputArcs() ]:
+                if line != "":
+                    line += " -> "
+                fst = True
+                for a in arcs:
+                    val = a.getValuation()
+                    if val > 1:
+                        line += str(val) + "*"
+                    if not fst:
+                        line += " + "                    
+                    line += self.getNode(a.getOtherEnd(t.getId())).getName()
+                    fst = False
+            line = t.getName() + ": " + line
+            print line
     
     ###
     #  model functions
@@ -127,7 +202,7 @@ class Net:
    mevent_t t;
 """)
         for t in self.T:
-            cw("   uint32_t pre_t" + str(t.getNum()) + " = " +
+            cw("   uint32_t pre_t" + t.getSNum() + " = " +
                str(len(t.getInputArcs())) + ";\n")
         cw("""
    for(it = list_get_iter(s->marked);
@@ -137,22 +212,22 @@ class Net:
       switch(m.pid) {
 """)
         for p in self.P:
-            cw("         case " + str(p.getNum()) + ": {\n")
+            cw("      case " + p.getSNum() + ": {\n")
             for a in p.getOutputArcs():
                 val = a.getValuation()
                 t = self.getNode(a.getTarget())
-                pret = "pre_t" + str(self.getNode(a.getTarget()).getNum())
-                l = "            "
+                pret = "pre_t" + self.getNode(a.getTarget()).getSNum()
+                l = "         "
                 if val > 1:
                     l += "if(m.tok >= " + str(val) + ") { "
                 l += "if(!(-- " + pret + ")) { " + \
-                     "t = " + str(t.getNum()) + "; list_append(result, &t); }"
+                     "t = " + t.getSNum() + "; list_append(result, &t); }"
                 if val > 1:
                     l += " }"
                 cw(l + "\n")
-            cw("            break;\n")
-            cw("         }\n")
-        cw("         default: assert(FALSE);\n")
+            cw("         break;\n")
+            cw("      }\n")
+        cw("      default: assert(FALSE);\n")
         cw("      }\n")
         cw("   }\n")
         cw("   return result;\n")
@@ -194,9 +269,9 @@ class Net:
       switch(m.pid) {
 """)
         for p in self.P:
-            cw("         case " + str(p.getNum()) + ": { ")
-            cw("printf(\"" + p.getName() + " = %d\\n\", m.tok); break; }\n")
-        cw("""default: assert(FALSE);
+            cw("      case " + p.getSNum() + ": ")
+            cw("printf(\"" + p.getName() + " = %d\\n\", m.tok); break;\n")
+        cw("""       default: assert(FALSE);
       }
    }
 }
@@ -205,7 +280,14 @@ class Net:
         prot = "void mevent_print(mevent_t e, FILE * out)"
         hw(prot + ";\n") 
         cw(prot + """ {
-   assert(FALSE);
+  switch(e) {
+""")
+        for t in self.T:
+            cw("  case " + t.getSNum() + ": " +
+               "printf(\"" + t.getName() + "\\n\"); break;\n")
+        cw("""
+  default: assert(FALSE);
+  }
 }
 """)
     
@@ -231,8 +313,7 @@ int marked_place_cmp(void * a, void * b) {
    }
 }
 """)
-        for f, pre, post in [ ("exec", "-=", "+="),
-                              ("undo", "+=", "-=") ]:
+        for f, op in [ ("exec", 1), ("undo", -1) ]:
             prot = """void mevent_""" + f + """
 (mevent_t e,
  mstate_t s)"""
@@ -244,44 +325,34 @@ int marked_place_cmp(void * a, void * b) {
 """)
             for t in self.T:
                 tid = t.getId()
-                if f == "exec":
-                    added = t.getOutputArcs()
-                else:
-                    added = t.getInputArcs()
-                added = map(lambda a: (a, self.getNode(a.getOtherEnd(tid))),
-                            added)
-                cw("      case " + str(t.getNum()) + ": { \n")
-                bools = []
-                for a, p in added:
-                    b = "p" + str(p.getNum())
-                    bools.append(b)
-                    cw("         bool_t " + b + " = FALSE;\n")
-                cw("         for(it = list_get_iter(s->marked);\n")
-                cw("            !list_iter_at_end(it);\n")
-                cw("            it = list_iter_next(it)) {\n")
-                cw("            m = (marked_place_t *) list_iter_item(it);\n")
-                for arcs, op in [ (t.getInputArcs(), pre),
-                                  (t.getOutputArcs(), post) ]:
-                    for a in arcs:
-                        p = self.getNode(a.getOtherEnd(tid))
-                        pnum = str(p.getNum())
-                        val = str(a.getValuation())
-                        cw("            if(" + pnum + " == m->pid) { ")
-                        if ("p" + str(p.getNum())) in bools:
-                            cw("p" + str(p.getNum()) + " = TRUE; ")
-                        cw("m->tok " + op + " " + val + "; }\n")
-                cw("         }\n")
-                for a, p in added:
-                    cw("         if(!p" + str(p.getNum()) + ") {\n")
-                    cw("            marked_place_t m;\n")
-                    cw("            m.tok = " + str(a.getValuation()) + ";\n")
-                    cw("            m.pid = " + str(p.getNum()) + ";\n")
-                    cw("            list_insert_sorted(s->marked, &m, " +
-                       "marked_place_cmp);\n")
-                    cw("         }\n")
-                cw("         break;\n")
+                updated = t.getUpdated(self)
+                cw("   case " + t.getSNum() + ": { \n")
+                for val, p in updated:
+                    cw("      bool_t b" + p.getSNum() + " = FALSE;\n")
+                cw("      for(it = list_get_iter(s->marked);\n")
+                cw("          !list_iter_at_end(it);\n")
+                cw("          it = list_iter_next(it)) {\n")
+                cw("         m = (marked_place_t *) list_iter_item(it);\n")
+                for val, p in updated:
+                    cw("         if(" + p.getSNum() + " == m->pid) { " +
+                       "b" + p.getSNum() + " = TRUE; " +
+                       "m->tok += " + str(op * val) + "; " +
+                       "if(m->tok > " + str(self.getCapacity()) + ") { " +
+                       "raise_error(\"capacity exceeded in place " +
+                       p.getName() + "\");"
+                       " } }\n")
                 cw("      }\n")
-            cw("         default: assert(FALSE);\n")
+                for val, p in [ (val, p) for val, p in updated
+                                if op * val > 0 ]:
+                    cw("      if(!b" + p.getSNum() + ") {\n")
+                    cw("         marked_place_t m = { " + p.getSNum() +
+                       ", " + str(op * val) + " };\n")
+                    cw("         list_insert_sorted(s->marked, &m, " +
+                       "marked_place_cmp);\n")
+                    cw("      }\n")
+                cw("      break;\n")
+                cw("   }\n")
+            cw("   default: assert(FALSE);\n")
             cw("   }\n")
             cw("   list_filter(s->marked, remove_empty_places, NULL);\n")
             cw("}\n")
@@ -320,7 +391,7 @@ int marked_place_cmp(void * a, void * b) {
         for p in self.P:
             init = p.getInit()
             if init > 0:
-                cw("   m.pid = " + str(p.getNum()) + ";\n")
+                cw("   m.pid = " + p.getSNum() + ";\n")
                 cw("   m.tok = " + str(init) + ";\n")
                 cw("   list_append(result->marked, &m);\n")
         cw("   return result;\n")
@@ -391,7 +462,7 @@ int marked_place_cmp(void * a, void * b) {
         for p in self.P:
             init = p.getInit()
             if init > 0:
-                cw("   m.pid = " + str(p.getNum()) + ";\n")
+                cw("   m.pid = " + p.getSNum() + ";\n")
                 cw("   m.tok = " + str(init) + ";\n")
                 cw("   list_append(result->marked, &m);\n")
         cw("   return result;\n")
@@ -472,10 +543,6 @@ int marked_place_cmp(void * a, void * b) {
         cw(prot + " {\n")
         cw("   assert(FALSE);\n")
         cw("}\n")
-        prot = """void model_xml_parameters(FILE * out)"""
-        hw(prot + ";\n") 
-        cw(prot + " {\n")
-        cw("}\n")
         prot = """void model_xml_statistics(FILE * out)"""
         hw(prot + ";\n") 
         cw(prot + """ {
@@ -493,24 +560,162 @@ int marked_place_cmp(void * a, void * b) {
     def compilePorFunctions(self, hw, cw):
         prot = """bool_t mevent_is_safe(mevent_t e)"""
         hw(prot + ";\n") 
-        cw(prot + " {\n") 
-        cw("   return FALSE;\n")
-        cw("}\n")
+        cw(prot + """ {
+   switch(e) {
+""")
+        for t in self.T:
+            #  a transition is safe if it does not share its input
+            #  places with other transition
+            if all(len(p.getPostSet(self)) == 1 for p in t.getPreSet(self)):
+                cw("      case " + t.getSNum() + ": return TRUE;\n")
+        cw("""      default: return FALSE;
+   }
+}
+""")
         prot = """bool_t mevent_is_visible(mevent_t e)"""
         hw(prot + ";\n") 
-        cw(prot + " {\n") 
-        cw("   return FALSE;\n")
-        cw("}\n")
+        cw(prot + """ {
+   return FALSE;
+}
+""")
         prot = """bool_t mevent_are_independent(mevent_t e, mevent_t f)"""
         hw(prot + ";\n") 
-        cw(prot + " {\n") 
-        cw("   return FALSE;\n")
-        cw("}\n")
+        cw(prot + """ {
+   return FALSE;
+}
+""")
         prot = """unsigned int mevent_safe_set(mevent_t e)"""
         hw(prot + ";\n") 
-        cw(prot + " {\n") 
-        cw("   return 0;\n")
-        cw("}\n")
+        cw(prot + """ {
+   return 0;
+}
+""")
+
+        #  dynamic por reduction algorithm
+        cw("""char mevent_is_t(void * t, void * u) {
+   return (* (mevent_t *) t) == (* (mevent_t *) u) ? TRUE : FALSE;
+}
+char is_marked_enough(void * m, void * ref) {
+   marked_place_t mm = * ((marked_place_t *) m);
+   marked_place_t mref = * ((marked_place_t *) ref);
+   return (mm.pid == mref.pid && mm.tok >= mref.tok) ? TRUE : FALSE;
+}
+""")
+        prot = """
+#define dynamic_por_reduction_add_stub() { \\
+  if(!list_find(stub, mevent_is_t, &u)) { \\
+    list_append(todo, &u); \\
+    list_append(stub, &u); \\
+    if(list_find(en, mevent_is_t, &u)) { \\
+      list_append(stub_en, &u); \\
+    } \\
+  } \\
+}
+
+void dynamic_por_reduction(mstate_t s, list_t en)"""
+        hw(prot + ";\n") 
+        cw(prot + """ {
+  heap_t h;
+  rseed_t rnd;
+  list_iter_t it;
+  list_t todo, stub, stub_en;
+  int i;
+  mevent_t t, u;
+  marked_place_t m;
+
+  if(list_is_empty(en)) {
+    return;
+  }
+  h = local_heap_new();
+  rnd = random_seed(0);
+  todo = list_new(h, sizeof(mevent_t), NULL);
+  stub = list_new(h, sizeof(mevent_t), NULL);
+  stub_en = list_new(h, sizeof(mevent_t), NULL);
+  i = random_int(&rnd) % list_size(en);
+  list_nth(en, i, &u);
+  dynamic_por_reduction_add_stub();
+  while(!list_is_empty(todo)) {
+    list_pick_first(todo, &t);
+    if(list_find(en, mevent_is_t, &t)) {
+      switch(t) {
+""")
+        #  enabled transition handling
+        for t in self.T:
+            conf = []
+            for p in t.getPreSet(self):
+                for u in [ u for u in p.getPostSet(self) if u != t ]:
+                    conf.append(u)
+            if len(conf) > 0:
+                array = ", ".join(map(lambda c: c.getSNum(), conf))
+                l = str(len(conf))
+                cw("      case " + t.getSNum() + ": {\n")
+                cw("        mevent_t conf[" + l + "] = ")
+                cw("{" + array + "};\n")
+                cw("        for(i = 0; i < " + l + "; i ++) {\n")
+                cw("          u = conf[i];\n")
+                cw("          dynamic_por_reduction_add_stub();\n")
+                cw("        }\n")
+                cw("        break;\n")
+                cw("      }\n")
+        cw("""      }
+    } else {
+      switch(t) {
+""")
+        #  disabled transition handling
+        for t in self.T:
+            cw("      case " + t.getSNum() + ": {\n")
+            ip = [ (val, p) for (val, p) in t.getUpdated(self) if val < 0 ]
+            l = str(len(ip))
+            array = ", ".join(map(lambda (val, p): p.getSNum(), ip))
+            arrayTok = ", ".join(map(lambda (val, p): str(- val), ip))
+            cw("        int32_t sg = -1;\n")
+            cw("        uint32_t ip[] = {" + array + "};\n")
+            cw("        uint32_t tok[] = {" + arrayTok + "};\n")
+            cw("        for(i = 0; i < " + l + " && sg < 0; i ++) {\n")
+            cw("          m.pid = ip[i];\n")
+            cw("          m.tok = tok[i];\n")
+            cw("          if(!list_find(s->marked, is_marked_enough, &m)) {\n")
+            cw("            sg = ip[i];\n")
+            cw("          }\n")
+            cw("        }\n")
+            cw("        if(sg < 0) {\n")
+            cw("          printf(\"" + t.getName() + ": no scapegoat\\n\");\n")
+            cw("          assert(FALSE);\n")
+            cw("        }\n")
+            for val, p in ip:
+                act = [ t for (val, t) in p.getUpdated(self) if val > 0 ]
+                l = str(len(act))
+                array = ", ".join(map(lambda t: t.getSNum(), act))
+                cw("        if(sg == " + p.getSNum() + ") {\n")
+                cw("          mevent_t act[] = {" + array + "};\n")
+                cw("          for(i = 0; i < " + l + "; i ++) {\n")
+                cw("            u = act[i];\n")
+                cw("            dynamic_por_reduction_add_stub();\n")
+                cw("          }\n")
+                cw("        }\n")
+            cw("        break;\n")
+            cw("      }\n")
+        cw("""      default: assert(FALSE);
+      }
+    }
+  }
+  list_free(todo);
+  list_free(stub);
+  if(list_size(stub_en) != list_size(en)) {
+    list_reset(en);
+    for(it = list_get_iter(stub_en);
+        !list_iter_at_end(it);
+        it = list_iter_next(it)) {
+      t = * ((mevent_t *) list_iter_item(it));
+      list_append(en, &t);
+    }
+  }
+  list_free(todo);
+  list_free(stub);
+  list_free(stub_en);
+  heap_free(h);
+}
+""")
     
     def compileNet(self, outDir):
         f = open(outDir + os.sep + "SRC_FILES", "w")
@@ -528,6 +733,9 @@ int marked_place_cmp(void * a, void * b) {
 
 #ifndef LIB_MODEL
 #define LIB_MODEL
+
+#define MODEL_EVENT_UNDOABLE
+#define MODEL_HAS_DYNAMIC_POR_REDUCTION
 
 """)
 
@@ -739,5 +947,6 @@ if __name__ == "__main__":
     pnml = sys.argv[1]
     outDir = sys.argv[2]
     net = parseNet(pnml)
+    net.printNet()
     net.compileNet(outDir)
     exit(0)

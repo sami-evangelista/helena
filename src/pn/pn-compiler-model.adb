@@ -60,6 +60,10 @@ package body Pn.Compiler.Model is
 	 Plh(L, "#include """ & Libs(I) & ".h""");
       end loop;
       --=======================================================================
+      Plh(L, "#define MODEL_EVENT_UNDOABLE");
+      Plh(L, "#define MODEL_HAS_GRAPH_ROUTINES");
+      Plh(L, "#define MODEL_HAS_XML_PARAMETERS");
+      --=======================================================================
       Compile(Props, L);
       --=======================================================================
       while not Expr_Set_Pkg.Is_Empty(Pending) loop

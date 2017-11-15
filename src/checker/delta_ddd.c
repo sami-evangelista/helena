@@ -97,7 +97,7 @@ uint8_t RECONS_ID;
 
 #define DELTA_DDD_OWNER(h) (((h) & CFG_HASH_SIZE_M) % CFG_NO_WORKERS)
 
-#if CFG_EVENT_UNDOABLE == 1
+#if defined(MODEL_EVENT_UNDOABLE)
 #define DELTA_DDD_VISIT_PRE_HEAP_PROCESS() {    \
     if(heap_size(heap) > MAX_LOCAL_HEAP_SIZE) {	\
       state_t copy = state_copy(s);		\
@@ -116,7 +116,7 @@ uint8_t RECONS_ID;
     s = func(w, curr, s, depth - 1);                    \
     event_undo(e, s);                                   \
   }
-#else  /*  !CFG_EVENT_UNDOABLE == 1  */
+#else  /*  !defined(MODEL_EVENT_UNDOABLE)  */
 #define DELTA_DDD_VISIT_PRE_HEAP_PROCESS() {    \
     heap_pos = heap_get_position(heap);         \
   }
@@ -591,9 +591,9 @@ bool_t delta_ddd_duplicate_detection
   /*
    *  initialize heaps for duplicate detection
    */
-  if(CFG_EVENT_UNDOABLE) {
-    heap_reset(detect_evts_heaps[w]);
-  }
+#if defined(MODEL_EVENT_UNDOABLE)
+  heap_reset(detect_evts_heaps[w]);
+#endif
   heap_reset(detect_heaps[w]);
   s = state_initial_mem(detect_heaps[w]);
 
@@ -742,9 +742,9 @@ void delta_ddd_expand
  unsigned int depth) {
   state_t s;
 
-  if(CFG_EVENT_UNDOABLE) {
-    heap_reset(expand_evts_heaps[w]);
-  }
+#if defined(MODEL_EVENT_UNDOABLE)
+  heap_reset(expand_evts_heaps[w]);
+#endif
   heap_reset(expand_heaps[w]);
   s = state_initial_mem(expand_heaps[w]);
   delta_ddd_expand_dfs(w, S->root, s, depth);

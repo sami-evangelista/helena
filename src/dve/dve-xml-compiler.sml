@@ -62,22 +62,9 @@ in
     TextIO.output (cFile, body ^ "\n")
 end
 
-fun compileModelXmlParameters (s: System.system, hFile, cFile) = let
-    val prot = "void model_xml_parameters(FILE * out)"
-    val body =
-	concatLines [
-	prot ^ " {",
-	"}"
-	]
-in
-    TextIO.output (hFile, prot ^ ";\n");
-    TextIO.output (cFile, body ^ "\n")
-end
-
 fun gen params = (
     compileStateToXml params;
     compileEventToXml params;
-    compileModelXmlStatistics params;
-    compileModelXmlParameters params)
+    compileModelXmlStatistics params)
 
 end

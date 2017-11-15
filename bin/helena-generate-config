@@ -474,7 +474,6 @@ class Config:
             ("DFS_STACK_BLOCK_SIZE", self.dfsStackBlockSize),
             ("DISTRIBUTED", self.algo in [ DBFS, DDFS ]),
             ("EDGE_LEAN", self.edgeLean),
-            ("EVENT_UNDOABLE", self.language in [ "lna", "pnml" ]),
             ("FILE_PATH", "\"" + os.path.realpath(self.inFile) + "\""),
             ("GRAPH_FILE", "\"graph.dat\""),
             ("HASH_COMPACTION", self.hashCompaction),

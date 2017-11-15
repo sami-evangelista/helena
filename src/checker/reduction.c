@@ -106,6 +106,11 @@ mevent_list_t mstate_events_reduced_mem
       list_filter(result, por_is_not_in_set, data);
     }
   }
+#if defined(MODEL_HAS_DYNAMIC_POR_REDUCTION)
+  else {
+    dynamic_por_reduction(s, result);
+  }
+#endif
   len_reduced = list_size(result);
   if(len_reduced != len) {
     *reduced = TRUE;

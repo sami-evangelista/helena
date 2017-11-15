@@ -88,7 +88,7 @@ project Helena is
    package Builder is
       --  name of the executables created for each main procedure
       for Executable ("helena_generate_main.adb")
-      	  use "helena-generate";
+      	  use "helena-generate-lna";
       for Executable ("helena_generate_interface_main.adb")
       	  use "helena-generate-interface";
       for Executable ("helena_generate_prop_main.adb")

@@ -2,7 +2,7 @@
 #include "model.h"
 #include "config.h"
 
-#if CFG_MODEL_HAS_GRAPH_ROUTINES == 1
+#if defined(MODEL_HAS_GRAPH_ROUTINES)
 #include "model_graph.h"
 #else
 typedef int model_graph_data_t;
@@ -581,7 +581,9 @@ void graph_make_statistics
   fprintf(f, "<language>%s</language>\n", CFG_LANGUAGE);
   fprintf(f, "<date>%s</date>\n", CFG_DATE);
   fprintf(f, "<filePath>%s</filePath>\n", CFG_FILE_PATH);
+#if defined(MODEL_HAS_XML_PARAMETERS)
   model_xml_parameters(f);
+#endif
 
   fprintf(f, "<states>%d</states>\n", graph->no_nodes);
   fprintf(f, "<edges>%d</edges>\n\n", graph->no_edges);

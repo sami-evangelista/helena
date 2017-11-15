@@ -16,7 +16,7 @@ CC=$gcc
 RUN="./helena-checker"
 
 #  executable names
-lnaGenerator=helena-generate
+lnaGenerator=helena-generate-lna
 pnmlGenerator=helena-generate-pnml
 dveGenerator=helena-generate-dve
 checkerGenerator=helena-generate-checker

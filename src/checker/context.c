@@ -209,7 +209,9 @@ void finalise_context
     fprintf(out, "<helenaReport>\n");
     fprintf(out, "<infoReport>\n");
     fprintf(out, "<model>%s</model>\n", model_name());
+#if defined(MODEL_HAS_XML_PARAMETERS)
     model_xml_parameters(out);
+#endif
     fprintf(out, "<language>%s</language>\n", CFG_LANGUAGE);
     fprintf(out, "<date>%s</date>\n", CFG_DATE);
     fprintf(out, "<filePath>%s</filePath>\n", CFG_FILE_PATH);

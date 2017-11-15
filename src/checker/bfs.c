@@ -100,7 +100,7 @@ void bfs_report_trace
   context_set_trace(trace);
 }
 
-#if CFG_EVENT_UNDOABLE == 1
+#if defined(MODEL_EVENT_UNDOABLE)
 #define bfs_back_to_s() {event_undo(e, s);}
 #else
 #define bfs_back_to_s() {state_free(succ);}
@@ -181,12 +181,12 @@ void * bfs_worker
         while(!list_is_empty(en)) {
           list_pick_first(en, &e);
           arcs ++;
-          if(CFG_EVENT_UNDOABLE) {
-            event_exec(e, s);
-            succ = s;
-          } else {
-            succ = state_succ_mem(s, e, heap);
-          }
+#if defined(MODEL_EVENT_UNDOABLE)
+          event_exec(e, s);
+          succ = s;
+#else
+          succ = state_succ_mem(s, e, heap);
+#endif
           if(!CFG_ALGO_DBFS) {
             hash_tbl_insert(H, succ, w, &is_new, &id_succ, &h);
           } else {

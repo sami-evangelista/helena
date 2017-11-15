@@ -34,14 +34,16 @@ state_t dfs_recover_state
  heap_t heap) {
   hash_tbl_id_t id;
 
-  if(CFG_EVENT_UNDOABLE) {
-    dfs_stack_event_undo(stack, now);
-  } else if(CFG_HASH_COMPACTION) {
+#if defined(MODEL_EVENT_UNDOABLE)
+  dfs_stack_event_undo(stack, now);
+#else
+  if(CFG_HASH_COMPACTION) {
     now = dfs_stack_top_state(stack, heap);
   } else {
     id = dfs_stack_top(stack);
     now = hash_tbl_get_mem(H, id, w, heap);
   }
+#endif
   return now;
 }
 
@@ -89,7 +91,13 @@ void * dfs_worker
   const bool_t cndfs = check_ltl
     && CFG_ALGO_DDFS || (CFG_ALGO_DFS && CFG_PARALLEL);
   const bool_t tarjan = CFG_ALGO_TARJAN;
-  const bool_t states_stored = !CFG_EVENT_UNDOABLE && CFG_HASH_COMPACTION;
+  const bool_t states_stored = 
+#if defined(MODEL_EVENT_UNDOABLE)
+    FALSE
+#else
+    CFG_HASH_COMPACTION
+#endif
+    ;
   uint32_t i;
   hash_key_t h;
   heap_t heap = local_heap_new();

@@ -53,6 +53,26 @@ void list_free
   }
 }
 
+void list_reset
+(list_t list) {
+  list_node_t ptr = list->first, next;
+
+  if(heap_has_mem_free(list->heap)) {
+    while(ptr) {
+      next = ptr->next;
+      if(list->free_func) {
+        list->free_func(ptr->item);
+      }
+      mem_free(list->heap, ptr->item);
+      mem_free(list->heap, ptr);
+      ptr = next;
+    }
+  }
+  list->no_items = 0;
+  list->first = NULL;
+  list->last = NULL;
+}
+
 char list_is_empty
 (list_t list) {
   return 0 == list->no_items;
