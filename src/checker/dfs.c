@@ -17,8 +17,6 @@
 #if CFG_ALGO_DDFS == 0 && CFG_ALGO_DFS == 0 && CFG_ALGO_TARJAN == 0
 
 void dfs() { assert(0); }
-void dfs_progress_report(uint64_t * states_stored) { assert(0); }
-void dfs_finalise() { assert(0); }
 
 #else
 
@@ -74,6 +72,7 @@ state_t dfs_recover_state
       htbl_set_attr(H, id, ATTR_LIVE, TRUE);                            \
       index ++;                                                         \
     }                                                                   \
+    context_incr_stored(w, 1);                                          \
     if(!dfs_stack_fully_expanded(stack)) {                              \
       context_incr_reduced(w, 1);                                       \
     }                                                                   \
@@ -382,20 +381,7 @@ void dfs
     context_stop_search();
     ddfs_comm_end();
   }
-}
-
-void dfs_progress_report
-(uint64_t * states_stored) {
-  *states_stored = H ? htbl_size(H) : 0;
-}
-
-void dfs_finalise
-() {
-  if(H) {
-    context_set_storage_size(htbl_size(H));
-    htbl_free(H);
-    H = NULL;
-  }
+  htbl_free(H);
 }
 
 #endif

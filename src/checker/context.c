@@ -26,6 +26,7 @@ typedef struct {
 
   /*  statistics field  */
   uint64_t * states_accepting;
+  uint64_t * states_stored;
   uint64_t * states_processed;
   uint64_t * states_reduced;
   uint64_t * states_dead;
@@ -34,11 +35,9 @@ typedef struct {
   uint64_t * evts_exec_dd;
   uint64_t bytes_sent;
   uint64_t exec_time;
-  uint64_t states_max_stored;
   uint64_t barrier_time;
   uint64_t sleep_time;
   uint64_t dd_time;
-  uint64_t storage_size;
   unsigned int bfs_levels;
   bool_t bfs_levels_ok;
   float max_mem_used;
@@ -74,6 +73,8 @@ void init_context
    */
   CTX->states_processed =
     mem_alloc(SYSTEM_HEAP, no_workers * sizeof(uint64_t));
+  CTX->states_stored =
+    mem_alloc(SYSTEM_HEAP, no_workers * sizeof(uint64_t));
   CTX->states_reduced =
     mem_alloc(SYSTEM_HEAP, no_workers * sizeof(uint64_t));
   CTX->states_dead =
@@ -87,6 +88,7 @@ void init_context
   CTX->evts_exec_dd =
     mem_alloc(SYSTEM_HEAP, no_workers * sizeof(uint64_t));
   for(i = 0; i < no_workers; i ++) {
+    CTX->states_stored[i] = 0;
     CTX->states_processed[i] = 0;
     CTX->states_reduced[i] = 0;
     CTX->states_accepting[i] = 0;
@@ -99,7 +101,6 @@ void init_context
   CTX->bfs_levels = 0;
   CTX->bfs_levels_ok = FALSE;
   CTX->max_mem_used = 0.0;
-  CTX->states_max_stored = 0;
   CTX->comp_time = 0.0;
   CTX->barrier_time = 0;
   CTX->sleep_time = 0;
@@ -317,7 +318,8 @@ void finalise_context
     }
     fprintf(out, "</timeStatistics>\n");
     fprintf(out, "<graphStatistics>\n");
-    fprintf(out, "<statesStored>%llu</statesStored>\n", CTX->storage_size);
+    sum = large_sum(CTX->states_stored, CTX->no_workers);
+    fprintf(out, "<statesStored>%llu</statesStored>\n", sum);
     sum = large_sum(CTX->states_processed, CTX->no_workers);
     fprintf(out, "<statesProcessed>%llu</statesProcessed>\n", sum);
     if(CFG_PARALLEL) {
@@ -420,6 +422,7 @@ void finalise_context
     /**
      *  free everything
      */
+    free(CTX->states_stored);
     free(CTX->states_processed);
     free(CTX->states_reduced);
     free(CTX->states_dead);
@@ -503,6 +506,11 @@ uint64_t context_processed
   return large_sum(CTX->states_processed, CTX->no_workers);
 }
 
+uint64_t context_stored
+() {
+  return large_sum(CTX->states_stored, CTX->no_workers);
+}
+
 struct timeval context_start_time
 () {
   return CTX->start_time;
@@ -554,13 +562,6 @@ void context_increase_barrier_time
   CTX->barrier_time += time;
 }
 
-void context_update_max_states_stored
-(uint64_t states_stored) {
-  if(CTX->states_max_stored < states_stored) {
-    CTX->states_max_stored = states_stored;
-  }
-}
-
 void context_update_max_mem_used
 (float mem) {
   if(CTX->max_mem_used < mem) {
@@ -590,6 +591,12 @@ void context_incr_processed
 (worker_id_t w,
  int no) {
   CTX->states_processed[w] += no;
+}
+
+void context_incr_stored
+(worker_id_t w,
+ int no) {
+  CTX->states_stored[w] += no;
 }
 
 void context_incr_reduced
@@ -687,11 +694,6 @@ void context_sleep
 termination_state_t context_termination_state
 () {
   return CTX->term_state;
-}
-
-void context_set_storage_size
-(uint64_t storage_size) {
-  CTX->storage_size = storage_size;
 }
 
 void context_set_dd_time

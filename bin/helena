@@ -8,7 +8,6 @@ shcc='/usr/bin/oshcc'
 shrun='/usr/bin/oshrun'
 
 helenaDir=$HOME/.helena
-tmpDir=$HOME/.helena/tmp-$RANDOM
 
 #  by default we compile the generated code with gcc
 CC=$gcc
@@ -345,7 +344,7 @@ createEnvironment
 
 #####
 #  generate model source files
-mkdir $tmpDir
+tmpDir=$(mktemp -d)
 msg "Generating model source files ..."
 generateConfig $*
 generateBitStreamLib

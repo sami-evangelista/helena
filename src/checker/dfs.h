@@ -20,19 +20,4 @@
 void dfs
 ();
 
-
-/**
- * @brief Report on the DFS progress.
- */
-void dfs_progress_report
-(uint64_t * states_stored);
-
-
-/**
- * @brief Finalisation of the DFS.  Used to free data allocated by
- *        dfs.
- */
-void dfs_finalise
-();
-
 #endif

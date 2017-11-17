@@ -889,21 +889,10 @@ void delta_ddd
   }
 
   launch_and_wait_workers(&delta_ddd_worker);
-  context_close_graph_file();
-}
-
-void delta_ddd_progress_report
-(uint64_t * states_stored) {
-  *states_stored = delta_ddd_storage_size(S);
-}
-
-void delta_ddd_finalise
-() {
-  worker_id_t w, x;
 
   /*
-   *  free heaps and mailboxes
-   */
+   * free everything
+   */  
   for(w = 0; w < CFG_NO_WORKERS; w ++) {
     mem_free(SYSTEM_HEAP, CS[w]);
     mem_free(SYSTEM_HEAP, NCS[w]);
@@ -917,7 +906,7 @@ void delta_ddd_finalise
     heap_free(detect_evts_heaps[w]);
   }
 
-  context_set_storage_size(delta_ddd_storage_size(S));
+  context_close_graph_file();
   context_set_dd_time(S->dd_time);
   
   delta_ddd_storage_free(S);

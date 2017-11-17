@@ -82,6 +82,9 @@ void context_set_termination_state
 void context_set_trace
 (event_list_t trace);
 
+uint64_t context_stored
+();
+
 uint64_t context_processed
 ();
 
@@ -137,8 +140,9 @@ void context_incr_evts_exec_dd
 (worker_id_t w,
  int no);
 
-void context_update_max_states_stored
-(uint64_t states_stored);
+void context_incr_stored
+(worker_id_t w,
+ int no);
 
 void context_update_max_mem_used
 (float mem);
@@ -163,9 +167,6 @@ void context_sleep
 
 termination_state_t context_termination_state
 ();
-
-void context_set_storage_size
-(uint64_t storage_size);
 
 void context_set_dd_time
 (uint64_t dd_time);

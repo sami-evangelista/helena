@@ -6,9 +6,6 @@
 #include "dfs.h"
 #include "rwalk.h"
 
-typedef void (* progress_report_func_t) (uint64_t *);
-typedef void (* finalise_func_t) (void);
-
 void * observer_worker
 (void * arg) {
   float time = 0;
@@ -18,25 +15,7 @@ void * observer_worker
   uint64_t stored;
   char name[100], pref[100];
   int n = 0;
-  progress_report_func_t progress_report;
-  finalise_func_t finalise;
-
-  if(CFG_ALGO_DFS || CFG_ALGO_DDFS || CFG_ALGO_TARJAN) {
-    progress_report = dfs_progress_report;
-    finalise = dfs_finalise;
-  } else if(CFG_ALGO_BFS || CFG_ALGO_DBFS) {
-    progress_report = bfs_progress_report;
-    finalise = bfs_finalise;
-  } else if(CFG_ALGO_DELTA_DDD) {
-    progress_report = delta_ddd_progress_report;
-    finalise = delta_ddd_finalise;
-  } else if(CFG_ALGO_RWALK) {
-    progress_report = rwalk_progress_report;
-    finalise = rwalk_finalise;
-  } else {
-    assert(0);
-  }
-  
+ 
   pref[0] = 0;  
   if(CFG_WITH_OBSERVER) {
     if(CFG_DISTRIBUTED) {
@@ -49,14 +28,13 @@ void * observer_worker
     n ++;
     sleep(1);
     gettimeofday(&now, NULL);
-    progress_report(&stored);
     mem = mem_usage();
     cpu = context_cpu_usage();
     if(context_keep_searching()) {
       cpu_avg = (cpu + (n - 1) * cpu_avg) / n;
     }
     processed = context_processed();
-    context_update_max_states_stored(stored);
+    stored = context_stored();
     context_update_max_mem_used(mem);
     time = ((float) duration(context_start_time(), now)) / 1000000.0;
     if(CFG_WITH_OBSERVER) {
@@ -86,6 +64,5 @@ void * observer_worker
   if(CFG_WITH_OBSERVER) {
     printf("\n%sdone.\n", pref);
   }
-  finalise();
   return NULL;
 }

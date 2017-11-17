@@ -20,19 +20,4 @@
 void bfs
 ();
 
-
-/**
- * @brief Report on the BFS progress.
- */
-void bfs_progress_report
-(uint64_t * states_stored);
-
-
-/**
- * @brief Finalisation of the BFS.  Used to free data allocated by
- *        bfs.
- */
-void bfs_finalise
-();
-
 #endif

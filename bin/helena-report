@@ -124,9 +124,9 @@ statistics = {
     "places"                  : "Places                    ",
     "transitions"             : "Transitions               ",
     "netArcs"                 : "Arcs                      ",
-    "inArcs"                  : "  in arcs                ",
-    "outArcs"                 : "  out arcs               ",
-    "inhibArcs"               : "  inhibitor arcs         ",
+    "inArcs"                  : "  in arcs                 ",
+    "outArcs"                 : "  out arcs                ",
+    "inhibArcs"               : "  inhibitor arcs          ",
     "stateVectorSize"         : "State vector size         ",
     "statesStored"            : ("States                   \n" +
                                  "        stored                  "),

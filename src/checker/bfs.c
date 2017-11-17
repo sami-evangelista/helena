@@ -217,6 +217,7 @@ void * bfs_worker
               htbl_set_attr(H, succ_item.id, ATTR_PRED, item.id);
               htbl_set_attr(H, succ_item.id, ATTR_EVT, event_id(e));
             }
+            context_incr_stored(w, 1);
           } else {
 
             /**
@@ -316,21 +317,6 @@ void bfs
   if(CFG_ALGO_DBFS) {
     context_stop_search();
     dbfs_comm_end();
-  }
-}
-
-void bfs_progress_report
-(uint64_t * states_stored) {
-  *states_stored = H ? htbl_size(H) : 0;
-}
-
-void bfs_finalise
-() {
-  if(H) {
-    bfs_queue_free(Q);
-    context_set_storage_size(htbl_size(H));
-    htbl_free(H);
-    H = NULL;
   }
 }
 
