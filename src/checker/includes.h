@@ -1,7 +1,6 @@
 /**
  * @file includes.h
- * @brief Single file including all necessary system files and the
- *        configuration file.
+ * @brief Single file including all necessary system files.
  * @date 12 sep 2017
  * @author Sami Evangelista
  */
