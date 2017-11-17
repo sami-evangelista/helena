@@ -21,8 +21,10 @@ class Node:
         self.nid = nid
         self.name = name
         self.arcs = []
-        self.inputArcsSet = False
-        self.outputArcsSet = False
+        self.inputArcs = []
+        self.outputArcs = []
+    def setNum(self, num):
+        self.num = num
     def getNum(self):
         return self.num
     def getSNum(self):
@@ -34,35 +36,32 @@ class Node:
     def getArcs(self):
         return self.arcs
     def addArc(self, arc):
-        self.inputArcsSet = False
-        self.outputArcsSet = False
+        if arc.getSrc() == self.nid:
+            self.outputArcs.append(arc)
+        else:
+            self.inputArcs.append(arc)
         self.arcs.append(arc)
-    def getInOrOutArcs(self, func):
-        result = []
-        for a in self.arcs:
-            if getattr(a, func)() == self.nid:
-                result.append(a)
-        return result
+    def deleteArc(self, arc):
+        if arc.getSrc() == self.nid:
+            self.outputArcs.remove(arc)
+        else:
+            self.inputArcs.remove(arc)
+        self.arcs.remove(arc)
     def getOutputArcs(self):
-        if not self.outputArcsSet:
-            self.outputArcs = self.getInOrOutArcs("getSrc")
-            self.outputArcsSet = True
         return self.outputArcs
     def getInputArcs(self):
-        if not self.inputArcsSet:
-            self.inputArcs = self.getInOrOutArcs("getTarget")
-            self.inputArcsSet = True
         return self.inputArcs
     def getPreOrPostSet(self, net, arcs):
         result = []
         for a in arcs:
-            result.append(net.getNode(a.getOtherEnd(self.nid)))
+            result.append((a.getValuation(),
+                           net.getNode(a.getOtherEnd(self.nid))))
         return result
     def getPreSet(self, net):
         return self.getPreOrPostSet(net, self.getInputArcs())
     def getPostSet(self, net):
         return self.getPreOrPostSet(net, self.getOutputArcs())
-    def getUpdated(self, net):
+    def getUpdatedSet(self, net):
         if isinstance(self, Place):
             dom = [ (self.getInputArcs(), 1), (self.getOutputArcs(), -1)]
         else:
@@ -88,7 +87,7 @@ class Node:
                 else:
                     result.append((val, n))
                     prev = val, n
-        return result        
+        return result
         
     
 class Place(Node):
@@ -145,10 +144,14 @@ class Net:
     def addArc(self, a):
         self.A.append(a)
         for nid in [ a.getSrc(), a.getTarget() ]:
-            src = next(n for n in self.N if n.getId() == nid)
-            src.addArc(a)
+            n = self.getNode(nid)
+            assert(n is not None)
+            n.addArc(a)
     def getNode(self, nid):
-        return next(n for n in self.N if n.getId() == nid)
+        try:
+            return next(n for n in self.N if n.getId() == nid)
+        except:
+            return None
     def printNet(self):
         print ">>>>> PLACES <<<<<"
         for p in sorted(self.P, key = lambda p: p.getName()):
@@ -171,6 +174,34 @@ class Net:
                     fst = False
             line = t.getName() + ": " + line
             print line
+    def deletePlace(self, p):
+        transToDel = [ self.getNode(a.getOtherEnd(p.getId()))
+                       for a in p.getArcs() ]
+        arcsToDel = set(p.getArcs())
+        for t in transToDel:
+            for a in t.getArcs():
+                arcsToDel.add(a)
+        self.A = [ a for a in self.A if a not in arcsToDel ]
+        for a in arcsToDel:
+            for n in [ self.getNode(a.getSrc()), self.getNode(a.getTarget()) ]:
+                n.deleteArc(a)
+        self.N.remove(p)
+        self.P.remove(p)
+        for t in transToDel:
+            self.N.remove(t)
+            self.T.remove(t)
+    def recomputeNums(self):
+        for i, p in enumerate(self.P):
+            p.setNum(i)
+        for i, t in enumerate(self.T):
+            t.setNum(i)
+    def simplify(self):
+        #  remove unmarked places that do not have input transitions
+        for p in [ p for p in self.P if p.getInit() == 0 \
+                   and len(p.getInputArcs()) == 0 ]:
+            self.deletePlace(p)
+        self.recomputeNums()
+                
     
     ###
     #  model functions
@@ -325,7 +356,7 @@ int marked_place_cmp(void * a, void * b) {
 """)
             for t in self.T:
                 tid = t.getId()
-                updated = t.getUpdated(self)
+                updated = t.getUpdatedSet(self)
                 cw("   case " + t.getSNum() + ": { \n")
                 for val, p in updated:
                     cw("      bool_t b" + p.getSNum() + " = FALSE;\n")
@@ -365,7 +396,7 @@ int marked_place_cmp(void * a, void * b) {
             hw(prot + ";\n") 
             cw(prot + """ {
    mstate_t result = mstate_copy_mem(s, heap);
-   mevent_""" + op + """(e, s);
+   mevent_""" + op + """(e, result);
    return result;
 }
 """)
@@ -566,7 +597,8 @@ int marked_place_cmp(void * a, void * b) {
         for t in self.T:
             #  a transition is safe if it does not share its input
             #  places with other transition
-            if all(len(p.getPostSet(self)) == 1 for p in t.getPreSet(self)):
+            if all(len(p.getPostSet(self)) == 1
+                   for (val, p) in t.getPreSet(self)):
                 cw("      case " + t.getSNum() + ": return TRUE;\n")
         cw("""      default: return FALSE;
    }
@@ -600,40 +632,62 @@ char is_marked_enough(void * m, void * ref) {
    marked_place_t mref = * ((marked_place_t *) ref);
    return (mm.pid == mref.pid && mm.tok >= mref.tok) ? TRUE : FALSE;
 }
-""")
-        prot = """
-#define dynamic_por_reduction_add_stub() { \\
-  if(!list_find(stub, mevent_is_t, &u)) { \\
-    list_append(todo, &u); \\
-    list_append(stub, &u); \\
-    if(list_find(en, mevent_is_t, &u)) { \\
-      list_append(stub_en, &u); \\
+#define dynamic_por_reduction_add_stub(t) { \\
+  if(!stub[t]) { \\
+    stub[t] = TRUE; \\
+    list_append(todo, &t); \\
+    if(list_find(en, mevent_is_t, &t)) { \\
+      list_append(stub_en, &t); \\
     } \\
   } \\
 }
 
-void dynamic_por_reduction(mstate_t s, list_t en)"""
+void dynamic_por_reduction_handle_scapegoat
+(uint32_t pid, bool_t * stub, list_t en, list_t stub_en, list_t todo) {
+  int i;
+
+  switch(pid) {
+""")
+        for p in self.P:
+            act = [ t for (val, t) in p.getUpdatedSet(self) if val > 0 ]
+            l = str(len(act))
+            array = ", ".join(map(lambda t: t.getSNum(), act))
+            cw("  case " + p.getSNum() + ": {\n")
+            cw("    mevent_t act[] = {" + array + "};\n")
+            cw("    for(i = 0; i < " + l + "; i ++) {\n")
+            cw("      dynamic_por_reduction_add_stub(act[i]);\n")
+            cw("    }\n")
+            cw("    break;\n")
+            cw("  }\n")
+        cw("""
+  default: assert(FALSE);
+  }
+}
+""")
+        prot = "void dynamic_por_reduction(mstate_t s, list_t en)"
         hw(prot + ";\n") 
         cw(prot + """ {
   heap_t h;
   rseed_t rnd;
   list_iter_t it;
-  list_t todo, stub, stub_en;
+  list_t todo, stub_en;
   int i;
   mevent_t t, u;
   marked_place_t m;
+  bool_t stub[""" + str(len(self.T)) + """];
 
   if(list_is_empty(en)) {
     return;
   }
+  memset(stub, 0, sizeof(bool_t) * """ + str(len(self.T)) + """);
   h = local_heap_new();
   rnd = random_seed(0);
   todo = list_new(h, sizeof(mevent_t), NULL);
-  stub = list_new(h, sizeof(mevent_t), NULL);
   stub_en = list_new(h, sizeof(mevent_t), NULL);
   i = random_int(&rnd) % list_size(en);
+  i = 0;
   list_nth(en, i, &u);
-  dynamic_por_reduction_add_stub();
+  dynamic_por_reduction_add_stub(u);
   while(!list_is_empty(todo)) {
     list_pick_first(todo, &t);
     if(list_find(en, mevent_is_t, &t)) {
@@ -642,8 +696,8 @@ void dynamic_por_reduction(mstate_t s, list_t en)"""
         #  enabled transition handling
         for t in self.T:
             conf = []
-            for p in t.getPreSet(self):
-                for u in [ u for u in p.getPostSet(self) if u != t ]:
+            for val, p in t.getPreSet(self):
+                for u in [ u for val, u in p.getPostSet(self) if u != t ]:
                     conf.append(u)
             if len(conf) > 0:
                 array = ", ".join(map(lambda c: c.getSNum(), conf))
@@ -653,7 +707,7 @@ void dynamic_por_reduction(mstate_t s, list_t en)"""
                 cw("{" + array + "};\n")
                 cw("        for(i = 0; i < " + l + "; i ++) {\n")
                 cw("          u = conf[i];\n")
-                cw("          dynamic_por_reduction_add_stub();\n")
+                cw("          dynamic_por_reduction_add_stub(u);\n")
                 cw("        }\n")
                 cw("        break;\n")
                 cw("      }\n")
@@ -664,35 +718,24 @@ void dynamic_por_reduction(mstate_t s, list_t en)"""
         #  disabled transition handling
         for t in self.T:
             cw("      case " + t.getSNum() + ": {\n")
-            ip = [ (val, p) for (val, p) in t.getUpdated(self) if val < 0 ]
+            ip = t.getPreSet(self)
             l = str(len(ip))
             array = ", ".join(map(lambda (val, p): p.getSNum(), ip))
-            arrayTok = ", ".join(map(lambda (val, p): str(- val), ip))
-            cw("        int32_t sg = -1;\n")
+            arrayTok = ", ".join(map(lambda (val, p): str(val), ip))
+            cw("        int32_t sg = - 1;\n")
             cw("        uint32_t ip[] = {" + array + "};\n")
             cw("        uint32_t tok[] = {" + arrayTok + "};\n")
+            cw("        bool_t found = FALSE;\n")
             cw("        for(i = 0; i < " + l + " && sg < 0; i ++) {\n")
             cw("          m.pid = ip[i];\n")
             cw("          m.tok = tok[i];\n")
             cw("          if(!list_find(s->marked, is_marked_enough, &m)) {\n")
-            cw("            sg = ip[i];\n")
+            cw("            sg = i;\n")
             cw("          }\n")
             cw("        }\n")
-            cw("        if(sg < 0) {\n")
-            cw("          printf(\"" + t.getName() + ": no scapegoat\\n\");\n")
-            cw("          assert(FALSE);\n")
-            cw("        }\n")
-            for val, p in ip:
-                act = [ t for (val, t) in p.getUpdated(self) if val > 0 ]
-                l = str(len(act))
-                array = ", ".join(map(lambda t: t.getSNum(), act))
-                cw("        if(sg == " + p.getSNum() + ") {\n")
-                cw("          mevent_t act[] = {" + array + "};\n")
-                cw("          for(i = 0; i < " + l + "; i ++) {\n")
-                cw("            u = act[i];\n")
-                cw("            dynamic_por_reduction_add_stub();\n")
-                cw("          }\n")
-                cw("        }\n")
+            cw("        assert(sg >= 0);\n")
+            cw("        dynamic_por_reduction_handle_scapegoat(ip[sg], " +
+               "stub, en, stub_en, todo);\n")
             cw("        break;\n")
             cw("      }\n")
         cw("""      default: assert(FALSE);
@@ -700,7 +743,6 @@ void dynamic_por_reduction(mstate_t s, list_t en)"""
     }
   }
   list_free(todo);
-  list_free(stub);
   if(list_size(stub_en) != list_size(en)) {
     list_reset(en);
     for(it = list_get_iter(stub_en);
@@ -711,7 +753,6 @@ void dynamic_por_reduction(mstate_t s, list_t en)"""
     }
   }
   list_free(todo);
-  list_free(stub);
   list_free(stub_en);
   heap_free(h);
 }
@@ -720,6 +761,7 @@ void dynamic_por_reduction(mstate_t s, list_t en)"""
     def compileNet(self, outDir):
         f = open(outDir + os.sep + "SRC_FILES", "w")
         f.write("model\n")
+        f.write("model_por\n")
         f.close()
         
         h = open(outDir + os.sep + "model.h", "w")
@@ -766,6 +808,8 @@ typedef struct {
 typedef struct_mstate_t * mstate_t;
 typedef uint32_t mevent_t;
 typedef uint32_t mevent_id_t;
+
+#include "model_por.h"
 """)
 
         ###
@@ -880,12 +924,32 @@ typedef uint32_t mevent_id_t;
                    self.compileTransitionRelationFunctions,
                    self.compileSerialisationFunctions,
                    self.compilePrintFunctions,
-                   self.compileXMLFunctions,
-                   self.compilePorFunctions ]:
+                   self.compileXMLFunctions ]:
             f(hw, cw)
-
         hw("#endif\n")
-        
+        c.close()
+        h.close()
+
+        #  por functions are put in a separate file
+        h = open(outDir + os.sep + "model_por.h", "w")
+        hw = h.write
+        hw("""#include "includes.h"
+#include "model.h"
+#include "heap.h"
+#include "list.h"
+
+#ifndef LIB_MODEL_POR
+#define LIB_MODEL_POR
+
+""")
+
+        c = open(outDir + os.sep + "model_por.c", "w")
+        cw = c.write
+        cw("""#include "model_por.h"
+
+""")
+        self.compilePorFunctions(hw, cw)
+        hw("#endif\n")
         c.close()
         h.close()
 
@@ -947,6 +1011,7 @@ if __name__ == "__main__":
     pnml = sys.argv[1]
     outDir = sys.argv[2]
     net = parseNet(pnml)
-    net.printNet()
+    net.simplify()
+    #net.printNet()
     net.compileNet(outDir)
     exit(0)

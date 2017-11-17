@@ -14,8 +14,8 @@ delta_ddd
 dfs
 dfs_stack
 event
-hash_array
-hash_tbl
+harray
+htbl
 heap
 graph
 includes
@@ -23,6 +23,7 @@ list
 main
 observer
 papi_stats
+por_analysis
 reduction
 rwalk
 simulator

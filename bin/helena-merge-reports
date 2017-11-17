@@ -50,6 +50,7 @@ def mergeReports(refDoc, docs):
                            ("statesProcessedDev", False),
                            ("statesProcessedMax", False),
                            ("statesProcessedMin", False),
+                           ("statesReduced", True),
                            ("statesMaxStored", True),
                            ("statesStored", True),
                            ("statesTerminal", False),

@@ -7,6 +7,12 @@
 #include "prop.h"
 #include "reduction.h"
 #include "workers.h"
+#include "por_analysis.h"
+
+/*
+ * TODO: if edge-lean is turned on, DFS may report a deadlock whereas
+ * it's just edge-lean that removed all enabled transitions.  fix this
+ */
 
 #if CFG_ALGO_DDFS == 0 && CFG_ALGO_DFS == 0 && CFG_ALGO_TARJAN == 0
 
@@ -22,17 +28,17 @@ const struct timespec DFS_WAIT_RED_SLEEP_TIME = { 0, 10 };
 
 typedef struct {
   bool_t accepting;
-  hash_tbl_id_t id;  
+  htbl_id_t id;  
 } red_processed_t;
 
-hash_tbl_t H = NULL;
+htbl_t H = NULL;
 
 state_t dfs_recover_state
 (dfs_stack_t stack,
  state_t now,
  worker_id_t w,
  heap_t heap) {
-  hash_tbl_id_t id;
+  htbl_id_t id;
 
 #if defined(MODEL_EVENT_UNDOABLE)
   dfs_stack_event_undo(stack, now);
@@ -41,29 +47,35 @@ state_t dfs_recover_state
     now = dfs_stack_top_state(stack, heap);
   } else {
     id = dfs_stack_top(stack);
-    now = hash_tbl_get_mem(H, id, w, heap);
+    now = htbl_get_mem(H, id, heap);
   }
 #endif
   return now;
 }
 
 #define dfs_push_new_state(id, is_s0) {                                 \
-    /*printf("-----\n");state_print(now, stdout); printf("%d\n", state_hash(now));printf("-----\n"); */ \
     dfs_stack_push(stack, id, now);                                     \
     e_ref = is_s0 && edge_lean ? &e : NULL;                             \
     en = dfs_stack_compute_events(stack, now, por, e_ref);              \
     if(blue) {                                                          \
-      hash_tbl_set_worker_attr(H, id, ATTR_CYAN, w, TRUE);              \
+      htbl_set_worker_attr(H, id, ATTR_CYAN, w, TRUE);                  \
     } else {                                                            \
-      hash_tbl_set_worker_attr(H, id, ATTR_PINK, w, TRUE);              \
+      htbl_set_worker_attr(H, id, ATTR_PINK, w, TRUE);                  \
       red_stack_size ++;                                                \
+    }                                                                   \
+    if(htbl_has_attr(H, ATTR_SAFE) &&                                   \
+       dfs_stack_fully_expanded(stack)) {                               \
+      htbl_set_attr(H, id, ATTR_SAFE, TRUE);                            \
     }                                                                   \
     if(tarjan) {                                                        \
       darray_push(scc_stack, &id);                                      \
-      hash_tbl_set_attr(H, id, ATTR_INDEX, index);                      \
-      hash_tbl_set_attr(H, id, ATTR_LOWLINK, index);                    \
-      hash_tbl_set_attr(H, id, ATTR_LIVE, TRUE);                        \
+      htbl_set_attr(H, id, ATTR_INDEX, index);                          \
+      htbl_set_attr(H, id, ATTR_LOWLINK, index);                        \
+      htbl_set_attr(H, id, ATTR_LIVE, TRUE);                            \
       index ++;                                                         \
+    }                                                                   \
+    if(!dfs_stack_fully_expanded(stack)) {                              \
+      context_incr_reduced(w, 1);                                       \
     }                                                                   \
     if(blue && (0 == list_size(en))) {                                  \
       context_incr_dead(w, 1);                                          \
@@ -104,7 +116,7 @@ void * dfs_worker
   state_t copy, now = state_initial_mem(heap);
   dfs_stack_t stack = dfs_stack_new(wid, CFG_DFS_STACK_BLOCK_SIZE,
                                     shuffle, states_stored);
-  hash_tbl_id_t id, id_seed, id_succ;
+  htbl_id_t id, id_seed, id_succ;
   bool_t push, blue = TRUE, is_new;
   event_t e;
   event_t * e_ref;
@@ -115,13 +127,14 @@ void * dfs_worker
   darray_t red_states = cndfs ?
     darray_new(SYSTEM_HEAP, sizeof(red_processed_t)) : NULL;
   darray_t scc_stack = tarjan ?
-    darray_new(SYSTEM_HEAP, sizeof(hash_tbl_id_t)) : NULL;
-  uint32_t nn = 0;
+    darray_new(SYSTEM_HEAP, sizeof(htbl_id_t)) : NULL;
+  darray_t scc = tarjan ?
+    darray_new(SYSTEM_HEAP, sizeof(htbl_id_t)) : NULL;
   
   /*
    * insert the initial state and push it on the stack
    */
-  hash_tbl_insert(H, now, w, &is_new, &id, &h);
+  htbl_insert(H, now, w, &is_new, &id, &h);
   dfs_push_new_state(id, TRUE);
 
   /*
@@ -148,8 +161,8 @@ void * dfs_worker
      * of the current state
      */
     if(tarjan && lowlink_popped >= 0) {
-      if(lowlink_popped < hash_tbl_get_attr(H, id, ATTR_LOWLINK)) {
-        hash_tbl_set_attr(H, id, ATTR_LOWLINK, lowlink_popped);
+      if(lowlink_popped < htbl_get_attr(H, id, ATTR_LOWLINK)) {
+        htbl_set_attr(H, id, ATTR_LOWLINK, lowlink_popped);
       }
       lowlink_popped = -1;
     }
@@ -166,6 +179,10 @@ void * dfs_worker
       if(por && proviso) {
         if(!dfs_stack_proviso(stack)) {
           dfs_stack_compute_events(stack, now, FALSE, NULL);
+          if(htbl_has_attr(H, ATTR_SAFE)) {
+            htbl_set_attr(H, id, ATTR_SAFE, TRUE);
+          }
+          context_incr_reduced(w, - 1);
           goto loop_start;
         }
       }
@@ -190,8 +207,8 @@ void * dfs_worker
        * put new colors on the popped state as it leaves the stack
        */
       if(blue) {
-	hash_tbl_set_worker_attr(H, id, ATTR_CYAN, w, FALSE);
-        hash_tbl_set_attr(H, id, ATTR_BLUE, TRUE);
+	htbl_set_worker_attr(H, id, ATTR_CYAN, w, FALSE);
+        htbl_set_attr(H, id, ATTR_BLUE, TRUE);
       } else {  /* nested search of ndfs or cndfs */
         
         /*
@@ -203,7 +220,7 @@ void * dfs_worker
           proc.id = id;
           darray_push(red_states, &proc);
         } else {
-          hash_tbl_set_attr(H, id, ATTR_RED, TRUE);
+          htbl_set_attr(H, id, ATTR_RED, TRUE);
         }
         red_stack_size --;
         
@@ -218,14 +235,14 @@ void * dfs_worker
             for(i = 0; i < darray_size(red_states); i ++) {
               proc = * ((red_processed_t *) darray_get(red_states, i));
               if(proc.accepting && proc.id != id) {
-                while(!hash_tbl_get_attr(H, proc.id, ATTR_RED)) {
+                while(!htbl_get_attr(H, proc.id, ATTR_RED)) {
                   context_sleep(DFS_WAIT_RED_SLEEP_TIME);
                 }
               }
             }
             for(i = 0; i < darray_size(red_states); i ++) {
               proc = * ((red_processed_t *) darray_get(red_states, i));
-              hash_tbl_set_attr(H, proc.id, ATTR_RED, TRUE);
+              htbl_set_attr(H, proc.id, ATTR_RED, TRUE);
             }
           }
         }
@@ -239,16 +256,19 @@ void * dfs_worker
       }
 
       /*
-       * in tarjan we check whether the state is the root of an SCC we
-       * pop the SCC
+       * in tarjan we check the state popped if the root of an SCC in
+       * which case we pop this SCC
        */
       if(tarjan) {
-        if(hash_tbl_get_attr(H, id, ATTR_INDEX) ==
-           hash_tbl_get_attr(H, id, ATTR_LOWLINK)) {
+        if(htbl_get_attr(H, id, ATTR_INDEX) ==
+           htbl_get_attr(H, id, ATTR_LOWLINK)) {
+          darray_reset(scc);
           do {
-            id_succ = * ((hash_tbl_id_t *) darray_pop(scc_stack));
-            hash_tbl_set_attr(H, id_succ, ATTR_LIVE, FALSE);
+            id_succ = * ((htbl_id_t *) darray_pop(scc_stack));
+            htbl_set_attr(H, id_succ, ATTR_LIVE, FALSE);
+            darray_push(scc, &id_succ);
           } while (id_succ != id);
+          por_analysis_scc(H, scc);
         }
       }
 
@@ -261,7 +281,7 @@ void * dfs_worker
         now = dfs_recover_state(stack, now, w, heap);
       }
       if(tarjan) {
-        lowlink_popped = hash_tbl_get_attr(H, id, ATTR_LOWLINK);
+        lowlink_popped = htbl_get_attr(H, id, ATTR_LOWLINK);
       }
     }
 
@@ -281,7 +301,7 @@ void * dfs_worker
       /*
        * try to insert the successor
        */
-      hash_tbl_insert(H, now, w, &is_new, &id_succ, &h);
+      htbl_insert(H, now, w, &is_new, &id_succ, &h);
 
       /*
        * if we check an LTL property and are in the red search, test
@@ -299,12 +319,12 @@ void * dfs_worker
       if(blue) {
 	context_incr_arcs(w, 1);
         push = is_new
-          || ((!hash_tbl_get_attr(H, id_succ, ATTR_BLUE)) &&
-              (!hash_tbl_get_worker_attr(H, id_succ, ATTR_CYAN, w)));
+          || ((!htbl_get_attr(H, id_succ, ATTR_BLUE)) &&
+              (!htbl_get_worker_attr(H, id_succ, ATTR_CYAN, w)));
       } else {
         push = is_new
-          || ((!hash_tbl_get_attr(H, id_succ, ATTR_RED)) &&
-              (!hash_tbl_get_worker_attr(H, id_succ, ATTR_PINK, w)));
+          || ((!htbl_get_attr(H, id_succ, ATTR_RED)) &&
+              (!htbl_get_worker_attr(H, id_succ, ATTR_PINK, w)));
       }
 
       if(push) { /* successor state must be explored */
@@ -315,11 +335,11 @@ void * dfs_worker
         /*
          * tarjan: we reach a live state.
          */
-        if(tarjan && hash_tbl_get_attr(H, id_succ, ATTR_LIVE)) {
-          index_other = hash_tbl_get_attr(H, id_succ, ATTR_INDEX);
-          lowlink = hash_tbl_get_attr(H, id, ATTR_LOWLINK);
+        if(tarjan && htbl_get_attr(H, id_succ, ATTR_LIVE)) {
+          index_other = htbl_get_attr(H, id_succ, ATTR_INDEX);
+          lowlink = htbl_get_attr(H, id, ATTR_LOWLINK);
           if(lowlink > index_other) {
-            hash_tbl_set_attr(H, id, ATTR_LOWLINK, index_other);
+            htbl_set_attr(H, id, ATTR_LOWLINK, index_other);
           }
         }
         
@@ -328,7 +348,7 @@ void * dfs_worker
          * verified for the current state
          */
         if(por && proviso &&
-           hash_tbl_get_worker_attr(H, id_succ, ATTR_CYAN, w)) {
+           htbl_get_worker_attr(H, id_succ, ATTR_CYAN, w)) {
           dfs_stack_unset_proviso(stack);
         }
       }
@@ -344,6 +364,7 @@ void * dfs_worker
     darray_free(red_states);
   }
   if(tarjan) {
+    darray_free(scc);
     darray_free(scc_stack);
   }
 
@@ -352,7 +373,7 @@ void * dfs_worker
 
 void dfs
 () {
-  H = hash_tbl_default_new();
+  H = htbl_default_new();
   if(CFG_ALGO_DDFS) {
     ddfs_comm_start(H);
   }
@@ -365,14 +386,14 @@ void dfs
 
 void dfs_progress_report
 (uint64_t * states_stored) {
-  *states_stored = H ? hash_tbl_size(H) : 0;
+  *states_stored = H ? htbl_size(H) : 0;
 }
 
 void dfs_finalise
 () {
   if(H) {
-    context_set_storage_size(hash_tbl_size(H));
-    hash_tbl_free(H);
+    context_set_storage_size(htbl_size(H));
+    htbl_free(H);
     H = NULL;
   }
 }

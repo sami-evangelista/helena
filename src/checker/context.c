@@ -27,6 +27,7 @@ typedef struct {
   /*  statistics field  */
   uint64_t * states_accepting;
   uint64_t * states_processed;
+  uint64_t * states_reduced;
   uint64_t * states_dead;
   uint64_t * arcs;
   uint64_t * evts_exec;
@@ -73,6 +74,8 @@ void init_context
    */
   CTX->states_processed =
     mem_alloc(SYSTEM_HEAP, no_workers * sizeof(uint64_t));
+  CTX->states_reduced =
+    mem_alloc(SYSTEM_HEAP, no_workers * sizeof(uint64_t));
   CTX->states_dead =
     mem_alloc(SYSTEM_HEAP, no_workers * sizeof(uint64_t));
   CTX->states_accepting =
@@ -85,6 +88,7 @@ void init_context
     mem_alloc(SYSTEM_HEAP, no_workers * sizeof(uint64_t));
   for(i = 0; i < no_workers; i ++) {
     CTX->states_processed[i] = 0;
+    CTX->states_reduced[i] = 0;
     CTX->states_accepting[i] = 0;
     CTX->states_dead[i] = 0;
     CTX->arcs[i] = 0;
@@ -177,11 +181,11 @@ void finalise_context
 () {
   FILE * out;
   void * dummy;
-  uint64_t sum_processed;
-  uint64_t min_processed;
-  uint64_t max_processed;
-  uint64_t avg_processed;
-  uint64_t dev_processed;
+  uint64_t sum;
+  uint64_t min;
+  uint64_t max;
+  uint64_t avg;
+  uint64_t dev;
   worker_id_t w;
   char name[1024], file_name[1024];
   char * buf = NULL;
@@ -314,29 +318,30 @@ void finalise_context
     fprintf(out, "</timeStatistics>\n");
     fprintf(out, "<graphStatistics>\n");
     fprintf(out, "<statesStored>%llu</statesStored>\n", CTX->storage_size);
-    sum_processed = large_sum(CTX->states_processed, CTX->no_workers);
-    fprintf(out, "<statesProcessed>%llu</statesProcessed>\n", sum_processed);
+    sum = large_sum(CTX->states_processed, CTX->no_workers);
+    fprintf(out, "<statesProcessed>%llu</statesProcessed>\n", sum);
     if(CFG_PARALLEL) {
-      min_processed = CTX->states_processed[0];
-      max_processed = CTX->states_processed[0];
-      avg_processed = sum_processed / CFG_NO_WORKERS;
-      dev_processed = 0;
+      min = CTX->states_processed[0];
+      max = CTX->states_processed[0];
+      avg = sum / CFG_NO_WORKERS;
+      dev = 0;
       for(w = 1; w < CFG_NO_WORKERS; w ++) {
-	if(CTX->states_processed[w] > max_processed) {
-	  max_processed = CTX->states_processed[w];
-	} else if(CTX->states_processed[w] < min_processed) {
-	  min_processed = CTX->states_processed[w];
+	if(CTX->states_processed[w] > max) {
+	  max = CTX->states_processed[w];
+	} else if(CTX->states_processed[w] < min) {
+	  min = CTX->states_processed[w];
 	}
-	dev_processed += (CTX->states_processed[w] - avg_processed)
-	  * (CTX->states_processed[w] - avg_processed);
+	dev += (CTX->states_processed[w] - avg)
+          * (CTX->states_processed[w] - avg);
       }
-      dev_processed = sqrt(dev_processed / CTX->no_workers);
-      fprintf(out, "<statesProcessedMin>%llu</statesProcessedMin>\n",
-	      min_processed);
-      fprintf(out, "<statesProcessedMax>%llu</statesProcessedMax>\n",
-	      max_processed);
-      fprintf(out, "<statesProcessedDev>%llu</statesProcessedDev>\n",
-	      dev_processed);
+      dev = sqrt(dev / CTX->no_workers);
+      fprintf(out, "<statesProcessedMin>%llu</statesProcessedMin>\n", min);
+      fprintf(out, "<statesProcessedMax>%llu</statesProcessedMax>\n", max);
+      fprintf(out, "<statesProcessedDev>%llu</statesProcessedDev>\n", dev);
+    }
+    if(CFG_POR) {
+      sum = large_sum(CTX->states_reduced, CTX->no_workers);
+      fprintf(out, "<statesReduced>%llu</statesReduced>\n", sum);
     }
     if(CFG_ACTION_CHECK_LTL) {
       fprintf(out, "<statesAccepting>%llu</statesAccepting>\n",
@@ -370,7 +375,7 @@ void finalise_context
     }
     if(CFG_ALGO_RWALK) {
       fprintf(out, "<eventExecPerSecond>%d</eventExecPerSecond>\n",
-	      (unsigned int) (1.0 * sum_processed /
+	      (unsigned int) (1.0 * sum /
 			      (CTX->exec_time / 1000000.0)));
     }
     if(CFG_DISTRIBUTED) {
@@ -416,6 +421,7 @@ void finalise_context
      *  free everything
      */
     free(CTX->states_processed);
+    free(CTX->states_reduced);
     free(CTX->states_dead);
     free(CTX->states_accepting);
     free(CTX->arcs);
@@ -584,6 +590,12 @@ void context_incr_processed
 (worker_id_t w,
  int no) {
   CTX->states_processed[w] += no;
+}
+
+void context_incr_reduced
+(worker_id_t w,
+ int no) {
+  CTX->states_reduced[w] += no;
 }
 
 void context_incr_evts_exec

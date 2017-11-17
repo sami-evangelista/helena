@@ -124,6 +124,10 @@ void context_incr_processed
 (worker_id_t w,
  int no);
 
+void context_incr_reduced
+(worker_id_t w,
+ int no);
+
 void context_incr_evts_exec
 (worker_id_t w,
  int no);

@@ -22,17 +22,17 @@ typedef struct {
 
 typedef struct {
   heap_t * heaps[CFG_NO_WORKERS];
-  hash_tbl_t * states[CFG_NO_WORKERS];
+  htbl_t * states[CFG_NO_WORKERS];
   uint32_t * len[CFG_NO_WORKERS];
   uint32_t * remote_pos[CFG_NO_WORKERS];
-  hash_tbl_id_t ** ids[CFG_NO_WORKERS];
+  htbl_id_t ** ids[CFG_NO_WORKERS];
   uint32_t * no_ids[CFG_NO_WORKERS];
 } worker_buffers_t;
 
 const struct timespec COMM_WAIT_TIME = { 0, COMM_WAIT_TIME_MUS * 1000 };
 const struct timespec WORKER_WAIT_TIME = { 0, WORKER_WAIT_TIME_MUS * 1000 };
 
-hash_tbl_t H;
+htbl_t H;
 bfs_queue_t Q;
 pthread_t CW[CFG_NO_COMM_WORKERS];
 heap_t COMM_HEAPS[CFG_NO_COMM_WORKERS];
@@ -89,9 +89,9 @@ void dbfs_comm_reinit_buffer
   uint32_t i;
 
   for(i = 0; i < BUF.no_ids[w][pe]; i ++) {
-    hash_tbl_erase(BUF.states[w][pe], 0, BUF.ids[w][pe][i]);
+    htbl_erase(BUF.states[w][pe], 0, BUF.ids[w][pe][i]);
   }
-  hash_tbl_reset(BUF.states[w][pe]);
+  htbl_reset(BUF.states[w][pe]);
   BUF.len[w][pe] = 0;
   BUF.no_ids[w][pe] = 0;
 }
@@ -122,7 +122,7 @@ void dbfs_comm_send_buffer
   hash_key_t h;
 
 #if defined(DBFS_COMM_DEBUG)
-  assert(hash_tbl_size(BUF.states[w][pe]) <= WORKER_STATE_BUFFER_LEN);
+  assert(htbl_size(BUF.states[w][pe]) <= WORKER_STATE_BUFFER_LEN);
   assert(pe != ME);
   assert(BUF.len[w][pe] <= DBFS_HEAP_SIZE_WORKER);
 #endif
@@ -138,7 +138,7 @@ void dbfs_comm_send_buffer
   memset(buffer, 0, DBFS_HEAP_SIZE_WORKER);
   pos = 0;
   for(i = 0; i < BUF.no_ids[w][pe]; i ++) {
-    hash_tbl_get_serialised(BUF.states[w][pe], BUF.ids[w][pe][i],
+    htbl_get_serialised(BUF.states[w][pe], BUF.ids[w][pe][i],
 			    &s, &size, &h);
     memcpy(buffer + pos, &h, sizeof(hash_key_t));
     memcpy(buffer + pos + sizeof(hash_key_t), &size, sizeof(uint16_t));
@@ -153,7 +153,7 @@ void dbfs_comm_send_buffer
   /**
    * send my data to the remote PE
    */
-  data.no_states = hash_tbl_size(BUF.states[w][pe]);
+  data.no_states = htbl_size(BUF.states[w][pe]);
   data.len = pos;
 #if defined(DBFS_COMM_DEBUG)
   assert(data.len > 0);
@@ -179,7 +179,7 @@ void dbfs_comm_send_all_pending_states
    * send all buffers content
    */
   for(pe = 0; pe < PES; pe ++) {
-    if(pe != ME && hash_tbl_size(BUF.states[w][pe]) > 0) {
+    if(pe != ME && htbl_size(BUF.states[w][pe]) > 0) {
       dbfs_comm_send_buffer(w, pe);
     }
   }
@@ -192,13 +192,13 @@ void dbfs_comm_process_state
  hash_key_t h) {
   const uint16_t len = state_char_size(s);
   const int pe = dbfs_comm_state_owner(h);
-  hash_tbl_id_t id;
+  htbl_id_t id;
   uint32_t no;
   bool_t is_new;
 
 #if defined(DBFS_COMM_DEBUG)
   assert(ME != pe);
-  assert(hash_tbl_size(BUF.states[w][pe]) <= WORKER_STATE_BUFFER_LEN);
+  assert(htbl_size(BUF.states[w][pe]) <= WORKER_STATE_BUFFER_LEN);
 #endif
 
   /**
@@ -214,7 +214,7 @@ void dbfs_comm_process_state
   /**
    * insert the state in table
    */
-  hash_tbl_insert_hashed(BUF.states[w][pe], s, 0, h, &is_new, &id);
+  htbl_insert_hashed(BUF.states[w][pe], s, 0, h, &is_new, &id);
   if(is_new) {
     BUF.len[w][pe] += sizeof(hash_key_t) + sizeof(uint16_t) + len;
     BUF.ids[w][pe][BUF.no_ids[w][pe]] = id;
@@ -233,7 +233,7 @@ bool_t dbfs_comm_worker_process_incoming_states
   hash_key_t h;
   buffer_data_t data;
   char buffer[DBFS_HEAP_SIZE_WORKER];
-  hash_tbl_id_t sid;
+  htbl_id_t sid;
   bfs_queue_item_t item;
   state_t s;
   int pe;
@@ -272,7 +272,7 @@ bool_t dbfs_comm_worker_process_incoming_states
               tmp_pos += sizeof(uint16_t);
           
               /* insert the state */
-              hash_tbl_insert_serialised(H, buffer + tmp_pos, s_len,
+              htbl_insert_serialised(H, buffer + tmp_pos, s_len,
                                          h, w, &is_new, &sid);
               tmp_pos += s_len;
 
@@ -411,7 +411,7 @@ void * dbfs_comm_worker
 
 
 void dbfs_comm_start
-(hash_tbl_t h,
+(htbl_t h,
  bfs_queue_t q) {
   int pe, remote_pos;
   worker_id_t w;
@@ -437,11 +437,11 @@ void dbfs_comm_start
   H = h;
   for(w = 0; w < CFG_NO_WORKERS; w ++) {
     BUF.heaps[w] = mem_alloc(SYSTEM_HEAP, sizeof(heap_t) * PES);
-    BUF.ids[w] = mem_alloc(SYSTEM_HEAP, sizeof(hash_tbl_id_t *) * PES);
+    BUF.ids[w] = mem_alloc(SYSTEM_HEAP, sizeof(htbl_id_t *) * PES);
     BUF.len[w] = mem_alloc(SYSTEM_HEAP, sizeof(uint32_t) * PES);
     BUF.no_ids[w] = mem_alloc(SYSTEM_HEAP, sizeof(uint32_t) * PES);
     BUF.remote_pos[w] = mem_alloc(SYSTEM_HEAP, sizeof(uint32_t) * PES);
-    BUF.states[w] = mem_alloc(SYSTEM_HEAP, sizeof(hash_tbl_t) * PES);
+    BUF.states[w] = mem_alloc(SYSTEM_HEAP, sizeof(htbl_t) * PES);
   }
   for(pe = 0; pe < PES; pe ++) {
     remote_pos = POS_DATA + ME * DBFS_HEAP_SIZE_PE;
@@ -459,11 +459,11 @@ void dbfs_comm_start
       } else {
         BUF.remote_pos[w][pe] = remote_pos;
         BUF.no_ids[w][pe] = 0;
-        BUF.ids[w][pe] = mem_alloc(SYSTEM_HEAP, sizeof(hash_tbl_id_t)
+        BUF.ids[w][pe] = mem_alloc(SYSTEM_HEAP, sizeof(htbl_id_t)
 				   * WORKER_STATE_BUFFER_LEN);
         BUF.heaps[w][pe] = local_heap_new();
-        BUF.states[w][pe] = hash_tbl_new(FALSE, WORKER_STATE_BUFFER_LEN * 2,
-					 1, FALSE, 0);
+        BUF.states[w][pe] = htbl_new(FALSE, WORKER_STATE_BUFFER_LEN * 2,
+                                     1, FALSE, 0);
         dbfs_comm_reinit_buffer(w, pe);
         remote_pos += DBFS_HEAP_SIZE_WORKER;
       }
@@ -495,7 +495,7 @@ void dbfs_comm_end
   for(w = 0; w < CFG_NO_WORKERS; w ++) {
     for(pe = 0; pe < PES; pe ++) {
       if(ME != pe) {
-        hash_tbl_free(BUF.states[w][pe]);
+        htbl_free(BUF.states[w][pe]);
         heap_free(BUF.heaps[w][pe]);
 	mem_free(SYSTEM_HEAP, BUF.ids[w][pe]);
       }

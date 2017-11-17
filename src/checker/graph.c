@@ -131,6 +131,7 @@ graph_t graph_load_main
       }
       default: {
 	printf("error: graph_load read an incorrect GT: %d\n", t);
+        assert(FALSE);
       }
       }
     }

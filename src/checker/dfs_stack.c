@@ -6,7 +6,7 @@
 #define DFS_STACK_BLOCKS 2
 
 typedef struct {
-  hash_tbl_id_t id;
+  htbl_id_t id;
   event_list_t en;
   event_t e;
   bool_t e_set;
@@ -139,13 +139,11 @@ void dfs_stack_write
     fwrite(buffer, w, 1, f);
 
     /*  state id  */
-    fwrite(&item.id, sizeof(hash_tbl_id_t), 1, f);
+    fwrite(&item.id, sizeof(htbl_id_t), 1, f);
 
-    /*  proviso info  */
-    if(CFG_PROVISO) {
-      fwrite(&item.prov_ok, sizeof(bool_t), 1, f);
-      fwrite(&item.fully_expanded, sizeof(bool_t), 1, f);
-    }
+    /*  por info  */
+    fwrite(&item.prov_ok, sizeof(bool_t), 1, f);
+    fwrite(&item.fully_expanded, sizeof(bool_t), 1, f);
 
     /*  state  */
     if(stack->states_stored) {
@@ -187,13 +185,11 @@ void dfs_stack_read
     item.e_set = TRUE;
     
     /*  state id  */
-    fread(&item.id, sizeof(hash_tbl_id_t), 1, f);
+    fread(&item.id, sizeof(htbl_id_t), 1, f);
 
     /*  proviso info  */
-    if(CFG_PROVISO) {
-      fread(&item.prov_ok, sizeof(bool_t), 1, f);
-      fread(&item.fully_expanded, sizeof(bool_t), 1, f);
-    }
+    fread(&item.prov_ok, sizeof(bool_t), 1, f);
+    fread(&item.fully_expanded, sizeof(bool_t), 1, f);
 
     /*  state  */
     if(stack->states_stored) {
@@ -209,7 +205,7 @@ void dfs_stack_read
 
 void dfs_stack_push
 (dfs_stack_t stack,
- hash_tbl_id_t sid,
+ htbl_id_t sid,
  state_t s) {
   heap_t h = stack->heaps[stack->current];
   dfs_stack_item_t item;
@@ -258,7 +254,7 @@ void dfs_stack_pop
   }
 }
 
-hash_tbl_id_t dfs_stack_top
+htbl_id_t dfs_stack_top
 (dfs_stack_t stack) {
   assert(0 != stack->size);
   return stack->blocks[stack->current]->items[stack->top].id;
@@ -297,17 +293,12 @@ event_list_t dfs_stack_compute_events
   
   if(filter) {
     result = state_events_reduced_mem(s, &reduced, h);
-    if(CFG_PROVISO) {
-      item.prov_ok = TRUE;
-      item.fully_expanded = !reduced;
-    }
-  }
-  else {
+    item.prov_ok = TRUE;
+    item.fully_expanded = !reduced;
+  } else {
     result = state_events_mem(s, h);
-    if(CFG_PROVISO) {
-      item.prov_ok = TRUE;
-      item.fully_expanded = TRUE;
-    }
+    item.prov_ok = TRUE;
+    item.fully_expanded = TRUE;
   }
   if(e != NULL) {
     edge_lean_reduction(result, *e);
@@ -343,9 +334,7 @@ void dfs_stack_event_undo
 
 void dfs_stack_unset_proviso
 (dfs_stack_t stack) {
-  if(CFG_PROVISO) {
-    stack->blocks[stack->current]->items[stack->top].prov_ok = FALSE;
-  }
+  stack->blocks[stack->current]->items[stack->top].prov_ok = FALSE;
 }
 
 bool_t dfs_stack_top_expanded
@@ -355,16 +344,20 @@ bool_t dfs_stack_top_expanded
   return list_is_empty(item.en);
 } 
 
-bool_t dfs_stack_proviso
-(dfs_stack_t stack) {
-  bool_t result = TRUE;
+bool_t dfs_stack_fully_expanded
+(dfs_stack_t stack) {  
   dfs_stack_item_t item;
   
-  if(CFG_PROVISO) {
-    item = stack->blocks[stack->current]->items[stack->top];
-    result = item.prov_ok || item.fully_expanded;
-  }
-  return result;
+  item = stack->blocks[stack->current]->items[stack->top];
+  return item.fully_expanded;
+}
+
+bool_t dfs_stack_proviso
+(dfs_stack_t stack) {
+  dfs_stack_item_t item;
+  
+  item = stack->blocks[stack->current]->items[stack->top];
+  return item.prov_ok || item.fully_expanded;
 }
 
 void dfs_stack_create_trace

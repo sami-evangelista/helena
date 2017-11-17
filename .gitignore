@@ -1,10 +1,10 @@
 *~
 benchs/out
-bin/helena-generate
 bin/helena-generate-bit-stream
 bin/helena-generate-checker
 bin/helena-generate-dve
 bin/helena-generate-interface
+bin/helena-generate-lna
 bin/helena-generate-property
 bin/helena-ltl2ba
 examples/beem

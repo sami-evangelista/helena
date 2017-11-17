@@ -10,14 +10,14 @@
 
 #include "includes.h"
 #include "bfs_queue.h"
-#include "hash_tbl.h"
+#include "htbl.h"
 
 
 /**
  * @brief dbfs_comm_start
  */
 void dbfs_comm_start
-(hash_tbl_t h,
+(htbl_t h,
  bfs_queue_t q);
 
 

@@ -1,4 +1,4 @@
-#include "hash_array.h"
+#include "harray.h"
 
 #define HARRAY_NONE 0
 #define HARRAY_SOME 1

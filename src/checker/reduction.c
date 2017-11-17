@@ -92,7 +92,6 @@ mevent_list_t mstate_events_reduced_mem
   unsigned int set;
   list_t result = mstate_events_mem(s, heap);
   const list_size_t len = list_size(result);
-  list_size_t len_reduced;
    
   if(data = list_find(result, por_is_safe_and_invisible, NULL)) {
     e = * (mevent_t *) data;
@@ -106,17 +105,12 @@ mevent_list_t mstate_events_reduced_mem
       list_filter(result, por_is_not_in_set, data);
     }
   }
-#if defined(MODEL_HAS_DYNAMIC_POR_REDUCTION)
+#if defined(MODEL_HAS_DYNAMIC_POR_REDUCTION) && CFG_DYNAMIC_POR == 1
   else {
     dynamic_por_reduction(s, result);
   }
 #endif
-  len_reduced = list_size(result);
-  if(len_reduced != len) {
-    *reduced = TRUE;
-  } else {
-    *reduced = FALSE;
-  }
+  *reduced = (list_size(result) != len) ? TRUE : FALSE;
   return result;
 }
 

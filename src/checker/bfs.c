@@ -4,7 +4,7 @@
 #include "config.h"
 #include "context.h"
 #include "dbfs_comm.h"
-#include "hash_tbl.h"
+#include "htbl.h"
 #include "prop.h"
 #include "reduction.h"
 #include "workers.h"
@@ -20,7 +20,7 @@ void bfs_finalise() { assert(0); }
 
 struct timespec BFS_WAIT_TIME[CFG_NO_WORKERS];
 
-hash_tbl_t H = NULL;
+htbl_t H = NULL;
 bfs_queue_t Q = NULL;
 pthread_barrier_t BFS_BARRIER;
 
@@ -81,9 +81,9 @@ bool_t bfs_check_termination
 }
 
 void bfs_report_trace
-(hash_tbl_id_t id) {
+(htbl_id_t id) {
   list_t trace = list_new(SYSTEM_HEAP, sizeof(event_t), event_free_void);
-  list_t trace_id = hash_tbl_get_trace(H, id);
+  list_t trace_id = htbl_get_trace(H, id);
   list_iter_t it;
   state_t s = state_initial();
   event_t e;
@@ -116,7 +116,7 @@ void * bfs_worker
   const bool_t with_trace = CFG_ACTION_CHECK_SAFETY && CFG_ALGO_BFS;
   uint32_t levels = 0;
   state_t s, succ;
-  hash_tbl_id_t id_succ;
+  htbl_id_t id_succ;
   event_list_t en;
   worker_id_t x, y;
   unsigned int arcs;
@@ -140,7 +140,7 @@ void * bfs_worker
         if(states_in_queue) {
           s = item.s;
         } else {
-          s = hash_tbl_get_mem(H, item.id, w, heap);
+          s = htbl_get_mem(H, item.id, heap);
         }
 
         /**
@@ -148,6 +148,9 @@ void * bfs_worker
          */
         if(por) {
           en = state_events_reduced_mem(s, &reduced, heap);
+          if(reduced) {
+            context_incr_reduced(w, 1);
+          }
         } else {
           en = state_events_mem(s, heap);
         }
@@ -188,7 +191,7 @@ void * bfs_worker
           succ = state_succ_mem(s, e, heap);
 #endif
           if(!CFG_ALGO_DBFS) {
-            hash_tbl_insert(H, succ, w, &is_new, &id_succ, &h);
+            htbl_insert(H, succ, w, &is_new, &id_succ, &h);
           } else {
             h = state_hash(succ);
             if(!dbfs_comm_state_owned(h)) {
@@ -196,7 +199,7 @@ void * bfs_worker
               bfs_back_to_s();
               continue;
             }
-            hash_tbl_insert_hashed(H, succ, w, h, &is_new, &id_succ);
+            htbl_insert_hashed(H, succ, w, h, &is_new, &id_succ);
           }
 
           /**
@@ -204,15 +207,15 @@ void * bfs_worker
            */
           if(is_new) {
             y = bfs_thread_owner(h);
-            hash_tbl_set_worker_attr(H, id_succ, ATTR_CYAN, y, TRUE);
+            htbl_set_worker_attr(H, id_succ, ATTR_CYAN, y, TRUE);
             succ_item.id = id_succ;
             succ_item.s = succ;
             succ_item.e_set = TRUE;
             succ_item.e = e;
             bfs_queue_enqueue(Q, succ_item, w, y);
             if(with_trace) {
-              hash_tbl_set_attr(H, succ_item.id, ATTR_PRED, item.id);
-              hash_tbl_set_attr(H, succ_item.id, ATTR_EVT, event_id(e));
+              htbl_set_attr(H, succ_item.id, ATTR_PRED, item.id);
+              htbl_set_attr(H, succ_item.id, ATTR_EVT, event_id(e));
             }
           } else {
 
@@ -222,11 +225,12 @@ void * bfs_worker
              *  queue (i.e., cyan for some worker)
              */
             if(por && proviso && reduced &&
-               !hash_tbl_get_any_cyan(H, id_succ)) {
+               !htbl_get_any_cyan(H, id_succ)) {
               reduced = FALSE;
               list_free(en);
               bfs_back_to_s();
               en = state_events_mem(s, heap);
+              context_incr_reduced(w, -1);
               goto state_expansion;
             }
           }
@@ -249,7 +253,7 @@ void * bfs_worker
          *  the state leaves the queue => we unset its cyan bit
          */
         bfs_queue_dequeue(Q, x, w);
-        hash_tbl_set_worker_attr(H, item.id, ATTR_CYAN, w, FALSE);
+        htbl_set_worker_attr(H, item.id, ATTR_CYAN, w, FALSE);
       }
     }
 
@@ -268,13 +272,13 @@ void bfs
   const bool_t with_trace = CFG_ACTION_CHECK_SAFETY && CFG_ALGO_BFS;
   state_t s = state_initial();
   bool_t is_new;
-  hash_tbl_id_t id;
+  htbl_id_t id;
   worker_id_t w;
   hash_key_t h;
   bool_t enqueue = TRUE;
   bfs_queue_item_t item;
   
-  H = hash_tbl_default_new();
+  H = htbl_default_new();
   bfs_init_queue();
   for(w = 0; w < CFG_NO_WORKERS; w ++) {
     BFS_WAIT_TIME[w].tv_sec = 0;
@@ -293,14 +297,14 @@ void bfs
   }
   
   if(enqueue) {
-    hash_tbl_insert(H, s, 0, &is_new, &id, &h);
+    htbl_insert(H, s, 0, &is_new, &id, &h);
     w = h % CFG_NO_WORKERS;
     item.id = id;
     item.s = s;
     item.e_set = FALSE;
     if(with_trace) {
-      hash_tbl_set_attr(H, id, ATTR_PRED, id);
-      hash_tbl_set_attr(H, id, ATTR_EVT, 0);
+      htbl_set_attr(H, id, ATTR_PRED, id);
+      htbl_set_attr(H, id, ATTR_EVT, 0);
     }
     bfs_queue_enqueue(Q, item, w, w);
     bfs_queue_switch_level(Q, w);
@@ -317,15 +321,15 @@ void bfs
 
 void bfs_progress_report
 (uint64_t * states_stored) {
-  *states_stored = H ? hash_tbl_size(H) : 0;
+  *states_stored = H ? htbl_size(H) : 0;
 }
 
 void bfs_finalise
 () {
   if(H) {
     bfs_queue_free(Q);
-    context_set_storage_size(hash_tbl_size(H));
-    hash_tbl_free(H);
+    context_set_storage_size(htbl_size(H));
+    htbl_free(H);
     H = NULL;
   }
 }

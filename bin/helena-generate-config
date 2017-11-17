@@ -355,6 +355,7 @@ class Config:
         self.verbose = False
         self.version = False
         self.partialOrder = False
+        self.dynamicPartialOrder = False
         self.hashCompaction = False
         self.edgeLean = False
         self.withPapi = False
@@ -473,6 +474,7 @@ class Config:
             ("DELTA_DDD_STORAGE", self.algo == DELTA_DDD),
             ("DFS_STACK_BLOCK_SIZE", self.dfsStackBlockSize),
             ("DISTRIBUTED", self.algo in [ DBFS, DDFS ]),
+            ("DYNAMIC_POR", self.dynamicPartialOrder),
             ("EDGE_LEAN", self.edgeLean),
             ("FILE_PATH", "\"" + os.path.realpath(self.inFile) + "\""),
             ("GRAPH_FILE", "\"graph.dat\""),
@@ -573,6 +575,8 @@ class Config:
                 self.withObserver = (val is None) or val == "1"
             elif opt in [ "-P", "--partial-order" ]:
                 self.partialOrder = (val is None) or val == "1"
+            elif opt in [ "-D", "--dynamic-partial-order" ]:
+                self.dynamicPartialOrder = (val is None) or val == "1"
             elif opt in [ "-E", "--edge-lean" ]:
                 self.edgeLean = (val is None) or val == "1"
             elif opt in [ "-r", "--run-time-checks" ]:

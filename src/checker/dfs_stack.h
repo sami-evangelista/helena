@@ -21,7 +21,7 @@
 
 #include "includes.h"
 #include "config.h"
-#include "hash_tbl.h"
+#include "htbl.h"
 
 /**
  * @typedef the stack type
@@ -64,7 +64,7 @@ unsigned int dfs_stack_size
  */
 void dfs_stack_push
 (dfs_stack_t stack,
- hash_tbl_id_t sid,
+ htbl_id_t sid,
  state_t s);
 
 
@@ -78,13 +78,13 @@ void dfs_stack_pop
 /**
  * @brief Return the item on top of the stack
  */
-hash_tbl_id_t dfs_stack_top
+htbl_id_t dfs_stack_top
 (dfs_stack_t stack);
 
 
 /**
- * @brief Return a copy of the state on top of the stack that is allocated in
- *        heap h.
+ * @brief Return a copy of the state on top of the stack that is
+ *        allocated in heap h.
  */
 state_t dfs_stack_top_state
 (dfs_stack_t stack,
@@ -114,7 +114,8 @@ event_list_t dfs_stack_compute_events
 
 
 /**
- * @brief Pick the next enabled event of the state on top of the stack.
+ * @brief Pick the next enabled event of the state on top of the
+ *        stack.
  */
 void dfs_stack_pick_event
 (dfs_stack_t stack,
@@ -122,7 +123,8 @@ void dfs_stack_pick_event
 
 
 /**
- * @brief Undo the last executed event on the state on top of the stack.
+ * @brief Undo the last executed event on the state on top of the
+ *        stack.
  * @param s - the state
  */
 void dfs_stack_event_undo
@@ -131,8 +133,9 @@ void dfs_stack_event_undo
 
 
 /**
- * @brief Unset the proviso of the state on top of the stack to indicate it
- *        has to be later fully expanded by the DFS algorithm.
+ * @brief Unset the proviso of the state on top of the stack to
+ *        indicate it has to be later fully expanded by the DFS
+ *        algorithm.
  */
 void dfs_stack_unset_proviso
 (dfs_stack_t stack);
@@ -146,16 +149,24 @@ bool_t dfs_stack_top_expanded
 
 
 /**
- * @brief Check if the POR proviso has been verified for the state on top of
- *        the stack.
+ * @brief Check if the POR proviso has been verified for the state on
+ *        top of the stack.
  */
 bool_t dfs_stack_proviso
 (dfs_stack_t stack);
 
 
 /**
- * @brief Create a trace in the global context from the initial state to the
- *        state on top of the stack.
+ * @brief Check if the state on top of the stack has been fully
+ *        expanded.
+ */
+bool_t dfs_stack_fully_expanded
+(dfs_stack_t stack);
+
+
+/**
+ * @brief Create a trace in the global context from the initial state
+ *        to the state on top of the stack.
  */
 void dfs_stack_create_trace
 (dfs_stack_t stack);

@@ -1,21 +1,22 @@
 #include "config.h"
-#include "hash_tbl.h"
+#include "htbl.h"
 #include "context.h"
 #include "bit_stream.h"
 
 #define ATTR_ID(a) (1 << a)
 
-#define NO_ATTRS 9
+#define NO_ATTRS 10
 
 #define ATTR_CYAN_WIDTH     1
 #define ATTR_BLUE_WIDTH     1
 #define ATTR_PINK_WIDTH     1
 #define ATTR_RED_WIDTH      1
-#define ATTR_PRED_WIDTH     (CHAR_BIT * sizeof(hash_tbl_id_t))
+#define ATTR_PRED_WIDTH     (CHAR_BIT * sizeof(htbl_id_t))
 #define ATTR_EVT_WIDTH      (CHAR_BIT * sizeof(mevent_id_t))
 #define ATTR_INDEX_WIDTH    32
 #define ATTR_LOWLINK_WIDTH  32
 #define ATTR_LIVE_WIDTH     1
+#define ATTR_SAFE_WIDTH     1
 
 const uint16_t ATTR_WIDTH[] = {
   ATTR_CYAN_WIDTH,
@@ -26,13 +27,15 @@ const uint16_t ATTR_WIDTH[] = {
   ATTR_EVT_WIDTH,
   ATTR_INDEX_WIDTH,
   ATTR_LOWLINK_WIDTH,
-  ATTR_LIVE_WIDTH
+  ATTR_LIVE_WIDTH,
+  ATTR_SAFE_WIDTH
 };
 
 const bool_t ATTR_OF_WORKER[] = {
-  1,
+  1, /*  cyan  */
   0,
-  1,
+  1, /*  pink  */
+  0,
   0,
   0,
   0,
@@ -49,14 +52,13 @@ const bool_t ATTR_OF_WORKER[] = {
 
 typedef uint8_t bucket_status_t;
 
-struct struct_hash_tbl_t {
+struct struct_htbl_t {
   bool_t hash_compaction;
   uint32_t attrs;
   uint32_t attrs_char_size;
   uint32_t attr_pos[NO_ATTRS];
   uint16_t no_workers;
   uint64_t hash_size;
-  pthread_barrier_t barrier;
   heap_t heap;
   int64_t * size;
   hash_key_t * hash;
@@ -66,7 +68,7 @@ struct struct_hash_tbl_t {
   bit_vector_t * state;
   uint16_t * state_len;
 };
-typedef struct struct_hash_tbl_t struct_hash_tbl_t;
+typedef struct struct_htbl_t struct_htbl_t;
 
 const struct timespec SLEEP_TIME = { 0, 10 };
 
@@ -78,7 +80,7 @@ const struct timespec SLEEP_TIME = { 0, 10 };
     }                                                                   \
   }
 
-hash_tbl_t hash_tbl_new
+htbl_t htbl_new
 (bool_t use_system_heap,
  uint64_t hash_size,
  uint16_t no_workers,
@@ -86,15 +88,15 @@ hash_tbl_t hash_tbl_new
  uint32_t attrs) {
   const heap_t heap = SYSTEM_HEAP;
   uint64_t i;
-  hash_tbl_t result;
+  htbl_t result;
   worker_id_t w;
   uint32_t pos = 0, width;
   
-  result = mem_alloc(SYSTEM_HEAP, sizeof(struct_hash_tbl_t));
+  result = mem_alloc(SYSTEM_HEAP, sizeof(struct_htbl_t));
   result->hash_compaction = hash_compaction;
   result->attrs = attrs;
   for(i = 0; i < NO_ATTRS; i ++) {
-    if(hash_tbl_has_attr(result, i)) {
+    if(htbl_has_attr(result, i)) {
       width = ATTR_WIDTH[i];
       if(ATTR_OF_WORKER[i]) {
         width *= no_workers;
@@ -132,12 +134,11 @@ hash_tbl_t hash_tbl_new
       result->state_len[i] = 0;
     }
   }
-  pthread_barrier_init(&result->barrier, NULL, no_workers);
   return result;
 
 }
 
-hash_tbl_t hash_tbl_default_new
+htbl_t htbl_default_new
 () {
   uint32_t attrs = 0;
   uint16_t no_workers;
@@ -160,18 +161,19 @@ hash_tbl_t hash_tbl_default_new
     attrs |= ATTR_ID(ATTR_INDEX);
     attrs |= ATTR_ID(ATTR_LOWLINK);
     attrs |= ATTR_ID(ATTR_LIVE);
+    attrs |= ATTR_ID(ATTR_SAFE);
   }
   
   no_workers = CFG_NO_WORKERS;
   if(CFG_DISTRIBUTED) {
     no_workers += CFG_NO_COMM_WORKERS;
   }
-  return hash_tbl_new(FALSE, CFG_HASH_SIZE, no_workers,
+  return htbl_new(FALSE, CFG_HASH_SIZE, no_workers,
                       CFG_HASH_COMPACTION, attrs);
 }
 
-void hash_tbl_free
-(hash_tbl_t tbl) {
+void htbl_free
+(htbl_t tbl) {
   uint64_t i = 0;
   worker_id_t w;
 
@@ -196,13 +198,13 @@ void hash_tbl_free
   mem_free(SYSTEM_HEAP, tbl);
 }
 
-void hash_tbl_reset
-(hash_tbl_t tbl) {
+void htbl_reset
+(htbl_t tbl) {
   heap_reset(tbl->heap);
 }
 
-uint64_t hash_tbl_size
-(hash_tbl_t tbl) {
+uint64_t htbl_size
+(htbl_t tbl) {
   uint64_t result = 0;
   worker_id_t w;
   
@@ -212,19 +214,54 @@ uint64_t hash_tbl_size
   return result;
 }
 
-void hash_tbl_insert_real
-(hash_tbl_t tbl,
+bool_t htbl_contains
+(htbl_t tbl,
+ state_t s,
+ htbl_id_t * id,
+ hash_key_t * h) {
+  htbl_id_t pos, init_pos;
+  bit_vector_t se_other;
+  bool_t found;
+
+  (*h) = state_hash(s);
+  init_pos = pos = (*h) % tbl->hash_size;
+  while(TRUE) {
+    if(tbl->status[pos] == BUCKET_EMPTY) {
+      return FALSE;
+    }
+    while(BUCKET_WRITE == tbl->status[pos]) {
+      context_sleep(SLEEP_TIME);
+    }
+    if(tbl->status[pos] == BUCKET_READY) {
+      found = (tbl->hash[pos] == (*h));
+      if(found && !tbl->hash_compaction) {
+        se_other = tbl->state[pos] + tbl->attrs_char_size;
+        found = state_cmp_vector(s, se_other);
+      }
+      if(found) {
+        (*id) = pos;
+        return TRUE;
+      }
+    }
+    if((pos = (pos + 1) % tbl->hash_size) == init_pos) {
+      return FALSE;
+    }
+  }
+}
+
+void htbl_insert_real
+(htbl_t tbl,
  state_t * s,
  worker_id_t w,
  bit_vector_t se,
  uint16_t se_char_len,
  bool_t * is_new,
- hash_tbl_id_t * id,
+ htbl_id_t * id,
  hash_key_t * h,
  bool_t h_set) {
   uint32_t trials = 0;
   bit_stream_t bits;
-  hash_tbl_id_t pos, del_pos;
+  htbl_id_t pos;
   bit_vector_t se_other;
   bool_t found;
 
@@ -313,48 +350,46 @@ void hash_tbl_insert_real
   }
 }
 
-void hash_tbl_insert
-(hash_tbl_t tbl,
+void htbl_insert
+(htbl_t tbl,
  state_t s,
  worker_id_t w,
  bool_t * is_new,
- hash_tbl_id_t * id,
+ htbl_id_t * id,
  hash_key_t * h) {
-  hash_tbl_insert_real(tbl, &s, w, NULL, 0, is_new, id, h, FALSE);
+  htbl_insert_real(tbl, &s, w, NULL, 0, is_new, id, h, FALSE);
 }
 
-void hash_tbl_insert_hashed
-(hash_tbl_t tbl,
+void htbl_insert_hashed
+(htbl_t tbl,
  state_t s,
  worker_id_t w,
  hash_key_t h,
  bool_t * is_new,
- hash_tbl_id_t * id) {
-  hash_tbl_insert_real(tbl, &s, w, NULL, 0, is_new, id, &h, TRUE);
+ htbl_id_t * id) {
+  htbl_insert_real(tbl, &s, w, NULL, 0, is_new, id, &h, TRUE);
 }
 
-void hash_tbl_insert_serialised
-(hash_tbl_t tbl,
+void htbl_insert_serialised
+(htbl_t tbl,
  bit_vector_t s,
  uint16_t s_char_len,
  hash_key_t h,
  worker_id_t w,
  bool_t * is_new,
- hash_tbl_id_t * id) {
-  hash_tbl_insert_real(tbl, NULL, w, s, s_char_len, is_new, id, &h, TRUE);
+ htbl_id_t * id) {
+  htbl_insert_real(tbl, NULL, w, s, s_char_len, is_new, id, &h, TRUE);
 }
 
-state_t hash_tbl_get
-(hash_tbl_t tbl,
- hash_tbl_id_t id,
- worker_id_t w) {
-  return hash_tbl_get_mem(tbl, id, w, SYSTEM_HEAP);
+state_t htbl_get
+(htbl_t tbl,
+ htbl_id_t id) {
+  return htbl_get_mem(tbl, id, SYSTEM_HEAP);
 }
 
-state_t hash_tbl_get_mem
-(hash_tbl_t tbl,
- hash_tbl_id_t id,
- worker_id_t w,
+state_t htbl_get_mem
+(htbl_t tbl,
+ htbl_id_t id,
  heap_t heap) {
   state_t result;
 
@@ -363,19 +398,19 @@ state_t hash_tbl_get_mem
   return result;
 }
 
-hash_key_t hash_tbl_get_hash
-(hash_tbl_t tbl,
- hash_tbl_id_t id) {
+hash_key_t htbl_get_hash
+(htbl_t tbl,
+ htbl_id_t id) {
   return tbl->hash[id];
 }
 
-bool_t hash_tbl_has_attr
-(hash_tbl_t tbl,
+bool_t htbl_has_attr
+(htbl_t tbl,
  uint32_t attr) {
   return (tbl->attrs & ATTR_ID(attr)) ? TRUE : FALSE;
 }
 
-#define HASH_TBL_GET_ATTR(shift) {                                      \
+#define HTBL_GET_ATTR(shift) {                                      \
     const uint32_t pos = tbl->attr_pos[attr];                           \
     const uint32_t width = ATTR_WIDTH[attr];                            \
     uint64_t result;                                                    \
@@ -387,24 +422,24 @@ bool_t hash_tbl_has_attr
     return result;                                                      \
 }
 
-uint64_t hash_tbl_get_attr
-(hash_tbl_t tbl,
- hash_tbl_id_t id,
+uint64_t htbl_get_attr
+(htbl_t tbl,
+ htbl_id_t id,
  uint32_t attr) {
-  assert(hash_tbl_has_attr(tbl, attr));
-  HASH_TBL_GET_ATTR(0);
+  assert(htbl_has_attr(tbl, attr));
+  HTBL_GET_ATTR(0);
 }
 
-uint64_t hash_tbl_get_worker_attr
-(hash_tbl_t tbl,
- hash_tbl_id_t id,
+uint64_t htbl_get_worker_attr
+(htbl_t tbl,
+ htbl_id_t id,
  uint32_t attr,
  worker_id_t w) {
-  assert(hash_tbl_has_attr(tbl, attr));
-  HASH_TBL_GET_ATTR(w);
+  assert(htbl_has_attr(tbl, attr));
+  HTBL_GET_ATTR(w);
 }
 
-#define HASH_TBL_SET_ATTR(shift) {                                      \
+#define HTBL_SET_ATTR(shift) {                                      \
     const uint32_t pos = tbl->attr_pos[attr];                           \
     const uint32_t width = ATTR_WIDTH[attr];                            \
     bit_stream_t bits;                                                  \
@@ -420,42 +455,42 @@ uint64_t hash_tbl_get_worker_attr
     tbl->update_status[id] = BUCKET_READY;                              \
   }
 
-void hash_tbl_set_attr
-(hash_tbl_t tbl,
- hash_tbl_id_t id,
+void htbl_set_attr
+(htbl_t tbl,
+ htbl_id_t id,
  uint32_t attr,
  uint64_t val) {
-  assert(hash_tbl_has_attr(tbl, attr));
-  HASH_TBL_SET_ATTR(0);
+  assert(htbl_has_attr(tbl, attr));
+  HTBL_SET_ATTR(0);
 }
 
-void hash_tbl_set_worker_attr
-(hash_tbl_t tbl,
- hash_tbl_id_t id,
+void htbl_set_worker_attr
+(htbl_t tbl,
+ htbl_id_t id,
  uint32_t attr,
  worker_id_t w,
  uint64_t val) {
-  assert(hash_tbl_has_attr(tbl, attr));
-  HASH_TBL_SET_ATTR(w);
+  assert(htbl_has_attr(tbl, attr));
+  HTBL_SET_ATTR(w);
 }
 
-bool_t hash_tbl_get_any_cyan
-(hash_tbl_t tbl,
- hash_tbl_id_t id) {
+bool_t htbl_get_any_cyan
+(htbl_t tbl,
+ htbl_id_t id) {
   worker_id_t w;
   
   for(w = 0; w < tbl->no_workers; w ++) {
-    if(hash_tbl_get_worker_attr(tbl, id, ATTR_CYAN, w)) {
+    if(htbl_get_worker_attr(tbl, id, ATTR_CYAN, w)) {
       return TRUE;
     }
   }
   return FALSE;
 }
 
-void hash_tbl_erase
-(hash_tbl_t tbl,
+void htbl_erase
+(htbl_t tbl,
  worker_id_t w,
- hash_tbl_id_t id) {
+ htbl_id_t id) {
   if(tbl->hash_compaction) {
     memset(tbl->hc_attrs + id * tbl->attrs_char_size, 0, tbl->attrs_char_size);
   } else {
@@ -467,9 +502,9 @@ void hash_tbl_erase
   tbl->size[w] --;
 }
 
-void hash_tbl_get_serialised
-(hash_tbl_t tbl,
- hash_tbl_id_t id,
+void htbl_get_serialised
+(htbl_t tbl,
+ htbl_id_t id,
  bit_vector_t * s,
  uint16_t * size,
  hash_key_t * h) {
@@ -479,9 +514,9 @@ void hash_tbl_get_serialised
   (*h) = tbl->hash[id];
 }
 
-void hash_tbl_fold
-(hash_tbl_t tbl,
- hash_tbl_fold_func_t f,
+void htbl_fold
+(htbl_t tbl,
+ htbl_fold_func_t f,
  void * data) {
   state_t s;
   uint64_t pos;
@@ -498,16 +533,16 @@ void hash_tbl_fold
   heap_free(h);
 }
 
-list_t hash_tbl_get_trace
-(hash_tbl_t tbl,
- hash_tbl_id_t id) {
-  hash_tbl_id_t id_pred;
+list_t htbl_get_trace
+(htbl_t tbl,
+ htbl_id_t id) {
+  htbl_id_t id_pred;
   mevent_id_t evt;
   list_t result = list_new(SYSTEM_HEAP, sizeof(mevent_id_t), NULL);
 
-  assert(hash_tbl_has_attr(tbl, ATTR_PRED));
-  while(id != (id_pred = hash_tbl_get_attr(tbl, id, ATTR_PRED))) {
-    evt = hash_tbl_get_attr(tbl, id, ATTR_EVT);
+  assert(htbl_has_attr(tbl, ATTR_PRED));
+  while(id != (id_pred = htbl_get_attr(tbl, id, ATTR_PRED))) {
+    evt = htbl_get_attr(tbl, id, ATTR_EVT);
     list_prepend(result, &evt);
     id = id_pred;
   }

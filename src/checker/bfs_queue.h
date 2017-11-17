@@ -17,7 +17,7 @@
 #define LIB_BFS_QUEUE
 
 #include "bfs.h"
-#include "hash_tbl.h"
+#include "htbl.h"
 
 
 /**
@@ -32,7 +32,7 @@
  * relevant.  Otherwise it is false, e.g. for the initial state.
  */
 typedef struct {
-  hash_tbl_id_t id;
+  htbl_id_t id;
   state_t s;
   event_t e;
   bool_t e_set;

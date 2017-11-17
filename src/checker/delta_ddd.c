@@ -771,6 +771,7 @@ void * delta_ddd_worker
     hash_key_t h = state_hash(s);
     delta_ddd_storage_id_t slot = h & CFG_HASH_SIZE_M;
     uint8_t t = GT_NODE, succs = 0;
+
     ns.dd = ns.dd_visit = ns.recons[0] = FALSE;
     ns.recons[1] = ns.father = 1;
     ns.next = ns.fst_child = slot;
@@ -888,6 +889,7 @@ void delta_ddd
   }
 
   launch_and_wait_workers(&delta_ddd_worker);
+  context_close_graph_file();
 }
 
 void delta_ddd_progress_report
@@ -918,7 +920,6 @@ void delta_ddd_finalise
   context_set_storage_size(delta_ddd_storage_size(S));
   context_set_dd_time(S->dd_time);
   
-  context_close_graph_file();
   delta_ddd_storage_free(S);
 }
 

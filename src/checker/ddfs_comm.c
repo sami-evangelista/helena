@@ -30,7 +30,7 @@ const struct timespec CONSUME_WAIT_TIME = { 0, CONSUME_WAIT_MS * 1000000 };
 const struct timespec WAIT_TIME = { 0, 10 };
 
 ddfs_comm_buffers_t BUF;
-hash_tbl_t H;
+htbl_t H;
 uint16_t BASE_LEN;
 pthread_t PROD;
 pthread_t CONS[CFG_NO_COMM_WORKERS];
@@ -49,7 +49,7 @@ typedef struct {
 
 void ddfs_comm_process_explored_state
 (worker_id_t w,
- hash_tbl_id_t id) {
+ htbl_id_t id) {
   uint16_t s_char_len, len;
   bit_vector_t s;
   bool_t red = FALSE, blue = FALSE;
@@ -61,9 +61,9 @@ void ddfs_comm_process_explored_state
    */
   if(!BUF.full[w] && CAS(&BUF.status[w], BUCKET_OK, BUCKET_WRITE)) {
     if(CFG_HASH_COMPACTION) {
-      h = hash_tbl_get_hash(H, id);
+      h = htbl_get_hash(H, id);
     } else {
-      hash_tbl_get_serialised(H, id, &s, &s_char_len, &h);
+      htbl_get_serialised(H, id, &s, &s_char_len, &h);
     }
     len = BASE_LEN;
     if(!CFG_HASH_COMPACTION) {
@@ -84,15 +84,15 @@ void ddfs_comm_process_explored_state
       pos += sizeof(hash_key_t);
      
       /*  blue attribute  */
-      if(hash_tbl_has_attr(H, ATTR_BLUE)) {
-        blue = hash_tbl_get_attr(H, id, ATTR_BLUE);
+      if(htbl_has_attr(H, ATTR_BLUE)) {
+        blue = htbl_get_attr(H, id, ATTR_BLUE);
         memcpy(pos, &blue, sizeof(bool_t));
         pos += sizeof(bool_t);
       }
           
       /*  red attribute  */
-      if(hash_tbl_has_attr(H, ATTR_RED)) {
-        red = hash_tbl_get_attr(H, id, ATTR_RED);
+      if(htbl_has_attr(H, ATTR_RED)) {
+        red = htbl_get_attr(H, id, ATTR_RED);
         memcpy(pos, &red, sizeof(bool_t));
         pos += sizeof(bool_t);
       }
@@ -176,7 +176,7 @@ void * ddfs_comm_consumer
   int pe;
   void * pos;
   uint16_t s_char_len, len;
-  hash_tbl_id_t sid;
+  htbl_id_t sid;
   bit_vector_t s;
   bool_t red = FALSE, blue = FALSE, is_new;
   char buffer[CFG_SHMEM_HEAP_SIZE];
@@ -211,19 +211,19 @@ void * ddfs_comm_consumer
             pos += sizeof(hash_key_t);
                     
             /*  get blue attribute  */
-            if(hash_tbl_has_attr(H, ATTR_BLUE)) {
+            if(htbl_has_attr(H, ATTR_BLUE)) {
               memcpy(&blue, pos, sizeof(bool_t));
               pos += sizeof(bool_t);
             }
           
             /*  get red attribute  */
-            if(hash_tbl_has_attr(H, ATTR_RED)) {
+            if(htbl_has_attr(H, ATTR_RED)) {
               memcpy(&red, pos, sizeof(bool_t));
               pos += sizeof(bool_t);
             }
        
 	    if(CFG_HASH_COMPACTION) {
-	      hash_tbl_insert_serialised(H, pos, s_char_len,
+	      htbl_insert_serialised(H, pos, s_char_len,
                                          h, w, &is_new, &sid);
 	    } else {
 	    
@@ -232,17 +232,16 @@ void * ddfs_comm_consumer
 	      pos += sizeof(uint16_t);
             
 	      /*  get state vector and insert it  */
-	      hash_tbl_insert_serialised(H, pos, s_char_len,
-                                         h, w, &is_new, &sid);
+	      htbl_insert_serialised(H, pos, s_char_len, h, w, &is_new, &sid);
 	      pos += s_char_len;
 	    }
 
             /*  set the blue and red attribute of the state  */
-            if(blue && hash_tbl_has_attr(H, ATTR_BLUE)) {
-              hash_tbl_set_attr(H, sid, ATTR_BLUE, TRUE);
+            if(blue && htbl_has_attr(H, ATTR_BLUE)) {
+              htbl_set_attr(H, sid, ATTR_BLUE, TRUE);
             }
-            if(red && hash_tbl_has_attr(H, ATTR_RED)) {
-              hash_tbl_set_attr(H, sid, ATTR_BLUE, TRUE);
+            if(red && htbl_has_attr(H, ATTR_RED)) {
+              htbl_set_attr(H, sid, ATTR_BLUE, TRUE);
             }
           }
         }
@@ -253,7 +252,7 @@ void * ddfs_comm_consumer
 }
 
 void ddfs_comm_start
-(hash_tbl_t h) {
+(htbl_t h) {
   worker_id_t w;
   comm_worker_id_t c;
   int i = 0;
@@ -272,8 +271,8 @@ void ddfs_comm_start
     BUF.full[w] = FALSE;
   }
   BASE_LEN = sizeof(hash_key_t)
-    + (hash_tbl_has_attr(H, ATTR_BLUE) ? sizeof(bool_t) : 0)
-    + (hash_tbl_has_attr(H, ATTR_RED) ? sizeof(bool_t) : 0);
+    + (htbl_has_attr(H, ATTR_BLUE) ? sizeof(bool_t) : 0)
+    + (htbl_has_attr(H, ATTR_RED) ? sizeof(bool_t) : 0);
   for(i = 0; i < MAX_PES; i ++) {
     LOCK = LOCK_AVAILABLE;
     data.produced[i] = FALSE;
