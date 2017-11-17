@@ -69,7 +69,7 @@ package body Pn.Classes.Containers.Lists is
       Plc(Lib, 1, Cls_Name(C.Me) & " result = left;");
       Plc(Lib, 1, "if(left.length + right.length > " & Cap &
             ") {");
-      Plc(Lib, 2, "raise_error(""list overflow"");");
+      Plc(Lib, 2, "context_error(""list overflow"");");
       Plc(Lib, 2, "return " & Cls_First_Const_Name(C.Me) & ";");
       Plc(Lib, 1, "}");
       Plc(Lib, 1, "unsigned int i = 0;");
@@ -88,7 +88,7 @@ package body Pn.Classes.Containers.Lists is
       Plc(Lib, 1, Cls_Name(C.Me) & " result;");
       Plc(Lib, 1, "unsigned int i = 0;");
       Plc(Lib, 1, "if(right.length + 1 > " & Cap & ") {");
-      Plc(Lib, 2, "raise_error(""list overflow"");");
+      Plc(Lib, 2, "context_error(""list overflow"");");
       Plc(Lib, 2, "return " & Cls_First_Const_Name(C.Me) & ";");
       Plc(Lib, 1, "}");
       Plc(Lib, 1, "result.length = 1 + right.length;");
@@ -106,7 +106,7 @@ package body Pn.Classes.Containers.Lists is
       Plc(Lib, Prototype & "{");
       Plc(Lib, 1, Cls_Name(C.Me) & " result = left;");
       Plc(Lib, 1, "if(left.length + 1 > " & Cap & ") {");
-      Plc(Lib, 2, "raise_error(""list overflow"");");
+      Plc(Lib, 2, "context_error(""list overflow"");");
       Plc(Lib, 2, "return " & Cls_First_Const_Name(C.Me) & ";");
       Plc(Lib, 1, "}");
       Plc(Lib, 1, "result.items[result.length] = right;");
@@ -142,7 +142,7 @@ package body Pn.Classes.Containers.Lists is
       Plc(Lib, 1, "unsigned int i = 0;");
       Plc(Lib, 1, "va_start(argp, args_nb);");
       Plc(Lib, 1, "if(args_nb > " & Cap & ") {");
-      Plc(Lib, 2, "raise_error(""container capacity exceeded"");");
+      Plc(Lib, 2, "context_error(""container capacity exceeded"");");
       Plc(Lib, 2, "return " & Cls_First_Const_Name(C.Me) & ";");
       Plc(Lib, 1, "}");
       Plc(Lib, 1, "if(args_nb < 1)");
@@ -170,7 +170,8 @@ package body Pn.Classes.Containers.Lists is
       Plc(Lib, Prototype & "{");
       Plc(Lib, 1, Cls_Name(C.Me) & " result = expr;");
       Plc(Lib, 1, "if(result.length == 0) {");
-      Plc(Lib, 2, "raise_error(""getting first elements of an empty list"");");
+      Plc(Lib, 2,
+          "context_error(""getting first elements of an empty list"");");
       Plc(Lib, 2, "return " & Cls_First_Const_Name(C.Me) & ";");
       Plc(Lib, 1, "}");
       Plc(Lib, 1, "result.length --;");
@@ -188,7 +189,7 @@ package body Pn.Classes.Containers.Lists is
       Plc(Lib, 1, Cls_Name(C.Me) & " result = expr;");
       Plc(Lib, 1, "unsigned int i = 0;");
       Plc(Lib, 1, "if(result.length == 0) {");
-      Plc(Lib, 2, "raise_error(""getting last elements of an empty list"");");
+      Plc(Lib, 2, "context_error(""getting last elements of an empty list"");");
       Plc(Lib, 2, "return " & Cls_First_Const_Name(C.Me) & ";");
       Plc(Lib, 1, "}");
       Plc(Lib, 1, "for(; i < expr.length - 1; i ++)");
@@ -212,11 +213,11 @@ package body Pn.Classes.Containers.Lists is
       Plc(Lib, 1, "unsigned long F = first - " & Shift & ";");
       Plc(Lib, 1, "unsigned long L = last  - " & Shift & ";");
       Plc(Lib, 1, "if(F >= expr.length) {");
-      Plc(Lib, 2, "raise_error(""invalid first index for list slice"");");
+      Plc(Lib, 2, "context_error(""invalid first index for list slice"");");
       Plc(Lib, 2, "return " & Cls_First_Const_Name(C.Me) & ";");
       Plc(Lib, 1, "}");
       Plc(Lib, 1, "if(L >= expr.length) {");
-      Plc(Lib, 2, "raise_error(""invalid last index for list slice"");");
+      Plc(Lib, 2, "context_error(""invalid last index for list slice"");");
       Plc(Lib, 2, "return " & Cls_First_Const_Name(C.Me) & ";");
       Plc(Lib, 1, "}");
       Plc(Lib, 1, "for(i = F; i <= L; i ++)");
@@ -239,7 +240,7 @@ package body Pn.Classes.Containers.Lists is
       Plc(Lib, 1, Cls_Name(C.Me) & " result = list;");
       Plc(Lib, 1, "unsigned long I = index - " & Shift & ";");
       Plc(Lib, 1, "if(I >= list.length) {");
-      Plc(Lib, 2, "raise_error(""invalid list index"");");
+      Plc(Lib, 2, "context_error(""invalid list index"");");
       Plc(Lib, 2, "return " & Cls_First_Const_Name(C.Me) & ";");
       Plc(Lib, 1, "}");
       Plc(Lib, 1, "result.items[I] = val;");

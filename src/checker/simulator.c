@@ -43,7 +43,7 @@ void simulator() {
     }
     cmd[n - 1] = '\0';
     if(!strcmp(cmd, "show")) {
-      list_last(stack, &s);
+      s = * ((mstate_t *) list_last(stack));
       mstate_print(s, stdout);
     } else if(!strcmp(cmd, "stack")) {
       if(list_is_empty(stack_evts)) {
@@ -62,7 +62,7 @@ void simulator() {
 	printf("error: %s is not a proposition of the model\n", prop);
       } else {
 	printf("evaluation of proposition %s: ", prop);
-	list_last(stack, &s);
+        s = * ((mstate_t *) list_last(stack));
 	if(model_check_state_proposition(prop, s)) {
 	  printf("true\n");
 	} else {
@@ -71,13 +71,13 @@ void simulator() {
       }
     } else if(!strncmp(cmd, "push ", 5)) {
       sscanf(cmd, "push %d", &i);
-      list_last(stack, &s);
+      s = * ((mstate_t *) list_last(stack));
       en = mstate_events(s);
       if(check_error()) {
 	if(i < 1 || i > list_size(en)) {
 	  printf("error: state has %d enabled event(s)\n", list_size(en));
 	} else {
-	  list_nth(en, i - 1, &e);
+	  e = * ((mevent_t *) list_nth(en, i - 1));
 	  s = mstate_succ(s, e);
 	  if(check_error()) {
 	    e = mevent_copy(e);
@@ -99,7 +99,7 @@ void simulator() {
 	mevent_free(e);
       }
     } else if(!strcmp(cmd, "enabled")) {
-      list_last(stack, &s);
+      s = * ((mstate_t *) list_last(stack));
       en = mstate_events(s);
       if(check_error()) {
         if(list_is_empty(en)) {
@@ -107,7 +107,7 @@ void simulator() {
         } else {
           for(i = 0; i < list_size(en); i ++) {
             printf("%3d: ", i + 1);
-            list_nth(en, i, &e);
+            e = * ((mevent_t *) list_nth(en, i));
             mevent_print(e, stdout);
           }
         }

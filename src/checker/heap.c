@@ -1,5 +1,4 @@
 #include "heap.h"
-#include "list.h"
 
 #define LOCAL_HEAP_BLOCK_SIZE 100000
 
@@ -113,7 +112,6 @@ void local_heap_set_position
 (local_heap_t heap,
  mem_size_t pos) {
   int i;
-  list_iter_t it;
   bool_t found = FALSE;
   local_heap_block_t block;
   mem_size_t current = 0;

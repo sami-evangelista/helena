@@ -764,7 +764,7 @@ package body Pn.Compiler.Enabling_Test is
 	 Gen_Enabled_Events_Check(Post_Get_One_Enabled'Access);
       else
 	 Plc(L, 1, "list_t en = mstate_events_mem (s, heap);");
-	 Plc(L, 1, "list_nth(en, id, &result);");
+	 Plc(L, 1, "result = * ((mevent_t *) list_nth(en, id));");
 	 Plc(L, 1, "result = mevent_copy_mem(result, heap);");
 	 Plc(L, 1, "list_free(en);");
 	 Plc(L, 1, "return result;");

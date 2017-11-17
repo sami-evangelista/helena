@@ -602,7 +602,7 @@ bool_t delta_ddd_duplicate_detection
    */
   delta_ddd_barrier(w);
   if(delta_ddd_storage_size(S) >= 0.9 * CFG_HASH_SIZE) {
-    raise_error("state table too small (increase --hash-size and rerun)");
+    context_error("state table too small (increase --hash-size and rerun)");
   }
   if(!context_keep_searching()) {
     pthread_exit(NULL);
@@ -684,7 +684,7 @@ state_t delta_ddd_expand_dfs
       context_incr_dead(w, 1);
     }
     for(i = 0; i < en_size; i ++) {
-      list_nth(en, i, &e);
+      e = * ((event_t *) list_nth(en, i));
       e_id = event_id(e);
       t = state_succ_mem(s, e, heap);
       if(delta_ddd_send_candidate(w, now, e_id, t)) {

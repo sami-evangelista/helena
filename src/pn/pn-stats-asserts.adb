@@ -36,7 +36,7 @@ package body Pn.Stats.Asserts is
       Lib: in Library) is
    begin
       Plc(Lib, Tabs, "if(!(" & Compile_Evaluation(S.A) & "))");
-      Plc(Lib, Tabs+1, "raise_error(""assertion failed in function " &
+      Plc(Lib, Tabs+1, "context_error(""assertion failed in function " &
           Get_Name(S.F) & """);");
    end;
 

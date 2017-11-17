@@ -157,14 +157,6 @@ hash_key_t bit_vector_hash
 
 
 /**
- * @brief Raise an error : stop the search and set the error message
- *        of the global context.
- */
-bool_t raise_error
-(char * msg);
-
-
-/**
  * @brief Return the sum of the nb first elements of array.
  */
 uint64_t large_sum

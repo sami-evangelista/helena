@@ -369,7 +369,7 @@ int marked_place_cmp(void * a, void * b) {
                        "b" + p.getSNum() + " = TRUE; " +
                        "m->tok += " + str(op * val) + "; " +
                        "if(m->tok > " + str(self.getCapacity()) + ") { " +
-                       "raise_error(\"capacity exceeded in place " +
+                       "context_error(\"capacity exceeded in place " +
                        p.getName() + "\");"
                        " } }\n")
                 cw("      }\n")
@@ -686,7 +686,7 @@ void dynamic_por_reduction_handle_scapegoat
   stub_en = list_new(h, sizeof(mevent_t), NULL);
   i = random_int(&rnd) % list_size(en);
   i = 0;
-  list_nth(en, i, &u);
+  u = * ((mevent_t *) list_nth(en, i));
   dynamic_por_reduction_add_stub(u);
   while(!list_is_empty(todo)) {
     list_pick_first(todo, &t);
@@ -768,6 +768,7 @@ void dynamic_por_reduction_handle_scapegoat
         hw = h.write
         hw("""#include "includes.h"
 #include "common.h"
+#include "context.h"
 #include "heap.h"
 #include "config.h"
 #include "list.h"

@@ -84,7 +84,7 @@ package body Pn.Classes.Containers.Sets is
       Plc(Lib, 2, "}");
       Plc(Lib, 2, "if(insert) {");
       Plc(Lib, 3, "if(result.length + 1 > " & Cap & ") {");
-      Plc(Lib, 4, "raise_error(""container capacity exceeded"");");
+      Plc(Lib, 4, "context_error(""container capacity exceeded"");");
       Plc(Lib, 4, "return " & Cls_First_Const_Name(C.Me) & ";");
       Plc(Lib, 3, "}");
       Plc(Lib, 3, Cls_Name(C.Me) & "_shiftLR(result, j);");
@@ -112,7 +112,7 @@ package body Pn.Classes.Containers.Sets is
       Plc(Lib, 1, "}");
       Plc(Lib, 1, "if(insert) {");
       Plc(Lib, 2, "if(result.length + 1 > " & Cap & ") {");
-      Plc(Lib, 3, "raise_error(""container capacity exceeded"");");
+      Plc(Lib, 3, "context_error(""container capacity exceeded"");");
       Plc(Lib, 3, "return " & Cls_First_Const_Name(C.Me) & ";");
       Plc(Lib, 2, "}");
       Plc(Lib, 2, Cls_Name(C.Me) & "_shiftLR(result, i);");
@@ -326,7 +326,7 @@ package body Pn.Classes.Containers.Sets is
       Plc(Lib, 2, "}");
       Plc(Lib, 2, "if(insert) {");
       Plc(Lib, 3, "if(result.length + 1 > " & Cap & ") {");
-      Plc(Lib, 4, "raise_error(""container capacity exceeded"");");
+      Plc(Lib, 4, "context_error(""container capacity exceeded"");");
       Plc(Lib, 4, "return " & Cls_First_Const_Name(C.Me) & ";");
       Plc(Lib, 3, "}");
       Plc(Lib, 3, Cls_Name(C.Me) & "_shiftLR(result, j);");

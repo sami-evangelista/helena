@@ -77,26 +77,23 @@ list_t list_copy
 /**
  * @brief list_first
  */
-void list_first
-(list_t list,
- void * item);
+void * list_first
+(list_t list);
 
 
 /**
  * @brief list_last
  */
-void list_last
-(list_t list,
- void * item);
+void * list_last
+(list_t list);
 
 
 /**
  * @brief list_nth
  */
-void list_nth
+void * list_nth
 (list_t list,
- list_index_t n,
- void * item);
+ list_index_t n);
 
 
 /**

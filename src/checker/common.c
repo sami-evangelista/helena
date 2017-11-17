@@ -1,6 +1,4 @@
 #include "common.h"
-#include "context.h"
-#include "config.h"
 
 const uint32_t crc32_tab[256] = {
   0x00000000, 0x77073096, 0xee0e612c, 0x990951ba, 0x076dc419, 0x706af48f,
@@ -283,9 +281,4 @@ float cpu_usage
     ((float) ((*utime) + (*stime) - utime_before - stime_before)) /
     ((float) ((*total) - total_before));
   return result * sysconf(_SC_NPROCESSORS_ONLN);
-}
-
-bool_t raise_error
-(char * msg) {
-  context_error(msg);
 }

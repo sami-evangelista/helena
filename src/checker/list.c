@@ -97,24 +97,23 @@ list_t list_copy
   return result;
 }
 
-void list_first
-(list_t list,
- void * item) {
+void * list_first
+(list_t list) {
+  void * result;
   assert(list->first);
-  memcpy(item, list->first->item, list->sizeof_item);
+  return list->first->item;
 }
 
-void list_last
-(list_t list,
- void * item) {
+void * list_last
+(list_t list) {
   assert(list->last);
-  memcpy(item, list->last->item, list->sizeof_item);
+  return list->last->item;
 }
 
-void list_nth
+void * list_nth
 (list_t list,
- list_index_t n,
- void * item) {
+ list_index_t n) {
+  void * result;
   list_node_t ptr = list->first;
   list_index_t i = n;
   
@@ -124,7 +123,7 @@ void list_nth
     i --;
   }
   assert(ptr);
-  memcpy(item, ptr->item, list->sizeof_item);
+  return ptr->item;
 }
 
 void list_app

@@ -342,7 +342,7 @@ void htbl_insert_real
      *  give up if MAX_TRIALS buckets have been checked
      */
     if((++ trials) == MAX_TRIALS) {
-      raise_error("state table too small (increase --hash-size and rerun)");
+      context_error("state table too small (increase --hash-size and rerun)");
       (*is_new) = FALSE;
       return;
     }
@@ -439,7 +439,7 @@ uint64_t htbl_get_worker_attr
   HTBL_GET_ATTR(w);
 }
 
-#define HTBL_SET_ATTR(shift) {                                      \
+#define HTBL_SET_ATTR(shift) {                                          \
     const uint32_t pos = tbl->attr_pos[attr];                           \
     const uint32_t width = ATTR_WIDTH[attr];                            \
     bit_stream_t bits;                                                  \
@@ -447,7 +447,8 @@ uint64_t htbl_get_worker_attr
     BIT_STREAM_INIT_ON_ATTRS(tbl, id, bits);                            \
     bit_stream_move(bits, pos + shift);                                 \
     if(tbl->no_workers > 0) {                                           \
-      while(!CAS(&tbl->update_status[id], BUCKET_READY, BUCKET_WRITE)) { \
+      while(!CAS(&tbl->update_status[id],                               \
+                 BUCKET_READY, BUCKET_WRITE)) {                         \
         context_sleep(SLEEP_TIME);                                      \
       }                                                                 \
     }                                                                   \

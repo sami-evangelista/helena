@@ -168,7 +168,7 @@ package body Pn.Classes.Discretes.Nums is
             Plc(Lib, Prototype & " {");
             Plc(Lib, 1, Cls_Name(C.Me) & " result;");
             Plc(Lib, 1, "if(!right) {");
-            Plc(Lib, 2,"raise_error(""division by 0"");");
+            Plc(Lib, 2,"context_error(""division by 0"");");
             Plc(Lib, 2, "return left;");
             Plc(Lib, 1, "}");
             Plc(Lib, 1, "else {");
