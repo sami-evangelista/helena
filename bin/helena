@@ -38,9 +38,9 @@ CCopt="-pthread -lm"
 
 commonFiles="bit_stream"
 checkerSrcFiles="bfs bfs_queue bit_stream buchi common comm_shmem
-context darray ddfs_comm dbfs_comm delta_ddd dfs dfs_stack event graph
-heap harray htbl list observer papi_stats por_analysis prop reduction
-rwalk state simulator workers"
+context darray ddfs_comm dbfs_comm delta_ddd dfs dfs_stack errors
+event graph heap harray htbl list observer papi_stats por_analysis
+prop reduction rwalk state simulator workers"
 
 exitWithError () {
     rm -rf $tmpDir &> /dev/null

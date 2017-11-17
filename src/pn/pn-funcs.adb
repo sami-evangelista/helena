@@ -235,7 +235,7 @@ package body Pn.Funcs is
       --  if we are here then no value has been returned we raise an error
       --===
       if Get_Run_Time_Checks then
-	 Plc(Lib, 1, "context_error" &
+	 Plc(Lib, 1, "error_throw" &
 	       "(""no value returned in function " & Get_Name(F) & """);");
 	 Plc(Lib, 1, "return " & Cls_First_Const_Name(F.Ret_Cls) & ";");
       end if;

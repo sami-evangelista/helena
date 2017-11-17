@@ -276,7 +276,7 @@ package body Pn.Exprs.List_Accesses is
       Ex       : constant Ustring := Expr_Name(E.Me) & "_index";
       List     : constant Ustring := Compile_Evaluation(E.L, M);
       Shift    : constant Ustring := Cls_First_Const_Name(Index_Cls);
-      Error    : constant String := "context_error(""invalid list index"")";
+      Error    : constant String := "error_throw(""invalid list index"")";
       Result   : Ustring;
    begin
       if Get_Run_Time_Checks then
@@ -288,7 +288,7 @@ package body Pn.Exprs.List_Accesses is
          --     the access is ok and we return list.items[index - shift]
          --  else
          --     we raise an error and we return list.items[0]
-         --     (function context_error always returns FALSE)
+         --     (function error_throw always returns FALSE)
          --===
          Result :=
            List & ".items[((" &

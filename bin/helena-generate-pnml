@@ -369,7 +369,7 @@ int marked_place_cmp(void * a, void * b) {
                        "b" + p.getSNum() + " = TRUE; " +
                        "m->tok += " + str(op * val) + "; " +
                        "if(m->tok > " + str(self.getCapacity()) + ") { " +
-                       "context_error(\"capacity exceeded in place " +
+                       "error_throw(\"capacity exceeded in place " +
                        p.getName() + "\");"
                        " } }\n")
                 cw("      }\n")
@@ -768,7 +768,7 @@ void dynamic_por_reduction_handle_scapegoat
         hw = h.write
         hw("""#include "includes.h"
 #include "common.h"
-#include "context.h"
+#include "errors.h"
 #include "heap.h"
 #include "config.h"
 #include "list.h"

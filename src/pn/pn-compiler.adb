@@ -175,8 +175,8 @@ package body Pn.Compiler is
 					  4 => To_Ustring("heap"),
 					  5 => Util_Lib,
 					  6 => To_Ustring("common"),
-					  6 => To_Ustring("context"),
-					  7 => To_Ustring("bit_stream")));
+					  7 => To_Ustring("errors"),
+					  8 => To_Ustring("bit_stream")));
    end;
 
    procedure Init_Library

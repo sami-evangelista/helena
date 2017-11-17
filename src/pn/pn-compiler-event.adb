@@ -142,6 +142,7 @@ package body Pn.Compiler.Event is
       Plh(L, "#include ""domains.h""");
       Plh(L, "#include ""mappings.h""");
       Plh(L, "#include ""mstate.h""");
+      Plh(L, "#include ""model_util.h""");
       --=======================================================================
       Prototype := "void " & Lib_Init_Func(Event_Lib) & Nl & "()";
       Plh(L, Prototype & ";");

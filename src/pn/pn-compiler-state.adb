@@ -180,7 +180,7 @@ package body Pn.Compiler.State is
       Plc(L, 2, "tmp_list->mult += mult;");
       Plc(L, 2, "if(tmp_list->mult > " & Capacity_Const_Name(P) & ")");
       if Get_Run_Time_Checks then
-	 Plc(L, 3, "context_error (""capacity exceeded in place " &
+	 Plc(L, 3, "error_throw (""capacity exceeded in place " &
 	       Get_Printable_String(Get_Name(P)) & """);");
       else
 	 Plc(L, 3, "tmp_list->mult = " & Capacity_Const_Name(P) & ";");
@@ -204,7 +204,7 @@ package body Pn.Compiler.State is
       Plc(L, 3, "new->cons = new->icons = 0;");
       Plc(L, 2, "if(new->mult > " & Capacity_Const_Name(P) & ")");
       if Get_Run_Time_Checks then
-	 Plc(L, 3, "context_error (""capacity exceeded in place " &
+	 Plc(L, 3, "error_throw (""capacity exceeded in place " &
 	       Get_Printable_String(Get_Name(P)) & """);");
       else
 	 Plc(L, 3, "new->mult = " & Capacity_Const_Name(P) & ";");

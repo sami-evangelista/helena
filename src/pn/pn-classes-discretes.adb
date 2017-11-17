@@ -109,7 +109,7 @@ package body Pn.Classes.Discretes is
          Plc(Lib, Tab &
              "if((val > " & Cls_Last_Const_Name(C.Me) & ") || " &
              "(val < " & Cls_First_Const_Name(C.Me) & ")) {");
-         Plc(Lib, 2*Tab &"context_error(""" & Error_Str & """);");
+         Plc(Lib, 2*Tab & "error_throw(""" & Error_Str & """);");
          Plc(Lib, 2*Tab & "return " & Cls_First_Const_Name(C.Me) & ";");
          Plc(Lib, Tab & "}");
          Plc(Lib, Tab & "return val;");

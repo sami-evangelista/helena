@@ -206,7 +206,7 @@ package body Pn.Exprs.Attributes.Lists is
          when A_First =>
             if Get_Run_Time_Checks then
                Result := "(" & L & ".length > 0 || " &
-                 "context_error(""getting first element of an empty list"")) ?"
+                 "error_throw(""getting first element of an empty list"")) ?"
                  & "(" & L & ".items[0]): (" & L & ".items[0])";
             else
                Result := L & ".items[0]";
@@ -214,7 +214,7 @@ package body Pn.Exprs.Attributes.Lists is
          when A_Last =>
             if Get_Run_Time_Checks then
                Result := "(" & L & ".length > 0 || " &
-                 "context_error(""getting last element of an empty list"")) ?" &
+                 "error_throw(""getting last element of an empty list"")) ?" &
                  "(" & L & ".items[" & L & ".length - 1]): " &
                  "(" & L & ".items[0])";
             else
@@ -225,7 +225,7 @@ package body Pn.Exprs.Attributes.Lists is
          when A_Last_Index =>
             if Get_Run_Time_Checks then
                Result := "(" & L & ".length > 0 || " &
-                 "context_error(""getting last index of an empty list"")) ?" &
+                 "error_throw(""getting last index of an empty list"")) ?" &
                  "(" & L & ".length - 1 - " & First_Index_Str & "): " &
                  "(" & First_Index_Str & ")";
             else

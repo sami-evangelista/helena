@@ -13,6 +13,7 @@ ddfs_comm
 delta_ddd
 dfs
 dfs_stack
+errors
 event
 harray
 htbl
