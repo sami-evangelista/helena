@@ -15,7 +15,7 @@ void * rwalk_worker
   unsigned int en_size;
   heap_t heap;
   event_list_t trace, new_trace;
-    
+  
   heap = local_heap_new();
   while(context_keep_searching()) {
     heap_reset(heap);
@@ -41,12 +41,12 @@ void * rwalk_worker
 	event_exec(e, s);
         list_append(trace, &e);
       }
-      context_incr_evts_exec(w, 1);
-      context_incr_processed(w, 1);
-      context_incr_arcs(w, en_size);
+      context_incr_stat(STAT_EVENT_EXEC, w, 1);
+      context_incr_stat(STAT_STATES_PROCESSED, w, 1);
+      context_incr_stat(STAT_ARCS, w, en_size);
       list_free(en);
       if(0 == en_size) {
-        context_incr_dead(w, 1);
+        context_incr_stat(STAT_STATES_DEADLOCK, w, 1);
 	break;
       }
     }

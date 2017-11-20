@@ -11,8 +11,8 @@ void * observer_worker
   float time = 0;
   struct timeval now;
   float mem, cpu, cpu_avg = 0;
-  uint64_t processed;
-  uint64_t stored;
+  double processed;
+  double stored;
   char name[100], pref[100];
   int n = 0;
  
@@ -33,14 +33,14 @@ void * observer_worker
     if(context_keep_searching()) {
       cpu_avg = (cpu + (n - 1) * cpu_avg) / n;
     }
-    processed = context_processed();
-    stored = context_stored();
-    context_update_max_mem_used(mem);
+    processed = context_get_stat(STAT_STATES_PROCESSED);
+    stored = context_get_stat(STAT_STATES_STORED);
+    context_set_stat(STAT_MAX_MEM_USED, 0, mem);
     time = ((float) duration(context_start_time(), now)) / 1000000.0;
     if(CFG_WITH_OBSERVER) {
       printf("\n%sTime elapsed    :   %8.2f s.\n", pref, time);
-      printf("%sStates stored   :%'11llu\n", pref, stored);
-      printf("%sStates processed:%'11llu\n", pref, processed);
+      printf("%sStates stored   :%'11llu\n", pref, (uint64_t) stored);
+      printf("%sStates processed:%'11llu\n", pref, (uint64_t) processed);
       printf("%sMemory usage    :   %8.1f MB.\n", pref, mem);
       printf("%sCPU usage       :   %8.2f %c\n", pref, cpu, '%');
     }
@@ -59,8 +59,9 @@ void * observer_worker
     }
   }
   if(cpu_avg != 0) {
-    context_set_avg_cpu_usage(cpu_avg);
+    context_set_stat(STAT_AVG_CPU_USAGE, 0, cpu_avg);
   }
+
   if(CFG_WITH_OBSERVER) {
     printf("\n%sdone.\n", pref);
   }

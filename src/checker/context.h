@@ -15,6 +15,44 @@
 
 
 /**
+ * @typedef termination_state_t
+ * @brief possible termination states of helena
+ */
+typedef uint8_t termination_state_t;
+#define SUCCESS             0
+#define ERROR               1
+#define INTERRUPTION        2
+#define SEARCH_TERMINATED   3
+#define NO_ERROR            4
+#define MEMORY_EXHAUSTED    5
+#define TIME_ELAPSED        6
+#define STATE_LIMIT_REACHED 7
+#define FAILURE             8
+
+
+/**
+ * @brief available statistics
+ */
+#define STAT_STATES_STORED    0
+#define STAT_STATES_PROCESSED 1
+#define STAT_STATES_DEADLOCK  2
+#define STAT_STATES_ACCEPTING 3
+#define STAT_STATES_REDUCED   4
+#define STAT_ARCS             5
+#define STAT_BFS_LEVELS       6
+#define STAT_EVENT_EXEC       7
+#define STAT_EVENT_EXEC_DDD   8
+#define STAT_BYTES_SENT       9
+#define STAT_COMP_TIME        10
+#define STAT_SEARCH_TIME      11
+#define STAT_SLEEP_TIME       12
+#define STAT_BARRIER_TIME     13
+#define STAT_DDD_TIME         14
+#define STAT_MAX_MEM_USED     15
+#define STAT_AVG_CPU_USAGE    16
+
+
+/**
  * @brief Context initialisation.
  */
 void init_context
@@ -82,10 +120,7 @@ void context_set_termination_state
 void context_set_trace
 (event_list_t trace);
 
-uint64_t context_stored
-();
-
-uint64_t context_processed
+float context_cpu_usage
 ();
 
 struct timeval context_start_time
@@ -100,64 +135,11 @@ FILE * context_graph_file
 void context_close_graph_file
 ();
 
-void context_set_comp_time
-(float comp_time);
-
-void context_update_bfs_levels
-(unsigned int bfs_levels);
-
-void context_increase_bytes_sent
-(uint32_t bytes);
-
-void context_increase_barrier_time
-(float time);
-
-void context_incr_arcs
-(worker_id_t w,
- int no);
-
-void context_incr_dead
-(worker_id_t w,
- int no);
-
-void context_incr_accepting
-(worker_id_t w,
- int no);
-
-void context_incr_processed
-(worker_id_t w,
- int no);
-
-void context_incr_reduced
-(worker_id_t w,
- int no);
-
-void context_incr_evts_exec
-(worker_id_t w,
- int no);
-
-void context_incr_evts_exec_dd
-(worker_id_t w,
- int no);
-
-void context_incr_stored
-(worker_id_t w,
- int no);
-
-void context_update_max_mem_used
-(float mem);
-
 uint32_t context_global_worker_id
 (worker_id_t w);
 
 uint32_t context_proc_id
 ();
-
-float context_cpu_usage
-();
-
-void context_set_avg_cpu_usage
-(float avg_cpu_usage);
 
 void context_barrier_wait
 (pthread_barrier_t * b);
@@ -168,7 +150,17 @@ void context_sleep
 termination_state_t context_termination_state
 ();
 
-void context_set_dd_time
-(uint64_t dd_time);
+void context_incr_stat
+(uint8_t stat,
+ worker_id_t w,
+ double val);
+
+double context_get_stat
+(uint8_t stat);
+
+void context_set_stat
+(uint8_t stat,
+ worker_id_t w,
+ double val);
 
 #endif

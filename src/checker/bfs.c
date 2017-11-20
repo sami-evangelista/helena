@@ -149,7 +149,7 @@ void * bfs_worker
         if(por) {
           en = state_events_reduced_mem(s, &reduced, heap);
           if(reduced) {
-            context_incr_reduced(w, 1);
+            context_incr_stat(STAT_STATES_REDUCED, w, 1);
           }
         } else {
           en = state_events_mem(s, heap);
@@ -217,7 +217,7 @@ void * bfs_worker
               htbl_set_attr(H, succ_item.id, ATTR_PRED, item.id);
               htbl_set_attr(H, succ_item.id, ATTR_EVT, event_id(e));
             }
-            context_incr_stored(w, 1);
+            context_incr_stat(STAT_STATES_STORED, w, 1);
           } else {
 
             /**
@@ -231,7 +231,7 @@ void * bfs_worker
               list_free(en);
               bfs_back_to_s();
               en = state_events_mem(s, heap);
-              context_incr_reduced(w, -1);
+              context_incr_stat(STAT_STATES_REDUCED, w, -1);
               goto state_expansion;
             }
           }
@@ -244,11 +244,11 @@ void * bfs_worker
          *  update some statistics
          */
         if(0 == arcs) {
-          context_incr_dead(w, 1);
+          context_incr_stat(STAT_STATES_DEADLOCK, w, 1);
         }
-        context_incr_arcs(w, arcs);
-        context_incr_processed(w, 1);
-        context_incr_evts_exec(w, arcs);
+        context_incr_stat(STAT_ARCS, w, arcs);
+        context_incr_stat(STAT_STATES_PROCESSED, w, 1);
+        context_incr_stat(STAT_EVENT_EXEC, w, arcs);
 
         /**
          *  the state leaves the queue => we unset its cyan bit
@@ -265,7 +265,7 @@ void * bfs_worker
     levels ++;
   }
   heap_free(heap);
-  context_update_bfs_levels(levels);
+  context_set_stat(STAT_BFS_LEVELS, 0, levels);
 }
 
 void bfs
@@ -309,6 +309,7 @@ void bfs
     }
     bfs_queue_enqueue(Q, item, w, w);
     bfs_queue_switch_level(Q, w);
+    context_incr_stat(STAT_STATES_STORED, w, 1);
   }
   state_free(s);
 

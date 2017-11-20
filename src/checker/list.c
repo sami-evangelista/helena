@@ -100,6 +100,7 @@ list_t list_copy
 void * list_first
 (list_t list) {
   void * result;
+
   assert(list->first);
   return list->first->item;
 }

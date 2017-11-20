@@ -72,12 +72,14 @@ state_t dfs_recover_state
       htbl_set_attr(H, id, ATTR_LIVE, TRUE);                            \
       index ++;                                                         \
     }                                                                   \
-    context_incr_stored(w, 1);                                          \
-    if(!dfs_stack_fully_expanded(stack)) {                              \
-      context_incr_reduced(w, 1);                                       \
+    if(is_new) {                                                        \
+      context_incr_stat(STAT_STATES_STORED, w, 1);                      \
     }                                                                   \
-    if(blue && (0 == list_size(en))) {                                  \
-      context_incr_dead(w, 1);                                          \
+    if(!dfs_stack_fully_expanded(stack)) {                              \
+      context_incr_stat(STAT_STATES_REDUCED, w, 1);                     \
+    }                                                                   \
+    if(is_new && blue && (0 == list_size(en))) {                        \
+      context_incr_stat(STAT_STATES_DEADLOCK, w, 1);                    \
     }                                                                   \
     if(check_safety && state_check_property(now, en)) {                 \
       context_faulty_state(now);                                        \
@@ -181,7 +183,7 @@ void * dfs_worker
           if(htbl_has_attr(H, ATTR_SAFE)) {
             htbl_set_attr(H, id, ATTR_SAFE, TRUE);
           }
-          context_incr_reduced(w, - 1);
+          context_incr_stat(STAT_STATES_REDUCED, w, - 1);
           goto loop_start;
         }
       }
@@ -191,7 +193,7 @@ void * dfs_worker
        * state is accepting
        */
       if(check_ltl && blue && state_accepting(now)) {
-        context_incr_accepting(w, 1);
+        context_incr_stat(STAT_STATES_ACCEPTING, w, 1);
         id_seed = dfs_stack_top(stack);
         blue = FALSE;
         red_stack_size = 1;
@@ -274,7 +276,7 @@ void * dfs_worker
       /*
        * and finally pop the state
        */
-      context_incr_processed(w, 1);
+      context_incr_stat(STAT_STATES_PROCESSED, w, 1);
       dfs_stack_pop(stack);
       if(dfs_stack_size(stack)) {
         now = dfs_recover_state(stack, now, w, heap);
@@ -295,7 +297,7 @@ void * dfs_worker
        */
       dfs_stack_pick_event(stack, &e);
       event_exec(e, now);
-      context_incr_evts_exec(w, 1);
+      context_incr_stat(STAT_EVENT_EXEC, w, 1);
 
       /*
        * try to insert the successor
@@ -316,7 +318,7 @@ void * dfs_worker
        * see if it must be pushed on the stack to be processed
        */
       if(blue) {
-	context_incr_arcs(w, 1);
+	context_incr_stat(STAT_ARCS, w, 1);
         push = is_new
           || ((!htbl_get_attr(H, id_succ, ATTR_BLUE)) &&
               (!htbl_get_worker_attr(H, id_succ, ATTR_CYAN, w)));

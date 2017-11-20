@@ -8,7 +8,7 @@
 #ifndef LIB_ERRORS
 #define LIB_ERRORS
 
-void error_throw
+unsigned int error_throw
 (char * msg);
 
 #endif

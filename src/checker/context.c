@@ -4,6 +4,13 @@
 #include "comm_shmem.h"
 #include "papi_stats.h"
 
+#define NO_STATS 17
+
+#define STAT_TYPE_TIME   0
+#define STAT_TYPE_GRAPH  1
+#define STAT_TYPE_OTHERS 2
+
+
 typedef struct {
   struct timeval start_time;
   struct timeval end_time;
@@ -25,24 +32,8 @@ typedef struct {
   pthread_mutex_t ctx_mutex;
 
   /*  statistics field  */
-  uint64_t * states_accepting;
-  uint64_t * states_stored;
-  uint64_t * states_processed;
-  uint64_t * states_reduced;
-  uint64_t * states_dead;
-  uint64_t * arcs;
-  uint64_t * evts_exec;
-  uint64_t * evts_exec_dd;
-  uint64_t bytes_sent;
-  uint64_t exec_time;
-  uint64_t barrier_time;
-  uint64_t sleep_time;
-  uint64_t dd_time;
-  unsigned int bfs_levels;
-  bool_t bfs_levels_ok;
-  float max_mem_used;
-  float comp_time;
-  float avg_cpu_usage;
+  uint64_t * stat[NO_STATS];
+  bool_t stat_set[NO_STATS];
 
   /*  threads  */
   pthread_t observer;
@@ -55,6 +46,7 @@ context_t CTX;
 
 void init_context
 () {
+  worker_id_t w;
   unsigned int i;
   unsigned int no_workers = CFG_NO_WORKERS;
   unsigned int no_comm_workers = CFG_NO_COMM_WORKERS;
@@ -69,42 +61,26 @@ void init_context
   }
   
   /*
-   *  initialisation of statistic related fields
+   * initialisation of statistic related fields
    */
-  CTX->states_processed =
-    mem_alloc(SYSTEM_HEAP, no_workers * sizeof(uint64_t));
-  CTX->states_stored =
-    mem_alloc(SYSTEM_HEAP, no_workers * sizeof(uint64_t));
-  CTX->states_reduced =
-    mem_alloc(SYSTEM_HEAP, no_workers * sizeof(uint64_t));
-  CTX->states_dead =
-    mem_alloc(SYSTEM_HEAP, no_workers * sizeof(uint64_t));
-  CTX->states_accepting =
-    mem_alloc(SYSTEM_HEAP, no_workers * sizeof(uint64_t));
-  CTX->arcs =
-    mem_alloc(SYSTEM_HEAP, no_workers * sizeof(uint64_t));
-  CTX->evts_exec =
-    mem_alloc(SYSTEM_HEAP, no_workers * sizeof(uint64_t));
-  CTX->evts_exec_dd =
-    mem_alloc(SYSTEM_HEAP, no_workers * sizeof(uint64_t));
-  for(i = 0; i < no_workers; i ++) {
-    CTX->states_stored[i] = 0;
-    CTX->states_processed[i] = 0;
-    CTX->states_reduced[i] = 0;
-    CTX->states_accepting[i] = 0;
-    CTX->states_dead[i] = 0;
-    CTX->arcs[i] = 0;
-    CTX->evts_exec[i] = 0;
-    CTX->evts_exec_dd[i] = 0;
+  for(i = 0; i < NO_STATS; i ++) {
+    CTX->stat_set[i] = FALSE;
+    CTX->stat[i] = mem_alloc(SYSTEM_HEAP, no_workers * sizeof(double));
+    for(w = 0; w < no_workers; w ++) {
+      CTX->stat[i][w] = 0.0;
+    }
   }
-  CTX->bytes_sent = 0;
-  CTX->bfs_levels = 0;
-  CTX->bfs_levels_ok = FALSE;
-  CTX->max_mem_used = 0.0;
-  CTX->comp_time = 0.0;
-  CTX->barrier_time = 0;
-  CTX->sleep_time = 0;
-  CTX->avg_cpu_usage = 0.0;
+
+  /*
+   * statistics that must be outputed must be set to 0 to appear in
+   * the report
+   */
+  context_set_stat(STAT_STATES_STORED, 0, 0);
+  context_set_stat(STAT_STATES_DEADLOCK, 0, 0);
+  if(CFG_ACTION_CHECK_LTL) {
+    context_set_stat(STAT_STATES_ACCEPTING, 0, 0);
+  }
+  
   CTX->no_workers = no_workers;
   CTX->no_comm_workers = no_comm_workers;
   CTX->faulty_state_found = FALSE;
@@ -127,7 +103,7 @@ void init_context
   cpu_usage(&CTX->cpu_total, &CTX->utime, &CTX->stime);
   
   /*
-   *  launch the observer thread
+   * launch the observer thread
    */
   pthread_create(&CTX->observer, NULL, &observer_worker, (void *) CTX);
   CTX->workers = mem_alloc(SYSTEM_HEAP, sizeof(pthread_t) * CTX->no_workers);
@@ -177,16 +153,133 @@ void context_output_trace
   state_free(s);
 }
 
+bool_t context_stat_do_average
+(uint8_t stat) {
+  switch(stat) {
+  case STAT_STATES_PROCESSED: return TRUE;
+  default:                    return FALSE;
+  }
+}
+
+char * context_stat_xml_name
+(uint8_t stat) {
+  switch(stat) {
+  case STAT_STATES_STORED:    return "statesStored";
+  case STAT_STATES_PROCESSED: return "statesProcessed";
+  case STAT_STATES_DEADLOCK:  return "statesTerminal";
+  case STAT_STATES_ACCEPTING: return "statesAccepting";
+  case STAT_STATES_REDUCED:   return "statesReduced";
+  case STAT_ARCS:             return "arcs";
+  case STAT_BFS_LEVELS:       return "bfsLevels";
+  case STAT_EVENT_EXEC:       return "eventsExecuted";
+  case STAT_EVENT_EXEC_DDD:   return "eventsExecutedDDD";
+  case STAT_BYTES_SENT:       return "bytesSent";
+  case STAT_MAX_MEM_USED:     return "maxMemoryUsed";
+  case STAT_AVG_CPU_USAGE:    return "avgCPUUsage";
+  case STAT_SEARCH_TIME:      return "searchTime";
+  case STAT_SLEEP_TIME:       return "sleepTime";
+  case STAT_BARRIER_TIME:     return "barrierTime";
+  case STAT_DDD_TIME:         return "duplicateDetectionTime";
+  case STAT_COMP_TIME:        return "compilationTime";
+  default:
+    assert(FALSE);
+  }
+}
+
+uint8_t context_stat_type
+(uint8_t stat) {
+  switch(stat) {
+  case STAT_STATES_STORED:    return STAT_TYPE_GRAPH;
+  case STAT_STATES_PROCESSED: return STAT_TYPE_GRAPH;
+  case STAT_STATES_DEADLOCK:  return STAT_TYPE_GRAPH;
+  case STAT_STATES_ACCEPTING: return STAT_TYPE_GRAPH;
+  case STAT_STATES_REDUCED:   return STAT_TYPE_GRAPH;
+  case STAT_ARCS:             return STAT_TYPE_GRAPH;
+  case STAT_BFS_LEVELS:       return STAT_TYPE_GRAPH;
+  case STAT_EVENT_EXEC:       return STAT_TYPE_OTHERS;
+  case STAT_EVENT_EXEC_DDD:   return STAT_TYPE_OTHERS;
+  case STAT_BYTES_SENT:       return STAT_TYPE_OTHERS;
+  case STAT_MAX_MEM_USED:     return STAT_TYPE_OTHERS;
+  case STAT_AVG_CPU_USAGE:    return STAT_TYPE_OTHERS;
+  case STAT_SEARCH_TIME:      return STAT_TYPE_TIME;
+  case STAT_SLEEP_TIME:       return STAT_TYPE_TIME;
+  case STAT_BARRIER_TIME:     return STAT_TYPE_TIME;
+  case STAT_COMP_TIME:        return STAT_TYPE_TIME;
+  case STAT_DDD_TIME:         return STAT_TYPE_TIME;
+  default:
+    assert(FALSE);
+  }
+}
+
+void context_stat_format
+(uint8_t stat,
+ double val,
+ FILE * out) {
+  if(STAT_MAX_MEM_USED == stat ||
+     STAT_AVG_CPU_USAGE == stat) {
+    fprintf(out, "%.2lf", val);
+  } else if(STAT_TYPE_TIME == context_stat_type(stat)) {
+    fprintf(out, "%.2lf", val / 1000000.0);
+  } else {
+    fprintf(out, "%llu", (uint64_t) val);
+  }
+}
+
+void context_stat_to_xml
+(uint8_t stat,
+ FILE * out) {
+  int i;
+  char * name = context_stat_xml_name(stat);
+  double sum = 0, min, max, avg, dev;
+  worker_id_t w;
+  
+  for(w = 0; w < CTX->no_workers; w ++) {
+    sum += CTX->stat[stat][w];
+  } 
+  fprintf(out, "<%s>", name);
+  context_stat_format(stat, sum, out);
+  fprintf(out, "</%s>\n", name);
+  if(context_stat_do_average(stat) && CTX->no_workers > 1) {
+    min = max = CTX->stat[stat][0];
+    avg = sum / CFG_NO_WORKERS;
+    dev = 0;
+    for(w = 1; w < CFG_NO_WORKERS; w ++) {
+      if(CTX->stat[stat][w] > max) {
+        max = CTX->stat[stat][w];
+      } else if(CTX->stat[stat][w] < min) {
+        min = CTX->stat[stat][w];
+      }
+      dev += (CTX->stat[stat][w] - avg) * (CTX->stat[stat][w] - avg);
+    }
+    dev = sqrt(dev / CTX->no_workers);
+    fprintf(out, "<%sMin>", name);
+    context_stat_format(stat, min, out);
+    fprintf(out, "</%sMin>\n", name);
+    fprintf(out, "<%sMax>", name);
+    context_stat_format(stat, max, out);
+    fprintf(out, "</%sMax>\n", name);
+    fprintf(out, "<%sDev>", name);
+    context_stat_format(stat, dev, out);
+    fprintf(out, "</%sDev>\n", name);
+  }
+}
+
+void context_stats_to_xml
+(uint8_t stat_type,
+ FILE * out) {
+  int i;
+
+  for(i = 0; i < NO_STATS; i ++) {
+    if(CTX->stat_set[i] && context_stat_type(i) == stat_type) {
+      context_stat_to_xml(i, out);
+    }
+  }
+}
 
 void finalise_context
 () {
   FILE * out;
   void * dummy;
-  uint64_t sum;
-  uint64_t min;
-  uint64_t max;
-  uint64_t avg;
-  uint64_t dev;
   worker_id_t w;
   char name[1024], file_name[1024];
   char * buf = NULL;
@@ -195,12 +288,14 @@ void finalise_context
 
   if(!CFG_ACTION_SIMULATE) {
     gettimeofday(&CTX->end_time, NULL);
-    CTX->exec_time = duration(CTX->start_time, CTX->end_time);
+    context_set_stat(STAT_SEARCH_TIME, 0,
+                     duration(CTX->start_time, CTX->end_time));
     CTX->keep_searching = FALSE;
     pthread_join(CTX->observer, &dummy);
     if(NULL != CTX->graph_file) {
       fclose(CTX->graph_file);
     }
+    printf("ici\n");
 
     /**
      *  make the report
@@ -298,91 +393,16 @@ void finalise_context
     fprintf(out, "<statisticsReport>\n");
     model_xml_statistics(out);
     fprintf(out, "<timeStatistics>\n");
-    if(CTX->comp_time > 0) {
-      fprintf(out, "<compilationTime>%.3f</compilationTime>\n",
-	      CTX->comp_time);
-    }
-    fprintf(out, "<searchTime>%.3f</searchTime>\n",
-	    CTX->exec_time / 1000000.0);
-    if(CTX->sleep_time > 0) {
-      fprintf(out, "<sleepTime>%.3f</sleepTime>\n",
-	      CTX->sleep_time / 1000000000.0);
-    }
-    if(CTX->barrier_time > 0) {
-      fprintf(out, "<barrierTime>%.3f</barrierTime>\n",
-	      CTX->barrier_time / 1000000.0);
-    }
-    if(CFG_ALGO_DELTA_DDD) {
-      fprintf(out, "<duplicateDetectionTime>%.3f</duplicateDetectionTime>\n",
-	      CTX->dd_time / 1000000.0);
-    }
+    context_stats_to_xml(STAT_TYPE_TIME, out);
     fprintf(out, "</timeStatistics>\n");
     fprintf(out, "<graphStatistics>\n");
-    sum = large_sum(CTX->states_stored, CTX->no_workers);
-    fprintf(out, "<statesStored>%llu</statesStored>\n", sum);
-    sum = large_sum(CTX->states_processed, CTX->no_workers);
-    fprintf(out, "<statesProcessed>%llu</statesProcessed>\n", sum);
-    if(CFG_PARALLEL) {
-      min = CTX->states_processed[0];
-      max = CTX->states_processed[0];
-      avg = sum / CFG_NO_WORKERS;
-      dev = 0;
-      for(w = 1; w < CFG_NO_WORKERS; w ++) {
-	if(CTX->states_processed[w] > max) {
-	  max = CTX->states_processed[w];
-	} else if(CTX->states_processed[w] < min) {
-	  min = CTX->states_processed[w];
-	}
-	dev += (CTX->states_processed[w] - avg)
-          * (CTX->states_processed[w] - avg);
-      }
-      dev = sqrt(dev / CTX->no_workers);
-      fprintf(out, "<statesProcessedMin>%llu</statesProcessedMin>\n", min);
-      fprintf(out, "<statesProcessedMax>%llu</statesProcessedMax>\n", max);
-      fprintf(out, "<statesProcessedDev>%llu</statesProcessedDev>\n", dev);
-    }
-    if(CFG_POR) {
-      sum = large_sum(CTX->states_reduced, CTX->no_workers);
-      fprintf(out, "<statesReduced>%llu</statesReduced>\n", sum);
-    }
-    if(CFG_ACTION_CHECK_LTL) {
-      fprintf(out, "<statesAccepting>%llu</statesAccepting>\n",
-	      large_sum(CTX->states_accepting, CTX->no_workers));
-    }
-    fprintf(out, "<statesTerminal>%llu</statesTerminal>\n",
-	    large_sum(CTX->states_dead, CTX->no_workers));
-    fprintf(out, "<arcs>%llu</arcs>\n",
-	    large_sum(CTX->arcs, CTX->no_workers));
-    if(CTX->bfs_levels_ok) {
-      fprintf(out, "<bfsLevels>%u</bfsLevels>\n", CTX->bfs_levels);
-    }
+    context_stats_to_xml(STAT_TYPE_GRAPH, out);
     fprintf(out, "</graphStatistics>\n");
     if(CFG_WITH_PAPI) {
       papi_stats_output(out);
     }
     fprintf(out, "<otherStatistics>\n");
-    fprintf(out, "<maxMemoryUsed>%.1f</maxMemoryUsed>\n",
-	    CTX->max_mem_used);
-    if(CTX->avg_cpu_usage > 0) {
-      fprintf(out, "<avgCPUUsage>%.2f</avgCPUUsage>\n", CTX->avg_cpu_usage);
-    }
-    fprintf(out, "<eventsExecuted>%llu</eventsExecuted>\n",
-	    large_sum(CTX->evts_exec, CTX->no_workers));
-    if(CFG_ALGO_DELTA_DDD) {
-      fprintf(out, "<eventsExecutedDDD>%llu</eventsExecutedDDD>\n",
-	      large_sum(CTX->evts_exec_dd, CTX->no_workers));
-      fprintf(out, "<eventsExecutedExpansion>%llu</eventsExecutedExpansion>\n",
-	      large_sum(CTX->evts_exec, CTX->no_workers) -
-	      large_sum(CTX->evts_exec_dd, CTX->no_workers));
-    }
-    if(CFG_ALGO_RWALK) {
-      fprintf(out, "<eventExecPerSecond>%d</eventExecPerSecond>\n",
-	      (unsigned int) (1.0 * sum /
-			      (CTX->exec_time / 1000000.0)));
-    }
-    if(CFG_DISTRIBUTED) {
-      fprintf(out, "<bytesSent>%llu</bytesSent>\n", CTX->bytes_sent);
-    }
+    context_stats_to_xml(STAT_TYPE_OTHERS, out);
     fprintf(out, "</otherStatistics>\n");
     fprintf(out, "</statisticsReport>\n");
     if(CTX->term_state == FAILURE) {
@@ -422,20 +442,15 @@ void finalise_context
     /**
      *  free everything
      */
-    free(CTX->states_stored);
-    free(CTX->states_processed);
-    free(CTX->states_reduced);
-    free(CTX->states_dead);
-    free(CTX->states_accepting);
-    free(CTX->arcs);
-    free(CTX->evts_exec);
-    free(CTX->evts_exec_dd);
     free(CTX->workers);
     if(CTX->trace) {
       list_free(CTX->trace);
     }
     if(CTX->faulty_state_found) {
       state_free(CTX->faulty_state);
+    }
+    for(i = 0; i < NO_STATS; i ++) {
+      free(CTX->stat[i]);
     }
     pthread_mutex_destroy(&CTX->ctx_mutex);
   }
@@ -501,16 +516,6 @@ void context_set_termination_state
   CTX->keep_searching = FALSE;
 }
 
-uint64_t context_processed
-() {
-  return large_sum(CTX->states_processed, CTX->no_workers);
-}
-
-uint64_t context_stored
-() {
-  return large_sum(CTX->states_stored, CTX->no_workers);
-}
-
 struct timeval context_start_time
 () {
   return CTX->start_time;
@@ -539,82 +544,9 @@ void context_close_graph_file
   }
 }
 
-void context_set_comp_time
-(float comp_time) {
-  CTX->comp_time = comp_time;
-}
-
-void context_update_bfs_levels
-(unsigned int bfs_levels) {
-  CTX->bfs_levels_ok = TRUE;
-  if(bfs_levels > CTX->bfs_levels) {
-    CTX->bfs_levels = bfs_levels;
-  }
-}
-
-void context_increase_bytes_sent
-(uint32_t bytes) {
-  CTX->bytes_sent += bytes;
-}
-
-void context_increase_barrier_time
-(float time) {
-  CTX->barrier_time += time;
-}
-
-void context_update_max_mem_used
-(float mem) {
-  if(CTX->max_mem_used < mem) {
-    CTX->max_mem_used = mem;
-  }
-}
-
-void context_incr_arcs
-(worker_id_t w,
- int no) {
-  CTX->arcs[w] += no;
-}
-
-void context_incr_dead
-(worker_id_t w,
- int no) {
-  CTX->states_dead[w] += no;
-}
-
-void context_incr_accepting
-(worker_id_t w,
- int no) {
-  CTX->states_accepting[w] += no;
-}
-
-void context_incr_processed
-(worker_id_t w,
- int no) {
-  CTX->states_processed[w] += no;
-}
-
-void context_incr_stored
-(worker_id_t w,
- int no) {
-  CTX->states_stored[w] += no;
-}
-
-void context_incr_reduced
-(worker_id_t w,
- int no) {
-  CTX->states_reduced[w] += no;
-}
-
-void context_incr_evts_exec
-(worker_id_t w,
- int no) {
-  CTX->evts_exec[w] += no;
-}
-
-void context_incr_evts_exec_dd
-(worker_id_t w,
- int no) {
-  CTX->evts_exec_dd[w] += no;
+termination_state_t context_termination_state
+() {
+  return CTX->term_state;
 }
 
 void context_error
@@ -669,11 +601,6 @@ float context_cpu_usage
   return cpu_usage(&CTX->cpu_total, &CTX->utime, &CTX->stime);
 }
 
-void context_set_avg_cpu_usage
-(float avg_cpu_usage) {
-  CTX->avg_cpu_usage = avg_cpu_usage;
-}
-
 void context_barrier_wait
 (pthread_barrier_t * b) {
   lna_timer_t t;
@@ -682,21 +609,38 @@ void context_barrier_wait
   lna_timer_start(&t);
   pthread_barrier_wait(b);
   lna_timer_stop(&t);
-  context_increase_barrier_time(lna_timer_value(t));
+  context_incr_stat(STAT_BARRIER_TIME, 0, lna_timer_value(t));
 }
 
 void context_sleep
 (struct timespec t) {
   nanosleep(&t, NULL);
-  CTX->sleep_time += t.tv_nsec;
+  context_incr_stat(STAT_SLEEP_TIME, 0, t.tv_nsec);
 }
 
-termination_state_t context_termination_state
-() {
-  return CTX->term_state;
+void context_incr_stat
+(uint8_t stat,
+ worker_id_t w,
+ double val) {
+  CTX->stat[stat][w] += val;
+  CTX->stat_set[stat] = TRUE;
 }
 
-void context_set_dd_time
-(uint64_t dd_time) {
-  CTX->dd_time = dd_time;
+void context_set_stat
+(uint8_t stat,
+ worker_id_t w,
+ double val) {
+  CTX->stat[stat][w] = val;
+  CTX->stat_set[stat] = TRUE;
+}
+
+double context_get_stat
+(uint8_t stat) {
+  worker_id_t w;
+  double result = 0;
+
+  for(w = 0; w < CTX->no_workers; w ++) {
+    result += CTX->stat[stat][w];
+  }
+  return result;
 }

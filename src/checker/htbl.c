@@ -168,8 +168,8 @@ htbl_t htbl_default_new
   if(CFG_DISTRIBUTED) {
     no_workers += CFG_NO_COMM_WORKERS;
   }
-  return htbl_new(FALSE, CFG_HASH_SIZE, no_workers,
-                      CFG_HASH_COMPACTION, attrs);
+  return htbl_new(no_workers > 1 , CFG_HASH_SIZE, no_workers,
+                  CFG_HASH_COMPACTION, attrs);
 }
 
 void htbl_free

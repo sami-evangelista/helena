@@ -12,22 +12,6 @@
 
 
 /**
- * @typedef termination_state_t
- * @brief possible termination states of helena
- */
-typedef uint8_t termination_state_t;
-#define SUCCESS             0
-#define ERROR               1
-#define INTERRUPTION        2
-#define SEARCH_TERMINATED   3
-#define NO_ERROR            4
-#define MEMORY_EXHAUSTED    5
-#define TIME_ELAPSED        6
-#define STATE_LIMIT_REACHED 7
-#define FAILURE             8
-
-
-/**
  * @typedef bit_vector_t
  * @brief a bit vector
  */
@@ -154,14 +138,6 @@ uint64_t duration
 hash_key_t bit_vector_hash
 (bit_vector_t v,
  unsigned int len);
-
-
-/**
- * @brief Return the sum of the nb first elements of array.
- */
-uint64_t large_sum
-(uint64_t * array,
- unsigned int nb);
 
 
 /**

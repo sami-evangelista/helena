@@ -8,8 +8,6 @@
 #if CFG_ALGO_DELTA_DDD != 1
 
 void delta_ddd() { assert(0); }
-void delta_ddd_progress_report(uint64_t * states_stored) { assert(0); }
-void delta_ddd_finalise() { assert(0); }
 
 #else
 
@@ -415,8 +413,8 @@ state_t delta_ddd_duplicate_detection_dfs
     curr = start;
     do {
       if(ST[curr].dd || ST[curr].dd_visit) {
-        context_incr_evts_exec(w, 1);
-        context_incr_evts_exec_dd(w, 1);
+        context_incr_stat(STAT_EVENT_EXEC, w, 1);
+        context_incr_stat(STAT_EVENT_EXEC_DDD, w, 1);
 	DELTA_DDD_VISIT_HANDLE_EVENT(delta_ddd_duplicate_detection_dfs);
       }
       if(ST[curr].father & 1) {
@@ -498,6 +496,9 @@ delta_ddd_storage_id_t delta_ddd_insert_new_state
  delta_ddd_storage_id_t pred) {
   uint8_t r = (RECONS_ID + 1) & 1;
   unsigned int id, fst = h & CFG_HASH_SIZE_M, slot = fst;
+
+  context_incr_stat(STAT_STATES_STORED, w, 1);
+  
   while(ST[slot].fst_child != UINT_MAX) {
     assert((slot = (slot + CFG_NO_WORKERS) & CFG_HASH_SIZE_M) != fst);
   }
@@ -681,7 +682,7 @@ state_t delta_ddd_expand_dfs
     }
     en_size = list_size(en);
     if(0 == en_size) {
-      context_incr_dead(w, 1);
+      context_incr_stat(STAT_STATES_DEADLOCK, w, 1);
     }
     for(i = 0; i < en_size; i ++) {
       e = * ((event_t *) list_nth(en, i));
@@ -691,9 +692,9 @@ state_t delta_ddd_expand_dfs
 	delta_ddd_duplicate_detection(w);
       }
     }
-    context_incr_arcs(w, en_size);
-    context_incr_evts_exec(w, en_size);
-    context_incr_processed(w, 1);
+    context_incr_stat(STAT_ARCS, w, en_size);
+    context_incr_stat(STAT_EVENT_EXEC, w, en_size);
+    context_incr_stat(STAT_STATES_PROCESSED, w, 1);
 
     /*
      *  perform duplicate detection if the candidate set is full
@@ -714,7 +715,7 @@ state_t delta_ddd_expand_dfs
     curr = start;
     do {
       if(ST[curr].recons[RECONS_ID]) {
-        context_incr_evts_exec(w, 1);
+        context_incr_stat(STAT_EVENT_EXEC, w, 1);
 	DELTA_DDD_VISIT_HANDLE_EVENT(delta_ddd_expand_dfs);
       }
       if(ST[curr].father & 1) {
@@ -789,6 +790,7 @@ void * delta_ddd_worker
     state_free(s);
     RECONS_ID = 0;
     NEXT_LVL = 1;
+    context_incr_stat(STAT_STATES_STORED, w, 1);
   }
   delta_ddd_barrier(w);
   while(NEXT_LVL != 0) {
@@ -814,7 +816,7 @@ void * delta_ddd_worker
       for(x = 0; x < CFG_NO_WORKERS; x ++) {
 	NEXT_LVL += NEXT_LVLS[x];
       }
-      context_update_bfs_levels(depth);
+      context_set_stat(STAT_BFS_LEVELS, 0, depth);
     }
     delta_ddd_barrier(w);
   }
@@ -907,7 +909,7 @@ void delta_ddd
   }
 
   context_close_graph_file();
-  context_set_dd_time(S->dd_time);
+  context_set_stat(STAT_DDD_TIME, 0, S->dd_time);
   
   delta_ddd_storage_free(S);
 }

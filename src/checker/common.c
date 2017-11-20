@@ -218,17 +218,6 @@ uint32_t random_int
   return *seed;
 }
 
-uint64_t large_sum
-(uint64_t * array,
- unsigned int nb) {
-  uint64_t result = 0;
-  unsigned int i = 0;
-  for(i = 0; i < nb; i ++) {
-    result += array[i];
-  }
-  return result;
-}
-
 float mem_usage() {
   float result = 0.0;
   FILE * f;

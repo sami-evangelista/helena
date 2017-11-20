@@ -62,7 +62,7 @@ void comm_shmem_put
 #if defined(COMM_SHMEM_DEBUG)
     printf("%d put %d bytes at %d to %d\n", shmem_my_pe(), size, pos, pe);
 #endif
-    context_increase_bytes_sent(size);
+    context_incr_stat(STAT_BYTES_SENT, 0, size);
     pthread_mutex_lock(&COMM_SHMEM_MUTEX);
     while(size) {
       if(size < COMM_SHMEM_CHUNK_SIZE) {
@@ -97,7 +97,7 @@ void comm_shmem_get
 #if defined(COMM_SHMEM_DEBUG)
     printf("%d get %d bytes at %d from %d\n", shmem_my_pe(), size, pos, pe);
 #endif
-    context_increase_bytes_sent(size);
+    context_incr_stat(STAT_BYTES_SENT, 0, size);
     pthread_mutex_lock(&COMM_SHMEM_MUTEX);
     shmem_getmem(dst, COMM_SHMEM_HEAP + pos, size, pe);
     pthread_mutex_unlock(&COMM_SHMEM_MUTEX);
