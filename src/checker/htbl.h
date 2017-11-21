@@ -24,16 +24,18 @@
 /**
  * state attribute definitions
  */
-#define ATTR_CYAN     0
-#define ATTR_BLUE     1
-#define ATTR_PINK     2
-#define ATTR_RED      3
-#define ATTR_PRED     4
-#define ATTR_EVT      5
-#define ATTR_INDEX    6
-#define ATTR_LOWLINK  7
-#define ATTR_LIVE     8
-#define ATTR_SAFE     9
+typedef enum {
+  ATTR_CYAN,
+  ATTR_BLUE,
+  ATTR_PINK,
+  ATTR_RED,
+  ATTR_PRED,
+  ATTR_EVT,
+  ATTR_INDEX,
+  ATTR_LOWLINK,
+  ATTR_LIVE,
+  ATTR_SAFE
+} attr_state_t;
 
 typedef struct struct_htbl_t * htbl_t;
 
@@ -173,7 +175,7 @@ hash_key_t htbl_get_hash
 uint64_t htbl_get_attr
 (htbl_t tbl,
  htbl_id_t id,
- uint32_t attr);
+ attr_state_t attr);
 
 
 /**
@@ -182,7 +184,7 @@ uint64_t htbl_get_attr
 void htbl_set_attr
 (htbl_t tbl,
  htbl_id_t id,
- uint32_t attr,
+ attr_state_t attr,
  uint64_t val);
 
 
@@ -192,7 +194,7 @@ void htbl_set_attr
 uint64_t htbl_get_worker_attr
 (htbl_t tbl,
  htbl_id_t id,
- uint32_t attr,
+ attr_state_t attr,
  worker_id_t w);
 
 
@@ -202,7 +204,7 @@ uint64_t htbl_get_worker_attr
 void htbl_set_worker_attr
 (htbl_t tbl,
  htbl_id_t id,
- uint32_t attr,
+ attr_state_t attr,
  worker_id_t w,
  uint64_t val);
 
@@ -236,7 +238,7 @@ void htbl_reset
  */
 bool_t htbl_has_attr
 (htbl_t tbl,
- uint32_t attr);
+ attr_state_t attr);
 
 
 /**

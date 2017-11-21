@@ -7,28 +7,17 @@
 
 #define NO_ATTRS 10
 
-#define ATTR_CYAN_WIDTH     1
-#define ATTR_BLUE_WIDTH     1
-#define ATTR_PINK_WIDTH     1
-#define ATTR_RED_WIDTH      1
-#define ATTR_PRED_WIDTH     (CHAR_BIT * sizeof(htbl_id_t))
-#define ATTR_EVT_WIDTH      (CHAR_BIT * sizeof(mevent_id_t))
-#define ATTR_INDEX_WIDTH    32
-#define ATTR_LOWLINK_WIDTH  32
-#define ATTR_LIVE_WIDTH     1
-#define ATTR_SAFE_WIDTH     1
-
 const uint16_t ATTR_WIDTH[] = {
-  ATTR_CYAN_WIDTH,
-  ATTR_BLUE_WIDTH,
-  ATTR_PINK_WIDTH,
-  ATTR_RED_WIDTH,
-  ATTR_PRED_WIDTH,
-  ATTR_EVT_WIDTH,
-  ATTR_INDEX_WIDTH,
-  ATTR_LOWLINK_WIDTH,
-  ATTR_LIVE_WIDTH,
-  ATTR_SAFE_WIDTH
+  1, /* cyan */
+  1, /* blue */
+  1, /* pink */
+  1,  /* red */
+  CHAR_BIT * sizeof(htbl_id_t), /* pred */
+  CHAR_BIT * sizeof(mevent_id_t), /* evt*/
+  32, /* index */
+  32, /* lowlink */
+  1, /* live */
+  1  /* safe */
 };
 
 const bool_t ATTR_OF_WORKER[] = {
@@ -406,11 +395,11 @@ hash_key_t htbl_get_hash
 
 bool_t htbl_has_attr
 (htbl_t tbl,
- uint32_t attr) {
+ attr_state_t attr) {
   return (tbl->attrs & ATTR_ID(attr)) ? TRUE : FALSE;
 }
 
-#define HTBL_GET_ATTR(shift) {                                      \
+#define HTBL_GET_ATTR(shift) {                                          \
     const uint32_t pos = tbl->attr_pos[attr];                           \
     const uint32_t width = ATTR_WIDTH[attr];                            \
     uint64_t result;                                                    \
@@ -425,7 +414,7 @@ bool_t htbl_has_attr
 uint64_t htbl_get_attr
 (htbl_t tbl,
  htbl_id_t id,
- uint32_t attr) {
+ attr_state_t attr) {
   assert(htbl_has_attr(tbl, attr));
   HTBL_GET_ATTR(0);
 }
@@ -433,7 +422,7 @@ uint64_t htbl_get_attr
 uint64_t htbl_get_worker_attr
 (htbl_t tbl,
  htbl_id_t id,
- uint32_t attr,
+ attr_state_t attr,
  worker_id_t w) {
   assert(htbl_has_attr(tbl, attr));
   HTBL_GET_ATTR(w);
@@ -459,7 +448,7 @@ uint64_t htbl_get_worker_attr
 void htbl_set_attr
 (htbl_t tbl,
  htbl_id_t id,
- uint32_t attr,
+ attr_state_t attr,
  uint64_t val) {
   assert(htbl_has_attr(tbl, attr));
   HTBL_SET_ATTR(0);
@@ -468,7 +457,7 @@ void htbl_set_attr
 void htbl_set_worker_attr
 (htbl_t tbl,
  htbl_id_t id,
- uint32_t attr,
+ attr_state_t attr,
  worker_id_t w,
  uint64_t val) {
   assert(htbl_has_attr(tbl, attr));
