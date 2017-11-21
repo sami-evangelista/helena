@@ -77,8 +77,6 @@ generalInfos = {
     "filePath"                : "File path       ",
     "host"                    : "Host machine    " }
 searchInfos = {
-    "workers"                 : "Exploration threads  ",
-    "commWorkers"             : "Communication threads",
     "errorMessage"            : "Error message        " }
 terminationStates = {
     "searchTerminated"        : "Search terminated",
@@ -105,8 +103,12 @@ options = {
     "searchAlgorithm"         : "Search algorithm = ",
     "candidateSetSize"        : "Candidate set size (for Delta-DDD) = ",
     "hashTableSize"           : "Hash table size = ",
-    "shmemHeapSize"           : "SHMEM heap size = " }
+    "shmemHeapSize"           : "SHMEM heap size = ",
+    "workers"                 : "Exploration threads = ",
+    "commWorkers"             : "Communication threads = ", }
 optionsWithVal = {
+    "workers"                 : formatNumber,
+    "commWorkers"             : formatNumber,
     "shmemHeapSize"           : formatNumber,
     "candidateSetSize"        : formatNumber,
     "hashTableSize"           : formatNumber,
@@ -137,6 +139,7 @@ statistics = {
     "statesReduced"           : "  reduced                 ",
     "statesAccepting"         : "  accepting               ",
     "statesTerminal"          : "  deadlock                ",
+    "statesUnsafe"            : "  unsafe                  ",
     "arcs"                    : "Transitions               ",
     "bfsLevels"               : "BFS levels                ",
     "eventsExecuted"          : "Events executed           ",

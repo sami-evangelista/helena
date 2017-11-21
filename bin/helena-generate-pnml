@@ -592,34 +592,25 @@ int marked_place_cmp(void * a, void * b) {
         prot = """bool_t mevent_is_safe(mevent_t e)"""
         hw(prot + ";\n") 
         cw(prot + """ {
-   switch(e) {
-""")
-        for t in self.T:
-            #  a transition is safe if it does not share its input
-            #  places with other transition
-            if all(len(p.getPostSet(self)) == 1
-                   for (val, p) in t.getPreSet(self)):
-                cw("      case " + t.getSNum() + ": return TRUE;\n")
-        cw("""      default: return FALSE;
-   }
+  return model_safe[e];
 }
 """)
         prot = """bool_t mevent_is_visible(mevent_t e)"""
         hw(prot + ";\n") 
         cw(prot + """ {
-   return FALSE;
+  return FALSE;
 }
 """)
         prot = """bool_t mevent_are_independent(mevent_t e, mevent_t f)"""
         hw(prot + ";\n") 
         cw(prot + """ {
-   return FALSE;
+  return FALSE;
 }
 """)
         prot = """unsigned int mevent_safe_set(mevent_t e)"""
         hw(prot + ";\n") 
         cw(prot + """ {
-   return 0;
+  return 0;
 }
 """)
 
@@ -628,18 +619,37 @@ int marked_place_cmp(void * a, void * b) {
    return (* (mevent_t *) t) == (* (mevent_t *) u) ? TRUE : FALSE;
 }
 char is_marked_enough(void * m, void * ref) {
-   marked_place_t mm = * ((marked_place_t *) m);
-   marked_place_t mref = * ((marked_place_t *) ref);
-   return (mm.pid == mref.pid && mm.tok >= mref.tok) ? TRUE : FALSE;
+  marked_place_t mm = * ((marked_place_t *) m);
+  marked_place_t mref = * ((marked_place_t *) ref);
+  return (mm.pid == mref.pid && mm.tok >= mref.tok) ? TRUE : FALSE;
 }
-#define dynamic_por_reduction_add_stub(t) { \\
-  if(!stub[t]) { \\
-    stub[t] = TRUE; \\
-    list_append(todo, &t); \\
-    if(list_find(en, mevent_is_t, &t)) { \\
-      list_append(stub_en, &t); \\
-    } \\
-  } \\
+
+void dynamic_por_reduction_add_stub
+(mevent_t t, bool_t * stub, list_t en, list_t stub_en, list_t todo) {
+  if(!stub[t]) {
+    stub[t] = TRUE;
+    list_append(todo, &t);
+    if(list_find(en, mevent_is_t, &t)) {
+      list_append(stub_en, &t);
+    }
+  }
+}
+
+bool_t dynamic_por_reduction_scapegoat_ok
+(uint32_t pid, bool_t * stub, list_t en) {
+  int i;
+
+  switch(pid) {
+""")
+        for p in self.P:
+            n = p.getSNum()
+            cw("  case " + n + ": {\n")
+            cw("    for(i = 0; i < model_act_nb" + n + "; i ++) { " +
+               "if(!stub[model_act" + n + "[i]]) { return FALSE; } }\n")
+            cw("    return TRUE;\n")
+            cw("  }\n")
+        cw("""  default: assert(FALSE);
+  }
 }
 
 void dynamic_por_reduction_handle_scapegoat
@@ -649,16 +659,12 @@ void dynamic_por_reduction_handle_scapegoat
   switch(pid) {
 """)
         for p in self.P:
-            act = [ t for (val, t) in p.getUpdatedSet(self) if val > 0 ]
-            l = str(len(act))
-            array = ", ".join(map(lambda t: t.getSNum(), act))
-            cw("  case " + p.getSNum() + ": {\n")
-            cw("    mevent_t act[] = {" + array + "};\n")
-            cw("    for(i = 0; i < " + l + "; i ++) {\n")
-            cw("      dynamic_por_reduction_add_stub(act[i]);\n")
-            cw("    }\n")
-            cw("    break;\n")
-            cw("  }\n")
+            n = p.getSNum()
+            cw("  case " + n + ": { " +
+               "for(i = 0; i < model_act_nb" + n + "; i ++) { " +
+               "dynamic_por_reduction_add_stub" +
+               "(model_act" + n + "[i], stub, en, stub_en, todo); } " +
+               "break; }\n")
         cw("""
   default: assert(FALSE);
   }
@@ -671,10 +677,10 @@ void dynamic_por_reduction_handle_scapegoat
   rseed_t rnd;
   list_iter_t it;
   list_t todo, stub_en;
-  int i;
+  int i, sg, n;
   mevent_t t, u;
-  marked_place_t m;
   bool_t stub[""" + str(len(self.T)) + """];
+  mevent_t * conf;
 
   if(list_is_empty(en)) {
     return;
@@ -687,55 +693,43 @@ void dynamic_por_reduction_handle_scapegoat
   i = random_int(&rnd) % list_size(en);
   i = 0;
   u = * ((mevent_t *) list_nth(en, i));
-  dynamic_por_reduction_add_stub(u);
+  dynamic_por_reduction_add_stub(u, stub, en, stub_en, todo);
   while(!list_is_empty(todo)) {
     list_pick_first(todo, &t);
     if(list_find(en, mevent_is_t, &t)) {
       switch(t) {
 """)
-        #  enabled transition handling
+        
+        # enabled transition handling: put all transitions in conflict
+        # with t in the stubborn set
         for t in self.T:
-            conf = []
-            for val, p in t.getPreSet(self):
-                for u in [ u for val, u in p.getPostSet(self) if u != t ]:
-                    conf.append(u)
-            if len(conf) > 0:
-                array = ", ".join(map(lambda c: c.getSNum(), conf))
-                l = str(len(conf))
-                cw("      case " + t.getSNum() + ": {\n")
-                cw("        mevent_t conf[" + l + "] = ")
-                cw("{" + array + "};\n")
-                cw("        for(i = 0; i < " + l + "; i ++) {\n")
-                cw("          u = conf[i];\n")
-                cw("          dynamic_por_reduction_add_stub(u);\n")
-                cw("        }\n")
-                cw("        break;\n")
-                cw("      }\n")
-        cw("""      }
-    } else {
-      switch(t) {
-""")
+            n = t.getSNum()
+            cw("      case " + n + ": { conf = model_conf" + n + "; n = " +
+               " model_conf_nb" + n + "; break; }\n")
+        cw("      }\n")
+        cw("      for(i = 0; i < n; i ++) {\n")
+        cw("        dynamic_por_reduction_add_stub" +
+           "(conf[i], stub, en, stub_en, todo);\n")
+        cw("      }\n")
+        cw("    } else {\n")
+        cw("      switch(t) {\n")
+        
         #  disabled transition handling
         for t in self.T:
-            cw("      case " + t.getSNum() + ": {\n")
-            ip = t.getPreSet(self)
-            l = str(len(ip))
-            array = ", ".join(map(lambda (val, p): p.getSNum(), ip))
-            arrayTok = ", ".join(map(lambda (val, p): str(val), ip))
-            cw("        int32_t sg = - 1;\n")
-            cw("        uint32_t ip[] = {" + array + "};\n")
-            cw("        uint32_t tok[] = {" + arrayTok + "};\n")
-            cw("        bool_t found = FALSE;\n")
-            cw("        for(i = 0; i < " + l + " && sg < 0; i ++) {\n")
-            cw("          m.pid = ip[i];\n")
-            cw("          m.tok = tok[i];\n")
-            cw("          if(!list_find(s->marked, is_marked_enough, &m)) {\n")
-            cw("            sg = i;\n")
+            n = t.getSNum()
+            cw("      case " + n + ": {\n")
+            cw("        for(sg = - 1, i = 0;" +
+               " i < model_ip_nb" + n + "; i ++) {\n")
+            cw("          if(!list_find(s->marked, is_marked_enough, " +
+               "&model_ip" + n + "[i])) {\n")
+            cw("            if(-1 == sg) { sg = model_ip" + n + "[i].pid; }\n")
+            cw("            if(dynamic_por_reduction_scapegoat_ok" +
+               "(model_ip" + n + "[i].pid, stub, en)) { " +
+               "sg = model_ip" + n + "[i].pid; break; }\n")
             cw("          }\n")
             cw("        }\n")
-            cw("        assert(sg >= 0);\n")
-            cw("        dynamic_por_reduction_handle_scapegoat(ip[sg], " +
-               "stub, en, stub_en, todo);\n")
+            cw("        dynamic_por_reduction_handle_scapegoat" +
+               "(sg, stub, en, stub_en, todo);\n")
             cw("        break;\n")
             cw("      }\n")
         cw("""      default: assert(FALSE);
@@ -757,6 +751,45 @@ void dynamic_por_reduction_handle_scapegoat
   heap_free(h);
 }
 """)
+    
+    def compilePorConstants(self, hw, cw):
+        safe = []
+        for t in self.T:
+            
+            #  safe <=> t does not share its input places with other
+            #  transitions
+            isSafe = all(len(p.getPostSet(self)) == 1
+                         for (val, p) in t.getPreSet(self))
+            safe.append("1" if isSafe else "0")
+
+            # input places
+            n = t.getSNum()
+            ip = t.getPreSet(self)
+            l = str(len(ip))
+            array = "{" + (", ".join(map(
+                lambda (val, p): "{" + p.getSNum() + ", " + str(val) + "}",
+                ip))) + "}"
+            cw("marked_place_t model_ip" + n + "[] = " + array + ";\n")
+            cw("uint32_t model_ip_nb" + n + " = " + l + ";\n")
+
+            # transitions in conflict
+            conf = []
+            for val, p in t.getPreSet(self):
+                for u in [ u for val, u in p.getPostSet(self) if u != t ]:
+                    conf.append(u)
+            array = ", ".join(map(lambda c: c.getSNum(), conf))
+            l = str(len(conf))
+            cw("mevent_t model_conf" + n + "[] = {" + array + "};\n")
+            cw("uint32_t model_conf_nb" + n + " = " + l + ";\n")
+        cw("bool_t model_safe[] = {" + ",".join(safe) + "};\n")
+
+        for p in self.P:
+            act = [ t for (val, t) in p.getUpdatedSet(self) if val > 0 ]
+            l = str(len(act))
+            array = ", ".join(map(lambda t: t.getSNum(), act))
+            cw("mevent_t model_act" + p.getSNum() + "[] = {" +
+               array + "};\n")
+            cw("uint32_t model_act_nb" + p.getSNum() + " = " + l + ";\n")
     
     def compileNet(self, outDir):
         f = open(outDir + os.sep + "SRC_FILES", "w")
@@ -949,6 +982,7 @@ typedef uint32_t mevent_id_t;
         cw("""#include "model_por.h"
 
 """)
+        self.compilePorConstants(hw, cw)
         self.compilePorFunctions(hw, cw)
         hw("#endif\n")
         c.close()

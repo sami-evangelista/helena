@@ -2,7 +2,12 @@
 #include "por_analysis.h"
 #include "reduction.h"
 
-uint32_t POR_ANALYSIS_NO_UNSAFE = 0;
+uint64_t POR_ANALYSIS_NO_UNSAFE_STATES = 0;
+
+uint64_t por_analysis_no_unsafe_states
+() {
+  return POR_ANALYSIS_NO_UNSAFE_STATES;
+}
 
 bool_t por_analysis_state_in_scc
 (darray_t scc,
@@ -59,9 +64,8 @@ void por_analysis_scc
   for(i = 0; i < darray_size(scc); i ++) {
     id = * ((htbl_id_t *) darray_get(scc, i));
     if(!htbl_get_attr(H, id, ATTR_SAFE)) {
-      POR_ANALYSIS_NO_UNSAFE ++;
+      POR_ANALYSIS_NO_UNSAFE_STATES ++;
     }
   }
-  printf("POR_ANALYSIS_NO_UNSAFE == %d\n", POR_ANALYSIS_NO_UNSAFE);
   heap_free(heap);
 }

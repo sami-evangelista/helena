@@ -66,7 +66,7 @@ int main
      * generation of the reachability graph report
      */
     if(CFG_ACTION_BUILD_GRAPH
-       && SEARCH_TERMINATED == context_termination_state()) {
+       && TERM_SEARCH_TERMINATED == context_termination_state()) {
       graph_make_report(CFG_GRAPH_FILE, CFG_RG_REPORT_FILE);
     }
     

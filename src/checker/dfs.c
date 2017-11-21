@@ -367,6 +367,7 @@ void * dfs_worker
   if(tarjan) {
     darray_free(scc);
     darray_free(scc_stack);
+    context_set_stat(STAT_STATES_UNSAFE, 0, por_analysis_no_unsafe_states());
   }
 
   return NULL;

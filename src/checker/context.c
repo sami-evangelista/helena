@@ -4,7 +4,7 @@
 #include "comm_shmem.h"
 #include "papi_stats.h"
 
-#define NO_STATS 17
+#define NO_STATS 19
 
 #define STAT_TYPE_TIME   0
 #define STAT_TYPE_GRAPH  1
@@ -23,7 +23,7 @@ typedef struct {
   bool_t error_raised;
   FILE * graph_file;
   char * error_msg;
-  termination_state_t term_state;
+  term_state_t term_state;
 
   /*  for the trace context  */
   bool_t faulty_state_found;
@@ -65,8 +65,9 @@ void init_context
    */
   for(i = 0; i < NO_STATS; i ++) {
     CTX->stat_set[i] = FALSE;
-    CTX->stat[i] = mem_alloc(SYSTEM_HEAP, no_workers * sizeof(double));
-    for(w = 0; w < no_workers; w ++) {
+    CTX->stat[i] = mem_alloc(SYSTEM_HEAP,
+                             (no_workers + no_comm_workers) * sizeof(double));
+    for(w = 0; w < no_workers + no_comm_workers; w ++) {
       CTX->stat[i][w] = 0.0;
     }
   }
@@ -89,12 +90,12 @@ void init_context
   gettimeofday(&CTX->start_time, NULL);
   CTX->graph_file = NULL;
   if(!CFG_ACTION_CHECK) {
-    CTX->term_state = SEARCH_TERMINATED;
+    CTX->term_state = TERM_SEARCH_TERMINATED;
   } else {
     if(CFG_HASH_COMPACTION) {
-      CTX->term_state = NO_ERROR;
+      CTX->term_state = TERM_NO_ERROR;
     } else {
-      CTX->term_state = SUCCESS;
+      CTX->term_state = TERM_SUCCESS;
     }
   }
   CTX->cpu_total = 0;
@@ -154,7 +155,7 @@ void context_output_trace
 }
 
 bool_t context_stat_do_average
-(uint8_t stat) {
+(stat_t stat) {
   switch(stat) {
   case STAT_STATES_PROCESSED: return TRUE;
   default:                    return FALSE;
@@ -162,13 +163,14 @@ bool_t context_stat_do_average
 }
 
 char * context_stat_xml_name
-(uint8_t stat) {
+(stat_t stat) {
   switch(stat) {
   case STAT_STATES_STORED:    return "statesStored";
   case STAT_STATES_PROCESSED: return "statesProcessed";
   case STAT_STATES_DEADLOCK:  return "statesTerminal";
   case STAT_STATES_ACCEPTING: return "statesAccepting";
   case STAT_STATES_REDUCED:   return "statesReduced";
+  case STAT_STATES_UNSAFE:    return "statesUnsafe";
   case STAT_ARCS:             return "arcs";
   case STAT_BFS_LEVELS:       return "bfsLevels";
   case STAT_EVENT_EXEC:       return "eventsExecuted";
@@ -187,13 +189,14 @@ char * context_stat_xml_name
 }
 
 uint8_t context_stat_type
-(uint8_t stat) {
+(stat_t stat) {
   switch(stat) {
   case STAT_STATES_STORED:    return STAT_TYPE_GRAPH;
   case STAT_STATES_PROCESSED: return STAT_TYPE_GRAPH;
   case STAT_STATES_DEADLOCK:  return STAT_TYPE_GRAPH;
   case STAT_STATES_ACCEPTING: return STAT_TYPE_GRAPH;
   case STAT_STATES_REDUCED:   return STAT_TYPE_GRAPH;
+  case STAT_STATES_UNSAFE:    return STAT_TYPE_GRAPH;
   case STAT_ARCS:             return STAT_TYPE_GRAPH;
   case STAT_BFS_LEVELS:       return STAT_TYPE_GRAPH;
   case STAT_EVENT_EXEC:       return STAT_TYPE_OTHERS;
@@ -230,12 +233,9 @@ void context_stat_to_xml
  FILE * out) {
   int i;
   char * name = context_stat_xml_name(stat);
-  double sum = 0, min, max, avg, dev;
+  double sum = context_get_stat(stat), min, max, avg, dev;
   worker_id_t w;
   
-  for(w = 0; w < CTX->no_workers; w ++) {
-    sum += CTX->stat[stat][w];
-  } 
   fprintf(out, "<%s>", name);
   context_stat_format(stat, sum, out);
   fprintf(out, "</%s>\n", name);
@@ -243,7 +243,7 @@ void context_stat_to_xml
     min = max = CTX->stat[stat][0];
     avg = sum / CFG_NO_WORKERS;
     dev = 0;
-    for(w = 1; w < CFG_NO_WORKERS; w ++) {
+    for(w = 1; w < CTX->no_workers; w ++) {
       if(CTX->stat[stat][w] > max) {
         max = CTX->stat[stat][w];
       } else if(CTX->stat[stat][w] < min) {
@@ -265,7 +265,7 @@ void context_stat_to_xml
 }
 
 void context_stats_to_xml
-(uint8_t stat_type,
+(stat_t stat_type,
  FILE * out) {
   int i;
 
@@ -295,7 +295,6 @@ void finalise_context
     if(NULL != CTX->graph_file) {
       fclose(CTX->graph_file);
     }
-    printf("ici\n");
 
     /**
      *  make the report
@@ -324,27 +323,27 @@ void finalise_context
     }
     fprintf(out, "<searchResult>");
     switch(CTX->term_state) {
-    case STATE_LIMIT_REACHED:
+    case TERM_STATE_LIMIT_REACHED:
       fprintf(out, "stateLimitReached"); break;
-    case MEMORY_EXHAUSTED:
+    case TERM_MEMORY_EXHAUSTED:
       fprintf(out, "memoryExhausted"); break;
-    case TIME_ELAPSED:
+    case TERM_TIME_ELAPSED:
       fprintf(out, "timeElapsed"); break;
-    case INTERRUPTION:
+    case TERM_INTERRUPTION:
       fprintf(out, "interruption"); break;
-    case SEARCH_TERMINATED:
+    case TERM_SEARCH_TERMINATED:
       fprintf(out, "searchTerminated"); break;
-    case NO_ERROR:
+    case TERM_NO_ERROR:
       fprintf(out, "noCounterExample"); break;
-    case SUCCESS:
+    case TERM_SUCCESS:
       fprintf(out, "propertyHolds"); break;
-    case FAILURE:
+    case TERM_FAILURE:
       fprintf(out, "propertyViolated"); break;
-    case ERROR:
+    case TERM_ERROR:
       fprintf(out, "error"); break;
     }
     fprintf(out, "</searchResult>\n");
-    if(CTX->term_state == ERROR && CTX->error_raised) {
+    if(CTX->term_state == TERM_ERROR && CTX->error_raised) {
       fprintf(out, "<errorMessage>%s</errorMessage>\n", CTX->error_msg);
     }
     fprintf(out, "<searchOptions>\n");
@@ -363,14 +362,13 @@ void finalise_context
       fprintf(out, "deltaDDD");
     }
     fprintf(out, "</searchAlgorithm>\n");
-    fprintf(out, "<workers>%d</workers>\n", CTX->no_workers);
     if(CFG_HASH_STORAGE || CFG_DELTA_DDD_STORAGE) {
       fprintf(out, "<hashTableSize>%d</hashTableSize>\n", CFG_HASH_SIZE);
     }
+    fprintf(out, "<workers>%d</workers>\n", CTX->no_workers);
     if(CFG_DISTRIBUTED) {
       fprintf(out, "<commWorkers>%d</commWorkers>\n", CTX->no_comm_workers);
-      fprintf(out, "<shmemHeapSize>%d</shmemHeapSize>\n",
-              CFG_SHMEM_HEAP_SIZE);
+      fprintf(out, "<shmemHeapSize>%d</shmemHeapSize>\n", CFG_SHMEM_HEAP_SIZE);
     }
     if(CFG_POR) {
       fprintf(out, "<partialOrder/>\n");
@@ -405,7 +403,7 @@ void finalise_context
     context_stats_to_xml(STAT_TYPE_OTHERS, out);
     fprintf(out, "</otherStatistics>\n");
     fprintf(out, "</statisticsReport>\n");
-    if(CTX->term_state == FAILURE) {
+    if(CTX->term_state == TERM_FAILURE) {
       fprintf(out, "<traceReport>\n");
       if(CFG_TRACE_STATE) {
 	fprintf(out, "<traceState>\n");
@@ -463,7 +461,7 @@ void finalise_context
 
 void context_interruption_handler
 (int signal) {
-  CTX->term_state = INTERRUPTION;
+  CTX->term_state = TERM_INTERRUPTION;
   CTX->keep_searching = FALSE;
 }
 
@@ -478,7 +476,7 @@ void context_faulty_state
   if(CTX->keep_searching) {
     CTX->faulty_state = state_copy(s);
     CTX->keep_searching = FALSE;
-    CTX->term_state = FAILURE;
+    CTX->term_state = TERM_FAILURE;
     CTX->faulty_state_found = TRUE;
   }
   pthread_mutex_unlock(&CTX->ctx_mutex);
@@ -490,7 +488,7 @@ void context_set_trace
   if(CTX->keep_searching) {
     CTX->trace = trace;
     CTX->keep_searching = FALSE;
-    CTX->term_state = FAILURE;
+    CTX->term_state = TERM_FAILURE;
   }
   pthread_mutex_unlock(&CTX->ctx_mutex);
 }
@@ -511,7 +509,7 @@ pthread_t * context_workers
 }
 
 void context_set_termination_state
-(termination_state_t term_state) {
+(term_state_t term_state) {
   CTX->term_state = term_state;
   CTX->keep_searching = FALSE;
 }
@@ -544,7 +542,7 @@ void context_close_graph_file
   }
 }
 
-termination_state_t context_termination_state
+term_state_t context_termination_state
 () {
   return CTX->term_state;
 }
@@ -558,7 +556,7 @@ void context_error
   CTX->error_msg = mem_alloc(SYSTEM_HEAP, sizeof(char) * strlen(msg) + 1);
   strcpy(CTX->error_msg, msg);
   if(!CFG_ACTION_SIMULATE) {
-    CTX->term_state = ERROR;
+    CTX->term_state = TERM_ERROR;
     CTX->keep_searching = FALSE;
   }
   CTX->error_raised = TRUE;
@@ -619,7 +617,7 @@ void context_sleep
 }
 
 void context_incr_stat
-(uint8_t stat,
+(stat_t stat,
  worker_id_t w,
  double val) {
   CTX->stat[stat][w] += val;
@@ -627,7 +625,7 @@ void context_incr_stat
 }
 
 void context_set_stat
-(uint8_t stat,
+(stat_t stat,
  worker_id_t w,
  double val) {
   CTX->stat[stat][w] = val;
@@ -635,11 +633,11 @@ void context_set_stat
 }
 
 double context_get_stat
-(uint8_t stat) {
+(stat_t stat) {
   worker_id_t w;
   double result = 0;
 
-  for(w = 0; w < CTX->no_workers; w ++) {
+  for(w = 0; w < CTX->no_workers + CTX->no_comm_workers; w ++) {
     result += CTX->stat[stat][w];
   }
   return result;

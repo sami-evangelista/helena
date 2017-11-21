@@ -49,13 +49,13 @@ void * observer_worker
      *  check for limits
      */
     if(CFG_MEMORY_LIMITED && mem > CFG_MAX_MEMORY) {
-      context_set_termination_state(MEMORY_EXHAUSTED);
+      context_set_termination_state(TERM_MEMORY_EXHAUSTED);
     }
     if(CFG_TIME_LIMITED && time > (float) CFG_MAX_TIME) {
-      context_set_termination_state(TIME_ELAPSED);
+      context_set_termination_state(TERM_TIME_ELAPSED);
     }
     if(CFG_STATE_LIMITED && processed > CFG_MAX_STATE) {
-      context_set_termination_state(STATE_LIMIT_REACHED);
+      context_set_termination_state(TERM_STATE_LIMIT_REACHED);
     }
   }
   if(cpu_avg != 0) {

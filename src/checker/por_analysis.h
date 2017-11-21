@@ -9,4 +9,7 @@ void por_analysis_scc
 (htbl_t H,
  darray_t scc);
 
+uint64_t por_analysis_no_unsafe_states
+();
+
 #endif

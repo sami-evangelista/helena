@@ -18,38 +18,43 @@
  * @typedef termination_state_t
  * @brief possible termination states of helena
  */
-typedef uint8_t termination_state_t;
-#define SUCCESS             0
-#define ERROR               1
-#define INTERRUPTION        2
-#define SEARCH_TERMINATED   3
-#define NO_ERROR            4
-#define MEMORY_EXHAUSTED    5
-#define TIME_ELAPSED        6
-#define STATE_LIMIT_REACHED 7
-#define FAILURE             8
+typedef enum {
+  TERM_SUCCESS,
+  TERM_ERROR,
+  TERM_INTERRUPTION,
+  TERM_SEARCH_TERMINATED,
+  TERM_NO_ERROR,
+  TERM_MEMORY_EXHAUSTED,
+  TERM_TIME_ELAPSED,
+  TERM_STATE_LIMIT_REACHED,
+  TERM_FAILURE
+} term_state_t;
 
 
 /**
+ * @typedef stat_t
  * @brief available statistics
  */
-#define STAT_STATES_STORED    0
-#define STAT_STATES_PROCESSED 1
-#define STAT_STATES_DEADLOCK  2
-#define STAT_STATES_ACCEPTING 3
-#define STAT_STATES_REDUCED   4
-#define STAT_ARCS             5
-#define STAT_BFS_LEVELS       6
-#define STAT_EVENT_EXEC       7
-#define STAT_EVENT_EXEC_DDD   8
-#define STAT_BYTES_SENT       9
-#define STAT_COMP_TIME        10
-#define STAT_SEARCH_TIME      11
-#define STAT_SLEEP_TIME       12
-#define STAT_BARRIER_TIME     13
-#define STAT_DDD_TIME         14
-#define STAT_MAX_MEM_USED     15
-#define STAT_AVG_CPU_USAGE    16
+typedef enum {
+  STAT_STATES_STORED,
+  STAT_STATES_ACCEPTING,
+  STAT_STATES_DEADLOCK,
+  STAT_STATES_PROCESSED,
+  STAT_STATES_REDUCED,
+  STAT_STATES_UNSAFE,
+  STAT_ARCS,
+  STAT_AVG_CPU_USAGE,
+  STAT_BARRIER_TIME,
+  STAT_BFS_LEVELS,
+  STAT_BYTES_SENT,
+  STAT_COMP_TIME,
+  STAT_DDD_TIME,
+  STAT_EVENT_EXEC,
+  STAT_EVENT_EXEC_DDD,
+  STAT_MAX_MEM_USED,
+  STAT_SEARCH_TIME,
+  STAT_SLEEP_TIME
+} stat_t;
 
 
 /**
@@ -115,7 +120,7 @@ pthread_t * context_workers
 ();
 
 void context_set_termination_state
-(termination_state_t state);
+(term_state_t state);
 
 void context_set_trace
 (event_list_t trace);
@@ -147,19 +152,19 @@ void context_barrier_wait
 void context_sleep
 (struct timespec t);
 
-termination_state_t context_termination_state
+term_state_t context_termination_state
 ();
 
 void context_incr_stat
-(uint8_t stat,
+(stat_t stat,
  worker_id_t w,
  double val);
 
 double context_get_stat
-(uint8_t stat);
+(stat_t stat);
 
 void context_set_stat
-(uint8_t stat,
+(stat_t stat,
  worker_id_t w,
  double val);
 

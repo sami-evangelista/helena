@@ -178,6 +178,12 @@ the desired property.  This causes some states to be never explored
 during the search.  The reductions done depend on the property
 verified.  If there is no property checked, the reduction done only
 preserves the existence of deadlock states."""
+    elif o in [ "i", "proviso" ]:
+        return """-i[={0|1}], --proviso[={0|1}]}
+
+Force the use of proviso of partial-order reduction.  It is turned on
+by default if a property (different from deadlock absence) is
+analysed."""
     elif o in [ "E", "edge-lean" ]:
         return """-E[={0|1}], --edge-lean[={0|1}]
 
@@ -280,6 +286,7 @@ def printHelpShort():
  Reduction techniques
    -H   --hash-compaction[={0|1}]
    -P   --partial-order[={0|1}]
+   -i   --proviso[={0|1}]
    -E   --edge-lean[={0|1}]
  
  Limit options
@@ -355,6 +362,7 @@ class Config:
         self.verbose = False
         self.version = False
         self.partialOrder = False
+        self.proviso = False
         self.dynamicPartialOrder = False
         self.hashCompaction = False
         self.edgeLean = False
@@ -452,6 +460,9 @@ class Config:
         prop = self.prop
         if prop is None:
             prop = ""
+        if self.partialOrder and not self.proviso:
+            self.proviso = self.propType is not None and \
+                           self.propType != DEADLOCK
             
         params = [
             ("ACTION_BUILD_GRAPH", self.action == BUILD_GRAPH),
@@ -499,8 +510,7 @@ class Config:
             ("PARALLEL", self.workers > 1),
             ("POR", self.partialOrder),
             ("PROPERTY", "\"" + prop + "\""),
-            ("PROVISO", self.partialOrder and self.propType is not None and
-             self.propType != DEADLOCK),
+            ("PROVISO", self.proviso),
             ("RANDOM_SUCCS", self.randomSuccs),
             ("REPORT_FILE", "\"report.xml\""),
             ("RG_REPORT_FILE", "\"rg-report.xml\""),
@@ -575,6 +585,8 @@ class Config:
                 self.withObserver = (val is None) or val == "1"
             elif opt in [ "-P", "--partial-order" ]:
                 self.partialOrder = (val is None) or val == "1"
+            elif opt in [ "-i", "--proviso" ]:
+                self.proviso = (val is None) or val == "1"
             elif opt in [ "-D", "--dynamic-partial-order" ]:
                 self.dynamicPartialOrder = (val is None) or val == "1"
             elif opt in [ "-E", "--edge-lean" ]:

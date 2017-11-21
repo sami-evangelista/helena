@@ -273,7 +273,7 @@ bool_t dbfs_comm_worker_process_incoming_states
           
               /* insert the state */
               htbl_insert_serialised(H, buffer + tmp_pos, s_len,
-                                         h, w, &is_new, &sid);
+                                     h, w, &is_new, &sid);
               tmp_pos += s_len;
 
               /**
@@ -293,6 +293,7 @@ bool_t dbfs_comm_worker_process_incoming_states
 		if(CFG_HASH_COMPACTION) {
 		  state_free(item.s);
 		}
+                context_incr_stat(STAT_STATES_STORED, w, 1);
               }
             }
           }
