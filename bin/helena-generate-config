@@ -127,8 +127,9 @@ DIRECTORY (instead of ~/.helena/models/lna/my-net)."""
     elif o in [ "A", "algo" ]:
         return """-A=ALGO, --algo=ALGO
 
-Sets search algorithm used to explore the state space.  Five search
-algorithms are available:
+Sets search algorithm used to explore the state space.  Available
+algorithms are:
+
 * DFS - The state space is explored using a depth-first search.  This
    is the default.
 * BFS - The state space is explored using a breadth-first search.
@@ -193,7 +194,7 @@ time."""
     elif o in [ "ml", "memory-limit" ]:
         return """-ml=N, --memory-limit=N
 
-The memory used by Helena is limited to N megabyte.  When this limit
+The memory used by Helena is limited to N megabytes.  When this limit
 is reached the search stops as soon as possible."""
     elif o in [ "tl", "time-limit" ]:
         return """-tl=N, --time-limit=N
