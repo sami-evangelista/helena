@@ -10,7 +10,7 @@ struct struct_darray_t {
 typedef struct struct_darray_t struct_darray_t;
 
 #define darray_item(darray, i) \
-  (darray->items + i * darray->sizeof_item)
+  ((darray)->items + (i) * (darray)->sizeof_item)
 
 darray_t darray_new
 (heap_t heap,
@@ -82,8 +82,8 @@ void * darray_pop
   void * result;
 
   assert(darray->no_items);
+  result = darray_item(darray, darray->no_items - 1);
   darray->no_items --;
-  result = darray_item(darray, darray->no_items);
   return result;
 }
 
@@ -110,7 +110,7 @@ void darray_set
 (darray_t darray,
  darray_index_t i,
  void * item) {
-  assert(i >= 0 && i <= darray->no_items);
+  assert(i <= darray->no_items);
   if(i == darray->no_items) {
     darray_push(darray, item);
   } else {

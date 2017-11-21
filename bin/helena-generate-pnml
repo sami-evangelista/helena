@@ -56,7 +56,7 @@ class Node:
         for a in arcs:
             result.append((a.getValuation(),
                            net.getNode(a.getOtherEnd(self.nid))))
-        return result
+        return sorted(result)
     def getPreSet(self, net):
         return self.getPreOrPostSet(net, self.getInputArcs())
     def getPostSet(self, net):
@@ -755,11 +755,11 @@ void dynamic_por_reduction_handle_scapegoat
     def compilePorConstants(self, hw, cw):
         safe = []
         for t in self.T:
+            preT = t.getPreSet(self)
             
-            #  safe <=> t does not share its input places with other
-            #  transitions
-            isSafe = all(len(p.getPostSet(self)) == 1
-                         for (val, p) in t.getPreSet(self))
+            # safe <=> t does not share its input places with other
+            # transitions
+            isSafe = all(len(p.getPostSet(self)) == 1 for (val, p) in preT)
             safe.append("1" if isSafe else "0")
 
             # input places
@@ -781,9 +781,10 @@ void dynamic_por_reduction_handle_scapegoat
             l = str(len(conf))
             cw("mevent_t model_conf" + n + "[] = {" + array + "};\n")
             cw("uint32_t model_conf_nb" + n + " = " + l + ";\n")
-        cw("bool_t model_safe[] = {" + ",".join(safe) + "};\n")
+        cw("bool_t model_safe[] = {" + ", ".join(safe) + "};\n")
 
         for p in self.P:
+            # activating transitions
             act = [ t for (val, t) in p.getUpdatedSet(self) if val > 0 ]
             l = str(len(act))
             array = ", ".join(map(lambda t: t.getSNum(), act))

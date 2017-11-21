@@ -9,13 +9,13 @@ uint64_t por_analysis_no_unsafe_states
   return POR_ANALYSIS_NO_UNSAFE_STATES;
 }
 
-bool_t por_analysis_state_in_scc
-(darray_t scc,
+bool_t por_analysis_state_is_unsafe
+(darray_t unsafe,
  htbl_id_t id) {
   int i;
 
-  for(i = 0; i < darray_size(scc); i ++) {
-    if(id == * ((htbl_id_t *) darray_get(scc, i))) {
+  for(i = 0; i < darray_size(unsafe); i ++) {
+    if(id == * ((htbl_id_t *) darray_get(unsafe, i))) {
       return TRUE;
     }
   }
@@ -34,29 +34,44 @@ void por_analysis_scc
   event_t e;
   hash_key_t h;
   bool_t all_succ_safe;
+  darray_t unsafe = darray_new(SYSTEM_HEAP, sizeof(htbl_id_t));
 
+  /*
+   * initialise the set of unsafe states of the scc
+   */
+  for(i = 0; i < darray_size(scc); i ++) {
+    id = * ((htbl_id_t *) darray_get(scc, i));
+    if(!htbl_get_attr(H, id, ATTR_SAFE)) {
+      darray_push(unsafe, &id);
+    }
+  }
+    
   while(changes) {
     changes = FALSE;
-    for(i = 0; i < darray_size(scc); i ++) {
+    i = 0;
+    while(i < darray_size(unsafe)) {
+      id = * ((htbl_id_t *) darray_get(unsafe, i));
       heap_reset(heap);
-      id = * ((htbl_id_t *) darray_get(scc, i));
       s = htbl_get_mem(H, id, heap);
-      if(!htbl_get_attr(H, id, ATTR_SAFE)) {
-        en = state_events_reduced_mem(s, &reduced, heap);
-        all_succ_safe = TRUE;
-        while(!list_is_empty(en) && all_succ_safe) {
-          list_pick_first(en, &e);
-          succ = state_succ_mem(s, e, heap);
-          if(htbl_contains(H, succ, &id_succ, &h)
-             && por_analysis_state_in_scc(scc, id_succ)
-             && !htbl_get_attr(H, id_succ, ATTR_SAFE)) {
-            all_succ_safe = FALSE;
-          }
+      en = state_events_reduced_mem(s, &reduced, heap);
+      all_succ_safe = TRUE;
+      while(!list_is_empty(en) && all_succ_safe) {
+        list_pick_first(en, &e);
+        succ = state_succ_mem(s, e, heap);
+        if(htbl_contains(H, succ, &id_succ, &h)
+           && por_analysis_state_is_unsafe(unsafe, id_succ)) {
+          all_succ_safe = FALSE;
         }
-        if(all_succ_safe) {
-          htbl_set_attr(H, id, ATTR_SAFE, TRUE);
-          changes = TRUE;
+      }
+      if(!all_succ_safe) {
+        i ++;
+      } else {
+        htbl_set_attr(H, id, ATTR_SAFE, TRUE);
+        id = * ((htbl_id_t *) darray_pop(unsafe));
+        if(i != darray_size(unsafe)) {
+          darray_set(unsafe, i, &id);
         }
+        changes = TRUE;          
       }
     }
   }
