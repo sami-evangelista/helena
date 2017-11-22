@@ -5,7 +5,7 @@
 
 #define ATTR_ID(a) (1 << a)
 
-#define NO_ATTRS 10
+#define NO_ATTRS 12
 
 const uint16_t ATTR_WIDTH[] = {
   1, /* cyan */
@@ -17,13 +17,17 @@ const uint16_t ATTR_WIDTH[] = {
   32, /* index */
   32, /* lowlink */
   1, /* live */
-  1  /* safe */
+  1, /* safe */
+  1, /* unsafe successor */
+  1  /* to revisit */
 };
 
 const bool_t ATTR_OF_WORKER[] = {
   1, /*  cyan  */
   0,
   1, /*  pink  */
+  0,
+  0,
   0,
   0,
   0,
@@ -152,12 +156,17 @@ htbl_t htbl_default_new
     attrs |= ATTR_ID(ATTR_LIVE);
     attrs |= ATTR_ID(ATTR_SAFE);
   }
+  if(CFG_PROVISO) {
+    attrs |= ATTR_ID(ATTR_SAFE);
+    attrs |= ATTR_ID(ATTR_UNSAFE_SUCC);
+    attrs |= ATTR_ID(ATTR_TO_REVISIT);
+  }
   
   no_workers = CFG_NO_WORKERS;
   if(CFG_DISTRIBUTED) {
     no_workers += CFG_NO_COMM_WORKERS;
   }
-  return htbl_new(no_workers > 1 , CFG_HASH_SIZE, no_workers,
+  return htbl_new(no_workers > 1, CFG_HASH_SIZE, no_workers,
                   CFG_HASH_COMPACTION, attrs);
 }
 

@@ -86,7 +86,7 @@ state_t dfs_recover_state
       dfs_stack_create_trace(stack);                                    \
     }                                                                   \
   }
-  
+    
 
 void * dfs_worker
 (void * arg) {
@@ -95,7 +95,7 @@ void * dfs_worker
   const bool_t check_ltl = CFG_ACTION_CHECK_LTL;
   const bool_t check_safety = CFG_ACTION_CHECK_SAFETY;
   const bool_t por = CFG_POR;
-  const bool_t proviso = CFG_PROVISO;
+  const bool_t proviso = CFG_POR && CFG_PROVISO;
   const bool_t edge_lean = CFG_EDGE_LEAN;
   const bool_t shuffle = CFG_PARALLEL || CFG_ALGO_DDFS || CFG_RANDOM_SUCCS;
   const bool_t ddfs = CFG_ALGO_DDFS;
@@ -117,13 +117,12 @@ void * dfs_worker
   state_t copy, now = state_initial_mem(heap);
   dfs_stack_t stack = dfs_stack_new(wid, CFG_DFS_STACK_BLOCK_SIZE,
                                     shuffle, states_stored);
-  htbl_id_t id, id_seed, id_succ;
-  bool_t push, blue = TRUE, is_new;
+  htbl_id_t id, id_seed, id_succ, id_popped;
+  bool_t push, blue = TRUE, is_new, state_popped = FALSE, on_stack;
   event_t e;
   event_t * e_ref;
   event_list_t en;
-  uint64_t red_stack_size = 0, index = 0, index_other, lowlink;
-  int64_t lowlink_popped = -1;
+  uint64_t red_stack_size = 0, index = 0, index_other, lowlink, lowlink_popped;
   red_processed_t proc;
   darray_t red_states = cndfs ?
     darray_new(SYSTEM_HEAP, sizeof(red_processed_t)) : NULL;
@@ -157,32 +156,52 @@ void * dfs_worker
 
     id = dfs_stack_top(stack);
 
-    /*
-     * tarjan: a state has just been popped => we update the lowlink
-     * of the current state
+    /**
+     * before handling the state on top of the stack we look at the
+     * state that has just been popped, if any
      */
-    if(tarjan && lowlink_popped >= 0) {
-      if(lowlink_popped < htbl_get_attr(H, id, ATTR_LOWLINK)) {
-        htbl_set_attr(H, id, ATTR_LOWLINK, lowlink_popped);
+    if(state_popped) {
+      state_popped = FALSE;
+
+      /*
+       * in tarjan we update the lowlink of the current state
+       */
+      if(tarjan) {
+        lowlink_popped = htbl_get_attr(H, id_popped, ATTR_LOWLINK);
+        if(lowlink_popped < htbl_get_attr(H, id, ATTR_LOWLINK)) {
+          htbl_set_attr(H, id, ATTR_LOWLINK, lowlink_popped);
+        }
       }
-      lowlink_popped = -1;
+
+      /*
+       * proviso is on: if the current state and its popped successor
+       * are unsafe, we set the unsafe-sucessor bit of the current
+       * state
+       */
+      if(proviso &&
+         !htbl_get_attr(H, id, ATTR_SAFE) &&
+         !htbl_get_attr(H, id_popped, ATTR_SAFE)) {
+        htbl_set_attr(H, id, ATTR_UNSAFE_SUCC, TRUE);
+      }
     }
 
     /**
-     * 1st case: all events of the top state have been executed => the
-     * state has been expanded and we must pop it
+     * 1st case for the state on top of the stack: all its events have
+     * been executed => it must be popped
      **/
     if(dfs_stack_top_expanded(stack)) {
 
       /*
-       * check if proviso is verified.  if not we reexpand the state
+       * proviso is on: if the state to pop does not have unsafe
+       * successors, it become safe.  else if it is marked for revisit
+       * it also become safe and we reexpand it
        */
-      if(por && proviso) {
-        if(!dfs_stack_proviso(stack)) {
+      if(proviso && !htbl_get_attr(H, id, ATTR_SAFE)) {
+        if(!htbl_get_attr(H, id, ATTR_UNSAFE_SUCC)) {
+          htbl_set_attr(H, id, ATTR_SAFE, TRUE);
+        } else if(htbl_get_attr(H, id, ATTR_TO_REVISIT)) {
+          htbl_set_attr(H, id, ATTR_SAFE, TRUE);
           dfs_stack_compute_events(stack, now, FALSE, NULL);
-          if(htbl_has_attr(H, ATTR_SAFE)) {
-            htbl_set_attr(H, id, ATTR_SAFE, TRUE);
-          }
           context_incr_stat(STAT_STATES_REDUCED, w, - 1);
           goto loop_start;
         }
@@ -269,7 +288,9 @@ void * dfs_worker
             htbl_set_attr(H, id_succ, ATTR_LIVE, FALSE);
             darray_push(scc, &id_succ);
           } while (id_succ != id);
-          por_analysis_scc(H, scc);
+          if(!proviso) {
+            por_analysis_scc(H, scc);
+          }
         }
       }
 
@@ -281,14 +302,13 @@ void * dfs_worker
       if(dfs_stack_size(stack)) {
         now = dfs_recover_state(stack, now, w, heap);
       }
-      if(tarjan) {
-        lowlink_popped = htbl_get_attr(H, id, ATTR_LOWLINK);
-      }
+      state_popped = TRUE;
+      id_popped = id;
     }
-
+        
     /**
-     * 2nd case: some events of the top state remain to be executed =>
-     * we execute the next one
+     * 2nd case for the state on top of the stack: some of its events
+     * remain to be executed => we execute the next one
      **/
     else {
       
@@ -320,12 +340,12 @@ void * dfs_worker
       if(blue) {
 	context_incr_stat(STAT_ARCS, w, 1);
         push = is_new
-          || ((!htbl_get_attr(H, id_succ, ATTR_BLUE)) &&
-              (!htbl_get_worker_attr(H, id_succ, ATTR_CYAN, w)));
+          || (!(on_stack = htbl_get_worker_attr(H, id_succ, ATTR_CYAN, w)) &&
+              !htbl_get_attr(H, id_succ, ATTR_BLUE));
       } else {
         push = is_new
-          || ((!htbl_get_attr(H, id_succ, ATTR_RED)) &&
-              (!htbl_get_worker_attr(H, id_succ, ATTR_PINK, w)));
+          || (!(on_stack = htbl_get_worker_attr(H, id_succ, ATTR_PINK, w)) &&
+              !htbl_get_attr(H, id_succ, ATTR_RED));
       }
 
       if(push) { /* successor state must be explored */
@@ -343,14 +363,15 @@ void * dfs_worker
             htbl_set_attr(H, id, ATTR_LOWLINK, index_other);
           }
         }
-        
+
         /*
-         * if the successor is on the stack the proviso is not
-         * verified for the current state
+         * proviso is on: if the state is on the stack and the current
+         * state is unsafe, we set the unsafe-successor flag of the
+         * current state and the to-revisit flag of the sucessor
          */
-        if(por && proviso &&
-           htbl_get_worker_attr(H, id_succ, ATTR_CYAN, w)) {
-          dfs_stack_unset_proviso(stack);
+        if(proviso && on_stack && !htbl_get_attr(H, id, ATTR_SAFE)) {
+          htbl_set_attr(H, id, ATTR_UNSAFE_SUCC, TRUE);
+          htbl_set_attr(H, id_succ, ATTR_TO_REVISIT, TRUE);          
         }
       }
     }

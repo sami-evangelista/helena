@@ -11,7 +11,6 @@ typedef struct {
   event_t e;
   bool_t e_set;
   mem_size_t heap_pos;
-  bool_t prov_ok;
   bool_t fully_expanded;
   state_t s;
 } dfs_stack_item_t;
@@ -142,7 +141,6 @@ void dfs_stack_write
     fwrite(&item.id, sizeof(htbl_id_t), 1, f);
 
     /*  por info  */
-    fwrite(&item.prov_ok, sizeof(bool_t), 1, f);
     fwrite(&item.fully_expanded, sizeof(bool_t), 1, f);
 
     /*  state  */
@@ -187,8 +185,7 @@ void dfs_stack_read
     /*  state id  */
     fread(&item.id, sizeof(htbl_id_t), 1, f);
 
-    /*  proviso info  */
-    fread(&item.prov_ok, sizeof(bool_t), 1, f);
+    /*  por info  */
     fread(&item.fully_expanded, sizeof(bool_t), 1, f);
 
     /*  state  */
@@ -293,11 +290,9 @@ event_list_t dfs_stack_compute_events
   
   if(filter) {
     result = state_events_reduced_mem(s, &reduced, h);
-    item.prov_ok = TRUE;
     item.fully_expanded = !reduced;
   } else {
     result = state_events_mem(s, h);
-    item.prov_ok = TRUE;
     item.fully_expanded = TRUE;
   }
   if(e != NULL) {
@@ -332,11 +327,6 @@ void dfs_stack_event_undo
   event_undo(item.e, s);
 }
 
-void dfs_stack_unset_proviso
-(dfs_stack_t stack) {
-  stack->blocks[stack->current]->items[stack->top].prov_ok = FALSE;
-}
-
 bool_t dfs_stack_top_expanded
 (dfs_stack_t stack) {
   dfs_stack_item_t item = stack->blocks[stack->current]->items[stack->top];
@@ -350,14 +340,6 @@ bool_t dfs_stack_fully_expanded
   
   item = stack->blocks[stack->current]->items[stack->top];
   return item.fully_expanded;
-}
-
-bool_t dfs_stack_proviso
-(dfs_stack_t stack) {
-  dfs_stack_item_t item;
-  
-  item = stack->blocks[stack->current]->items[stack->top];
-  return item.prov_ok || item.fully_expanded;
 }
 
 void dfs_stack_create_trace

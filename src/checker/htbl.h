@@ -34,7 +34,9 @@ typedef enum {
   ATTR_INDEX,
   ATTR_LOWLINK,
   ATTR_LIVE,
-  ATTR_SAFE
+  ATTR_SAFE,
+  ATTR_UNSAFE_SUCC,
+  ATTR_TO_REVISIT
 } attr_state_t;
 
 typedef struct struct_htbl_t * htbl_t;

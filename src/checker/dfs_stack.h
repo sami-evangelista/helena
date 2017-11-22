@@ -133,26 +133,9 @@ void dfs_stack_event_undo
 
 
 /**
- * @brief Unset the proviso of the state on top of the stack to
- *        indicate it has to be later fully expanded by the DFS
- *        algorithm.
- */
-void dfs_stack_unset_proviso
-(dfs_stack_t stack);
-
-
-/**
  * @brief Check if the state on top of the stack has been expanded.
  */
 bool_t dfs_stack_top_expanded
-(dfs_stack_t stack);
-
-
-/**
- * @brief Check if the POR proviso has been verified for the state on
- *        top of the stack.
- */
-bool_t dfs_stack_proviso
 (dfs_stack_t stack);
 
 
