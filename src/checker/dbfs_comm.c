@@ -89,7 +89,7 @@ void dbfs_comm_reinit_buffer
   uint32_t i;
 
   for(i = 0; i < BUF.no_ids[w][pe]; i ++) {
-    htbl_erase(BUF.states[w][pe], 0, BUF.ids[w][pe][i]);
+    htbl_erase(BUF.states[w][pe], BUF.ids[w][pe][i]);
   }
   htbl_reset(BUF.states[w][pe]);
   BUF.len[w][pe] = 0;
@@ -214,7 +214,7 @@ void dbfs_comm_process_state
   /**
    * insert the state in table
    */
-  htbl_insert_hashed(BUF.states[w][pe], s, 0, h, &is_new, &id);
+  htbl_insert_hashed(BUF.states[w][pe], s, h, &is_new, &id);
   if(is_new) {
     BUF.len[w][pe] += sizeof(hash_key_t) + sizeof(uint16_t) + len;
     BUF.ids[w][pe][BUF.no_ids[w][pe]] = id;
@@ -273,7 +273,7 @@ bool_t dbfs_comm_worker_process_incoming_states
           
               /* insert the state */
               htbl_insert_serialised(H, buffer + tmp_pos, s_len,
-                                     h, w, &is_new, &sid);
+                                     h, &is_new, &sid);
               tmp_pos += s_len;
 
               /**

@@ -302,7 +302,7 @@ package body Pn.Compiler.Graph is
          Plc(L, 1, "data->proj->" & C & ".heap = s->" & C & ".heap;");
          Plc(L, "#if CFG_ACTION_BUILD_GRAPH == 1");
 	 Plc(L, 1, "htbl_insert(data->tbl, data->proj, " &
-	       "0, &b, &id, &h);");
+	       "&b, &id, &h);");
          Plc(L, "#endif");
 	 Plc(L, 1, Local_State_Init_Func(P) &
 	       "(data->proj->" & C & ", SYSTEM_HEAP);");

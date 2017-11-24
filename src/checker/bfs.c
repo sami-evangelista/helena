@@ -191,7 +191,7 @@ void * bfs_worker
           succ = state_succ_mem(s, e, heap);
 #endif
           if(!CFG_ALGO_DBFS) {
-            htbl_insert(H, succ, w, &is_new, &id_succ, &h);
+            htbl_insert(H, succ, &is_new, &id_succ, &h);
           } else {
             h = state_hash(succ);
             if(!dbfs_comm_state_owned(h)) {
@@ -199,7 +199,7 @@ void * bfs_worker
               bfs_back_to_s();
               continue;
             }
-            htbl_insert_hashed(H, succ, w, h, &is_new, &id_succ);
+            htbl_insert_hashed(H, succ, h, &is_new, &id_succ);
           }
 
           /**
@@ -298,7 +298,7 @@ void bfs
   }
   
   if(enqueue) {
-    htbl_insert(H, s, 0, &is_new, &id, &h);
+    htbl_insert(H, s, &is_new, &id, &h);
     w = h % CFG_NO_WORKERS;
     item.id = id;
     item.s = s;

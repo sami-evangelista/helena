@@ -171,7 +171,6 @@ void * ddfs_comm_producer
 void * ddfs_comm_consumer
 (void * arg) {
   const comm_worker_id_t c = (comm_worker_id_t) (uint64_t) arg;
-  const worker_id_t w = c + CFG_NO_WORKERS;
   bool_t f = FALSE;
   int pe;
   void * pos;
@@ -224,7 +223,7 @@ void * ddfs_comm_consumer
        
 	    if(CFG_HASH_COMPACTION) {
 	      htbl_insert_serialised(H, pos, s_char_len,
-                                         h, w, &is_new, &sid);
+                                     h, &is_new, &sid);
 	    } else {
 	    
 	      /*  get state vector char length  */
@@ -232,7 +231,7 @@ void * ddfs_comm_consumer
 	      pos += sizeof(uint16_t);
             
 	      /*  get state vector and insert it  */
-	      htbl_insert_serialised(H, pos, s_char_len, h, w, &is_new, &sid);
+	      htbl_insert_serialised(H, pos, s_char_len, h, &is_new, &sid);
 	      pos += s_char_len;
 	    }
 

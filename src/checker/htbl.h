@@ -95,7 +95,6 @@ bool_t htbl_contains
 void htbl_insert
 (htbl_t tbl,
  state_t s,
- worker_id_t w,
  bool_t * is_new,
  htbl_id_t * id,
  hash_key_t * h);
@@ -107,7 +106,6 @@ void htbl_insert
 void htbl_insert_hashed
 (htbl_t tbl,
  state_t s,
- worker_id_t w,
  hash_key_t h,
  bool_t * is_new,
  htbl_id_t * id);
@@ -121,7 +119,6 @@ void htbl_insert_serialised
  bit_vector_t s,
  uint16_t s_char_len,
  hash_key_t h,
- worker_id_t w,
  bool_t * is_new,
  htbl_id_t * id);
 
@@ -131,7 +128,6 @@ void htbl_insert_serialised
  */
 void htbl_erase
 (htbl_t tbl,
- worker_id_t w,
  htbl_id_t id);
 
 

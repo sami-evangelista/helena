@@ -136,7 +136,7 @@ void * dfs_worker
   /*
    * insert the initial state and push it on the stack
    */
-  htbl_insert(H, now, w, &is_new, &id, &h);
+  htbl_insert(H, now, &is_new, &id, &h);
   dfs_push_new_state(id, TRUE);
 
   /*
@@ -324,7 +324,7 @@ void * dfs_worker
       /*
        * try to insert the successor
        */
-      htbl_insert(H, now, w, &is_new, &id_succ, &h);
+      htbl_insert(H, now, &is_new, &id_succ, &h);
 
       /*
        * if we check an LTL property and are in the red search, test

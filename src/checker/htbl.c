@@ -53,7 +53,6 @@ struct struct_htbl_t {
   uint16_t no_workers;
   uint64_t hash_size;
   heap_t heap;
-  int64_t * size;
   hash_key_t * hash;
   bucket_status_t * update_status;
   bucket_status_t * status;
@@ -105,7 +104,6 @@ htbl_t htbl_new
   result->heap = use_system_heap ? SYSTEM_HEAP : local_heap_new();
   result->no_workers = no_workers;
   result->hash_size = hash_size;
-  result->size = mem_alloc(heap, no_workers * sizeof(uint64_t));
   result->hash = mem_alloc(heap, hash_size * sizeof(hash_key_t));
   result->status = mem_alloc(heap, hash_size * sizeof(bucket_status_t));
   result->update_status = mem_alloc(heap, hash_size * sizeof(bucket_status_t));
@@ -115,9 +113,6 @@ htbl_t htbl_new
   } else {
     result->state = mem_alloc(heap, hash_size * sizeof(bit_vector_t));
     result->state_len = mem_alloc(heap, hash_size * sizeof(uint16_t));
-  }
-  for(w = 0; w < result->no_workers; w ++) {
-    result->size[w] = 0;
   }
   for(i = 0; i < result->hash_size; i++) {
     result->update_status[i] = BUCKET_READY;
@@ -186,7 +181,6 @@ void htbl_free
     mem_free(SYSTEM_HEAP, tbl->state);
     mem_free(SYSTEM_HEAP, tbl->state_len);
   }
-  mem_free(SYSTEM_HEAP, tbl->size);
   mem_free(SYSTEM_HEAP, tbl->hash);
   mem_free(SYSTEM_HEAP, tbl->status);
   mem_free(SYSTEM_HEAP, tbl->update_status);
@@ -204,11 +198,7 @@ void htbl_reset
 uint64_t htbl_size
 (htbl_t tbl) {
   uint64_t result = 0;
-  worker_id_t w;
   
-  for(w = 0; w < tbl->no_workers; w ++) {
-    result += tbl->size[w];
-  }
   return result;
 }
 
@@ -250,7 +240,6 @@ bool_t htbl_contains
 void htbl_insert_real
 (htbl_t tbl,
  state_t * s,
- worker_id_t w,
  bit_vector_t se,
  uint16_t se_char_len,
  bool_t * is_new,
@@ -302,7 +291,6 @@ void htbl_insert_real
       }
       tbl->hash[pos] = *h;
       tbl->status[pos] = BUCKET_READY;
-      tbl->size[w] ++;
       (*is_new) = TRUE;
       (*id) = pos;
       return;
@@ -351,21 +339,19 @@ void htbl_insert_real
 void htbl_insert
 (htbl_t tbl,
  state_t s,
- worker_id_t w,
  bool_t * is_new,
  htbl_id_t * id,
  hash_key_t * h) {
-  htbl_insert_real(tbl, &s, w, NULL, 0, is_new, id, h, FALSE);
+  htbl_insert_real(tbl, &s, NULL, 0, is_new, id, h, FALSE);
 }
 
 void htbl_insert_hashed
 (htbl_t tbl,
  state_t s,
- worker_id_t w,
  hash_key_t h,
  bool_t * is_new,
  htbl_id_t * id) {
-  htbl_insert_real(tbl, &s, w, NULL, 0, is_new, id, &h, TRUE);
+  htbl_insert_real(tbl, &s, NULL, 0, is_new, id, &h, TRUE);
 }
 
 void htbl_insert_serialised
@@ -373,10 +359,9 @@ void htbl_insert_serialised
  bit_vector_t s,
  uint16_t s_char_len,
  hash_key_t h,
- worker_id_t w,
  bool_t * is_new,
  htbl_id_t * id) {
-  htbl_insert_real(tbl, NULL, w, s, s_char_len, is_new, id, &h, TRUE);
+  htbl_insert_real(tbl, NULL, s, s_char_len, is_new, id, &h, TRUE);
 }
 
 state_t htbl_get
@@ -488,7 +473,6 @@ bool_t htbl_get_any_cyan
 
 void htbl_erase
 (htbl_t tbl,
- worker_id_t w,
  htbl_id_t id) {
   if(tbl->hash_compaction) {
     memset(tbl->hc_attrs + id * tbl->attrs_char_size, 0, tbl->attrs_char_size);
@@ -498,7 +482,6 @@ void htbl_erase
   }
   tbl->status[id] = BUCKET_EMPTY;
   tbl->update_status[id] = BUCKET_READY;
-  tbl->size[w] --;
 }
 
 void htbl_get_serialised
