@@ -50,7 +50,8 @@ GENERAL_OPTS = ("General options",
 SEARCH_OPTS = ("Search and storage options",
                [ "A", "t", "W", "R", "cs" ])
 REDUCTION_OPTS = ("Reduction techniques",
-                  [ "H", "P", "E" ])
+                  [ "H", "P"#, "E"
+                  ])
 LIMIT_OPTS = ("Limit options",
               [ "ml", "tl", "sl" ])
 MODEL_OPTS = ("Model options",
@@ -185,12 +186,12 @@ preserves the existence of deadlock states."""
 Force the use of proviso of partial-order reduction.  It is turned on
 by default if a property (different from deadlock absence) is
 analysed."""
-    elif o in [ "E", "edge-lean" ]:
-        return """-E[={0|1}], --edge-lean[={0|1}]
-
-Activate/deactivate edge-lean reduction.  This one allows to prune
-some arcs of the reachability graph, hence reducing the search
-time."""
+#    elif o in [ "E", "edge-lean" ]:
+#        return """-E[={0|1}], --edge-lean[={0|1}]
+#
+#Activate/deactivate edge-lean reduction.  This one allows to prune
+#some arcs of the reachability graph, hence reducing the search
+#time."""
     elif o in [ "ml", "memory-limit" ]:
         return """-ml=N, --memory-limit=N
 
@@ -253,12 +254,12 @@ must take on e of these three values:
 Activate/deactivate the use of the PAPI (Performance Application
 Programming Interface, see http://icl.utk.edu/papi/) to print
 additional statistics at the end of the search."""
-    elif o in [ "C", "comm-workers" ]:
-        return None
-    elif o in [ "hs", "shmem-heap-size" ]:
-        return None
-    elif o in [ "mf", "machine-file" ]:
-        return None
+#    elif o in [ "C", "comm-workers" ]:
+#        return None
+#    elif o in [ "hs", "shmem-heap-size" ]:
+#        return None
+#    elif o in [ "mf", "machine-file" ]:
+#        return None
     raise Exception
 
 
@@ -280,7 +281,6 @@ def printHelpShort():
    -A   --algo={BFS|DFS|DELTA-DDD|RWALK}
    -t   --hash-size=N
    -W   --workers=N
-   -C   --comm-workers=N
    -R   --random-succs
    -cs  --candidate-set-size=N
  
@@ -288,7 +288,6 @@ def printHelpShort():
    -H   --hash-compaction[={0|1}]
    -P   --partial-order[={0|1}]
    -i   --proviso[={0|1}]
-   -E   --edge-lean[={0|1}]
  
  Limit options
    -ml  --memory-limit=N
@@ -590,8 +589,8 @@ class Config:
                 self.proviso = (val is None) or val == "1"
             elif opt in [ "-D", "--dynamic-partial-order" ]:
                 self.dynamicPartialOrder = (val is None) or val == "1"
-            elif opt in [ "-E", "--edge-lean" ]:
-                self.edgeLean = (val is None) or val == "1"
+            #elif opt in [ "-E", "--edge-lean" ]:
+            #    self.edgeLean = (val is None) or val == "1"
             elif opt in [ "-r", "--run-time-checks" ]:
                 self.runTimeChecks = (val is None) or val == "1"
             elif opt in [ "-H", "--hash-compaction" ]:
@@ -606,17 +605,17 @@ class Config:
                 recognized = self.handleNumericalOption("workers", val)
                 if self.workers == 0:
                     recognized = False
-            elif opt in [ "-C", "--comm-workers" ]:
-                recognized = self.handleNumericalOption("commWorkers", val)
-                if self.commWorkers == 0:
-                    recognized = False
+            #elif opt in [ "-C", "--comm-workers" ]:
+            #    recognized = self.handleNumericalOption("commWorkers", val)
+            #    if self.commWorkers == 0:
+            #        recognized = False
             elif opt in [ "-a", "--capacity" ]:
                 recognized = self.handleNumericalOption("capacity", val)
             elif opt in [ "-cs", "--candidate-set-size" ]:
                 recognized = self.handleNumericalOption("candidateSetSize",
                                                         val)
-            elif opt in [ "-hs", "--shmem-heap-size" ]:
-                recognized = self.handleNumericalOption("shmemHeapSize", val)
+            #elif opt in [ "-hs", "--shmem-heap-size" ]:
+            #    recognized = self.handleNumericalOption("shmemHeapSize", val)
             elif opt in [ "-t", "--hash-size" ]:
                 recognized = self.handleNumericalOption("hashSize", val)
                 if self.hashSize > 32:
@@ -680,8 +679,8 @@ class Config:
             #  option that are handled directly by the helena script
             elif opt in [ "-md", "--model-directory" ]:
                 recognized = True
-            elif opt in [ "-mf", "--machine-file" ]:
-                recognized = True
+            #elif opt in [ "-mf", "--machine-file" ]:
+            #    recognized = True
             elif opt in [ "-g", "--progress" ]:
                 recognized = True
 

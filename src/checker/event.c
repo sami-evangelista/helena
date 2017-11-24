@@ -57,12 +57,14 @@ bool_t event_is_dummy
 
 void event_free
 (event_t e) {
-  mevent_free(e.m);
+  if(!e.dummy) {
+    mevent_free(e.m);
+  }
 }
 
 void event_free_void
 (void * e) {
-  mevent_free(((event_t *) e)->m);
+  event_free(* (event_t *) e);
 }
 
 event_t event_copy

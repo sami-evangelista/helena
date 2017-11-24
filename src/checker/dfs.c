@@ -81,6 +81,8 @@ state_t dfs_recover_state
     if(is_new && blue && (0 == list_size(en))) {                        \
       context_incr_stat(STAT_STATES_DEADLOCK, w, 1);                    \
     }                                                                   \
+    context_set_max_stat(STAT_MAX_DFS_STACK_SIZE, 0,                    \
+                         dfs_stack_size(stack));                        \
     if(check_safety && state_check_property(now, en)) {                 \
       context_faulty_state(now);                                        \
       dfs_stack_create_trace(stack);                                    \

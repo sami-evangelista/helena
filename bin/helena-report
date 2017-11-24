@@ -43,11 +43,17 @@ def formatNumber(n):
 def noFormat(val):
     return val
 
+def nodeValue(n):
+    if len(n.childNodes) == 0:
+        return "NA"
+    else:
+        return n.childNodes[0].nodeValue   
+
 def getBasicNodeValue(n, fmt, space = 0, unit = None):
     result = ""
     l = n.getElementsByTagName("list")
     if len(l) == 0:
-        result = fmt(n.childNodes[0].nodeValue)
+        result = fmt(nodeValue(n))
         if unit is not None:
             result += " " + unit
     else:
@@ -58,7 +64,7 @@ def getBasicNodeValue(n, fmt, space = 0, unit = None):
             if result != "":
                 result += "\n" + (space * " ")
             result += "[node " + str(node) + "] "
-            result += fmt(item.childNodes[0].nodeValue)
+            result += fmt(nodeValue(item))
             if unit is not None:
                 result += " " + unit
             node += 1
@@ -66,7 +72,7 @@ def getBasicNodeValue(n, fmt, space = 0, unit = None):
         if len(sumItem) > 0:
             if result != "":
                 result += "\n" + (space * " ")
-            result += "[sum   ] " + fmt(sumItem[0].childNodes[0].nodeValue)
+            result += "[sum   ] " + fmt(nodeValue(sumItem[0]))
     return result
             
             
@@ -77,6 +83,7 @@ generalInfos = {
     "filePath"                : "File path       ",
     "host"                    : "Host machine    " }
 searchInfos = {
+    "property"                : "Property analysed    ",
     "errorMessage"            : "Error message        " }
 terminationStates = {
     "searchTerminated"        : "Search terminated",
@@ -142,6 +149,7 @@ statistics = {
     "statesUnsafe"            : "  unsafe                  ",
     "arcs"                    : "Transitions               ",
     "bfsLevels"               : "BFS levels                ",
+    "maxDFSStackSize"         : "Max DFS stack size        ",
     "eventsExecuted"          : "Events executed           ",
     "eventsExecutedDDD"       : "  for duplicate detection ",
     "eventsExecutedExpansion" : "  for state expansion     ",
@@ -213,12 +221,11 @@ def printSearchReport(r):
                 line = pref + options[name]
                 if o.nodeName in optionsWithVal:
                     f = optionsWithVal[o.nodeName]
-                    line += f(o.childNodes[0].nodeValue)
+                    line += f(nodeValue(o))
                     if o.nodeName in optionsWithUnits:
                         line += " " + optionsWithUnits[o.nodeName]
                 print line
                 pref = "                           "
-                    
 
 def printStatisticsReport(r):
     c = [ c for c in r.childNodes if c.nodeName in statisticsCategories ]
@@ -248,9 +255,9 @@ def printTraceReport(r):
                 result += d[name](ex, d)
         return result
     def printEnum(e, d):
-        return e.childNodes[0].nodeValue
+        return nodeValue(e)
     def printNum(e, d):
-        return e.childNodes[0].nodeValue
+        return nodeValue(e)
     def printVector(e, d):
         l = e.getElementsByTagName("exprList")[0]
         return "[" + printExprList(l, d) + "]"
@@ -262,7 +269,7 @@ def printTraceReport(r):
         if len(l.childNodes) == 0: return "empty"
         else: return "|" + printExprList(l, d) + "|"
     def printToken(e, d):
-        m = e.getElementsByTagName("mult")[0].childNodes[0].nodeValue
+        m = nodeValue(e.getElementsByTagName("mult")[0])
         l = e.getElementsByTagName("exprList")[0]
         if len(l.childNodes) == 0: l = "epsilon"
         else: l = "<( " + printExprList(l, d) + " )>"
@@ -271,11 +278,11 @@ def printTraceReport(r):
     def printState(e, d):
         descElement = e.getElementsByTagName("stateDescription")
         if len(descElement) > 0:
-            desc = descElement[0].childNodes[0].nodeValue.strip()
+            desc = nodeValue(descElement[0]).strip()
         else:
             desc = "    {" + "\n"
             for s in e.getElementsByTagName("placeState"):
-                p = s.getElementsByTagName("place")[0].childNodes[0].nodeValue
+                p = nodeValue(s.getElementsByTagName("place")[0])
                 l = ""
                 for t in s.getElementsByTagName("token"):
                     if l != "": l += " + "
@@ -289,17 +296,17 @@ def printTraceReport(r):
         for b in bs:
             var = b.getElementsByTagName("var")[0]
             if result != "": result += ", " 
-            result += var.childNodes[0].nodeValue + " = "
+            result += nodeValue(var) + " = "
             e = b.childNodes[1]
             result += d[e.nodeName](e, d)
         return result
     def printEvent(e, d):
         descElement = e.getElementsByTagName("eventDescription")
         if len(descElement) > 0:
-            desc = descElement[0].childNodes[0].nodeValue.strip()
+            desc = nodeValue(descElement[0]).strip()
         else:
             trans = e.getElementsByTagName("transition")
-            trans = trans[0].childNodes[0].nodeValue
+            trans = nodeValue(trans[0])
             l = e.getElementsByTagName("binding")
             desc = "(" + trans
             if len(l) > 0:
@@ -340,6 +347,7 @@ def printDoc(doc):
         "statisticsReport": printStatisticsReport,
         "traceReport"     : printTraceReport }
     report = doc.getElementsByTagName("helenaReport")
+    printDashes(0)
     print "Helena report"
     printDashes(0)
     for e in report[0].childNodes:
@@ -349,6 +357,7 @@ def printDoc(doc):
             print "  " + subReports[name]
             printDashes(2)
             printer[name](e)
+    printDashes(0)
 
 def findReportFile(m):
     if not os.path.isdir(modelsDir):

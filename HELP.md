@@ -130,12 +130,6 @@ during the search.  The reductions done depend on the property
 verified.  If there is no property checked, the reduction done only
 preserves the existence of deadlock states.
 
-### -E[={0|1}], --edge-lean[={0|1}]
-
-Activate/deactivate edge-lean reduction.  This one allows to prune
-some arcs of the reachability graph, hence reducing the search
-time.
-
 ## Limit options
 
 ### -ml=N, --memory-limit=N

@@ -143,7 +143,7 @@ void list_prepend
 (list_t list,
  void * item) {
   list_node_t ptr = mem_alloc(list->heap, sizeof(struct_list_node_t));
-  
+
   ptr->item = mem_alloc(list->heap, list->sizeof_item);
   memcpy(ptr->item, item, list->sizeof_item);
   ptr->prev = NULL;

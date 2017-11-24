@@ -43,6 +43,7 @@ typedef enum {
   STAT_STATES_REDUCED,
   STAT_STATES_UNSAFE,
   STAT_ARCS,
+  STAT_MAX_DFS_STACK_SIZE,
   STAT_AVG_CPU_USAGE,
   STAT_BARRIER_TIME,
   STAT_BFS_LEVELS,
@@ -156,6 +157,11 @@ term_state_t context_termination_state
 ();
 
 void context_incr_stat
+(stat_t stat,
+ worker_id_t w,
+ double val);
+
+void context_set_max_stat
 (stat_t stat,
  worker_id_t w,
  double val);

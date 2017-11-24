@@ -4,12 +4,13 @@
 #include "comm_shmem.h"
 #include "papi_stats.h"
 
-#define NO_STATS 19
+#define NO_STATS 20
 
-#define STAT_TYPE_TIME   0
-#define STAT_TYPE_GRAPH  1
-#define STAT_TYPE_OTHERS 2
-
+typedef enum {
+  STAT_TYPE_TIME,
+  STAT_TYPE_GRAPH,
+  STAT_TYPE_OTHERS
+} stat_type_t;
 
 typedef struct {
   struct timeval start_time;
@@ -127,16 +128,17 @@ void context_output_trace
 (FILE * out) {
   event_t e;
   state_t s = state_initial();
-  list_size_t l;
+  list_iter_t it;
 
   if(CTX->trace) {
     if(list_size(CTX->trace) > CFG_MAX_TRACE_LENGTH) {
       fprintf(out, "<traceTooLong/>\n");
     } else {
       context_state_to_xml(s, out);
-      l = list_size(CTX->trace);
-      while(!list_is_empty(CTX->trace)) {
-        list_pick_first(CTX->trace, &e);
+      for(it = list_get_iter(CTX->trace);
+          !list_iter_at_end(it);
+          it = list_iter_next(it)) {
+        e = * ((event_t *) list_iter_item(it));
         if(!event_is_dummy(e)) {
           context_event_to_xml(e, out);
           event_exec(e, s);
@@ -144,9 +146,8 @@ void context_output_trace
             context_state_to_xml(s, out);
           }
         }
-        event_free(e);
       }
-      if(CFG_TRACE_EVENTS && l > 0) {
+      if(CFG_TRACE_EVENTS && !list_is_empty(CTX->trace) > 0) {
         context_state_to_xml(s, out);
       }
     }
@@ -165,50 +166,52 @@ bool_t context_stat_do_average
 char * context_stat_xml_name
 (stat_t stat) {
   switch(stat) {
-  case STAT_STATES_STORED:    return "statesStored";
-  case STAT_STATES_PROCESSED: return "statesProcessed";
-  case STAT_STATES_DEADLOCK:  return "statesTerminal";
-  case STAT_STATES_ACCEPTING: return "statesAccepting";
-  case STAT_STATES_REDUCED:   return "statesReduced";
-  case STAT_STATES_UNSAFE:    return "statesUnsafe";
-  case STAT_ARCS:             return "arcs";
-  case STAT_BFS_LEVELS:       return "bfsLevels";
-  case STAT_EVENT_EXEC:       return "eventsExecuted";
-  case STAT_EVENT_EXEC_DDD:   return "eventsExecutedDDD";
-  case STAT_BYTES_SENT:       return "bytesSent";
-  case STAT_MAX_MEM_USED:     return "maxMemoryUsed";
-  case STAT_AVG_CPU_USAGE:    return "avgCPUUsage";
-  case STAT_SEARCH_TIME:      return "searchTime";
-  case STAT_SLEEP_TIME:       return "sleepTime";
-  case STAT_BARRIER_TIME:     return "barrierTime";
-  case STAT_DDD_TIME:         return "duplicateDetectionTime";
-  case STAT_COMP_TIME:        return "compilationTime";
+  case STAT_STATES_STORED:      return "statesStored";
+  case STAT_STATES_PROCESSED:   return "statesProcessed";
+  case STAT_STATES_DEADLOCK:    return "statesTerminal";
+  case STAT_STATES_ACCEPTING:   return "statesAccepting";
+  case STAT_STATES_REDUCED:     return "statesReduced";
+  case STAT_STATES_UNSAFE:      return "statesUnsafe";
+  case STAT_ARCS:               return "arcs";
+  case STAT_MAX_DFS_STACK_SIZE: return "maxDFSStackSize";
+  case STAT_BFS_LEVELS:         return "bfsLevels";
+  case STAT_EVENT_EXEC:         return "eventsExecuted";
+  case STAT_EVENT_EXEC_DDD:     return "eventsExecutedDDD";
+  case STAT_BYTES_SENT:         return "bytesSent";
+  case STAT_MAX_MEM_USED:       return "maxMemoryUsed";
+  case STAT_AVG_CPU_USAGE:      return "avgCPUUsage";
+  case STAT_SEARCH_TIME:        return "searchTime";
+  case STAT_SLEEP_TIME:         return "sleepTime";
+  case STAT_BARRIER_TIME:       return "barrierTime";
+  case STAT_DDD_TIME:           return "duplicateDetectionTime";
+  case STAT_COMP_TIME:          return "compilationTime";
   default:
     assert(FALSE);
   }
 }
 
-uint8_t context_stat_type
+stat_type_t context_stat_type
 (stat_t stat) {
   switch(stat) {
-  case STAT_STATES_STORED:    return STAT_TYPE_GRAPH;
-  case STAT_STATES_PROCESSED: return STAT_TYPE_GRAPH;
-  case STAT_STATES_DEADLOCK:  return STAT_TYPE_GRAPH;
-  case STAT_STATES_ACCEPTING: return STAT_TYPE_GRAPH;
-  case STAT_STATES_REDUCED:   return STAT_TYPE_GRAPH;
-  case STAT_STATES_UNSAFE:    return STAT_TYPE_GRAPH;
-  case STAT_ARCS:             return STAT_TYPE_GRAPH;
-  case STAT_BFS_LEVELS:       return STAT_TYPE_GRAPH;
-  case STAT_EVENT_EXEC:       return STAT_TYPE_OTHERS;
-  case STAT_EVENT_EXEC_DDD:   return STAT_TYPE_OTHERS;
-  case STAT_BYTES_SENT:       return STAT_TYPE_OTHERS;
-  case STAT_MAX_MEM_USED:     return STAT_TYPE_OTHERS;
-  case STAT_AVG_CPU_USAGE:    return STAT_TYPE_OTHERS;
-  case STAT_SEARCH_TIME:      return STAT_TYPE_TIME;
-  case STAT_SLEEP_TIME:       return STAT_TYPE_TIME;
-  case STAT_BARRIER_TIME:     return STAT_TYPE_TIME;
-  case STAT_COMP_TIME:        return STAT_TYPE_TIME;
-  case STAT_DDD_TIME:         return STAT_TYPE_TIME;
+  case STAT_STATES_STORED:      return STAT_TYPE_GRAPH;
+  case STAT_STATES_PROCESSED:   return STAT_TYPE_GRAPH;
+  case STAT_STATES_DEADLOCK:    return STAT_TYPE_GRAPH;
+  case STAT_STATES_ACCEPTING:   return STAT_TYPE_GRAPH;
+  case STAT_STATES_REDUCED:     return STAT_TYPE_GRAPH;
+  case STAT_STATES_UNSAFE:      return STAT_TYPE_GRAPH;
+  case STAT_ARCS:               return STAT_TYPE_GRAPH;
+  case STAT_BFS_LEVELS:         return STAT_TYPE_GRAPH;
+  case STAT_MAX_DFS_STACK_SIZE: return STAT_TYPE_GRAPH;
+  case STAT_EVENT_EXEC:         return STAT_TYPE_OTHERS;
+  case STAT_EVENT_EXEC_DDD:     return STAT_TYPE_OTHERS;
+  case STAT_BYTES_SENT:         return STAT_TYPE_OTHERS;
+  case STAT_MAX_MEM_USED:       return STAT_TYPE_OTHERS;
+  case STAT_AVG_CPU_USAGE:      return STAT_TYPE_OTHERS;
+  case STAT_SEARCH_TIME:        return STAT_TYPE_TIME;
+  case STAT_SLEEP_TIME:         return STAT_TYPE_TIME;
+  case STAT_BARRIER_TIME:       return STAT_TYPE_TIME;
+  case STAT_COMP_TIME:          return STAT_TYPE_TIME;
+  case STAT_DDD_TIME:           return STAT_TYPE_TIME;
   default:
     assert(FALSE);
   }
@@ -265,7 +268,7 @@ void context_stat_to_xml
 }
 
 void context_stats_to_xml
-(stat_t stat_type,
+(stat_type_t stat_type,
  FILE * out) {
   int i;
 
@@ -318,7 +321,7 @@ void finalise_context
     fprintf(out, "<host>%s (pid = %d)</host>\n", name, getpid());
     fprintf(out, "</infoReport>\n");
     fprintf(out, "<searchReport>\n");
-    if(CFG_PROPERTY) {
+    if(strcmp("", CFG_PROPERTY)) {
       fprintf(out, "<property>%s</property>\n", CFG_PROPERTY);
     }
     fprintf(out, "<searchResult>");
@@ -343,7 +346,7 @@ void finalise_context
       fprintf(out, "error"); break;
     }
     fprintf(out, "</searchResult>\n");
-    if(CTX->term_state == TERM_ERROR && CTX->error_raised) {
+    if(CTX->term_state == TERM_ERROR && CTX->error_raised && CTX->error_msg) {
       fprintf(out, "<errorMessage>%s</errorMessage>\n", CTX->error_msg);
     }
     fprintf(out, "<searchOptions>\n");
@@ -452,7 +455,6 @@ void finalise_context
     }
     pthread_mutex_destroy(&CTX->ctx_mutex);
   }
-  
   if(CTX->error_raised) {
     free(CTX->error_msg);
   }
@@ -485,11 +487,12 @@ void context_faulty_state
 void context_set_trace
 (event_list_t trace) {
   pthread_mutex_lock(&CTX->ctx_mutex);
-  if(CTX->keep_searching) {
-    CTX->trace = trace;
-    CTX->keep_searching = FALSE;
-    CTX->term_state = TERM_FAILURE;
+  if(CTX->trace) {
+    list_free(CTX->trace);
   }
+  CTX->trace = trace;
+  CTX->keep_searching = FALSE;
+  CTX->term_state = TERM_FAILURE;
   pthread_mutex_unlock(&CTX->ctx_mutex);
 }
 
@@ -641,4 +644,14 @@ double context_get_stat
     result += CTX->stat[stat][w];
   }
   return result;
+}
+
+void context_set_max_stat
+(stat_t stat,
+ worker_id_t w,
+ double val) {
+  if(val > CTX->stat[stat][w]) {
+    CTX->stat[stat][w] = val;
+  }
+  CTX->stat_set[stat] = TRUE;
 }
