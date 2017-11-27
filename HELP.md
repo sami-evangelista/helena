@@ -190,7 +190,7 @@ some statistics.
 ### -tr=TYPE, --trace-type=TYPE
 
 Specify the type of trace (i.e., counter-example) displayed.  TYPE
-must take on e of these three values:
+must take one of these three values:
 * FULL - The full trace is displayed.
 * EVENTS - Only the sequence of events, the initial and the final
    faulty states are displayed.  Intermediary states are not
