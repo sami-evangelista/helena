@@ -266,7 +266,7 @@ def printHelpShort():
     print """usage: helena [options] my-net.lna
  
  General options
-   -h   --help
+   -h   --help[=opt]
    -V   --version
    -v   --verbose
    -N   --action={EXPLORE|SIMULATE|BUILD-GRAPH|CHECK-prop}
@@ -280,7 +280,7 @@ def printHelpShort():
    -A   --algo={BFS|DFS|DELTA-DDD|RWALK}
    -t   --hash-size=N
    -W   --workers=N
-   -R   --random-succs
+   -R   --random-succs[={0|1}]
    -cs  --candidate-set-size=N
  
  Reduction techniques
