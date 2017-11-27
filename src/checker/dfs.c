@@ -10,8 +10,13 @@
 #include "por_analysis.h"
 
 /*
- * TODO: if edge-lean is turned on, DFS may report a deadlock whereas
- * it's just edge-lean that removed all enabled transitions.  fix this
+ * TODO:
+ *
+ * if edge-lean is turned on, DFS may report a deadlock whereas it's
+ * just edge-lean that removed all enabled transitions
+ *
+ * possible deadlocks when combining hash-compaction and cndfs
+ *
  */
 
 #if CFG_ALGO_DDFS == 0 && CFG_ALGO_DFS == 0 && CFG_ALGO_TARJAN == 0
@@ -257,7 +262,8 @@ void * dfs_worker
             for(i = 0; i < darray_size(red_states); i ++) {
               proc = * ((red_processed_t *) darray_get(red_states, i));
               if(proc.accepting && proc.id != id) {
-                while(!htbl_get_attr(H, proc.id, ATTR_RED)) {
+                while(!htbl_get_attr(H, proc.id, ATTR_RED)
+                      && context_keep_searching()) {
                   context_sleep(DFS_WAIT_RED_SLEEP_TIME);
                 }
               }

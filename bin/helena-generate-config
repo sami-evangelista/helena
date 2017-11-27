@@ -50,8 +50,7 @@ GENERAL_OPTS = ("General options",
 SEARCH_OPTS = ("Search and storage options",
                [ "A", "t", "W", "R", "cs" ])
 REDUCTION_OPTS = ("Reduction techniques",
-                  [ "H", "P"#, "E"
-                  ])
+                  [ "H", "P", "i" ])
 LIMIT_OPTS = ("Limit options",
               [ "ml", "tl", "sl" ])
 MODEL_OPTS = ("Model options",

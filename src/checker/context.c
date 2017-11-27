@@ -4,7 +4,7 @@
 #include "comm_shmem.h"
 #include "papi_stats.h"
 
-#define NO_STATS 20
+#define NO_STATS 19
 
 typedef enum {
   STAT_TYPE_TIME,
@@ -475,12 +475,13 @@ void context_stop_search
 void context_faulty_state
 (state_t s) {
   pthread_mutex_lock(&CTX->ctx_mutex);
-  if(CTX->keep_searching) {
-    CTX->faulty_state = state_copy(s);
-    CTX->keep_searching = FALSE;
-    CTX->term_state = TERM_FAILURE;
-    CTX->faulty_state_found = TRUE;
+  if(CTX->faulty_state) {
+    state_free(CTX->faulty_state);
   }
+  CTX->faulty_state = state_copy(s);
+  CTX->keep_searching = FALSE;
+  CTX->term_state = TERM_FAILURE;
+  CTX->faulty_state_found = TRUE;
   pthread_mutex_unlock(&CTX->ctx_mutex);
 }
 

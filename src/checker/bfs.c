@@ -160,10 +160,9 @@ void * bfs_worker
          *  check the state property
          */
         if(CFG_ACTION_CHECK_SAFETY && state_check_property(s, en)) {
+          context_faulty_state(s);
           if(with_trace) {
             bfs_report_trace(item.id);
-          } else {
-            context_faulty_state(s);
           }
         }
         

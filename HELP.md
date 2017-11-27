@@ -130,6 +130,12 @@ during the search.  The reductions done depend on the property
 verified.  If there is no property checked, the reduction done only
 preserves the existence of deadlock states.
 
+### -i[={0|1}], --proviso[={0|1}]}
+
+Force the use of proviso of partial-order reduction.  It is turned on
+by default if a property (different from deadlock absence) is
+analysed.
+
 ## Limit options
 
 ### -ml=N, --memory-limit=N
