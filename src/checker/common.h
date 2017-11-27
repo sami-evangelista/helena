@@ -22,7 +22,7 @@ typedef char * bit_vector_t;
  * @typedef hash_key_t
  * @brief a hash value
  */
-typedef uint32_t hash_key_t;
+typedef uint64_t hash_key_t;
 
 
 /**
