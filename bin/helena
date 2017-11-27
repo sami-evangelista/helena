@@ -269,9 +269,25 @@ launchChecker () {
 updateModelDir () {
     dir=$(getModelDir)
     rm -rf $dir/report.xml &> /dev/null
+
+    rmEverything=0
+    #  condition 1 = model file has not changed
     if [ -e $dir/model -a "$(diff $modelFile $dir/model)" != "" ]
     then
-        rm -rf $dir/src/* &> /dev/null
+        rmEverything=1
+    else
+        # condition 2 all = model source files are the same
+        for f in $modelSrcFiles
+        do
+            diff $tmpDir/$f.c $dir/src/$f.c &> /dev/null
+            [ $? != 0 ] && rmEverything=1
+        done
+    fi
+    #  conditions 1 and 2 are met => we do not delete model source files
+    #  otherwise we delete all the content of the source file
+    if [ $rmEverything = 1 ]
+    then
+        rm -rf $dir/src/* &> /dev/null        
     else
         for f in $checkerSrcFiles
         do
