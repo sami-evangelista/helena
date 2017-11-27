@@ -266,6 +266,20 @@ launchChecker () {
     popd &> /dev/null
 }
 
+updateModelDir () {
+    dir=$(getModelDir)
+    rm -rf $dir/report.xml &> /dev/null
+    if [ -e $dir/model -a "$(diff $modelFile $dir/model)" != "" ]
+    then
+        rm -rf $dir/src/* &> /dev/null
+    else
+        for f in $checkerSrcFiles
+        do
+            rm -rf $dir/src/$f* &> /dev/null
+        done
+    fi
+}
+
 ###############################################################################
 
 #####
@@ -403,9 +417,14 @@ fi
 #####
 #  create the model directory and put in it files generated for the
 #  model
-[ -e $(getModelDir) ] && rm -rf $(getModelDir)
-createDirectory $(getModelDir)
-createDirectory $(getModelDir)/src
+if [ -d $(getModelDir) -a -d $(getModelDir)/src ]
+then
+    updateModelDir $(getModelDir)
+else
+    createDirectory $(getModelDir)
+    createDirectory $(getModelDir)/src
+fi
+cp $modelFile $(getModelDir)/model
 mv $tmpDir/* $(getModelDir)/src
 rm -rf $tmpDir
 

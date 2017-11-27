@@ -27,7 +27,6 @@ package body Pn.Compiler.Graph is
       Plh(L, "#include ""htbl.h""");
       Plh(L, "#include ""config.h""");
       Plh(L, "#include ""harray.h""");
-      Plh(L, "#include ""htbl.h""");
       Nlh(L);
       Plh(L, "#define MAX_DEAD 10");
       --=======================================================================
