@@ -669,8 +669,8 @@ class Config:
             #  option that are handled directly by the helena script
             elif opt in [ "-md", "--model-directory" ]:
                 recognized = True
-            elif opt in [ "-mf", "--machine-file" ]:
-                recognized = True
+            #elif opt in [ "-mf", "--machine-file" ]:
+            #    recognized = True
             elif opt in [ "-g", "--progress" ]:
                 recognized = True
 
