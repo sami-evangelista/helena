@@ -9,9 +9,11 @@
 #define WORKER_STATE_BUFFER_LEN 10000
 #define MAX_PES                 100
 
-#define TOKEN_NONE               0
-#define TOKEN_BLACK              1
-#define TOKEN_WHITE              2
+typedef enum {
+  TOKEN_NONE,
+  TOKEN_BLACK,
+  TOKEN_WHITE
+} dbfs_token_t;
 
 #define DBFS_COMM_DEBUG_XXX
 
@@ -23,10 +25,10 @@ typedef struct {
 typedef struct {
   heap_t * heaps[CFG_NO_WORKERS];
   htbl_t * states[CFG_NO_WORKERS];
+  uint32_t * no_states[CFG_NO_WORKERS];
   uint32_t * len[CFG_NO_WORKERS];
   uint32_t * remote_pos[CFG_NO_WORKERS];
   htbl_id_t ** ids[CFG_NO_WORKERS];
-  uint32_t * no_ids[CFG_NO_WORKERS];
 } worker_buffers_t;
 
 const struct timespec COMM_WAIT_TIME = { 0, COMM_WAIT_TIME_MUS * 1000 };
@@ -34,8 +36,8 @@ const struct timespec WORKER_WAIT_TIME = { 0, WORKER_WAIT_TIME_MUS * 1000 };
 
 htbl_t H;
 bfs_queue_t Q;
-pthread_t CW[CFG_NO_COMM_WORKERS];
-heap_t COMM_HEAPS[CFG_NO_COMM_WORKERS];
+pthread_t CW;
+heap_t COMM_HEAPS;
 worker_buffers_t BUF;
 uint32_t DBFS_HEAP_SIZE;
 uint32_t DBFS_HEAP_SIZE_WORKER;
@@ -45,16 +47,16 @@ int ME;
 
 /* termination detection variables */
 bool_t TERM = FALSE;
-uint8_t TERM_COLOR = TOKEN_WHITE;
+dbfs_token_t TERM_COLOR = TOKEN_WHITE;
 bool_t TOKEN_SENT = FALSE;
 
 #define POS_TOKEN 0
-#define POS_TERM sizeof(uint8_t)
+#define POS_TERM sizeof(dbfs_token_t)
 #define POS_DATA                                        \
-  (sizeof(uint8_t) + sizeof(bool_t) +                   \
+  (sizeof(dbfs_token_t) + sizeof(bool_t) +                   \
    sizeof(buffer_data_t) * CFG_NO_WORKERS * PES)
 #define POS_BUFFER(w, pe)                               \
-  (sizeof(uint8_t) + sizeof(bool_t) +                   \
+  (sizeof(dbfs_token_t) + sizeof(bool_t) +                   \
    sizeof(buffer_data_t) * (w + pe * CFG_NO_WORKERS))
 
 
@@ -88,12 +90,12 @@ void dbfs_comm_reinit_buffer
  int pe) {
   uint32_t i;
 
-  for(i = 0; i < BUF.no_ids[w][pe]; i ++) {
+  for(i = 0; i < BUF.no_states[w][pe]; i ++) {
     htbl_erase(BUF.states[w][pe], BUF.ids[w][pe][i]);
   }
   htbl_reset(BUF.states[w][pe]);
   BUF.len[w][pe] = 0;
-  BUF.no_ids[w][pe] = 0;
+  BUF.no_states[w][pe] = 0;
 }
 
 
@@ -122,7 +124,7 @@ void dbfs_comm_send_buffer
   hash_key_t h;
 
 #if defined(DBFS_COMM_DEBUG)
-  assert(htbl_size(BUF.states[w][pe]) <= WORKER_STATE_BUFFER_LEN);
+  assert(BUF.no_states[w][pe] <= WORKER_STATE_BUFFER_LEN);
   assert(pe != ME);
   assert(BUF.len[w][pe] <= DBFS_HEAP_SIZE_WORKER);
 #endif
@@ -137,7 +139,7 @@ void dbfs_comm_send_buffer
    */
   memset(buffer, 0, DBFS_HEAP_SIZE_WORKER);
   pos = 0;
-  for(i = 0; i < BUF.no_ids[w][pe]; i ++) {
+  for(i = 0; i < BUF.no_states[w][pe]; i ++) {
     htbl_get_serialised(BUF.states[w][pe], BUF.ids[w][pe][i],
 			    &s, &size, &h);
     memcpy(buffer + pos, &h, sizeof(hash_key_t));
@@ -153,7 +155,7 @@ void dbfs_comm_send_buffer
   /**
    * send my data to the remote PE
    */
-  data.no_states = htbl_size(BUF.states[w][pe]);
+  data.no_states = BUF.no_states[w][pe];
   data.len = pos;
 #if defined(DBFS_COMM_DEBUG)
   assert(data.len > 0);
@@ -179,7 +181,7 @@ void dbfs_comm_send_all_pending_states
    * send all buffers content
    */
   for(pe = 0; pe < PES; pe ++) {
-    if(pe != ME && htbl_size(BUF.states[w][pe]) > 0) {
+    if(pe != ME && BUF.no_states[w][pe] > 0) {
       dbfs_comm_send_buffer(w, pe);
     }
   }
@@ -198,7 +200,7 @@ void dbfs_comm_process_state
 
 #if defined(DBFS_COMM_DEBUG)
   assert(ME != pe);
-  assert(htbl_size(BUF.states[w][pe]) <= WORKER_STATE_BUFFER_LEN);
+  assert(BUF.no_states[w][pe] <= WORKER_STATE_BUFFER_LEN);
 #endif
 
   /**
@@ -207,7 +209,7 @@ void dbfs_comm_process_state
    */
   if((BUF.len[w][pe] + sizeof(hash_key_t) + sizeof(uint16_t) + len >
       DBFS_HEAP_SIZE_WORKER)
-     || (BUF.no_ids[w][pe] == WORKER_STATE_BUFFER_LEN)) {
+     || (BUF.no_states[w][pe] == WORKER_STATE_BUFFER_LEN)) {
     dbfs_comm_send_buffer(w, pe);
   }
 
@@ -217,15 +219,15 @@ void dbfs_comm_process_state
   htbl_insert_hashed(BUF.states[w][pe], s, h, &is_new, &id);
   if(is_new) {
     BUF.len[w][pe] += sizeof(hash_key_t) + sizeof(uint16_t) + len;
-    BUF.ids[w][pe][BUF.no_ids[w][pe]] = id;
-    BUF.no_ids[w][pe] ++;
+    BUF.ids[w][pe][BUF.no_states[w][pe]] = id;
+    BUF.no_states[w][pe] ++;
   }
 }
 
 
 bool_t dbfs_comm_worker_process_incoming_states
-(comm_worker_id_t c) {
-  const worker_id_t w = c + CFG_NO_WORKERS;
+() {
+  const worker_id_t w = CFG_NO_WORKERS;
   worker_id_t x, d;
   uint32_t pos, tmp_pos, no_states;
   uint16_t s_len;
@@ -284,9 +286,9 @@ bool_t dbfs_comm_worker_process_incoming_states
                 item.id = sid;
 		d = h % CFG_NO_WORKERS;
 		if(CFG_HASH_COMPACTION) {
-		  heap_reset(COMM_HEAPS[c]);
+		  heap_reset(COMM_HEAPS);
 		  s = state_unserialise_mem(buffer + tmp_pos - s_len,
-                                            COMM_HEAPS[c]);
+                                            COMM_HEAPS);
 		  item.s = s;
 		}
                 bfs_queue_enqueue(Q, item, w, d);
@@ -322,9 +324,9 @@ bool_t dbfs_comm_all_buffers_empty
 
 
 void dbfs_comm_send_token
-(uint8_t token,
+(dbfs_token_t token,
  int pe) {
-  comm_shmem_put(POS_TOKEN, &token, sizeof(uint8_t), pe);
+  comm_shmem_put(POS_TOKEN, &token, sizeof(dbfs_token_t), pe);
 }
 
 
@@ -336,11 +338,11 @@ void dbfs_comm_send_term
 }
 
 
-uint8_t dbfs_comm_recv_token
+dbfs_token_t dbfs_comm_recv_token
 () {
-  uint8_t result;
+  dbfs_token_t result;
   
-  comm_shmem_get(&result, POS_TOKEN, sizeof(uint8_t), ME);
+  comm_shmem_get(&result, POS_TOKEN, sizeof(dbfs_token_t), ME);
   return result;
 }
 
@@ -357,7 +359,7 @@ bool_t dbfs_comm_recv_term
 void dbfs_comm_check_termination
 () {
   int next;
-  uint8_t to_send, token;
+  dbfs_token_t to_send, token;
   bool_t term;
 
   if(bfs_queue_is_empty(Q) && dbfs_comm_all_buffers_empty()) {
@@ -394,7 +396,6 @@ void dbfs_comm_check_termination
 
 void * dbfs_comm_worker
 (void * arg) {
-  const comm_worker_id_t c = (comm_worker_id_t) (uint64_t) arg;
       
   /**
    * sleep a bit and process incoming states.  communicator 0 checks
@@ -402,10 +403,8 @@ void * dbfs_comm_worker
    */
   while(!TERM) {
     context_sleep(COMM_WAIT_TIME);
-    if(!dbfs_comm_worker_process_incoming_states(c)) {
-      if(0 == c) {
-        dbfs_comm_check_termination(c);
-      }
+    if(!dbfs_comm_worker_process_incoming_states()) {
+      dbfs_comm_check_termination();
     }
   }
 }
@@ -416,9 +415,8 @@ void dbfs_comm_start
  bfs_queue_t q) {
   int pe, remote_pos;
   worker_id_t w;
-  comm_worker_id_t c;
   buffer_data_t data;
-  uint8_t token;
+  dbfs_token_t token = TOKEN_NONE;
   
   /* shmem initialisation */
   PES = comm_shmem_pes();
@@ -430,8 +428,7 @@ void dbfs_comm_start
   assert(PES <= MAX_PES);
   TERM = FALSE;
   comm_shmem_put(POS_TERM, &TERM, sizeof(bool_t), ME);
-  token = TOKEN_NONE;
-  comm_shmem_put(POS_TOKEN, &token, sizeof(uint8_t), ME);
+  comm_shmem_put(POS_TOKEN, &token, sizeof(dbfs_token_t), ME);
 
   /* initialise global variables */
   Q = q;
@@ -440,7 +437,7 @@ void dbfs_comm_start
     BUF.heaps[w] = mem_alloc(SYSTEM_HEAP, sizeof(heap_t) * PES);
     BUF.ids[w] = mem_alloc(SYSTEM_HEAP, sizeof(htbl_id_t *) * PES);
     BUF.len[w] = mem_alloc(SYSTEM_HEAP, sizeof(uint32_t) * PES);
-    BUF.no_ids[w] = mem_alloc(SYSTEM_HEAP, sizeof(uint32_t) * PES);
+    BUF.no_states[w] = mem_alloc(SYSTEM_HEAP, sizeof(uint32_t) * PES);
     BUF.remote_pos[w] = mem_alloc(SYSTEM_HEAP, sizeof(uint32_t) * PES);
     BUF.states[w] = mem_alloc(SYSTEM_HEAP, sizeof(htbl_t) * PES);
   }
@@ -453,15 +450,14 @@ void dbfs_comm_start
       data.len = 0;
       data.no_states = 0;
       comm_shmem_put(POS_BUFFER(w, pe), &data, sizeof(buffer_data_t), ME);
+      BUF.no_states[w][pe] = 0;
+      BUF.len[w][pe] = 0;
       if(ME == pe) {
         BUF.remote_pos[w][pe] = 0;
-	BUF.no_ids[w][pe] = 0;
-	BUF.len[w][pe] = 0;
       } else {
         BUF.remote_pos[w][pe] = remote_pos;
-        BUF.no_ids[w][pe] = 0;
-        BUF.ids[w][pe] = mem_alloc(SYSTEM_HEAP, sizeof(htbl_id_t)
-				   * WORKER_STATE_BUFFER_LEN);
+        BUF.ids[w][pe] = mem_alloc(SYSTEM_HEAP, sizeof(htbl_id_t) *
+                                   WORKER_STATE_BUFFER_LEN);
         BUF.heaps[w][pe] = local_heap_new();
         BUF.states[w][pe] = htbl_new(FALSE, WORKER_STATE_BUFFER_LEN * 2,
                                      1, FALSE, 0);
@@ -472,10 +468,8 @@ void dbfs_comm_start
   }
   
   /* launch the communicator threads */
-  for(c = 0; c < CFG_NO_COMM_WORKERS; c ++) {
-    COMM_HEAPS[c] = local_heap_new();
-    pthread_create(&CW[c], NULL, &dbfs_comm_worker, (void *) (long) c);
-  }
+  COMM_HEAPS = local_heap_new();
+  pthread_create(&CW, NULL, &dbfs_comm_worker, NULL);
 }
 
 
@@ -484,12 +478,10 @@ void dbfs_comm_end
   void * dummy;
   int pe;
   worker_id_t w;
-  comm_worker_id_t c;
-
-  for(c = 0; c < CFG_NO_COMM_WORKERS; c ++) {
-    pthread_join(CW[c], &dummy);
-    heap_free(COMM_HEAPS[c]);
-  }
+  
+  pthread_join(CW, &dummy);
+  heap_free(COMM_HEAPS);
+  
 #if defined(DBFS_COMM_DEBUG)
   printf("[%d] all communicators terminated\n", ME);
 #endif
@@ -504,7 +496,7 @@ void dbfs_comm_end
     mem_free(SYSTEM_HEAP, BUF.heaps[w]);
     mem_free(SYSTEM_HEAP, BUF.ids[w]);
     mem_free(SYSTEM_HEAP, BUF.len[w]);
-    mem_free(SYSTEM_HEAP, BUF.no_ids[w]);
+    mem_free(SYSTEM_HEAP, BUF.no_states[w]);
     mem_free(SYSTEM_HEAP, BUF.remote_pos[w]);
     mem_free(SYSTEM_HEAP, BUF.states[w]);
   }

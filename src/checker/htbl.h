@@ -73,13 +73,6 @@ void htbl_free
 
 
 /**
- * @brief htbl_size
- */
-uint64_t htbl_size
-(htbl_t tbl);
-
-
-/**
  * @brief htbl_contains
  */
 bool_t htbl_contains

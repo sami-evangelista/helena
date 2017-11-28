@@ -12,8 +12,6 @@
 #define BUFFER_WORKER_SIZE (CFG_SHMEM_HEAP_SIZE / CFG_NO_WORKERS)
 #define BUCKET_OK          1
 #define BUCKET_WRITE       2
-#define LOCK_AVAILABLE     1
-#define LOCK_TAKEN         2
 
 
 typedef struct {
@@ -33,8 +31,7 @@ ddfs_comm_buffers_t BUF;
 htbl_t H;
 uint16_t BASE_LEN;
 pthread_t PROD;
-pthread_t CONS[CFG_NO_COMM_WORKERS];
-uint8_t LOCK;
+pthread_t CONS;
 int PES;
 int ME;
 
@@ -170,7 +167,7 @@ void * ddfs_comm_producer
 
 void * ddfs_comm_consumer
 (void * arg) {
-  const comm_worker_id_t c = (comm_worker_id_t) (uint64_t) arg;
+  const worker_id_t w = CFG_NO_WORKERS;
   bool_t f = FALSE;
   int pe;
   void * pos;
@@ -192,16 +189,10 @@ void * ddfs_comm_consumer
      */
     for(pe = 0; pe < PES; pe ++) {
       if(ME != pe) {
-	while(!CAS(&LOCK, LOCK_AVAILABLE, LOCK_TAKEN)) {
-	  context_sleep(CONSUME_WAIT_TIME);
-	}
 	comm_shmem_get(&remote_data, 0, sizeof(pub_data_t), pe);
-        if(!remote_data.produced[ME]) {
-	  LOCK = LOCK_AVAILABLE;
-	} else {
+        if(remote_data.produced[ME]) {
           comm_shmem_get(buffer, DDFS_COMM_DATA_POS, remote_data.char_len, pe);
           comm_shmem_put(sizeof(bool_t) * ME, &f, sizeof(bool_t), pe);
-	  LOCK = LOCK_AVAILABLE;
           pos = buffer;
           while(remote_data.size --) {
 
@@ -225,15 +216,19 @@ void * ddfs_comm_consumer
 	      htbl_insert_serialised(H, pos, s_char_len,
                                      h, &is_new, &sid);
 	    } else {
-	    
+              
 	      /*  get state vector char length  */
 	      memcpy(&s_char_len, pos, sizeof(uint16_t));
 	      pos += sizeof(uint16_t);
-            
+              
 	      /*  get state vector and insert it  */
 	      htbl_insert_serialised(H, pos, s_char_len, h, &is_new, &sid);
 	      pos += s_char_len;
 	    }
+
+            if(is_new) {
+              context_incr_stat(STAT_STATES_STORED, w, 1);
+            }
 
             /*  set the blue and red attribute of the state  */
             if(blue && htbl_has_attr(H, ATTR_BLUE)) {
@@ -253,7 +248,6 @@ void * ddfs_comm_consumer
 void ddfs_comm_start
 (htbl_t h) {
   worker_id_t w;
-  comm_worker_id_t c;
   int i = 0;
   pub_data_t data;
   
@@ -273,27 +267,21 @@ void ddfs_comm_start
     + (htbl_has_attr(H, ATTR_BLUE) ? sizeof(bool_t) : 0)
     + (htbl_has_attr(H, ATTR_RED) ? sizeof(bool_t) : 0);
   for(i = 0; i < MAX_PES; i ++) {
-    LOCK = LOCK_AVAILABLE;
     data.produced[i] = FALSE;
   }
   comm_shmem_put(0, &data, sizeof(pub_data_t), ME);
 
   /*  launch the producer and consumer threads  */
   pthread_create(&PROD, NULL, &ddfs_comm_producer, NULL);
-  for(c = 0; c < CFG_NO_COMM_WORKERS; c ++) {
-    pthread_create(&CONS[c], NULL, &ddfs_comm_consumer, (void *) (long) c);
-  }
+  pthread_create(&CONS, NULL, &ddfs_comm_consumer, NULL);
 }
 
 void ddfs_comm_end
 () {
-  comm_worker_id_t c;
   void * dummy;
 
   pthread_join(PROD, &dummy);
-  for(c = 0; c < CFG_NO_COMM_WORKERS; c ++) {
-    pthread_join(CONS[c], &dummy);
-  }
+  pthread_join(CONS, &dummy);
 }
 
 #endif

@@ -33,13 +33,6 @@ typedef uint8_t worker_id_t;
 
 
 /**
- * @typedef comm_worker_id_t
- * @brief identifier of a communication thread
- */
-typedef uint8_t comm_worker_id_t;
-
-
-/**
  * @typedef bool_t
  * @brief a boolean value
  */

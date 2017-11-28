@@ -253,8 +253,6 @@ must take one of these three values:
 Activate/deactivate the use of the PAPI (Performance Application
 Programming Interface, see http://icl.utk.edu/papi/) to print
 additional statistics at the end of the search."""
-#    elif o in [ "C", "comm-workers" ]:
-#        return None
 #    elif o in [ "hs", "shmem-heap-size" ]:
 #        return None
 #    elif o in [ "mf", "machine-file" ]:
@@ -369,7 +367,6 @@ class Config:
         self.randomSuccs = False
         self.withObserver = True
         self.workers = 1
-        self.commWorkers = 1
         self.capacity = 1
         self.memoryLimit = 0
         self.timeLimit = 0
@@ -387,7 +384,6 @@ class Config:
         self.propType = None
         self.propositions = []
         self.parameters = []
-        self.ddfsCommStrat = []
         self.hashSize = 22
         self.bfsQueueBlockSize = 10 ** 4
         self.dfsStackBlockSize = 10 ** 4
@@ -504,7 +500,6 @@ class Config:
             ("MEMORY_LIMITED", self.memoryLimit != 0),
             ("MODEL_HAS_GRAPH_ROUTINES", self.language == "lna"),
             ("MODEL_NAME", "\"" + model + "\""),
-            ("NO_COMM_WORKERS", self.commWorkers),
             ("NO_WORKERS", self.workers),
             ("PARALLEL", self.workers > 1),
             ("POR", self.partialOrder),
@@ -604,10 +599,6 @@ class Config:
                 recognized = self.handleNumericalOption("workers", val)
                 if self.workers == 0:
                     recognized = False
-            #elif opt in [ "-C", "--comm-workers" ]:
-            #    recognized = self.handleNumericalOption("commWorkers", val)
-            #    if self.commWorkers == 0:
-            #        recognized = False
             elif opt in [ "-a", "--capacity" ]:
                 recognized = self.handleNumericalOption("capacity", val)
             elif opt in [ "-cs", "--candidate-set-size" ]:
@@ -678,8 +669,8 @@ class Config:
             #  option that are handled directly by the helena script
             elif opt in [ "-md", "--model-directory" ]:
                 recognized = True
-            #elif opt in [ "-mf", "--machine-file" ]:
-            #    recognized = True
+            elif opt in [ "-mf", "--machine-file" ]:
+                recognized = True
             elif opt in [ "-g", "--progress" ]:
                 recognized = True
 

@@ -16,7 +16,6 @@ typedef struct {
   struct timeval start_time;
   struct timeval end_time;
   unsigned int no_workers;
-  unsigned int no_comm_workers;
   unsigned long cpu_total;
   unsigned long utime;
   unsigned long stime;
@@ -50,7 +49,6 @@ void init_context
   worker_id_t w;
   unsigned int i;
   unsigned int no_workers = CFG_NO_WORKERS;
-  unsigned int no_comm_workers = CFG_NO_COMM_WORKERS;
   
   CTX = mem_alloc(SYSTEM_HEAP, sizeof(struct_context_t));
   
@@ -66,9 +64,8 @@ void init_context
    */
   for(i = 0; i < NO_STATS; i ++) {
     CTX->stat_set[i] = FALSE;
-    CTX->stat[i] = mem_alloc(SYSTEM_HEAP,
-                             (no_workers + no_comm_workers) * sizeof(double));
-    for(w = 0; w < no_workers + no_comm_workers; w ++) {
+    CTX->stat[i] = mem_alloc(SYSTEM_HEAP, (no_workers + 1) * sizeof(double));
+    for(w = 0; w < no_workers + 1; w ++) {
       CTX->stat[i][w] = 0.0;
     }
   }
@@ -84,7 +81,6 @@ void init_context
   }
   
   CTX->no_workers = no_workers;
-  CTX->no_comm_workers = no_comm_workers;
   CTX->faulty_state_found = FALSE;
   CTX->trace = NULL;
   CTX->keep_searching = TRUE;
@@ -246,7 +242,7 @@ void context_stat_to_xml
     min = max = CTX->stat[stat][0];
     avg = sum / CFG_NO_WORKERS;
     dev = 0;
-    for(w = 1; w < CTX->no_workers; w ++) {
+    for(w = 1; w < CTX->no_workers + 1; w ++) {
       if(CTX->stat[stat][w] > max) {
         max = CTX->stat[stat][w];
       } else if(CTX->stat[stat][w] < min) {
@@ -370,7 +366,6 @@ void finalise_context
     }
     fprintf(out, "<workers>%d</workers>\n", CTX->no_workers);
     if(CFG_DISTRIBUTED) {
-      fprintf(out, "<commWorkers>%d</commWorkers>\n", CTX->no_comm_workers);
       fprintf(out, "<shmemHeapSize>%d</shmemHeapSize>\n", CFG_SHMEM_HEAP_SIZE);
     }
     if(CFG_POR) {
@@ -641,7 +636,7 @@ double context_get_stat
   worker_id_t w;
   double result = 0;
 
-  for(w = 0; w < CTX->no_workers + CTX->no_comm_workers; w ++) {
+  for(w = 0; w < CTX->no_workers + 1; w ++) {
     result += CTX->stat[stat][w];
   }
   return result;

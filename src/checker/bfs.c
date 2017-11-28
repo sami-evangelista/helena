@@ -47,8 +47,7 @@ void bfs_init_queue
 () {
   bool_t levels = CFG_ALGO_DBFS ? 1 : 2;
   bool_t events_in_queue = CFG_EDGE_LEAN;
-  uint16_t no_workers =
-    CFG_NO_WORKERS + (CFG_ALGO_DBFS ? CFG_NO_COMM_WORKERS : 0);
+  uint16_t no_workers = CFG_NO_WORKERS + (CFG_ALGO_DBFS ? 1 : 0);
   bool_t states_in_queue = CFG_HASH_COMPACTION;
   
   Q = bfs_queue_new(no_workers, CFG_BFS_QUEUE_BLOCK_SIZE,

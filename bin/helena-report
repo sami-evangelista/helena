@@ -111,11 +111,9 @@ options = {
     "candidateSetSize"        : "Candidate set size (for Delta-DDD) = ",
     "hashTableSize"           : "Hash table size = ",
     "shmemHeapSize"           : "SHMEM heap size = ",
-    "workers"                 : "Exploration threads = ",
-    "commWorkers"             : "Communication threads = ", }
+    "workers"                 : "Exploration threads = " }
 optionsWithVal = {
     "workers"                 : formatNumber,
-    "commWorkers"             : formatNumber,
     "shmemHeapSize"           : formatNumber,
     "candidateSetSize"        : formatNumber,
     "hashTableSize"           : formatNumber,

@@ -159,7 +159,7 @@ htbl_t htbl_default_new
   
   no_workers = CFG_NO_WORKERS;
   if(CFG_DISTRIBUTED) {
-    no_workers += CFG_NO_COMM_WORKERS;
+    no_workers ++;
   }
   return htbl_new(no_workers > 1, CFG_HASH_SIZE, no_workers,
                   CFG_HASH_COMPACTION, attrs);
@@ -193,13 +193,6 @@ void htbl_free
 void htbl_reset
 (htbl_t tbl) {
   heap_reset(tbl->heap);
-}
-
-uint64_t htbl_size
-(htbl_t tbl) {
-  uint64_t result = 0;
-  
-  return result;
 }
 
 bool_t htbl_contains
@@ -429,7 +422,7 @@ uint64_t htbl_get_worker_attr
                                                                         \
     BIT_STREAM_INIT_ON_ATTRS(tbl, id, bits);                            \
     bit_stream_move(bits, pos + shift);                                 \
-    if(tbl->no_workers > 0) {                                           \
+    if(tbl->no_workers > 1) {                                           \
       while(!CAS(&tbl->update_status[id],                               \
                  BUCKET_READY, BUCKET_WRITE)) {                         \
         context_sleep(SLEEP_TIME);                                      \
