@@ -16,8 +16,8 @@ import socket
 import sys
 import xml.dom.minidom
 
-VERSION = "2.3"
-DATE    = "April 1, 2013"
+VERSION = "3.0"
+DATE    = "November 29, 2017"
 
 #  actions
 EXPLORE     = "EXPLORE"
