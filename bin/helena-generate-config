@@ -182,9 +182,9 @@ preserves the existence of deadlock states."""
     elif o in [ "i", "proviso" ]:
         return """-i[={0|1}], --proviso[={0|1}]}
 
-Force the use of proviso of partial-order reduction.  It is turned on
-by default if a property (different from deadlock absence) is
-analysed."""
+Activate/deactivate the proviso of partial-order reduction.  It is
+turned on by default if a property (different from deadlock absence)
+is analysed."""
 #    elif o in [ "E", "edge-lean" ]:
 #        return """-E[={0|1}], --edge-lean[={0|1}]
 #

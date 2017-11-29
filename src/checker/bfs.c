@@ -13,8 +13,6 @@
 #if CFG_ALGO_BFS == 0 && CFG_ALGO_DBFS == 0
 
 void bfs() { assert(0); }
-void bfs_progress_report(uint64_t * states_stored) { assert(0); }
-void bfs_finalise() { assert(0); }
 
 #else
 
@@ -105,6 +103,12 @@ void bfs_report_trace
 #define bfs_back_to_s() {state_free(succ);}
 #endif
 
+#if defined(MODEL_EVENT_UNDOABLE)
+#define bfs_goto_succ() {event_exec(e, s); succ = s;}
+#else
+#define bfs_goto_succ() {succ = state_succ_mem(s, e, heap);}
+#endif
+
 void * bfs_worker
 (void * arg) {
   const worker_id_t w = (worker_id_t) (unsigned long int) arg;
@@ -126,8 +130,8 @@ void * bfs_worker
   bool_t is_new, reduced, termination = FALSE;
   
   while(!termination) {
-    for(x = 0; x < bfs_queue_no_workers(Q); x ++) {
-      while(!bfs_queue_slot_is_empty(Q, x, w)) {
+    for(x = 0; x < bfs_queue_no_workers(Q) && context_keep_searching(); x ++) {
+      while(!bfs_queue_slot_is_empty(Q, x, w) && context_keep_searching()) {
  
         /**
          *  get the next state sent by thread x, get its successors
@@ -180,14 +184,9 @@ void * bfs_worker
       state_expansion:
         arcs = 0;
         while(!list_is_empty(en)) {
-          list_pick_first(en, &e);
           arcs ++;
-#if defined(MODEL_EVENT_UNDOABLE)
-          event_exec(e, s);
-          succ = s;
-#else
-          succ = state_succ_mem(s, e, heap);
-#endif
+          list_pick_first(en, &e);
+          bfs_goto_succ();
           if(!CFG_ALGO_DBFS) {
             htbl_insert(H, succ, &is_new, &id_succ, &h);
           } else {
@@ -223,8 +222,7 @@ void * bfs_worker
              *  state is reduced then the successor must be in the
              *  queue (i.e., cyan for some worker)
              */
-            if(por && proviso && reduced &&
-               !htbl_get_any_cyan(H, id_succ)) {
+            if(por && proviso && reduced && !htbl_get_any_cyan(H, id_succ)) {
               reduced = FALSE;
               list_free(en);
               bfs_back_to_s();

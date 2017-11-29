@@ -132,9 +132,9 @@ preserves the existence of deadlock states.
 
 ### -i[={0|1}], --proviso[={0|1}]}
 
-Force the use of proviso of partial-order reduction.  It is turned on
-by default if a property (different from deadlock absence) is
-analysed.
+Activate/deactivate the proviso of partial-order reduction.  It is
+turned on by default if a property (different from deadlock absence)
+is analysed.
 
 ## Limit options
 

@@ -18,9 +18,10 @@ open DveCompilerUtils
 
 fun compileAreIndependent (s: System.system, hFile, cFile) = let
 
+    (*
     val procs = System.getProcs s
     val events = buildEvents s
-		 
+
     fun areIndependent
 	(e1 as (LOCAL (_, p1, t1)),
 	 e2 as (LOCAL (_, p2, t2))) =
@@ -62,7 +63,7 @@ fun compileAreIndependent (s: System.system, hFile, cFile) = let
                            ": return (" ^ test ^ ") ? TRUE : FALSE;"
                   end) events
     val switch = concatLines (List.filter (fn t => t <> "") switch)
-                 
+      *)           
     val prot = concatLines
                    [ "bool_t mevent_are_independent",
                      "(mevent_t e,",
@@ -71,7 +72,7 @@ fun compileAreIndependent (s: System.system, hFile, cFile) = let
                (concatLines [
                      " {",
                      "   switch(e) {",
-                     switch,
+                     (*switch,*)
                      "      default: return FALSE;",
                      "   }",
                      "}" ])

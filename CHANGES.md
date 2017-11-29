@@ -1,8 +1,7 @@
-# Version 3.0
+# Version 3.0 (November 29th, 2017)
 * all search algorithms have been parallelized
-* new reduction: edge-lean (option --edge-lean)
-* support for DVE models (POR, option -P, is not supported for these
-  for now)
+* support for DVE and PNML models (POR, option -P, is not supported
+  for these for now)
 * option --state-caching is deprecated
 * option --algo=frontier is deprecated
 
