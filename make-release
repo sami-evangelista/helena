@@ -3,22 +3,14 @@
 # $1 = numero de version pour la release
 
 TMP_DIR=$(mktemp -d)
-RELEASE_DIR=~/git/helena/releases/
+RELEASE_DIR=~/svn/helena/releases/
+HELENA_SUBDIRS="bin doc examples src xml"
 EXEC="
 helena
 helena-generate-config
-helena-generate-pnml
 helena-graph
 helena-report"
-TO_DEL="
-.git
-.gitignore
-benchs
-examples/beem
-releases
-tests"
 
-    
 #  tests preliminaires
 [ $# -ne 1 ] && echo "il faut le numero de version" && exit -1
 [ -d $RELEASE_DIR/$1 ] && echo "la version existe deja" && exit -1
@@ -29,19 +21,26 @@ cd ..
 tar czf $TMP_DIR/helena.tgz helena
 cd $TMP_DIR
 tar xzf helena.tgz
+rm helena/make-release \
+   helena/TODO
 
-#  supprimer les fichiers dans TO_DEL
+#  supprimer les fichiers ~ crees par emacs
+cd $TMP_DIR
+find . -name \*~ -o -name .git -exec rm -rf {} \;
+
+#  supprime les repertoires qui ne doivent pas apparaitre dans la
+#  distribution
 cd $TMP_DIR/helena
-for d in $TO_DEL
+for i in *
 do
-    cmd="rm -rf $d"
-    echo $cmd
-    eval $cmd
+    [ ! -d $i ] && continue
+    if [ -z "$(echo $HELENA_SUBDIRS | grep $i)" ]
+    then
+	rm -rf $TMP_DIR/helena/$i
+    fi
 done
-find . -name \*~ -exec rm -rf {} \;
 
-#  compile la doc et ne garde que les fichiers pdf dans le repertoire
-#  docs
+#  on ne garde que les fichiers pdf dans le repertoire docs
 cd $TMP_DIR/helena/doc
 echo "Compile la doc"
 make -s all &> /dev/null

@@ -29,7 +29,7 @@ xmlReportFile=report.xml
 xmlReportTmpFile=report.xml.tmp
 xmlGraphReportFile=rg-report.xml
 graphFile=graph.dat
-version=3.0
+version=2.3
 versionFile=VERSION
 
 #  options to pass for basic compilation
