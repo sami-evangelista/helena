@@ -117,6 +117,7 @@ void * bfs_worker
   const bool_t proviso = CFG_PROVISO;
   const bool_t edge_lean = CFG_EDGE_LEAN;
   const bool_t with_trace = CFG_ACTION_CHECK_SAFETY && CFG_ALGO_BFS;
+  const bool_t has_safe_attr = htbl_has_attr(H, ATTR_SAFE);
   uint32_t levels = 0;
   state_t s, succ;
   htbl_id_t id_succ;
@@ -134,9 +135,9 @@ void * bfs_worker
       while(!bfs_queue_slot_is_empty(Q, x, w) && context_keep_searching()) {
  
         /**
-         *  get the next state sent by thread x, get its successors
-         *  and a valid reduced set.  if the states are not stored in
-         *  the queue we get it from the hash table
+         * get the next state sent by thread x, get its successors and
+         * a valid reduced set.  if the states are not stored in the
+         * queue we get it from the hash table
          */
         item = bfs_queue_next(Q, x, w);
         heap_reset(heap);
@@ -147,20 +148,22 @@ void * bfs_worker
         }
 
         /**
-         *  compute enabled events and apply POR
+         * compute enabled events and apply POR
          */
-        if(por) {
+        if(!por) {
+          en = state_events_mem(s, heap);
+        } else {
           en = state_events_reduced_mem(s, &reduced, heap);
           if(reduced) {
             context_incr_stat(STAT_STATES_REDUCED, w, 1);
+          } else if(proviso && has_safe_attr) {
+            htbl_set_attr(H, item.id, ATTR_SAFE, TRUE);
           }
-        } else {
-          en = state_events_mem(s, heap);
         }
 
 
         /**
-         *  check the state property
+         * check the state property
          */
         if(CFG_ACTION_CHECK_SAFETY && state_check_property(s, en)) {
           context_faulty_state(s);
@@ -170,16 +173,16 @@ void * bfs_worker
         }
         
         /**
-         *  apply edge lean reduction after checking state property
-         *  (EDGE-LEAN may remove all enabled events)
+         * apply edge lean reduction after checking state property
+         * (EDGE-LEAN may remove all enabled events)
          */
         if(edge_lean && item.e_set) {
           edge_lean_reduction(en, item.e);
         }
 
         /**
-         *  expand the current state and put its unprocessed
-         *  successors in the queue
+         * expand the current state and put its unprocessed successors
+         * in the queue
          */
       state_expansion:
         arcs = 0;
@@ -200,7 +203,7 @@ void * bfs_worker
           }
 
           /**
-           *  if new, enqueue the successor
+           * if new, enqueue the successor
            */
           if(is_new) {
             y = bfs_thread_owner(h);
@@ -218,16 +221,21 @@ void * bfs_worker
           } else {
 
             /**
-             *  if the successor state is not new and if the current
-             *  state is reduced then the successor must be in the
-             *  queue (i.e., cyan for some worker)
+             * if the successor state is not new and if the current
+             * state is reduced then the successor must be in the
+             * queue (i.e., cyan for some worker) or safe
              */
-            if(por && proviso && reduced && !htbl_get_any_cyan(H, id_succ)) {
+            if(por && proviso && reduced &&
+               !htbl_get_any_cyan(H, id_succ) &&
+               (!has_safe_attr || !htbl_get_attr(H, id_succ, ATTR_SAFE))) {
               reduced = FALSE;
               list_free(en);
               bfs_back_to_s();
               en = state_events_mem(s, heap);
               context_incr_stat(STAT_STATES_REDUCED, w, -1);
+              if(has_safe_attr) {
+                htbl_set_attr(H, item.id, ATTR_SAFE, TRUE);
+              }
               goto state_expansion;
             }
           }
@@ -237,7 +245,7 @@ void * bfs_worker
         list_free(en);
 
         /**
-         *  update some statistics
+         * update some statistics
          */
         if(0 == arcs) {
           context_incr_stat(STAT_STATES_DEADLOCK, w, 1);

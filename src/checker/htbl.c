@@ -153,8 +153,10 @@ htbl_t htbl_default_new
   }
   if(CFG_PROVISO) {
     attrs |= ATTR_ID(ATTR_SAFE);
-    attrs |= ATTR_ID(ATTR_UNSAFE_SUCC);
-    attrs |= ATTR_ID(ATTR_TO_REVISIT);
+    if(CFG_ALGO_DFS) {
+      attrs |= ATTR_ID(ATTR_UNSAFE_SUCC);
+      attrs |= ATTR_ID(ATTR_TO_REVISIT);
+    }
   }
   
   no_workers = CFG_NO_WORKERS;
