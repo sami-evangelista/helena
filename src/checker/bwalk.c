@@ -5,8 +5,8 @@
 #include "htbl.h"
 #include "workers.h"
 
-#define MAX_ITERATION   1000
-#define KEYS_BLOCK_SIZE 65536
+#define MAX_ITERATION 10
+#define BWALK_KEYS_BLOCK_SIZE 65536
 
 void bwalk_key_file_name
 (worker_id_t w,
@@ -42,7 +42,7 @@ void bwalk_sort_keys_aux
             lo_done = TRUE;
           }
         }
-      }        
+      }
       memcpy(&harray[lo], result, sizeof(hash_key_t) * (hi - lo + 1));
     }
   }
@@ -66,7 +66,7 @@ void bwalk_load_keys
   uint32_t i, n = 0;
   hash_key_t h;
   
-  for(i = 0; i < KEYS_BLOCK_SIZE; i ++) {
+  for(i = 0; i < BWALK_KEYS_BLOCK_SIZE; i ++) {
     if(!fread(&h, sizeof(hash_key_t), 1, f)) {
       break;      
     } else {
@@ -93,7 +93,7 @@ uint32_t bwalk_split_key_file
 () {
   FILE * f, * out;
   uint32_t read = 0;
-  hash_key_t harray[KEYS_BLOCK_SIZE];
+  hash_key_t harray[BWALK_KEYS_BLOCK_SIZE];
   uint32_t result = 0;
   char file_name[20];
   
@@ -110,6 +110,7 @@ uint32_t bwalk_split_key_file
       }
     } while(read > 0);
     fclose(f);
+    unlink("keys.dat");
   }
   return result;
 }
@@ -120,8 +121,8 @@ void bwalk_merge_two_sorted_key_files
   uint32_t imin, i, no[2], idx[2] = { 0, 0 }, id[2] = { id1, id2 };
   FILE * in[2], * out;
   char name[2][20];
-  bool_t min_set, loop = TRUE, empty[2] = { FALSE, FALSE };
-  hash_key_t prev, min, harray[2][KEYS_BLOCK_SIZE];
+  bool_t first = TRUE, min_set;
+  hash_key_t prev, harray[2][BWALK_KEYS_BLOCK_SIZE];
 
   /* open files */
   for(i = 0; i < 2; i ++) {
@@ -135,24 +136,40 @@ void bwalk_merge_two_sorted_key_files
     bwalk_load_keys(in[i], harray[i], &no[i]);
   }
 
-  while(loop) {
+  while(no[0] + no[1] > 0) {
 
-    min_set = FALSE;
-    for(i = 0; i < 2; i ++) {
-      if(idx[i] < no[i] && (!min_set || harray[i][idx[i]] < harray[imin][idx[imin]])) {
-        imin = i;
-        min_set = TRUE;
-        printf("ok\n");
+    if(no[0] > 0 && no[1] > 0) {
+      if(harray[0][idx[0]] < harray[1][idx[1]]) {
+	imin = 0;
+      } else {
+	imin = 1;
+      }
+    } else if(no[1] == 0) {
+      imin = 0;
+    } else {
+      imin = 1;
+    }
+    if(first || prev != harray[imin][idx[imin]]) {
+      fwrite(&harray[imin][idx[imin]], sizeof(hash_key_t), 1, out);
+      first = FALSE;
+    }
+    prev = harray[imin][idx[imin]];
+    idx[imin] ++;
+    
+    /* read next items from the file we took the min element from */
+    if(idx[imin] == no[imin]) {
+      idx[imin] = 0;
+      bwalk_load_keys(in[imin], harray[imin], &no[imin]);
+      if(no[imin] == 0) {
+	fclose(in[imin]);
       }
     }
-    assert(min_set);
-    fwrite(&harray[imin][idx[imin]], sizeof(hash_key_t), 1, out);
-    idx[imin] ++;
-    /* reload the file */
   }
   
   /* close files */
   fclose(out);
+  rename("keys.tmp.dat", name[0]);
+  unlink(name[1]);
 }
 
 void bwalk_merge_sorted_key_files
@@ -168,6 +185,7 @@ void bwalk_merge_sorted_key_files
     }
     inc *= 2;
   }
+  rename("keys-0.dat", "keys.dat");
 }
 
 void bwalk_merge_key_files
@@ -193,11 +211,16 @@ void bwalk_merge_key_files
 
 void bwalk_key_files_analysis
 () {
-  uint32_t no_files;
-  
+  uint32_t no_files, keys;
+  struct stat st;
+
   bwalk_merge_key_files();
   no_files = bwalk_split_key_file();
   bwalk_merge_sorted_key_files(no_files);
+  stat("keys.dat", &st);
+  keys = st.st_size / sizeof(hash_key_t);
+  unlink("keys.dat");
+  context_set_stat(STAT_STATES_UNIQUE, 0, keys);
 }
 
 
@@ -222,7 +245,7 @@ void bwalk_key_files_analysis
     htbl_reset(htbl);                                           \
     heap_reset(heap);                                           \
     rnd = random_int(&rseed);                                   \
-    now = state_initial_mem(heap);                              \
+    now = state_initial_mem(heap);				\
     context_set_stat(STAT_STATES_STORED, w, 0);                 \
     bwalk_insert_state();                                       \
     bwalk_push();                                               \
@@ -262,7 +285,7 @@ void * bwalk_worker
     
   bwalk_key_file_name(w, out_name);
   out = fopen(out_name, "w");
-
+  now = state_initial_mem(heap);
   for(i = 0; i < MAX_ITERATION; i ++) {
     bwalk_initiate_walk();
     while(dfs_stack_size(stack) && context_keep_searching()) {
@@ -300,6 +323,7 @@ void * bwalk_worker
 
 void bwalk
 () {
+
   launch_and_wait_workers(&bwalk_worker);
   bwalk_key_files_analysis();
 }

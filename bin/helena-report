@@ -146,6 +146,7 @@ statistics = {
     "statesAccepting"         : "  accepting               ",
     "statesTerminal"          : "  deadlock                ",
     "statesUnsafe"            : "  unsafe                  ",
+    "statesUnique"            : "  unique                  ",
     "arcs"                    : "Transitions               ",
     "bfsLevels"               : "BFS levels                ",
     "maxDFSStackSize"         : "Max DFS stack size        ",

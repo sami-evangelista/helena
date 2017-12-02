@@ -4,7 +4,7 @@
 #include "comm_shmem.h"
 #include "papi_stats.h"
 
-#define NO_STATS 19
+#define NO_STATS 20
 
 typedef enum {
   STAT_TYPE_TIME,
@@ -168,6 +168,7 @@ char * context_stat_xml_name
   case STAT_STATES_ACCEPTING:   return "statesAccepting";
   case STAT_STATES_REDUCED:     return "statesReduced";
   case STAT_STATES_UNSAFE:      return "statesUnsafe";
+  case STAT_STATES_UNIQUE:      return "statesUnique";
   case STAT_ARCS:               return "arcs";
   case STAT_MAX_DFS_STACK_SIZE: return "maxDFSStackSize";
   case STAT_BFS_LEVELS:         return "bfsLevels";
@@ -195,6 +196,7 @@ stat_type_t context_stat_type
   case STAT_STATES_ACCEPTING:   return STAT_TYPE_GRAPH;
   case STAT_STATES_REDUCED:     return STAT_TYPE_GRAPH;
   case STAT_STATES_UNSAFE:      return STAT_TYPE_GRAPH;
+  case STAT_STATES_UNIQUE:      return STAT_TYPE_GRAPH;
   case STAT_ARCS:               return STAT_TYPE_GRAPH;
   case STAT_BFS_LEVELS:         return STAT_TYPE_GRAPH;
   case STAT_MAX_DFS_STACK_SIZE: return STAT_TYPE_GRAPH;
