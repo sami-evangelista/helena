@@ -211,53 +211,25 @@ void list_insert_sorted
 void list_pick_last
 (list_t list,
  void * item) {
-  assert(list->last);
-  if(item) {
-    memcpy(item, list->last->item, list->sizeof_item);
-  }
-  mem_free(list->heap, list->last->item);
-  if(list->first == list->last) {
-    mem_free(list->heap, list->first);
-    list->first = NULL;
-    list->last = NULL;
-  } else {
-    list->last = list->last->prev;
-    mem_free(list->heap, list->last->next);
-    list->last->next = NULL;
-  }
-  list->no_items --;  
+  list_pick_nth(list, list->no_items - 1, item);
 }
 
 void list_pick_first
 (list_t list,
  void * item) {
-  assert(list->first);
-  if(item) {
-    memcpy(item, list->first->item, list->sizeof_item);
-  }
-  mem_free(list->heap, list->first->item);
-  if(list->first == list->last) {
-    mem_free(list->heap, list->first);
-    list->first = NULL;
-    list->last = NULL;
-  } else {
-    list->first = list->first->next;
-    mem_free(list->heap, list->first->prev);
-    list->first->prev = NULL;
-  }
-  list->no_items --;
+  list_pick_nth(list, 0, item);
 }
 
-void list_pick_random
+void list_pick_nth
 (list_t list,
- void * item,
- rseed_t * seed) {
+ list_index_t n,
+ void * item) {
   list_node_t ptr = list->first;
-  uint32_t rnd = random_int(seed) % list->no_items;
 
-  while(rnd) {
+  assert(n < list->no_items);
+  while(n) {
     ptr = ptr->next;
-    rnd --;
+    n --;
   }
   if(item) {
     memcpy(item, ptr->item, list->sizeof_item);

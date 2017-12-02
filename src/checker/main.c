@@ -4,6 +4,7 @@
 #include "bfs.h"
 #include "delta_ddd.h"
 #include "simulator.h"
+#include "bwalk.h"
 #include "rwalk.h"
 #include "graph.h"
 #include "bit_stream.h"
@@ -60,6 +61,10 @@ int main
       delta_ddd();
     } else if(CFG_ALGO_RWALK) {
       rwalk();
+    } else if(CFG_ALGO_BWALK) {
+      bwalk();
+    } else {
+      assert(FALSE);
     }
 
     /**

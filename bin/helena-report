@@ -101,6 +101,7 @@ algorithms = {
     "distributedDepthSearch"  : "Distributed depth-first searches",
     "distributedBreadthSearch": "Distributed breadth-first searches",
     "randomWalk"              : "Random walk",
+    "bitstateWalk"            : "Bitstate walk",
     "deltaDDD"                : "Delta-DDD" }
 options = {
     "edgeLean"                : "Edge-lean reduction",

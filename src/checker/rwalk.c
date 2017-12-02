@@ -11,7 +11,8 @@ void * rwalk_worker
   event_list_t en;
   event_t e;
   int i;
-  unsigned int seed = random_seed(w);
+  uint64_t n;
+  rseed_t seed = random_seed(w);
   unsigned int en_size;
   heap_t heap;
   event_list_t trace, new_trace;
@@ -37,7 +38,8 @@ void * rwalk_worker
 	break;
       }
       if(0 != en_size) {
-        list_pick_random(en, &e, &seed);
+        n = random_int(&seed) % en_size;
+        list_pick_nth(en, n, &e);
 	event_exec(e, s);
         list_append(trace, &e);
       }

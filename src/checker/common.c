@@ -138,6 +138,7 @@ rseed_t random_seed
   struct timeval t;
   
   gettimeofday(&t, NULL);
+  //printf("%llu\n", t.tv_sec * 1000000 + t.tv_usec + w);
   return t.tv_sec * 1000000 + t.tv_usec + w;
 }
 
@@ -147,10 +148,10 @@ rseed_t random_seed
 #define RANDOM_LOW(X) (X&RANDOM_MASK)
 #define RANDOM_HIGH(X) ((X>>16)&RANDOM_MASK)
 
-uint32_t random_int
-(uint32_t * seed) {
-  uint32_t lo, hi;
-  uint32_t s = *seed;
+uint64_t random_int
+(rseed_t * seed) {
+  uint64_t lo, hi;
+  uint64_t s = *seed;
   lo = RANDOM_LOW(RANDOM_LOW(s) * RANDOM_LOW(RANDOM_MULT) + RANDOM_CONS);
   hi = RANDOM_LOW(RANDOM_HIGH(s) * RANDOM_LOW(RANDOM_MULT))
     + RANDOM_LOW(RANDOM_HIGH(RANDOM_MULT) * RANDOM_LOW(s))

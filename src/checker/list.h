@@ -147,12 +147,12 @@ void list_pick_first
 
 
 /**
- *  @brief list_pick_random
+ *  @brief list_pick_nth
  */
-void list_pick_random
+void list_pick_nth
 (list_t list,
- void * item,
- rseed_t * seed);
+ list_index_t n,
+ void * item);
 
 
 /**

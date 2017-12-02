@@ -308,9 +308,11 @@ void dfs_stack_pick_event
  event_t * e) {
   dfs_stack_item_t item = stack->blocks[stack->current]->items[stack->top];
   int chosen;
+  uint64_t n;
   
   if(stack->shuffle) {
-    list_pick_random(item.en, &item.e, &stack->seed);
+    n = random_int(&stack->seed) % list_size(item.en);
+    list_pick_nth(item.en, n, &item.e);
   } else {
     list_pick_first(item.en, &item.e);
   }

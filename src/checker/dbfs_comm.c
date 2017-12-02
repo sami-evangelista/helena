@@ -460,7 +460,7 @@ void dbfs_comm_start
                                    WORKER_STATE_BUFFER_LEN);
         BUF.heaps[w][pe] = local_heap_new();
         BUF.states[w][pe] = htbl_new(FALSE, WORKER_STATE_BUFFER_LEN * 2,
-                                     1, FALSE, 0);
+                                     1, HTBL_FULL, 0);
         dbfs_comm_reinit_buffer(w, pe);
         remote_pos += DBFS_HEAP_SIZE_WORKER;
       }

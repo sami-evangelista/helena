@@ -4,6 +4,7 @@ files="
 bfs
 bfs_queue
 buchi
+bwalk
 common
 comm_shmem
 context

@@ -22,6 +22,16 @@
 
 
 /**
+ * hash table type
+ */
+typedef enum {
+  HTBL_HASH_COMPACTION,
+  HTBL_BITSTATE,
+  HTBL_FULL
+} htbl_type_t;
+
+
+/**
  * state attribute definitions
  */
 typedef enum {
@@ -54,7 +64,7 @@ htbl_t htbl_new
 (bool_t use_system_heap,
  uint64_t hash_size,
  uint16_t no_workers,
- bool_t hash_compaction,
+ htbl_type_t type,
  uint32_t attrs);
 
 

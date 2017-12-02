@@ -45,7 +45,7 @@ typedef uint8_t bool_t;
  * @typedef rseed_t
  * @brief a seed to generate random numbers
  */
-typedef uint32_t rseed_t;
+typedef uint64_t rseed_t;
 
 
 /**
@@ -84,7 +84,7 @@ rseed_t random_seed
 /**
  * @brief Return a random integer and update the seed.
  */
-uint32_t random_int
+uint64_t random_int
 (rseed_t * seed);
 
 

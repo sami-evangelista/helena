@@ -20,19 +20,4 @@
 void delta_ddd
 ();
 
-
-/**
- * @brief Report on the delta-ddd search progress.
- */
-void delta_ddd_progress_report
-(uint64_t * states_stored);
-
-
-/**
- * @brief Finalisation of the DELTA-DDD.  Used to free data allocated
- *        by delta_ddd.
- */
-void delta_ddd_finalise
-();
-
 #endif

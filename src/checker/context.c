@@ -357,6 +357,8 @@ void finalise_context
       fprintf(out, "distributedBreadthSearch");
     } else if(CFG_ALGO_RWALK) {
       fprintf(out, "randomWalk");
+    } else if(CFG_ALGO_BWALK) {
+      fprintf(out, "bitstateWalk");
     } else if(CFG_ALGO_DELTA_DDD) {
       fprintf(out, "deltaDDD");
     }

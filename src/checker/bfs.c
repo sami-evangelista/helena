@@ -249,10 +249,11 @@ void * bfs_worker
          */
         if(0 == arcs) {
           context_incr_stat(STAT_STATES_DEADLOCK, w, 1);
+        } else {
+          context_incr_stat(STAT_ARCS, w, arcs);
+          context_incr_stat(STAT_EVENT_EXEC, w, arcs);
         }
-        context_incr_stat(STAT_ARCS, w, arcs);
         context_incr_stat(STAT_STATES_PROCESSED, w, 1);
-        context_incr_stat(STAT_EVENT_EXEC, w, arcs);
 
         /**
          *  the state leaves the queue => we unset its cyan bit
