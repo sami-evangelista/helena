@@ -56,7 +56,7 @@ typedef enum {
   LESS,
   EQUAL,
   GREATER
-};
+} order_t;
 
 
 /**
