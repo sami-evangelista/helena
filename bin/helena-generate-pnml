@@ -941,7 +941,7 @@ typedef uint32_t mevent_id_t;
         ###
         #  hash function
         ###
-        prot = """hash_key_t mstate_hash
+        prot = """hkey_t mstate_hash
 (mstate_t s)"""
         hw(prot + ";\n")
         cw(prot + """ {

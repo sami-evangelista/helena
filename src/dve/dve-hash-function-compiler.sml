@@ -17,7 +17,7 @@ end = struct
 open DveCompilerUtils
 
 fun compileStateHash (s: System.system, hFile, cFile) = let
-    val prot = "hash_key_t mstate_hash (mstate_t s)"
+    val prot = "hkey_t mstate_hash (mstate_t s)"
     val body =
 	concatLines [
 	    prot ^ " {",

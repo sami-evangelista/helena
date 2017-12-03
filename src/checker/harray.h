@@ -11,7 +11,7 @@
 #include "common.h"
 #include "heap.h"
 
-typedef hash_key_t harray_key_t;
+typedef hkey_t harray_key_t;
 
 typedef uint32_t harray_index_t;
 
@@ -36,24 +36,24 @@ typedef order_t (* harray_cmp_func_t) (harray_value_t, harray_value_t);
 typedef void (* harray_free_func_t) (harray_value_t);
 
 typedef struct {
-  heap_t             heap;
-  harray_size_t      num_items;
-  harray_size_t      size;
+  heap_t heap;
+  harray_size_t num_items;
+  harray_size_t size;
   harray_status_t *  status;
-  harray_key_t *     keys;
-  harray_value_t *   values;
+  harray_key_t * keys;
+  harray_value_t * values;
   harray_hash_func_t fhash;
-  harray_cmp_func_t  fcmp;
+  harray_cmp_func_t fcmp;
   harray_free_func_t ffree;
 } struct_harray_t;
 
 typedef struct_harray_t * harray_t;
 
 harray_t harray_new
-(heap_t             heap,
- harray_size_t      size,
+(heap_t heap,
+ harray_size_t size,
  harray_hash_func_t fhash,
- harray_cmp_func_t  fcmp,
+ harray_cmp_func_t fcmp,
  harray_free_func_t ffree);
 
 void harray_free

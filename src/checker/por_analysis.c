@@ -32,7 +32,7 @@ void por_analysis_scc
   heap_t heap = local_heap_new();
   list_t en;
   event_t e;
-  hash_key_t h;
+  hkey_t h;
   bool_t all_succ_safe;
   darray_t unsafe = darray_new(SYSTEM_HEAP, sizeof(htbl_id_t));
 

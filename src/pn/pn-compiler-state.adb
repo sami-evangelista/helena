@@ -616,11 +616,11 @@ package body Pn.Compiler.State is
       Plc(L, "}");
       --=======================================================================
       Prototype := To_Ustring
-        ("hash_key_t mstate_hash" & Nl &
+        ("hkey_t mstate_hash" & Nl &
            "(mstate_t s)");
       Plh(L, Prototype & ";");
       Plc(L, Prototype & " {");
-      Plc(L, 1, "hash_key_t result = 37;");
+      Plc(L, 1, "hkey_t result = 37;");
       for I in 1..P_Size(N) loop
          P := Ith_Place(N, I);
          Id := Pid(P);

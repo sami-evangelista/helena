@@ -40,7 +40,7 @@ state_t state_initial();
 state_t state_initial_mem(heap_t heap);
 void state_free(state_t s);
 void state_free_void(void * s);
-hash_key_t state_hash(state_t s);
+hkey_t state_hash(state_t s);
 state_t state_copy(state_t s);
 state_t state_copy_mem(state_t s, heap_t heap);
 void state_print(state_t s, FILE *  out);

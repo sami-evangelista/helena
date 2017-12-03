@@ -5,7 +5,6 @@
 #include "htbl.h"
 #include "workers.h"
 
-#define MAX_ITERATION 10
 #define BWALK_KEYS_BLOCK_SIZE 65536
 
 void bwalk_key_file_name
@@ -17,7 +16,7 @@ void bwalk_key_file_name
 }
 
 void bwalk_sort_keys_aux
-(hash_key_t * harray,
+(hkey_t * harray,
  uint32_t lo,
  uint32_t hi) {
   uint32_t middle, i, ihi, ilo;
@@ -28,7 +27,7 @@ void bwalk_sort_keys_aux
     bwalk_sort_keys_aux(harray, middle + 1, hi);
     {
       bool_t lo_done = FALSE, hi_done = FALSE;
-      hash_key_t result[hi - lo + 1];
+      hkey_t result[hi - lo + 1];
       
       for(i = 0, ilo = lo, ihi = middle + 1; !lo_done || !hi_done; i ++) {
         if(lo_done || (!hi_done && harray[ihi] <= harray[ilo])) {
@@ -43,13 +42,13 @@ void bwalk_sort_keys_aux
           }
         }
       }
-      memcpy(&harray[lo], result, sizeof(hash_key_t) * (hi - lo + 1));
+      memcpy(&harray[lo], result, sizeof(hkey_t) * (hi - lo + 1));
     }
   }
 }
 
 void bwalk_sort_keys
-(hash_key_t * harray,
+(hkey_t * harray,
  uint32_t no) {
   uint32_t i;
   
@@ -61,13 +60,13 @@ void bwalk_sort_keys
 
 void bwalk_load_keys
 (FILE * f,
- hash_key_t * harray,
+ hkey_t * harray,
  uint32_t * read) {
   uint32_t i, n = 0;
-  hash_key_t h;
+  hkey_t h;
   
   for(i = 0; i < BWALK_KEYS_BLOCK_SIZE; i ++) {
-    if(!fread(&h, sizeof(hash_key_t), 1, f)) {
+    if(!fread(&h, sizeof(hkey_t), 1, f)) {
       break;      
     } else {
       harray[n ++] = h;
@@ -78,13 +77,13 @@ void bwalk_load_keys
 
 void bwalk_unload_keys
 (FILE * f,
- hash_key_t * harray,
+ hkey_t * harray,
  uint32_t no) {
   uint32_t i;
 
   for(i = 0; i < no; i ++) {
     if(i == 0 || harray[i] != harray[i - 1]) {
-      fwrite(&harray[i], sizeof(hash_key_t), 1, f);
+      fwrite(&harray[i], sizeof(hkey_t), 1, f);
     }
   }
 }
@@ -93,7 +92,7 @@ uint32_t bwalk_split_key_file
 () {
   FILE * f, * out;
   uint32_t read = 0;
-  hash_key_t harray[BWALK_KEYS_BLOCK_SIZE];
+  hkey_t harray[BWALK_KEYS_BLOCK_SIZE];
   uint32_t result = 0;
   char file_name[20];
   
@@ -122,7 +121,7 @@ void bwalk_merge_two_sorted_key_files
   FILE * in[2], * out;
   char name[2][20];
   bool_t first = TRUE, min_set;
-  hash_key_t prev, harray[2][BWALK_KEYS_BLOCK_SIZE];
+  hkey_t prev, harray[2][BWALK_KEYS_BLOCK_SIZE];
 
   /* open files */
   for(i = 0; i < 2; i ++) {
@@ -150,7 +149,7 @@ void bwalk_merge_two_sorted_key_files
       imin = 1;
     }
     if(first || prev != harray[imin][idx[imin]]) {
-      fwrite(&harray[imin][idx[imin]], sizeof(hash_key_t), 1, out);
+      fwrite(&harray[imin][idx[imin]], sizeof(hkey_t), 1, out);
       first = FALSE;
     }
     prev = harray[imin][idx[imin]];
@@ -193,14 +192,14 @@ void bwalk_merge_key_files
   worker_id_t w;
   char file_name[20];
   FILE * f, * out;
-  hash_key_t h;
+  hkey_t h;
 
   if(out = fopen("keys.dat", "w")) {
     for(w = 0; w < context_no_workers(); w ++) {
       bwalk_key_file_name(w, file_name);
       if(f = fopen(file_name, "r")) {
-        while(fread(&h, sizeof(hash_key_t), 1, f)) {
-          fwrite(&h, sizeof(hash_key_t), 1, out);
+        while(fread(&h, sizeof(hkey_t), 1, f)) {
+          fwrite(&h, sizeof(hkey_t), 1, out);
         }
         fclose(f);
       }
@@ -218,7 +217,7 @@ void bwalk_key_files_analysis
   no_files = bwalk_split_key_file();
   bwalk_merge_sorted_key_files(no_files);
   stat("keys.dat", &st);
-  keys = st.st_size / sizeof(hash_key_t);
+  keys = st.st_size / sizeof(hkey_t);
   unlink("keys.dat");
   context_set_stat(STAT_STATES_UNIQUE, 0, keys);
 }
@@ -226,7 +225,7 @@ void bwalk_key_files_analysis
 
 #if defined(MODEL_EVENT_UNDOABLE)
 #define bwalk_recover_state() {                 \
-    dfs_stack_event_undo(stack, now);           \
+    dfs_stack_event_undo(stack, now);		\
   }
 #else
 #define bwalk_recover_state() {                 \
@@ -234,28 +233,16 @@ void bwalk_key_files_analysis
   }
 #endif
 
-#define bwalk_insert_state() {                                  \
+#define bwalk_insert_now() {					\
     h = state_hash(now);                                        \
     htbl_insert_hashed(htbl, now, h ^ rnd, &is_new, &id);       \
-  }
-
-#define bwalk_initiate_walk() {                                 \
-    stack = dfs_stack_new(wid, CFG_DFS_STACK_BLOCK_SIZE,        \
-                          TRUE, states_stored);                 \
-    htbl_reset(htbl);                                           \
-    heap_reset(heap);                                           \
-    rnd = random_int(&rseed);                                   \
-    now = state_initial_mem(heap);				\
-    context_set_stat(STAT_STATES_STORED, w, 0);                 \
-    bwalk_insert_state();                                       \
-    bwalk_push();                                               \
   }
 
 #define bwalk_push() {                                  \
     dfs_stack_push(stack, id, now);                     \
     dfs_stack_compute_events(stack, now, FALSE, NULL);  \
     context_incr_stat(STAT_STATES_STORED, w, 1);        \
-    fwrite(&h, sizeof(hash_key_t), 1, out);             \
+    fwrite(&h, sizeof(hkey_t), 1, out);             \
   }
 
 void * bwalk_worker
@@ -271,23 +258,40 @@ void * bwalk_worker
     ;
   htbl_id_t id;
   dfs_stack_t stack;
-  uint32_t i;
   uint64_t rnd;
   rseed_t rseed = random_seed(w);
   state_t now, copy;
   htbl_t htbl = htbl_default_new();  
   bool_t is_new;
-  hash_key_t h;
+  hkey_t h;
   event_t e;
   char out_name[20];
   FILE * out;
   heap_t heap = local_heap_new();
+  hkey_t roots[CFG_BWALK_ITERATIONS];
+  uint32_t i, j, no_roots = 0;
     
   bwalk_key_file_name(w, out_name);
   out = fopen(out_name, "w");
   now = state_initial_mem(heap);
-  for(i = 0; i < MAX_ITERATION; i ++) {
-    bwalk_initiate_walk();
+  for(i = 0; i < CFG_BWALK_ITERATIONS; i ++) {
+
+    stack = dfs_stack_new(wid, CFG_DFS_STACK_BLOCK_SIZE,        
+                          TRUE, states_stored);
+    h = roots[no_roots ++] = state_hash(now);
+    copy = state_copy(now);
+    heap_reset(heap);
+    htbl_reset(htbl);
+    //now = state_copy_mem(copy, heap);
+    now = state_initial_mem(heap);
+    state_free(copy);
+    rnd = random_int(&rseed);
+    for(j = 0; j < 1; j ++) {
+      htbl_insert_hashed(htbl, now, roots[j] ^ rnd, &is_new, &id);
+    }
+    context_set_stat(STAT_STATES_STORED, w, j);
+    bwalk_push();
+  
     while(dfs_stack_size(stack) && context_keep_searching()) {
       if(heap_size(heap) >= 1000000) {
         copy = state_copy(now);
@@ -304,7 +308,7 @@ void * bwalk_worker
       } else {
         dfs_stack_pick_event(stack, &e);
         event_exec(e, now);
-        bwalk_insert_state();
+        bwalk_insert_now();
         if(is_new) {
           bwalk_push();
         } else {

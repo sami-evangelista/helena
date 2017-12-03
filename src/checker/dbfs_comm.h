@@ -34,7 +34,7 @@ void dbfs_comm_end
 void dbfs_comm_process_state
 (worker_id_t w,
  state_t s,
- hash_key_t h);
+ hkey_t h);
 
 
 /**
@@ -55,6 +55,6 @@ void dbfs_comm_send_all_pending_states
  * @brief dbfs_comm_state_owned
  */
 bool_t dbfs_comm_state_owned
-(hash_key_t h);
+(hkey_t h);
 
 #endif

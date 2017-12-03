@@ -326,11 +326,11 @@ package body Pn.Compiler.Event is
       Plc(L, "}");
       --=======================================================================
       Prototype := To_Ustring
-	("hash_key_t mevent_hash (" & Nl &
+	("hkey_t mevent_hash (" & Nl &
 	   "   mevent_t e)");
       Plh(L, Prototype & ";");
       Plc(L, Prototype & " {");
-      Plc(L, 1, "hash_key_t result = e.tid;");
+      Plc(L, 1, "hkey_t result = e.tid;");
       Plc(L, 1, "switch (e.tid) {");
       for I in 1..T_Size(N) loop
 	 T := Ith_Trans(N, I);

@@ -89,7 +89,7 @@ bool_t htbl_contains
 (htbl_t tbl,
  state_t s,
  htbl_id_t * id,
- hash_key_t * h);
+ hkey_t * h);
 
 
 /**
@@ -100,7 +100,7 @@ void htbl_insert
  state_t s,
  bool_t * is_new,
  htbl_id_t * id,
- hash_key_t * h);
+ hkey_t * h);
 
 
 /**
@@ -109,7 +109,7 @@ void htbl_insert
 void htbl_insert_hashed
 (htbl_t tbl,
  state_t s,
- hash_key_t h,
+ hkey_t h,
  bool_t * is_new,
  htbl_id_t * id);
 
@@ -121,7 +121,7 @@ void htbl_insert_serialised
 (htbl_t tbl,
  bit_vector_t s,
  uint16_t s_char_len,
- hash_key_t h,
+ hkey_t h,
  bool_t * is_new,
  htbl_id_t * id);
 
@@ -159,13 +159,13 @@ void htbl_get_serialised
  htbl_id_t id,
  bit_vector_t * s,
  uint16_t * size,
- hash_key_t * h);
+ hkey_t * h);
 
 
 /**
  * @brief htbl_get_hash
  */
-hash_key_t htbl_get_hash
+hkey_t htbl_get_hash
 (htbl_t tbl,
  htbl_id_t id);
 

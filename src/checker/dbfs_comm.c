@@ -68,11 +68,11 @@ bool_t dbfs_comm_termination
 
 
 uint8_t dbfs_comm_state_owner
-(hash_key_t h) {
+(hkey_t h) {
   int i = 0;
   uint8_t result = 0;
 
-  for(i = 0; i < sizeof(hash_key_t); i ++) {
+  for(i = 0; i < sizeof(hkey_t); i ++) {
     result += h >> (i * 8);
   }
   return result % PES;
@@ -80,7 +80,7 @@ uint8_t dbfs_comm_state_owner
 
 
 bool_t dbfs_comm_state_owned
-(hash_key_t h) {
+(hkey_t h) {
   return dbfs_comm_state_owner(h) == ME;
 }
 
@@ -121,7 +121,7 @@ void dbfs_comm_send_buffer
   uint32_t i, pos;
   bit_vector_t s;
   uint16_t size;
-  hash_key_t h;
+  hkey_t h;
 
 #if defined(DBFS_COMM_DEBUG)
   assert(BUF.no_states[w][pe] <= WORKER_STATE_BUFFER_LEN);
@@ -142,10 +142,10 @@ void dbfs_comm_send_buffer
   for(i = 0; i < BUF.no_states[w][pe]; i ++) {
     htbl_get_serialised(BUF.states[w][pe], BUF.ids[w][pe][i],
 			    &s, &size, &h);
-    memcpy(buffer + pos, &h, sizeof(hash_key_t));
-    memcpy(buffer + pos + sizeof(hash_key_t), &size, sizeof(uint16_t));
-    memcpy(buffer + pos + sizeof(hash_key_t) + sizeof(uint16_t), s, size);
-    pos += sizeof(hash_key_t) + sizeof(uint16_t) + size;
+    memcpy(buffer + pos, &h, sizeof(hkey_t));
+    memcpy(buffer + pos + sizeof(hkey_t), &size, sizeof(uint16_t));
+    memcpy(buffer + pos + sizeof(hkey_t) + sizeof(uint16_t), s, size);
+    pos += sizeof(hkey_t) + sizeof(uint16_t) + size;
   }
 #if defined(DBFS_COMM_DEBUG)
   assert(pos == BUF.len[w][pe]);
@@ -191,7 +191,7 @@ void dbfs_comm_send_all_pending_states
 void dbfs_comm_process_state
 (worker_id_t w,
  state_t s,
- hash_key_t h) {
+ hkey_t h) {
   const uint16_t len = state_char_size(s);
   const int pe = dbfs_comm_state_owner(h);
   htbl_id_t id;
@@ -207,7 +207,7 @@ void dbfs_comm_process_state
    * not enough space to put the state in the buffer => we first send
    * the buffer content to the remote pe
    */
-  if((BUF.len[w][pe] + sizeof(hash_key_t) + sizeof(uint16_t) + len >
+  if((BUF.len[w][pe] + sizeof(hkey_t) + sizeof(uint16_t) + len >
       DBFS_HEAP_SIZE_WORKER)
      || (BUF.no_states[w][pe] == WORKER_STATE_BUFFER_LEN)) {
     dbfs_comm_send_buffer(w, pe);
@@ -218,7 +218,7 @@ void dbfs_comm_process_state
    */
   htbl_insert_hashed(BUF.states[w][pe], s, h, &is_new, &id);
   if(is_new) {
-    BUF.len[w][pe] += sizeof(hash_key_t) + sizeof(uint16_t) + len;
+    BUF.len[w][pe] += sizeof(hkey_t) + sizeof(uint16_t) + len;
     BUF.ids[w][pe][BUF.no_states[w][pe]] = id;
     BUF.no_states[w][pe] ++;
   }
@@ -232,7 +232,7 @@ bool_t dbfs_comm_worker_process_incoming_states
   uint32_t pos, tmp_pos, no_states;
   uint16_t s_len;
   bool_t states_received = TRUE, is_new;
-  hash_key_t h;
+  hkey_t h;
   buffer_data_t data;
   char buffer[DBFS_HEAP_SIZE_WORKER];
   htbl_id_t sid;
@@ -266,8 +266,8 @@ bool_t dbfs_comm_worker_process_incoming_states
                */
 
               /* hash value */
-              memcpy(&h, buffer + tmp_pos, sizeof(hash_key_t));
-              tmp_pos += sizeof(hash_key_t);
+              memcpy(&h, buffer + tmp_pos, sizeof(hkey_t));
+              tmp_pos += sizeof(hkey_t);
           
               /* state char length */
               memcpy(&s_len, buffer + tmp_pos, sizeof(uint16_t));

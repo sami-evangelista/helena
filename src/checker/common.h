@@ -19,10 +19,10 @@ typedef char * bit_vector_t;
 
 
 /**
- * @typedef hash_key_t
+ * @typedef hkey_t
  * @brief a hash value
  */
-typedef uint64_t hash_key_t;
+typedef uint64_t hkey_t;
 
 
 /**
@@ -52,10 +52,11 @@ typedef uint64_t rseed_t;
  * @typedef order_t
  * @brief an order value
  */
-typedef uint8_t order_t; 
-#define LESS    1
-#define EQUAL   2
-#define GREATER 3
+typedef enum { 
+  LESS,
+  EQUAL,
+  GREATER
+};
 
 
 /**
@@ -128,7 +129,7 @@ uint64_t duration
 /**
  * @brief Return a hash value for vector v of length len.
  */
-hash_key_t bit_vector_hash
+hkey_t bit_vector_hash
 (bit_vector_t v,
  unsigned int len);
 

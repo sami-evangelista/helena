@@ -23,7 +23,7 @@ typedef struct {
   bool_t dd_visit;
   bool_t recons[2];
   event_id_t e;
-  hash_key_t h;
+  hkey_t h;
 #if CFG_ACTION_BUILD_GRAPH == 1
   uint32_t num;
 #endif
@@ -35,7 +35,7 @@ typedef struct {
   delta_ddd_storage_id_t pred;
   event_id_t e;
   bit_vector_t s;
-  hash_key_t h;
+  hkey_t h;
   uint16_t width;
 } delta_ddd_candidate_t;
 
@@ -356,7 +356,7 @@ void delta_ddd_storage_delete_candidate
 (worker_id_t w,
  state_t s,
  delta_ddd_storage_id_t id) {
-  hash_key_t h = state_hash(s);
+  hkey_t h = state_hash(s);
   unsigned int fst, i = h % CS_max_size;
   worker_id_t x = DELTA_DDD_OWNER(h);
   
@@ -491,7 +491,7 @@ void delta_ddd_write_nodes_graph
  *****/
 delta_ddd_storage_id_t delta_ddd_insert_new_state
 (worker_id_t w,
- hash_key_t h,
+ hkey_t h,
  delta_ddd_state_t s,
  delta_ddd_storage_id_t pred) {
   uint8_t r = (RECONS_ID + 1) & 1;
@@ -769,7 +769,7 @@ void * delta_ddd_worker
   if(0 == w) {
     delta_ddd_state_t ns;
     state_t s = state_initial();
-    hash_key_t h = state_hash(s);
+    hkey_t h = state_hash(s);
     delta_ddd_storage_id_t slot = h & CFG_HASH_SIZE_M;
     uint8_t t = GT_NODE, succs = 0;
 

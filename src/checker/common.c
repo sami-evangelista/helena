@@ -89,7 +89,7 @@ const uint64_t crc64_tab[256] = {
   0x29b7d047efec8728
 };
 
-hash_key_t bit_vector_hash
+hkey_t bit_vector_hash
 (bit_vector_t v,
  unsigned int len) {
     unsigned int i;

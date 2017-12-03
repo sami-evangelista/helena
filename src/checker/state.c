@@ -44,7 +44,7 @@ void state_free_void(void * s) {
   state_free(*((state_t *) s));
 }
 
-hash_key_t state_hash
+hkey_t state_hash
 (state_t s) {
   return mstate_hash(s->m) + s->b;
 }

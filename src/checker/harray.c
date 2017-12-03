@@ -5,10 +5,10 @@
 #define HARRAY_DEL  2
 
 harray_t harray_new
-(heap_t             heap,
- harray_size_t      size,
+(heap_t heap,
+ harray_size_t size,
  harray_hash_func_t fhash,
- harray_cmp_func_t  fcmp,
+ harray_cmp_func_t fcmp,
  harray_free_func_t ffree) {
   harray_index_t i;
   harray_t result = mem_alloc (heap, sizeof (struct_harray_t));
@@ -49,7 +49,7 @@ harray_size_t harray_num_items
 }
 
 bool_t harray_insert
-(harray_t       harray,
+(harray_t harray,
  harray_value_t val) {
   harray_key_t key = (*harray->fhash) (val);
   harray_index_t new_pos, pos = key % harray->size, fst_pos = pos;
@@ -95,14 +95,14 @@ bool_t harray_insert
 }
 
 void harray_delete
-(harray_t       harray,
+(harray_t harray,
  harray_value_t val) {
   /*  not implemented  */
   assert(0);
 }
 
 harray_value_t harray_lookup
-(harray_t       harray,
+(harray_t harray,
  harray_value_t val) {
   harray_value_t result = NULL;
   harray_key_t key = (*harray->fhash) (val);
@@ -134,7 +134,7 @@ harray_value_t harray_lookup
 }
 
 void harray_app
-(harray_t           harray,
+(harray_t harray,
  harray_iter_func_t f,
  harray_iter_data_t data) {
   harray_index_t i;
@@ -147,7 +147,7 @@ void harray_app
 }
 
 void harray_filter
-(harray_t           harray,
+(harray_t harray,
  harray_pred_func_t f,
  harray_iter_data_t data) {
   harray_index_t i;

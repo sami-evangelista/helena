@@ -281,7 +281,7 @@ package body Pn.Compiler.Graph is
 	   " mstate_t s)");
       Plh(L, Prototype & ";");
       Plc(L, Prototype & " {");
-      Plc(L, 1, "hash_key_t h;");
+      Plc(L, 1, "hkey_t h;");
       Plc(L, 1, "bool_t b;");
       Plc(L, 1, "htbl_id_t id;");
       Plc(L, 1, "list_t en = mstate_events(s);");

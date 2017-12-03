@@ -24,11 +24,11 @@ pthread_barrier_t BFS_BARRIER;
 
 
 worker_id_t bfs_thread_owner
-(hash_key_t h) {
+(hkey_t h) {
   uint8_t result = 0;
   int i;
   
-  for(i = 0; i < sizeof(hash_key_t); i++) {
+  for(i = 0; i < sizeof(hkey_t); i++) {
     result += (h >> (i * 8)) & 0xff;
   }
   return result % CFG_NO_WORKERS;
@@ -125,7 +125,7 @@ void * bfs_worker
   worker_id_t x, y;
   unsigned int arcs;
   heap_t heap = local_heap_new();
-  hash_key_t h;
+  hkey_t h;
   bfs_queue_item_t item, succ_item;
   event_t e;
   bool_t is_new, reduced, termination = FALSE;
@@ -280,7 +280,7 @@ void bfs
   bool_t is_new;
   htbl_id_t id;
   worker_id_t w;
-  hash_key_t h;
+  hkey_t h;
   bool_t enqueue = TRUE;
   bfs_queue_item_t item;
   

@@ -119,7 +119,7 @@ void * dfs_worker
 #endif
     ;
   uint32_t i;
-  hash_key_t h;
+  hkey_t h;
   heap_t heap = local_heap_new();
   state_t copy, now = state_initial_mem(heap);
   dfs_stack_t stack = dfs_stack_new(wid, CFG_DFS_STACK_BLOCK_SIZE,

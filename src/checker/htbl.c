@@ -59,7 +59,7 @@ struct struct_htbl_t {
   uint64_t hash_size;
   heap_t heap;
   char * bits;
-  hash_key_t * hash;
+  hkey_t * hash;
   bucket_status_t * update_status;
   bucket_status_t * status;
   bit_vector_t hc_attrs;
@@ -115,7 +115,7 @@ htbl_t htbl_new
     result->status = mem_alloc(heap, hash_size * sizeof(bucket_status_t));
     result->update_status = mem_alloc(heap,
                                       hash_size * sizeof(bucket_status_t));
-    result->hash = mem_alloc(heap, hash_size * sizeof(hash_key_t));
+    result->hash = mem_alloc(heap, hash_size * sizeof(hkey_t));
     if(HTBL_HASH_COMPACTION == type) {
       result->hc_attrs = mem_alloc(heap, hash_size * result->attrs_char_size);
       memset(result->hc_attrs, 0, hash_size * result->attrs_char_size);
@@ -245,7 +245,7 @@ bool_t htbl_contains
 (htbl_t tbl,
  state_t s,
  htbl_id_t * id,
- hash_key_t * h) {
+ hkey_t * h) {
   htbl_id_t pos, init_pos;
   bit_vector_t se_other;
   bool_t found;
@@ -286,7 +286,7 @@ void htbl_insert_real
  uint16_t se_char_len,
  bool_t * is_new,
  htbl_id_t * id,
- hash_key_t * h,
+ hkey_t * h,
  bool_t h_set) {
   uint32_t trials = 0;
   bit_stream_t bits;
@@ -392,14 +392,14 @@ void htbl_insert
  state_t s,
  bool_t * is_new,
  htbl_id_t * id,
- hash_key_t * h) {
+ hkey_t * h) {
   htbl_insert_real(tbl, &s, NULL, 0, is_new, id, h, FALSE);
 }
 
 void htbl_insert_hashed
 (htbl_t tbl,
  state_t s,
- hash_key_t h,
+ hkey_t h,
  bool_t * is_new,
  htbl_id_t * id) {
   htbl_insert_real(tbl, &s, NULL, 0, is_new, id, &h, TRUE);
@@ -409,7 +409,7 @@ void htbl_insert_serialised
 (htbl_t tbl,
  bit_vector_t s,
  uint16_t s_char_len,
- hash_key_t h,
+ hkey_t h,
  bool_t * is_new,
  htbl_id_t * id) {
   htbl_insert_real(tbl, NULL, s, s_char_len, is_new, id, &h, TRUE);
@@ -432,7 +432,7 @@ state_t htbl_get_mem
   return result;
 }
 
-hash_key_t htbl_get_hash
+hkey_t htbl_get_hash
 (htbl_t tbl,
  htbl_id_t id) {
   assert(HTBL_BITSTATE != tbl->type);
@@ -548,7 +548,7 @@ void htbl_get_serialised
  htbl_id_t id,
  bit_vector_t * s,
  uint16_t * size,
- hash_key_t * h) {
+ hkey_t * h) {
   assert(HTBL_HASH_COMPACTION != tbl->type &&
          HTBL_BITSTATE != tbl->type);
   (*s) = tbl->state[id] + tbl->attrs_char_size;

@@ -50,7 +50,7 @@ void ddfs_comm_process_explored_state
   uint16_t s_char_len, len;
   bit_vector_t s;
   bool_t red = FALSE, blue = FALSE;
-  hash_key_t h;
+  hkey_t h;
   void * pos;
 
   /**
@@ -77,8 +77,8 @@ void ddfs_comm_process_explored_state
       BUF.char_len[w] += len;
       
       /*  hash value  */
-      memcpy(pos, &h, sizeof(hash_key_t));
-      pos += sizeof(hash_key_t);
+      memcpy(pos, &h, sizeof(hkey_t));
+      pos += sizeof(hkey_t);
      
       /*  blue attribute  */
       if(htbl_has_attr(H, ATTR_BLUE)) {
@@ -176,7 +176,7 @@ void * ddfs_comm_consumer
   bit_vector_t s;
   bool_t red = FALSE, blue = FALSE, is_new;
   char buffer[CFG_SHMEM_HEAP_SIZE];
-  hash_key_t h;
+  hkey_t h;
   pub_data_t remote_data;
   
   while(context_keep_searching()) {
@@ -197,8 +197,8 @@ void * ddfs_comm_consumer
           while(remote_data.size --) {
 
             /*  get hash value  */
-            memcpy(&h, pos, sizeof(hash_key_t));
-            pos += sizeof(hash_key_t);
+            memcpy(&h, pos, sizeof(hkey_t));
+            pos += sizeof(hkey_t);
                     
             /*  get blue attribute  */
             if(htbl_has_attr(H, ATTR_BLUE)) {
@@ -263,7 +263,7 @@ void ddfs_comm_start
     BUF.char_len[w] = 0;
     BUF.full[w] = FALSE;
   }
-  BASE_LEN = sizeof(hash_key_t)
+  BASE_LEN = sizeof(hkey_t)
     + (htbl_has_attr(H, ATTR_BLUE) ? sizeof(bool_t) : 0)
     + (htbl_has_attr(H, ATTR_RED) ? sizeof(bool_t) : 0);
   for(i = 0; i < MAX_PES; i ++) {
