@@ -44,11 +44,11 @@ fi
 
 (cd checker ; \
     ./gen-checker ; \
-    cd -) &> /dev/null
+    cd ..) &> /dev/null
 
 (cd lna ; \
     gprbuild -P helena.gpr -XBUILD=debug -XINSTALL_PATH=../../bin ; \
-    cd -)
+    cd ..)
 
 OLDPATH=$PATH
 if [ $compileDve -eq 1 ]
