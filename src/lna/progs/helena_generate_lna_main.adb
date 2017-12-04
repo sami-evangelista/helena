@@ -46,7 +46,7 @@ use
   Pn.Propositions,
   Utils.Strings;
 
-procedure Helena_Generate_Main is
+procedure Helena_Generate_Lna_Main is
    N   : Pn.Nets.Net;
    F   : File_Type;
    Prop: Unbounded_String;
@@ -81,4 +81,4 @@ exception
    when The_Exception: others =>
       Handle_Exception(The_Exception);
 
-end Helena_Generate_Main;
+end Helena_Generate_Lna_Main;

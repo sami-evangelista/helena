@@ -42,12 +42,12 @@ project Helena is
    for Languages use ("Ada");
 
    --  source directories
-   for Source_Dirs use ("checker", "utils", "pn", "pn/helena-parser",
+   for Source_Dirs use ("utils", "pn", "pn/helena-parser",
                         "prop", "prop/parser", "helena",
                         "progs");
 
    --  main procedures
-   for Main use ("helena_generate_main.adb",
+   for Main use ("helena_generate_lna_main.adb",
                  "helena_generate_interface_main.adb",
                  "helena_generate_prop_main.adb",
                  "helena_generate_bit_stream_main.adb");
@@ -87,7 +87,7 @@ project Helena is
    --  building parameters
    package Builder is
       --  name of the executables created for each main procedure
-      for Executable ("helena_generate_main.adb")
+      for Executable ("helena_generate_lna_main.adb")
       	  use "helena-generate-lna";
       for Executable ("helena_generate_interface_main.adb")
       	  use "helena-generate-interface";

@@ -8,32 +8,6 @@ use
 
 package body Utils.Generics is
 
-   function Generic_Max
-     (E1: in Element;
-      E2: in Element) return Element is
-      Result: Element;
-   begin
-      if E1 > E2 then
-         Result := E1;
-      else
-         Result := E2;
-      end if;
-      return Result;
-   end;
-
-   function Generic_Min
-     (E1: in Element;
-      E2: in Element) return Element is
-      Result: Element;
-   begin
-      if E1 < E2 then
-         Result := E1;
-      else
-         Result := E2;
-      end if;
-      return Result;
-   end;
-
    function Generic_Ite
      (B     : in Boolean;
       Etrue : in Element;

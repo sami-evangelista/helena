@@ -249,13 +249,11 @@ void * bwalk_worker
 (void * arg) {
   const worker_id_t w = (worker_id_t) (unsigned long int) arg;
   const uint32_t wid = context_global_worker_id(w);
-  const bool_t states_stored = 
 #if defined(MODEL_EVENT_UNDOABLE)
-    FALSE
+  const bool_t states_stored = FALSE;
 #else
-    CFG_HASH_COMPACTION
-#endif
-    ;
+  const bool_t states_stored = TRUE;
+#endif    
   htbl_id_t id;
   dfs_stack_t stack;
   uint64_t rnd;
@@ -268,13 +266,14 @@ void * bwalk_worker
   char out_name[20];
   FILE * out;
   heap_t heap = local_heap_new();
-  hkey_t roots[CFG_BWALK_ITERATIONS];
-  uint32_t i, j, no_roots = 0;
+  hkey_t roots[1000000];
+  uint32_t i, no_roots = 0;
     
   bwalk_key_file_name(w, out_name);
   out = fopen(out_name, "w");
   now = state_initial_mem(heap);
-  for(i = 0; i < CFG_BWALK_ITERATIONS; i ++) {
+
+  while(context_keep_searching()) {
 
     stack = dfs_stack_new(wid, CFG_DFS_STACK_BLOCK_SIZE,        
                           TRUE, states_stored);
@@ -282,14 +281,14 @@ void * bwalk_worker
     copy = state_copy(now);
     heap_reset(heap);
     htbl_reset(htbl);
-    //now = state_copy_mem(copy, heap);
-    now = state_initial_mem(heap);
+    now = state_copy_mem(copy, heap);
+    //now = state_initial_mem(heap);
     state_free(copy);
     rnd = random_int(&rseed);
-    for(j = 0; j < 1; j ++) {
-      htbl_insert_hashed(htbl, now, roots[j] ^ rnd, &is_new, &id);
+    for(i = 0; i < no_roots; i ++) {
+      htbl_insert_hashed(htbl, now, roots[i] ^ rnd, &is_new, &id);
     }
-    context_set_stat(STAT_STATES_STORED, w, j);
+    context_set_stat(STAT_STATES_STORED, w, i);
     bwalk_push();
   
     while(dfs_stack_size(stack) && context_keep_searching()) {

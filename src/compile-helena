@@ -46,7 +46,9 @@ fi
     ./gen-checker ; \
     cd -) &> /dev/null
 
-gprbuild -P helena.gpr -XBUILD=debug -XINSTALL_PATH=../bin
+(cd lna ; \
+    gprbuild -P helena.gpr -XBUILD=debug -XINSTALL_PATH=../../bin ; \
+    cd -)
 
 OLDPATH=$PATH
 if [ $compileDve -eq 1 ]
