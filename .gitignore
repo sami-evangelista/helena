@@ -9,7 +9,7 @@ bin/helena-generate-property
 bin/helena-ltl2ba
 examples/beem
 releases
-src/obj
+src/lna/obj
 src/checker/latex
 src/checker/html
 src/ltl2ba/*.o
