@@ -161,7 +161,6 @@ uint64_t random_int
 }
 
 float mem_usage() {
-  float result = 0.0;
   FILE * f;
   unsigned int size = 0;
   

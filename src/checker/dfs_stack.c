@@ -116,7 +116,6 @@ void dfs_stack_write
   unsigned int w;
   FILE * f;
   char buffer[10000];
-  heap_t h = stack->heaps[0];
   dfs_stack_block_t block = stack->blocks[0];
   dfs_stack_item_t item;
 
@@ -158,7 +157,7 @@ void dfs_stack_write
 void dfs_stack_read
 (dfs_stack_t stack) {
   int i, len;
-  unsigned int w, en_size;
+  unsigned int w;
   FILE * f;
   char buffer[10000], name[20];
   dfs_stack_item_t item;
@@ -307,7 +306,6 @@ void dfs_stack_pick_event
 (dfs_stack_t stack,
  event_t * e) {
   dfs_stack_item_t item = stack->blocks[stack->current]->items[stack->top];
-  int chosen;
   uint64_t n;
   
   if(stack->shuffle) {
@@ -348,7 +346,6 @@ void dfs_stack_create_trace
 (dfs_stack_t stack) {
   event_t e;
   dfs_stack_item_t item;
-  int i;
   event_list_t trace = list_new(SYSTEM_HEAP, sizeof(event_t), event_free_void);
 
   dfs_stack_pop(stack);

@@ -99,8 +99,6 @@ list_t list_copy
 
 void * list_first
 (list_t list) {
-  void * result;
-
   assert(list->first);
   return list->first->item;
 }
@@ -114,7 +112,6 @@ void * list_last
 void * list_nth
 (list_t list,
  list_index_t n) {
-  void * result;
   list_node_t ptr = list->first;
   list_index_t i = n;
   

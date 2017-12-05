@@ -63,7 +63,7 @@ void * observer_worker
   }
 
   if(CFG_WITH_OBSERVER) {
-    printf("\n%sdone.\n", pref);
+    printf("%sdone.\n", pref);
   }
   return NULL;
 }

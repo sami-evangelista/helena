@@ -28,7 +28,6 @@ typedef struct_local_heap_t * local_heap_t;
 heap_t local_heap_new
 () {
   local_heap_t result;
-  local_heap_block_t block;
   
   MALLOC(result, local_heap_t, sizeof(struct_local_heap_t));
   MALLOC(result->blocks, local_heap_block_t *, sizeof(local_heap_block_t));
@@ -112,10 +111,7 @@ void local_heap_set_position
 (local_heap_t heap,
  mem_size_t pos) {
   int i;
-  bool_t found = FALSE;
-  local_heap_block_t block;
-  mem_size_t current = 0;
-
+  
   for(i = heap->current; i >= 0 && heap->blocks[i].first > pos; i --);
   assert(i >= 0);
   heap->current = i;

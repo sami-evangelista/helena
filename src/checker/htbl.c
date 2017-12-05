@@ -87,7 +87,6 @@ htbl_t htbl_new
   const heap_t heap = SYSTEM_HEAP;
   uint64_t i;
   htbl_t result;
-  worker_id_t w;
   uint32_t pos = 0, width;
   
   result = mem_alloc(SYSTEM_HEAP, sizeof(struct_htbl_t));
@@ -204,8 +203,7 @@ htbl_t htbl_default_new
 void htbl_free
 (htbl_t tbl) {
   uint64_t i = 0;
-  worker_id_t w;
-
+  
   if(HTBL_BITSTATE == tbl->type) {
     mem_free(SYSTEM_HEAP, tbl->bits);
   } else {
@@ -283,13 +281,12 @@ void htbl_insert_real
 (htbl_t tbl,
  state_t * s,
  bit_vector_t se,
- uint16_t se_char_len,
+ uint16_t se_len,
  bool_t * is_new,
  htbl_id_t * id,
  hkey_t * h,
  bool_t h_set) {
   uint32_t trials = 0;
-  bit_stream_t bits;
   htbl_id_t pos;
   bit_vector_t se_other;
   bool_t found;
@@ -329,16 +326,15 @@ void htbl_insert_real
        */
       if(HTBL_HASH_COMPACTION != tbl->type) {
         if(NULL == se) {
-          se_char_len = state_char_size(*s);
+          se_len = state_char_size(*s);
         }
-        tbl->state[pos] = mem_alloc0(tbl->heap,
-                                     se_char_len + tbl->attrs_char_size);
+        tbl->state[pos] = mem_alloc0(tbl->heap, se_len + tbl->attrs_char_size);
         if(NULL == se) {
           state_serialise(*s, tbl->state[pos] + tbl->attrs_char_size);
         } else {
-          memcpy(tbl->state[pos] + tbl->attrs_char_size, se, se_char_len);
+          memcpy(tbl->state[pos] + tbl->attrs_char_size, se, se_len);
         }
-        tbl->state_len[pos] = se_char_len;
+        tbl->state_len[pos] = se_len;
       }
       tbl->hash[pos] = *h;
       tbl->status[pos] = BUCKET_READY;
@@ -365,7 +361,7 @@ void htbl_insert_real
         if(NULL == se) {
           found = state_cmp_vector(*s, se_other);
         } else {
-          found = 0 == memcmp(se, se_other, se_char_len);
+          found = 0 == memcmp(se, se_other, se_len);
         }
       }
       if(found) {
@@ -408,11 +404,11 @@ void htbl_insert_hashed
 void htbl_insert_serialised
 (htbl_t tbl,
  bit_vector_t s,
- uint16_t s_char_len,
+ uint16_t s_len,
  hkey_t h,
  bool_t * is_new,
  htbl_id_t * id) {
-  htbl_insert_real(tbl, NULL, s, s_char_len, is_new, id, &h, TRUE);
+  htbl_insert_real(tbl, NULL, s, s_len, is_new, id, &h, TRUE);
 }
 
 state_t htbl_get

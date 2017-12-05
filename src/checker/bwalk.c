@@ -45,8 +45,6 @@ void * bwalk_worker
   hkey_t h;
   event_t e;
   heap_t heap = local_heap_new();
-  hkey_t roots[1000000];
-  uint32_t i, no_roots = 0;
     
   now = state_initial_mem(heap);
   while(context_keep_searching()) {

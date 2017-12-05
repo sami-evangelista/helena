@@ -232,7 +232,6 @@ void context_stat_format
 void context_stat_to_xml
 (uint8_t stat,
  FILE * out) {
-  int i;
   char * name = context_stat_xml_name(stat);
   double sum = context_get_stat(stat), min, max, avg, dev;
   worker_id_t w;
@@ -281,7 +280,6 @@ void finalise_context
 () {
   FILE * out;
   void * dummy;
-  worker_id_t w;
   char name[1024], file_name[1024];
   char * buf = NULL;
   size_t n = 0;

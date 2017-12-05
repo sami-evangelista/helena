@@ -9,6 +9,15 @@
 #define COMM_SHMEM_CHUNK_SIZE 10000
 #define COMM_SHMEM_DEBUG_XXX
 
+#if defined(COMM_SHMEM_DEBUG)
+#define comm_shmem_debug(...)   {			\
+    printf("[%d:%d] ", shmem_my_pe(), getpid());	\
+    printf(__VA_ARGS__);				\
+}
+#else
+#define comm_shmem_debug(...) {}
+#endif
+
 pthread_mutex_t COMM_SHMEM_MUTEX;
 void * COMM_SHMEM_HEAP;
 
@@ -19,6 +28,8 @@ void init_comm_shmem
 #else
   shmem_init();
   COMM_SHMEM_HEAP = shmem_malloc(CFG_SHMEM_HEAP_SIZE);
+  memset(COMM_SHMEM_HEAP, 0, CFG_SHMEM_HEAP_SIZE);
+  shmem_barrier_all();
   pthread_mutex_init(&COMM_SHMEM_MUTEX, NULL);
 #endif
 }
@@ -59,9 +70,7 @@ void comm_shmem_put
   if(pe == shmem_my_pe()) {
     memcpy(COMM_SHMEM_HEAP + pos, src, size);
   } else {
-#if defined(COMM_SHMEM_DEBUG)
-    printf("%d put %d bytes at %d to %d\n", shmem_my_pe(), size, pos, pe);
-#endif
+    comm_shmem_debug("put %d bytes at %d to %d\n", size, pos, pe);
     context_incr_stat(STAT_BYTES_SENT, 0, size);
     pthread_mutex_lock(&COMM_SHMEM_MUTEX);
     while(size) {
@@ -76,9 +85,7 @@ void comm_shmem_put
       }
     }
     pthread_mutex_unlock(&COMM_SHMEM_MUTEX);
-#if defined(COMM_SHMEM_DEBUG)
-    printf("%d put done\n", shmem_my_pe());
-#endif
+    comm_shmem_debug("put done\n");
   }
 #endif
 }
@@ -94,16 +101,12 @@ void comm_shmem_get
   if(pe == shmem_my_pe()) {
     memcpy(dst, COMM_SHMEM_HEAP + pos, size);
   } else {
-#if defined(COMM_SHMEM_DEBUG)
-    printf("%d get %d bytes at %d from %d\n", shmem_my_pe(), size, pos, pe);
-#endif
+    comm_shmem_debug("get %d bytes at %d from %d\n", size, pos, pe);
     context_incr_stat(STAT_BYTES_SENT, 0, size);
     pthread_mutex_lock(&COMM_SHMEM_MUTEX);
     shmem_getmem(dst, COMM_SHMEM_HEAP + pos, size, pe);
     pthread_mutex_unlock(&COMM_SHMEM_MUTEX);
-#if defined(COMM_SHMEM_DEBUG)
-    printf("%d get done\n", shmem_my_pe());
-#endif
+    comm_shmem_debug("get done\n");
   }
 #endif
 }

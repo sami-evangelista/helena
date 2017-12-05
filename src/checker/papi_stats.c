@@ -22,9 +22,9 @@ int PAPI_STATS_EVENTS[PAPI_STATS_NO_EVENTS];
 
 void init_papi_stats
 () {
+#if CFG_WITH_PAPI == 1
   int i, rc, n;
   
-#if CFG_WITH_PAPI == 1
   if(PAPI_library_init(PAPI_VER_CURRENT) != PAPI_VER_CURRENT) {
     /*  do something here  */
   } else {
