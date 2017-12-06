@@ -1004,9 +1004,12 @@ def getAttr(e, name):
     raise XmlAttributeNotFound()
 
 def getNodeAttr(nodeXML, attr):
-    return nodeXML.getElementsByTagName(attr)[0] \
-                  .getElementsByTagName("text")[0] \
-                  .childNodes[0].nodeValue
+    try:
+        return nodeXML.getElementsByTagName(attr)[0] \
+                      .getElementsByTagName("text")[0] \
+                      .childNodes[0].nodeValue
+    except:
+        return ""
 
 def parseNet(pnml):
     result = Net()

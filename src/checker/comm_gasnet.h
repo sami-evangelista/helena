@@ -39,7 +39,7 @@ void comm_put
 (uint32_t pos,
  void * src,
  int size,
- int pe);
+ int node);
 
 
 /**
@@ -49,7 +49,7 @@ void comm_get
 (void * dst,
  uint32_t pos, 
  int size,
- int pe);
+ int node);
 
 
 /**
@@ -60,9 +60,9 @@ int comm_me
 
 
 /**
- * @brief comm_pes
+ * @brief comm_no
  */
-int comm_pes
+int comm_no
 ();
 
 #endif

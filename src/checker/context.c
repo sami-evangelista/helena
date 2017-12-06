@@ -1,10 +1,10 @@
 #include "context.h"
 #include "observer.h"
 #include "config.h"
-#include "comm_shmem.h"
+#include "comm_gasnet.h"
 #include "papi_stats.h"
 
-#define NO_STATS 20
+#define NO_STATS 19
 
 typedef enum {
   STAT_TYPE_TIME,
@@ -178,7 +178,6 @@ char * context_stat_xml_name
   case STAT_MAX_MEM_USED:       return "maxMemoryUsed";
   case STAT_AVG_CPU_USAGE:      return "avgCPUUsage";
   case STAT_SEARCH_TIME:        return "searchTime";
-  case STAT_SLEEP_TIME:         return "sleepTime";
   case STAT_BARRIER_TIME:       return "barrierTime";
   case STAT_DDD_TIME:           return "duplicateDetectionTime";
   case STAT_COMP_TIME:          return "compilationTime";
@@ -206,7 +205,6 @@ stat_type_t context_stat_type
   case STAT_MAX_MEM_USED:       return STAT_TYPE_OTHERS;
   case STAT_AVG_CPU_USAGE:      return STAT_TYPE_OTHERS;
   case STAT_SEARCH_TIME:        return STAT_TYPE_TIME;
-  case STAT_SLEEP_TIME:         return STAT_TYPE_TIME;
   case STAT_BARRIER_TIME:       return STAT_TYPE_TIME;
   case STAT_COMP_TIME:          return STAT_TYPE_TIME;
   case STAT_DDD_TIME:           return STAT_TYPE_TIME;
@@ -592,7 +590,7 @@ uint32_t context_global_worker_id
 
 uint32_t context_proc_id
 () {
-  return comm_shmem_me();
+  return comm_me();
 }
 
 float context_cpu_usage
@@ -614,7 +612,6 @@ void context_barrier_wait
 void context_sleep
 (struct timespec t) {
   nanosleep(&t, NULL);
-  context_incr_stat(STAT_SLEEP_TIME, 0, t.tv_nsec);
 }
 
 void context_incr_stat

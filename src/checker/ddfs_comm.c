@@ -1,6 +1,6 @@
 #include "config.h"
 #include "ddfs_comm.h"
-#include "comm_shmem.h"
+#include "comm_gasnet.h"
 
 #if CFG_ALGO_DDFS == 1 || CFG_ALGO_DFS == 1 || CFG_ALGO_TARJAN == 1
 
@@ -121,7 +121,7 @@ void * ddfs_comm_producer
      *  wait that all other pes have consumed my states
      */
   wait_for_states_consumed:
-    comm_shmem_get(&data, 0, sizeof(pub_data_t), ME);
+    comm_get(&data, 0, sizeof(pub_data_t), ME);
     for(pe = 0; pe < PES && context_keep_searching(); pe ++) {
       if(pe != ME && data.produced[pe]) {
         context_sleep(CONSUME_PERIOD);
@@ -142,7 +142,7 @@ void * ddfs_comm_producer
       }
 
       /*  copy the buffer of worker w to my local  heap  */
-      comm_shmem_put(char_len, BUF.buffer[w], BUF.char_len[w], ME);
+      comm_put(char_len, BUF.buffer[w], BUF.char_len[w], ME);
       char_len += BUF.char_len[w];
       size += BUF.size[w];
 
@@ -161,7 +161,7 @@ void * ddfs_comm_producer
         data.produced[pe] = TRUE;
       }
     }
-    comm_shmem_put(0, &data, sizeof(pub_data_t), ME);
+    comm_put(0, &data, sizeof(pub_data_t), ME);
   }
 }
 
@@ -189,10 +189,10 @@ void * ddfs_comm_consumer
      */
     for(pe = 0; pe < PES; pe ++) {
       if(ME != pe) {
-	comm_shmem_get(&remote_data, 0, sizeof(pub_data_t), pe);
+	comm_get(&remote_data, 0, sizeof(pub_data_t), pe);
         if(remote_data.produced[ME]) {
-          comm_shmem_get(buffer, DDFS_COMM_DATA_POS, remote_data.char_len, pe);
-          comm_shmem_put(sizeof(bool_t) * ME, &f, sizeof(bool_t), pe);
+          comm_get(buffer, DDFS_COMM_DATA_POS, remote_data.char_len, pe);
+          comm_put(sizeof(bool_t) * ME, &f, sizeof(bool_t), pe);
           pos = buffer;
           while(remote_data.size --) {
 
@@ -252,8 +252,8 @@ void ddfs_comm_start
   pub_data_t data;
   
   /*  shmem and symmetrical heap initialisation  */
-  PES = comm_shmem_pes();
-  ME = comm_shmem_me();
+  PES = comm_no();
+  ME = comm_me();
   assert(PES <= MAX_PES);
   
   H = h;
@@ -269,7 +269,7 @@ void ddfs_comm_start
   for(i = 0; i < MAX_PES; i ++) {
     data.produced[i] = FALSE;
   }
-  comm_shmem_put(0, &data, sizeof(pub_data_t), ME);
+  comm_put(0, &data, sizeof(pub_data_t), ME);
 
   /*  launch the producer and consumer threads  */
   pthread_create(&PROD, NULL, &ddfs_comm_producer, NULL);
