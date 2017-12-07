@@ -141,8 +141,6 @@ void dbfs_comm_send_buffer
   dbfs_comm_debug("comm. sends %d bytes to %d\n", LEN1[w][pe], pe);
   comm_put(REMOTE_POS[w][pe], BUF1[w][pe], LEN1[w][pe], pe);
   comm_put(POS_LEN(w, ME), &LEN1[w][pe], sizeof(uint32_t), pe);
-  comm_get(&len, POS_LEN(w, ME), sizeof(uint32_t), pe);
-  assert(len == LEN1[w][pe]);
   LEN1[w][pe] = 0;
   dbfs_comm_debug("comm. sent done\n");
 }

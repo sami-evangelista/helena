@@ -239,9 +239,9 @@ void context_stat_to_xml
   fprintf(out, "</%s>\n", name);
   if(context_stat_do_average(stat) && CTX->no_workers > 1) {
     min = max = CTX->stat[stat][0];
-    avg = sum / CFG_NO_WORKERS;
+    avg = sum / CFG_NO_WORKERS - 1;
     dev = 0;
-    for(w = 1; w < CTX->no_workers + 1; w ++) {
+    for(w = 1; w < CTX->no_workers; w ++) {
       if(CTX->stat[stat][w] > max) {
         max = CTX->stat[stat][w];
       } else if(CTX->stat[stat][w] < min) {

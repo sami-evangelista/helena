@@ -55,7 +55,13 @@ def mergeReports(refDoc, docs):
                            ("statesStored", True),
                            ("statesTerminal", False),
                            ("bytesSent", True),
-                           ("avgCPUUsage", False) ]:
+                           ("avgCPUUsage", False),
+                           ("lvl1TotalCacheMiss", False),
+                           ("lvl2TotalCacheMiss", False),
+                           ("lvl3TotalCacheMiss", False),
+                           ("lvl1TotalCacheHit", False),
+                           ("lvl2TotalCacheHit", False),
+                           ("lvl3TotalCacheHit", False) ]:
         mergeNode(node, doSum, refDoc, docs)
 
 def exitWithError(errMsg):

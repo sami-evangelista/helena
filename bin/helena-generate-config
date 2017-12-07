@@ -408,6 +408,9 @@ class Config:
             self.runTimeChecks = True
         if self.algo == DBFS:
             self.traceType = STATE
+            self.workers = 1
+        if self.algo == DDFS:
+            self.workers = 1
         if self.hashSize > 32:
             self.hashSize = 32
 

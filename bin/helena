@@ -5,7 +5,7 @@
 
 helenaDir=$HOME/.helena
 
-defaultDistributedLib='gasnet'
+defaultDistributedLib='shmem'
 
 CC='/usr/bin/gcc'
 
@@ -257,11 +257,14 @@ launchChecker () {
     if [ $distributed -eq 0 ]
     then
         $RUN comp-time $ccTime
+        [ $? != 0 ] && exit 1
     else
         $RUN comp-time $ccTime | tee $xmlReportTmpFile | grep -v "^\[xml"
+        [ $? != 0 ] && exit 1
         collectReportFiles
         checkExecutable $reportsMerger
         $reportsMerger report-*.xml
+        rm report-*.xml
     fi
     for f in $xmlReportFile $xmlGraphReportFile $graphFile
     do
@@ -330,6 +333,8 @@ do
 	    if [ "$algo" = DDFS -o "$algo" = DBFS ]
 	    then
 		distributed=1
+            else
+                distributed=0
 	    fi
 	    ;;
 	-o=*|--report-file=*)
