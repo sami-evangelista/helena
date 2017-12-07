@@ -92,6 +92,9 @@ state_t dfs_recover_state
       context_faulty_state(now);                                        \
       dfs_stack_create_trace(stack);                                    \
     }                                                                   \
+    if(is_new && blue && check_ltl && state_accepting(now)) {           \
+      context_incr_stat(STAT_STATES_ACCEPTING, w, 1);                   \
+    }                                                                   \
   }
     
 
@@ -219,7 +222,6 @@ void * dfs_worker
        * state is accepting
        */
       if(check_ltl && blue && state_accepting(now)) {
-        context_incr_stat(STAT_STATES_ACCEPTING, w, 1);
         id_seed = dfs_stack_top(stack);
         blue = FALSE;
         red_stack_size = 1;

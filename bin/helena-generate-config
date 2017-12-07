@@ -392,7 +392,6 @@ class Config:
         self.shmemHeapSize = 10 ** 6
         self.candidateSetSize = 10 ** 5
         self.maxTraceLength = 10 ** 3
-        self.bwalkIterations = 10 ** 3
 
     #  correct inconsistencies in received arguments
     def correct(self):
@@ -481,7 +480,6 @@ class Config:
             ("ALGO_RWALK", self.algo == RWALK),
             ("ALGO_TARJAN", self.algo == TARJAN),
             ("BFS_QUEUE_BLOCK_SIZE", self.bfsQueueBlockSize),
-            ("BWALK_ITERATIONS", self.bwalkIterations),
             ("DATE", "\"" + now.strftime("%B, %d, %Y at %H:%M:%S") + "\""),
             ("DELTA_DDD_CAND_SET_SIZE", self.candidateSetSize),
             ("DELTA_DDD_STORAGE", self.algo == DELTA_DDD),

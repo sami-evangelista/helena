@@ -161,9 +161,9 @@ createMakefile () {
     links=$initLinks
     makefile=Makefile
     targets=""
-    (echo "CC = $CC"
-     echo "CC_VG = $CC_VG"
-     echo "CC_GP = $CC_GP"
+    (echo "CC = $CC $CCI"
+     echo "CC_VG = $CC_VG $CCI"
+     echo "CC_GP = $CC_GP $CCI"
      echo
      for f in $modelSrcFiles $checkerSrcFiles
      do
@@ -182,11 +182,11 @@ createMakefile () {
          linksgp=$linksgp" "$f"_gp.o"
      done
      echo "all: $links"
-     echo -e "\t\$(CC) $links -o helena-checker main.c\n"
+     echo -e "\t\$(CC) $links -o helena-checker main.c $CCL\n"
      echo "all_vg: $linksvg"
-     echo -e "\t\$(CC_VG) $linksvg -o helena-checker-vg main.c\n"
+     echo -e "\t\$(CC_VG) $linksvg -o helena-checker-vg main.c $CCL\n"
      echo "all_gp: $linksgp"
-     echo -e "\t\$(CC_GP) $linksgp -o helena-checker-gp main.c\n"
+     echo -e "\t\$(CC_GP) $linksgp -o helena-checker-gp main.c $CCL\n"
      echo "run: all"
      echo -e "\t$RUN\n"
      echo "report:"
@@ -475,32 +475,44 @@ done
 
 #####
 #  tune compilation options in distributed mode
-case $defaultDistributedLib in
-    gasnet)
-        CCI=$CCI" "$gasnetI
-        CCL=$CCL" "$gasnetL
-        for ext in c h
-        do
-            rm $(getModelDir)/src/comm.$ext &> /dev/null
-            ln $(getModelDir)/src/comm_gasnet.$ext $(getModelDir)/src/comm.$ext
-        done
-        export MPIRUN_CMD='mpirun -n %N -machinefile machinefile %C'
-        RUN="gasnetrun_mpi -n 1 ./helena-checker"
-        ;;
-    shmem)
-        CCI=$CCI" "$shmemI
-        CCL=$CCL" "$shmemL
-        for ext in c h
-        do
-            rm $(getModelDir)/src/comm.$ext &> /dev/null
-            ln $(getModelDir)/src/comm_shmem.$ext $(getModelDir)/src/comm.$ext
-        done
-        RUN=$MPIRUN" -machinefile machinefile ./helena-checker"
-        ;;
-    *)
-        error "invalid value for defaultDistributedLib: "$defaultDistributedLib
-        ;;
-esac
+if [ $distributed -eq 0 ]
+then
+    for ext in c h
+    do
+        ln $(getModelDir)/src/comm_shmem.$ext \
+           $(getModelDir)/src/comm.$ext
+    done
+else
+    case $defaultDistributedLib in
+        gasnet)
+            CCI=$CCI" "$gasnetI
+            CCL=$CCL" "$gasnetL
+            for ext in c h
+            do
+                rm $(getModelDir)/src/comm.$ext &> /dev/null
+                ln $(getModelDir)/src/comm_gasnet.$ext \
+                   $(getModelDir)/src/comm.$ext
+            done
+            export MPIRUN_CMD='mpirun -n %N -machinefile machinefile %C'
+            RUN="gasnetrun_mpi -n 1 ./helena-checker"
+            ;;
+        shmem)
+            CCI=$CCI" "$shmemI
+            CCL=$CCL" "$shmemL
+            for ext in c h
+            do
+                rm $(getModelDir)/src/comm.$ext &> /dev/null
+                ln $(getModelDir)/src/comm_shmem.$ext \
+                   $(getModelDir)/src/comm.$ext
+            done
+            RUN=$MPIRUN" -machinefile machinefile ./helena-checker"
+            ;;
+        *)
+            error "invalid value for defaultDistributedLib: "\
+                  $defaultDistributedLib
+            ;;
+    esac
+fi
 
 #####
 #  copy source files to the model directory

@@ -21,10 +21,9 @@ opts = [
     ["-N=check"],
     ["-o=report.xml"],
     ["-t=26"],
-    ["-tl=120"],
+    ["-tl=60"],
     ["-A=dfs"],
-    ["-W=1"],
-    ["-S=0"],
+    ["-W=1", "-W=4"],
     ["-H=0"],
     dveLtlModels
 ]
@@ -33,5 +32,5 @@ post = "mv report.xml %d"
 t = test_gen.Test(cmd, options = opts, postCmd = post)
 generator = test_gen.TestScriptGenerator()
 generator.addTest(t)
-generator.genScript()
+generator.genScript(timeout = 70)
 exit(0)

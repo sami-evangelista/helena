@@ -124,6 +124,14 @@ void dfs_stack_write
   for(i = 0; i < stack->block_size; i ++) {
     item = block->items[i];
 
+    /*  state  */
+    if(stack->states_stored) {
+      len = state_char_size(item.s);
+      fwrite(&len, sizeof(int), 1, f);
+      state_serialise(item.s, buffer);
+      fwrite(buffer, len, 1, f);
+    }
+
     /*  event list  */
     w = event_list_char_size(item.en);
     event_list_serialise(item.en, buffer);
@@ -141,14 +149,6 @@ void dfs_stack_write
 
     /*  por info  */
     fwrite(&item.fully_expanded, sizeof(bool_t), 1, f);
-
-    /*  state  */
-    if(stack->states_stored) {
-      len = state_char_size(item.s);
-      fwrite(&len, sizeof(int), 1, f);
-      state_serialise(item.s, buffer);
-      fwrite(buffer, len, 1, f);
-    }
   }
   fclose(f);
   stack->files ++;
@@ -169,6 +169,13 @@ void dfs_stack_read
   heap_reset(h);
   for(i = 0; i < stack->block_size; i ++) {
     item.heap_pos = heap_get_position(h);
+
+    /*  state  */
+    if(stack->states_stored) {
+      fread(&len, sizeof(int), 1, f);
+      fread(buffer, len, 1, f);
+      item.s = state_unserialise_mem(buffer, h);
+    }
     
     /*  event list  */
     fread(&w, sizeof(unsigned int), 1, f);
@@ -186,13 +193,7 @@ void dfs_stack_read
 
     /*  por info  */
     fread(&item.fully_expanded, sizeof(bool_t), 1, f);
-
-    /*  state  */
-    if(stack->states_stored) {
-      fread(&len, sizeof(int), 1, f);
-      fread(buffer, len, 1, f);
-      item.s = state_unserialise_mem(buffer, h);
-    }
+    
     stack->blocks[0]->items[i] = item;
   }
   fclose(f);
@@ -222,6 +223,7 @@ void dfs_stack_push
     stack->top = 0;
   }
   h = stack->heaps[stack->current];
+  item.heap_pos = heap_get_position(h);
   item.id = sid;
   item.en = NULL;
   item.e_set = FALSE;
@@ -261,8 +263,7 @@ state_t dfs_stack_top_state
  heap_t h) {
   state_t result;
 
-  assert(stack->states_stored);
-  assert(0 != stack->size);
+  assert(stack->states_stored && 0 != stack->size);
   result = stack->blocks[stack->current]->items[stack->top].s;
   result = state_copy_mem(result, h);
   return result;
@@ -285,8 +286,6 @@ event_list_t dfs_stack_compute_events
   bool_t reduced;
 
   assert(0 != stack->size);
-  item.heap_pos = heap_get_position(h);
-  
   if(filter) {
     result = state_events_reduced_mem(s, &reduced, h);
     item.fully_expanded = !reduced;
