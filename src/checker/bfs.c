@@ -4,7 +4,7 @@
 #include "config.h"
 #include "context.h"
 #include "dbfs_comm.h"
-#include "htbl.h"
+#include "stbl.h"
 #include "prop.h"
 #include "reduction.h"
 #include "workers.h"
@@ -21,13 +21,13 @@ struct timespec BFS_WAIT_TIME[CFG_NO_WORKERS];
 htbl_t H = NULL;
 bfs_queue_t Q = NULL;
 pthread_barrier_t BFS_BARRIER;
-
+bool_t BFS_AT_BARRIER = FALSE;
 
 worker_id_t bfs_thread_owner
 (hkey_t h) {
   uint8_t result = 0;
   int i;
-  
+
   for(i = 0; i < sizeof(hkey_t); i++) {
     result += (h >> (i * 8)) & 0xff;
   }
@@ -43,21 +43,21 @@ void bfs_wait_barrier
 
 void bfs_init_queue
 () {
-  bool_t levels = CFG_ALGO_DBFS ? 1 : 2;
   bool_t events_in_queue = CFG_EDGE_LEAN;
   uint16_t no_workers = CFG_NO_WORKERS + (CFG_ALGO_DBFS ? 1 : 0);
   bool_t states_in_queue = CFG_HASH_COMPACTION;
-  
+
   Q = bfs_queue_new(no_workers, CFG_BFS_QUEUE_BLOCK_SIZE,
-                    states_in_queue, events_in_queue, levels);
+                    states_in_queue, events_in_queue);
 }
 
 bool_t bfs_check_termination
 (worker_id_t w) {
   bool_t result = FALSE;
-  uint16_t trials = 0;
-  
+  uint16_t trials;
+
   if(CFG_ALGO_DBFS) {
+    trials = 0;
     dbfs_comm_send_all_pending_states(w);
     while(!(result = dbfs_comm_termination())
           && bfs_queue_local_is_empty(Q, w)) {
@@ -66,13 +66,17 @@ bool_t bfs_check_termination
     }
     if(trials == 1) {
       BFS_WAIT_TIME[w].tv_nsec /= 2;
-    }    
-  } else {
-    bfs_wait_barrier();
-    bfs_queue_switch_level(Q, w);
-    bfs_wait_barrier();
+    }
+  } else if(!CFG_PARALLEL) {
     result = !context_keep_searching() || bfs_queue_is_empty(Q);
-    bfs_wait_barrier();
+  } else {
+    if(bfs_queue_is_empty(Q) || !context_keep_searching() || BFS_AT_BARRIER) {
+      BFS_AT_BARRIER = TRUE;
+      bfs_wait_barrier();
+      BFS_AT_BARRIER = FALSE;
+      result = !context_keep_searching() || bfs_queue_is_empty(Q);
+      bfs_wait_barrier();
+    }
   }
   return result;
 }
@@ -80,11 +84,11 @@ bool_t bfs_check_termination
 void bfs_report_trace
 (htbl_id_t id) {
   list_t trace = list_new(SYSTEM_HEAP, sizeof(event_t), event_free_void);
-  list_t trace_id = htbl_get_trace(H, id);
+  list_t trace_id = stbl_get_trace(H, id);
   list_iter_t it;
   state_t s = state_initial();
   event_t e;
-  
+
   for(it = list_get_iter(trace_id);
       !list_iter_at_end(it);
       it = list_iter_next(it)) {
@@ -98,15 +102,11 @@ void bfs_report_trace
 }
 
 #if defined(MODEL_EVENT_UNDOABLE)
+#define bfs_goto_succ() {event_exec(e, s); succ = s;}
 #define bfs_back_to_s() {event_undo(e, s);}
 #else
-#define bfs_back_to_s() {state_free(succ);}
-#endif
-
-#if defined(MODEL_EVENT_UNDOABLE)
-#define bfs_goto_succ() {event_exec(e, s); succ = s;}
-#else
 #define bfs_goto_succ() {succ = state_succ_mem(s, e, heap);}
+#define bfs_back_to_s() {state_free(succ);}
 #endif
 
 void * bfs_worker
@@ -128,12 +128,12 @@ void * bfs_worker
   hkey_t h;
   bfs_queue_item_t item, succ_item;
   event_t e;
-  bool_t is_new, reduced, termination = FALSE;
-  
-  while(!termination) {
+  bool_t is_new, reduced;
+
+  do {
     for(x = 0; x < bfs_queue_no_workers(Q) && context_keep_searching(); x ++) {
       while(!bfs_queue_slot_is_empty(Q, x, w) && context_keep_searching()) {
- 
+
         /**
          * get the next state sent by thread x, get its successors and
          * a valid reduced set.  if the states are not stored in the
@@ -142,7 +142,7 @@ void * bfs_worker
         item = bfs_queue_next(Q, x, w);
         heap_reset(heap);
         if(states_in_queue) {
-          s = item.s;
+          s = state_copy_mem(item.s, heap);
         } else {
           s = htbl_get_mem(H, item.id, heap);
         }
@@ -161,7 +161,6 @@ void * bfs_worker
           }
         }
 
-
         /**
          * check the state property
          */
@@ -171,7 +170,7 @@ void * bfs_worker
             bfs_report_trace(item.id);
           }
         }
-        
+
         /**
          * apply edge lean reduction after checking state property
          * (EDGE-LEAN may remove all enabled events)
@@ -262,15 +261,8 @@ void * bfs_worker
         htbl_set_worker_attr(H, item.id, ATTR_CYAN, w, FALSE);
       }
     }
-
-    /**
-     *  all states in the queue have been processed => check for termination
-     */
-    termination = bfs_check_termination(w);
-    levels ++;
-  }
+  } while(!bfs_check_termination(w));
   heap_free(heap);
-  context_set_stat(STAT_BFS_LEVELS, 0, levels);
 }
 
 void bfs
@@ -284,7 +276,7 @@ void bfs
   bool_t enqueue = TRUE;
   bfs_queue_item_t item;
   
-  H = htbl_default_new();
+  H = stbl_default_new();
   bfs_init_queue();
   for(w = 0; w < CFG_NO_WORKERS; w ++) {
     BFS_WAIT_TIME[w].tv_sec = 0;
@@ -313,7 +305,6 @@ void bfs
       htbl_set_attr(H, id, ATTR_EVT, 0);
     }
     bfs_queue_enqueue(Q, item, w, w);
-    bfs_queue_switch_level(Q, w);
     context_incr_stat(STAT_STATES_STORED, w, 1);
   }
   state_free(s);
@@ -324,6 +315,8 @@ void bfs
     context_stop_search();
     dbfs_comm_end();
   }
+  htbl_free(H);
+  bfs_queue_free(Q);
 }
 
 #endif

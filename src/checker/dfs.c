@@ -235,6 +235,7 @@ void * dfs_worker
       /* 
        * put new colors on the popped state as it leaves the stack
        */
+    pop_blue:
       if(blue) {
 	htbl_set_worker_attr(H, id, ATTR_CYAN, w, FALSE);
         htbl_set_attr(H, id, ATTR_BLUE, TRUE);
@@ -275,6 +276,7 @@ void * dfs_worker
               htbl_set_attr(H, proc.id, ATTR_RED, TRUE);
             }
           }
+          goto pop_blue;
         }
       }
 
@@ -348,7 +350,7 @@ void * dfs_worker
        * see if it must be pushed on the stack to be processed
        */
       if(blue) {
-	context_incr_stat(STAT_ARCS, w, 1);
+        context_incr_stat(STAT_ARCS, w, 1);
         push = is_new
           || (!(on_stack = htbl_get_worker_attr(H, id_succ, ATTR_CYAN, w)) &&
               !htbl_get_attr(H, id_succ, ATTR_BLUE));
@@ -406,7 +408,7 @@ void * dfs_worker
 
 void dfs
 () {
-  H = htbl_default_new();
+  H = stbl_default_new();
   if(CFG_ALGO_DDFS) {
     ddfs_comm_start(H);
   }

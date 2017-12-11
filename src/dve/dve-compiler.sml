@@ -70,6 +70,8 @@ fun compile (inFile, path, checks, errStream) = let
  	DveXmlCompiler.gen (sys, hFile, cFile);
 	printComment ("independence relation");
  	DveIndependenceRelationCompiler.gen (sys, hFile, cFile);
+	printComment ("state compression");
+ 	DveCompressionCompiler.gen (sys, hFile, cFile);
 	out hFile "#endif\n";
 	TextIO.closeOut (hFile);
 	TextIO.closeOut (cFile)

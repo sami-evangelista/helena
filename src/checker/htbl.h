@@ -15,8 +15,6 @@
 #ifndef LIB_HTBL
 #define LIB_HTBL
 
-#include "state.h"
-#include "event.h"
 #include "heap.h"
 #include "config.h"
 
@@ -27,7 +25,8 @@
 typedef enum {
   HTBL_HASH_COMPACTION,
   HTBL_BITSTATE,
-  HTBL_FULL
+  HTBL_FULL_DYNAMIC,
+  HTBL_FULL_STATIC
 } htbl_type_t;
 
 
@@ -49,12 +48,21 @@ typedef enum {
   ATTR_TO_REVISIT
 } attr_state_t;
 
+#define ATTR_ID(a) (1 << a)
+
 typedef struct struct_htbl_t * htbl_t;
+
+typedef uint16_t data_size_t;
 
 typedef uint64_t htbl_id_t;
 
-typedef void (* htbl_fold_func_t)
-(state_t, htbl_id_t, void *);
+typedef hkey_t (* htbl_hash_func_t) (void *);
+typedef void (* htbl_serialise_func_t) (void *, char *);
+typedef void * (* htbl_unserialise_func_t) (char *, heap_t);
+typedef uint16_t (* htbl_char_size_func_t) (void *);
+typedef bool_t (* htbl_cmp_func_t) (void *, char *);
+
+typedef void (* htbl_fold_func_t) (void *, htbl_id_t, void *);
 
 
 /**
@@ -65,14 +73,13 @@ htbl_t htbl_new
  uint64_t hash_size,
  uint16_t no_workers,
  htbl_type_t type,
- uint32_t attrs);
-
-
-/**
- * @brief htbl_default_new
- */
-htbl_t htbl_default_new
-();
+ data_size_t data_size,
+ uint32_t attrs,
+ htbl_hash_func_t hash_func,
+ htbl_serialise_func_t serialise_func,
+ htbl_unserialise_func_t unserialise_func,
+ htbl_char_size_func_t char_size_func,
+ htbl_cmp_func_t cmp_func);
 
 
 /**
@@ -87,7 +94,7 @@ void htbl_free
  */
 bool_t htbl_contains
 (htbl_t tbl,
- state_t s,
+ void * s,
  htbl_id_t * id,
  hkey_t * h);
 
@@ -97,7 +104,7 @@ bool_t htbl_contains
  */
 void htbl_insert
 (htbl_t tbl,
- state_t s,
+ void * s,
  bool_t * is_new,
  htbl_id_t * id,
  hkey_t * h);
@@ -108,7 +115,7 @@ void htbl_insert
  */
 void htbl_insert_hashed
 (htbl_t tbl,
- state_t s,
+ void * s,
  hkey_t h,
  bool_t * is_new,
  htbl_id_t * id);
@@ -127,17 +134,9 @@ void htbl_insert_serialised
 
 
 /**
- * @brief htbl_erase
- */
-void htbl_erase
-(htbl_t tbl,
- htbl_id_t id);
-
-
-/**
  * @brief htbl_get
  */
-state_t htbl_get
+void * htbl_get
 (htbl_t tbl,
  htbl_id_t id);
 
@@ -145,7 +144,7 @@ state_t htbl_get
 /**
  * @brief htbl_get_mem
  */
-state_t htbl_get_mem
+void * htbl_get_mem
 (htbl_t tbl,
  htbl_id_t id,
  heap_t heap);
@@ -240,13 +239,5 @@ void htbl_reset
 bool_t htbl_has_attr
 (htbl_t tbl,
  attr_state_t attr);
-
-
-/**
- * @brief htbl_get_trace
- */
-list_t htbl_get_trace
-(htbl_t tbl,
- htbl_id_t id);
 
 #endif

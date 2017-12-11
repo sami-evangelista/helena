@@ -4,7 +4,7 @@
 #include "comm_gasnet.h"
 #include "papi_stats.h"
 
-#define NO_STATS 19
+#define NO_STATS 18
 
 typedef enum {
   STAT_TYPE_TIME,
@@ -171,7 +171,6 @@ char * context_stat_xml_name
   case STAT_STATES_UNIQUE:      return "statesUnique";
   case STAT_ARCS:               return "arcs";
   case STAT_MAX_DFS_STACK_SIZE: return "maxDFSStackSize";
-  case STAT_BFS_LEVELS:         return "bfsLevels";
   case STAT_EVENT_EXEC:         return "eventsExecuted";
   case STAT_EVENT_EXEC_DDD:     return "eventsExecutedDDD";
   case STAT_BYTES_SENT:         return "bytesSent";
@@ -197,7 +196,6 @@ stat_type_t context_stat_type
   case STAT_STATES_UNSAFE:      return STAT_TYPE_GRAPH;
   case STAT_STATES_UNIQUE:      return STAT_TYPE_GRAPH;
   case STAT_ARCS:               return STAT_TYPE_GRAPH;
-  case STAT_BFS_LEVELS:         return STAT_TYPE_GRAPH;
   case STAT_MAX_DFS_STACK_SIZE: return STAT_TYPE_GRAPH;
   case STAT_EVENT_EXEC:         return STAT_TYPE_OTHERS;
   case STAT_EVENT_EXEC_DDD:     return STAT_TYPE_OTHERS;

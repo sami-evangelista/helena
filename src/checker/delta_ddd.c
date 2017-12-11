@@ -816,7 +816,6 @@ void * delta_ddd_worker
       for(x = 0; x < CFG_NO_WORKERS; x ++) {
 	NEXT_LVL += NEXT_LVLS[x];
       }
-      context_set_stat(STAT_BFS_LEVELS, 0, depth);
     }
     delta_ddd_barrier(w);
   }

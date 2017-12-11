@@ -40,7 +40,7 @@ void * bwalk_worker
   uint64_t rnd;
   rseed_t rseed = random_seed(w);
   state_t now, copy;
-  htbl_t htbl = htbl_default_new();  
+  htbl_t htbl = stbl_default_new();  
   bool_t is_new;
   hkey_t h;
   event_t e;

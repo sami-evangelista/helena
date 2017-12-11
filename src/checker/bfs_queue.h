@@ -4,20 +4,17 @@
  * @date 12 sep 2017
  * @author Sami Evangelista
  *
- * The queue is decomposed in levels.  States to be processed are
- * dequeued from level 0 and sucessor states are enqueued in level (1
- * % levels).  Once a BFS level terminated, each queue of level l is
- * replaced by the queue of level l + 1.  Each of these queues is a
- * W*W array (with W = number of working threads).  Each slot (w_from,
- * w_to) of this array contains states enqueued by worker w_from and
- * destinated (i.e., that must be processed) by worker w_to.
+ * The BFS queue is a W*W array (with W = number of working threads).
+ * Each slot (w_from, w_to) of this array contains states enqueued by
+ * worker w_from and destinated (i.e., that must be processed) by
+ * worker w_to.
  */
 
 #ifndef LIB_BFS_QUEUE
 #define LIB_BFS_QUEUE
 
 #include "bfs.h"
-#include "htbl.h"
+#include "stbl.h"
 
 
 /**
@@ -57,8 +54,7 @@ bfs_queue_t bfs_queue_new
 (uint16_t no_workers,
  uint32_t slot_size,
  bool_t states_stored,
- bool_t events_stored,
- uint8_t levels);
+ bool_t events_stored);
 
 
 /**
@@ -119,7 +115,7 @@ void bfs_queue_enqueue
 /**
  * @brief Dequeue an item from slot (from, to).
  */
-bfs_queue_item_t bfs_queue_dequeue
+void bfs_queue_dequeue
 (bfs_queue_t q,
  worker_id_t from,
  worker_id_t to);
@@ -133,14 +129,5 @@ bfs_queue_item_t bfs_queue_next
 (bfs_queue_t q,
  worker_id_t from,
  worker_id_t to);
-
-
-/**
- * @brief Swap all next slots (from, w) by next slots (from, w).  This
- *        has to be call by all workers.
- */
-void bfs_queue_switch_level
-(bfs_queue_t q,
- worker_id_t w);
 
 #endif

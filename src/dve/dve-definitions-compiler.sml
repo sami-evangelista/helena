@@ -83,7 +83,7 @@ fun compileStateType s = let
     fun compilePrintComp comp = let
 	val compName = getCompName comp
 	fun printVar (field, txt, Typ.BASIC_TYPE _) =
-	  "fprintf (out, \"   " ^ txt ^ " = %d\\n\", s->" ^ field ^ ");"
+	  "fprintf(out, \"   " ^ txt ^ " = %d\\n\", s->" ^ field ^ ");"
 	  | printVar (field, txt, Typ.ARRAY_TYPE (bt, n)) =
 	    String.concat
 	        (List.map (fn e => printVar
@@ -146,7 +146,7 @@ in
 		     sep   = "\n   ",
 		     final = "\n   heap_t heap;\n} struct_mstate_t;",
 		     fmt   = compileComp} comps,
-          "#define STATE_VECTOR_SIZE " ^ (Int.toString stateVectorSize),
+          "#define MODEL_STATE_VECTOR_SIZE " ^ (Int.toString stateVectorSize),
           "typedef struct_mstate_t * mstate_t;",
           "void mstate_free(mstate_t s);",
           "mstate_t mstate_copy(mstate_t s);",
@@ -182,7 +182,7 @@ in
          "bool_t mstate_equal",
          "(mstate_t s1,",
          " mstate_t s2) {",
-         "   if(0 == memcmp(s1, s2, STATE_VECTOR_SIZE)) { return TRUE; }",
+         "   if(0 == memcmp(s1, s2, MODEL_STATE_VECTOR_SIZE)) { return TRUE; }",
          "   else { return FALSE; }",
          "}",
          "",

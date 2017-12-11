@@ -21,7 +21,9 @@
 
 #include "includes.h"
 #include "config.h"
-#include "htbl.h"
+#include "stbl.h"
+#include "event.h"
+#include "state.h"
 
 /**
  * @typedef the stack type

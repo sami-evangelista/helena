@@ -146,7 +146,6 @@ statistics = {
     (18, "statesTerminal")         : "  deadlock                ",
     (19, "statesUnsafe")           : "  unsafe                  ",
     (20, "arcs")                   : "Transitions               ",
-    (21, "bfsLevels")              : "BFS levels                ",
     (22, "maxDFSStackSize")        : "Max DFS stack size        ",
     (23, "eventsExecuted")         : "Events executed           ",
     (24, "eventsExecutedDDD")      : "  for duplicate detection ",

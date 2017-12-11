@@ -9,6 +9,7 @@ in
    errors.sml
    dve-compiler-utils.sml
    dve-simplifier.sml
+   dve-compression-compiler.sml
    dve-config-compiler.sml
    dve-definitions-compiler.sml
    dve-enabling-test-compiler.sml

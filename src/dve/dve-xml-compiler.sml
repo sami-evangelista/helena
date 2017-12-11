@@ -52,7 +52,7 @@ fun compileModelXmlStatistics (s: System.system, hFile, cFile) = let
 	prot ^ " {",
 	"   fprintf (out, \"<modelStatistics>\");",
 	"   fprintf (out, \"<stateVectorSize>\");",
-	"   fprintf (out, \"%d\", STATE_VECTOR_SIZE);",
+	"   fprintf (out, \"%d\", MODEL_STATE_VECTOR_SIZE);",
 	"   fprintf (out, \"</stateVectorSize>\");",
 	"   fprintf (out, \"</modelStatistics>\");",
 	"}"
