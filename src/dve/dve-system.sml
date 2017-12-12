@@ -668,6 +668,8 @@ fun getProcs ({ procs, prop, ... }: system) =
    |  SOME proc => List.filter (fn p => (Process.getName p) <> proc) procs
 fun getProc ({ procs, ... }: system, p) = Process.getProcess (procs, p)
 fun getProp ({ prop, ... }: system) = prop
+fun getProcNamesWithGlobalHidden (s as { procs, ... }: system) =
+  "_GLOBAL" :: (List.map (Process.getName) (getProcs s))
                                                              
 fun toDve ({ t, prop, glob, chans, procs }: system,
 	   fileName) = let

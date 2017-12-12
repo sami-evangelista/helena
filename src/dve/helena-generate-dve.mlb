@@ -9,12 +9,12 @@ in
    errors.sml
    dve-compiler-utils.sml
    dve-simplifier.sml
+   dve-hash-function-compiler.sml
    dve-compression-compiler.sml
    dve-config-compiler.sml
    dve-definitions-compiler.sml
    dve-enabling-test-compiler.sml
    dve-event-execution-compiler.sml
-   dve-hash-function-compiler.sml
    dve-initial-state-compiler.sml
    dve-independence-relation-compiler.sml
    dve.grm.sig

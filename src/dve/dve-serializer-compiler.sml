@@ -30,7 +30,7 @@ fun compileStateSerialise (s: System.system, hFile, cFile) = let
     val prot = "void mstate_serialise (mstate_t s, bit_vector_t v)"
     val body =
 	concatLines [
-	prot ^ " {",
+	prot ^ " { char b[65536]; mstate_compress(s, b);",
 	"   memcpy(v, s, MODEL_STATE_VECTOR_SIZE);",
 	"}"
 	]

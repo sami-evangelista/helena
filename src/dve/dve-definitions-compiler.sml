@@ -61,10 +61,6 @@ fun compileStateType s = let
 	String.concat (List.mapPartial compileArrayType t) 
     end
 
-    fun sizeof (Typ.BASIC_TYPE Typ.BYTE) = 1
-      | sizeof (Typ.BASIC_TYPE Typ.INT) = 4
-      | sizeof (Typ.ARRAY_TYPE (bt, n)) = n * sizeof (Typ.BASIC_TYPE bt)
-
     fun compileComp comp =
       SOME (String.concat [ getCompTypeName comp, " ",
 			    getCompName comp, ";" ])
@@ -131,11 +127,7 @@ fun compileStateType s = let
 	    | (PROCESS_STATE p1, LOCAL_VAR (p2, _)) => String.> (p1, p2)
 	    )
 	    comps
-    val stateVectorSize =
-	List.map (fn (PROCESS_STATE _) => 1
-		 | (LOCAL_VAR (_, {typ, ...})) => sizeof typ
-		 | (GLOBAL_VAR {typ, ...}) => sizeof typ) comps
-    val stateVectorSize = List.foldl (fn (n, m) => n + m) 0 stateVectorSize
+    val stateVectorSize = sizeofComps comps
 in
     (concatLines [
           processStateTypeDefs,
@@ -352,6 +344,7 @@ in
 	               sep   = "\n",
 	               final = "",
 	               fmt   = compileConstInit} consts,
+	    "   model_compress_data_init();",
             "}" ])
 end
 

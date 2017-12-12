@@ -183,7 +183,6 @@ htbl_t htbl_new
   }
   result->data = mem_alloc0(heap, result->hash_size * result->item_size);
   return result;
-
 }
 
 void htbl_free
@@ -451,23 +450,23 @@ uint64_t htbl_get_worker_attr
   HTBL_GET_ATTR(w);
 }
 
-#define HTBL_SET_ATTR(shift) {                                          \
-    const uint32_t width = ATTR_WIDTH[attr];                            \
-    const uint32_t move = tbl->attr_pos[attr] + shift;                  \
-    bit_stream_t bits;                                                  \
-    char * pos, * status;                                               \
-                                                                        \
-    pos = HTBL_POS_STATE(tbl, id);                                      \
-    HTBL_INIT_BITS_ON_ATTRS(tbl, pos, bits);                            \
-    bit_stream_move(bits, move);                                        \
-    if(tbl->no_workers > 1) {                                           \
-      HTBL_GET_STATUS(tbl, pos, status);                                \
-      while(!CAS(status, BUCKET_READY, BUCKET_UPDATE)) {                \
-        context_sleep(SLEEP_TIME);                                      \
-      }                                                                 \
-    }                                                                   \
-    bit_stream_set(bits, val, width);                                   \
-    *status = BUCKET_READY;                                             \
+#define HTBL_SET_ATTR(shift) {					\
+    const uint32_t width = ATTR_WIDTH[attr];			\
+    const uint32_t move = tbl->attr_pos[attr] + shift;		\
+    bit_stream_t bits;						\
+    char * pos, * status;					\
+								\
+    pos = HTBL_POS_STATE(tbl, id);				\
+    HTBL_INIT_BITS_ON_ATTRS(tbl, pos, bits);			\
+    bit_stream_move(bits, move);				\
+    HTBL_GET_STATUS(tbl, pos, status);				\
+    if(tbl->no_workers > 1) {					\
+      while(!CAS(status, BUCKET_READY, BUCKET_UPDATE)) {	\
+        context_sleep(SLEEP_TIME);				\
+      }								\
+    }								\
+    bit_stream_set(bits, val, width);				\
+    *status = BUCKET_READY;					\
   }
 
 void htbl_set_attr

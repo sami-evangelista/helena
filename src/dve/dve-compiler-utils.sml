@@ -109,9 +109,16 @@ fun getCompToSMLStringFuncName (PROCESS_STATE p) = getLocalStateToSMLString p
 	      | Typ.BASIC_TYPE _ => "baseToString"
   end
 
-fun getLargeCompName (GLOBAL _) = "GLOBAL"
-  | getLargeCompName (PROCESS (p, _)) = "PROCESS_" ^ p
+fun sizeofType (Typ.BASIC_TYPE Typ.BYTE) = 1
+  | sizeofType (Typ.BASIC_TYPE Typ.INT) = 4
+  | sizeofType (Typ.ARRAY_TYPE (bt, n)) = n * sizeofType (Typ.BASIC_TYPE bt)
 
+fun sizeofComps comps =
+  List.foldl (fn (n, m) => n + m) 0
+	     (List.map (fn (PROCESS_STATE _) => 1
+		       | (LOCAL_VAR (_, {typ, ...})) => sizeofType typ
+		       | (GLOBAL_VAR {typ, ...}) => sizeofType typ) comps)
+	     
 fun isCompConst comp =
   case getCompVar comp of NONE => false | SOME var => Var.getConst var
 
@@ -193,31 +200,46 @@ fun buildStateComps (s: System.system) = let
     fun mapProcessState proc = PROCESS_STATE (Process.getName proc)
     fun mapGlobalVar v = GLOBAL_VAR v
     fun getProcessVarList proc = let
-	fun mapVar var = LOCAL_VAR(Process.getName proc, var)
+	fun mapVar var = LOCAL_VAR (Process.getName proc, var)
     in
 	List.map mapVar (Process.getVars proc)
     end
 in
-    List.map mapGlobalVar (System.getVars s) @
-    List.concat (List.map getProcessVarList (System.getProcs s)) @
-    List.map mapProcessState (System.getProcs s)
+    (List.map mapGlobalVar (System.getVars s))
+    @
+    (List.concat
+	 (List.map (fn proc => PROCESS_STATE (Process.getName proc)
+			       :: getProcessVarList proc)
+		   (System.getProcs s)))
 end
 
-fun buildLargeStateComps sys = let
-    val comps = List.filter (fn c => not (isCompConst c)) (buildStateComps sys)
+fun buildStateCompsWithGlobalHidden (s: System.system) =
+  List.map (fn GLOBAL_VAR v => LOCAL_VAR("_GLOBAL", v)
+	   | comp => comp)
+	   (buildStateComps s)
+
+fun getProcessComps procName comps =
+  List.filter (fn PROCESS_STATE procName' => procName = procName'
+	      | LOCAL_VAR (procName', _) => procName = procName'
+	      | _ => false) comps
+
+fun getGlobalComps comps =
+  List.filter (fn GLOBAL_VAR _  => true
+	      | _ => false) comps
+
+fun positionOfProcInStateVector comps "_GLOBAL" = 0
+  | positionOfProcInStateVector comps procName = let
+    val (compsBefore, _) =
+	List.foldl (fn (_, (l, true)) => (l, true)
+		   |   (comp as PROCESS_STATE st, (l, false)) =>
+		       if st = procName
+		       then (l, true)
+		       else (comp :: l, false)
+		   |   (comp,  (l, false)) => (comp :: l, false))
+		   ([], false) comps
 in
-    (GLOBAL (List.mapPartial
-		 (fn GLOBAL_VAR v => SOME (GLOBAL_VAR v) | _ => NONE) comps))
-    ::
-    List.map (fn p => PROCESS (p, List.filter (fn LOCAL_VAR (q, _) => p = q
-					      | PROCESS_STATE q => p = q
-					      | _ => false)
-					      comps))
-	     (List.map Process.getName (System.getProcs sys))
+    sizeofComps compsBefore
 end
-
-fun getSubComps (GLOBAL c) = c
-  | getSubComps (PROCESS (_, c)) = c
 
 local
     fun build procs (s: System.system) = let
@@ -259,18 +281,6 @@ fun buildEvents (s: System.system) =
   build (System.getProcs s) s
 fun buildProcEvents (s: System.system, proc) =
   build [ System.getProc (s, proc) ] s
-end
-
-fun getGlobalVars comps = let
-    fun isGlobalVar c = case c of GLOBAL_VAR _ => true | _ => false
-in
-    List.filter isGlobalVar comps
-end
-
-fun getLocalVars (comps, proc) = let
-    fun isLocalVar c = case c of LOCAL_VAR (p, _) => p = proc | _ => false
-in
-    List.filter isLocalVar comps
 end
 
 fun getVarComp (comps: state_comp list,
@@ -323,46 +333,6 @@ in
 	    | PROCESS_STATE p =>
 	      ([ "(" ^ getLocalStateToInt p ^ " " ^ getCompName c ^ ")"],
 	       getCompName c)
-end
-
-fun genAllComps (comps, prefix) = let
-    val l = ref []
-    fun name c = case prefix of NONE => getCompName c
-			      | SOME pref => pref ^ "_" ^ (getCompName c)
-    fun oneVar c v =
-      case Var.getTyp v of
-	  Typ.ARRAY_TYPE (_, size) =>
-	  SOME (Utils.fmt {
-		     init  = (getCompName c) ^ " = (",
-		     final = ")",
-		     fmt   = fn i =>
-			        let
-				    val c = name c ^ "_ITEM_" ^ (Int.toString i)
-			        in
-				    l := c :: (!l);
-				    SOME c
-			        end,
-		     sep   = ", " }
-			  (List.tabulate (size, (fn i => i))))
-	       
-	| _ => (l := (name c) :: (!l);
-		SOME ((getCompName c) ^ " = " ^ (name c)))
-    fun oneComp c =
-      if isCompConst c
-      then NONE
-      else case c of GLOBAL_VAR v => oneVar c v
-		   | LOCAL_VAR (_, v) => oneVar c v
-		   | PROCESS_STATE p => (
-		       l := ("(" ^ (getLocalStateToInt p) ^ " " ^
-			     (name c) ^ ")") ::
-			    (!l);
-		       SOME ((getCompName c) ^ " = " ^ (name c)))
-    val comps = Utils.fmt { init  = "{ ",
-			    final = " }",
-			    fmt   = oneComp,
-			    sep   = ", " } comps
-in
-    (List.rev (!l), comps)
 end
 
 fun mappingToState mapping = let
@@ -452,8 +422,9 @@ and compileExpr (stateName: string)
     val compileExpr = compileExpr stateName
 in
     case e
-             (*  int  *)
-     of Expr.INT (_, num) =>
+     of
+        (*  int  *)
+	Expr.INT (_, num) =>
 	if num >= 0
 	then LargeInt.toString num
 	else "(- " ^ (LargeInt.toString (~ num)) ^ ")"
