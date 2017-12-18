@@ -10,7 +10,7 @@ void * observer_worker
 (void * arg) {
   float time = 0;
   struct timeval now;
-  float mem, cpu, cpu_avg = 0;
+  float cpu, cpu_avg = 0;
   double processed;
   double stored;
   char name[100], pref[100];
@@ -28,29 +28,23 @@ void * observer_worker
     n ++;
     sleep(1);
     gettimeofday(&now, NULL);
-    mem = mem_usage();
     cpu = context_cpu_usage();
     if(context_keep_searching()) {
       cpu_avg = (cpu + (n - 1) * cpu_avg) / n;
     }
     processed = context_get_stat(STAT_STATES_PROCESSED);
     stored = context_get_stat(STAT_STATES_STORED);
-    context_set_stat(STAT_MAX_MEM_USED, 0, mem);
     time = ((float) duration(context_start_time(), now)) / 1000000.0;
     if(CFG_WITH_OBSERVER) {
       printf("\n%sTime elapsed    :   %8.2f s.\n", pref, time);
       printf("%sStates stored   :%'11llu\n", pref, (uint64_t) stored);
       printf("%sStates processed:%'11llu\n", pref, (uint64_t) processed);
-      printf("%sMemory usage    :   %8.1f MB.\n", pref, mem);
       printf("%sCPU usage       :   %8.2f %c\n", pref, cpu, '%');
     }
     
     /*
      *  check for limits
      */
-    if(CFG_MEMORY_LIMITED && mem > CFG_MAX_MEMORY) {
-      context_set_termination_state(TERM_MEMORY_EXHAUSTED);
-    }
     if(CFG_TIME_LIMITED && time > (float) CFG_MAX_TIME) {
       context_set_termination_state(TERM_TIME_ELAPSED);
     }

@@ -8,11 +8,13 @@ structure
 DveDefinitionsCompiler:
 sig
     
-    val gen: System.system * TextIO.outstream * TextIO.outstream
-	     -> unit
+    val gen:
+        System.system * TextIO.outstream * TextIO.outstream
+	-> unit
                     
-    val compileProcessState: Process.process
-                             -> string
+    val compileProcessState:
+        Process.process
+        -> string
                                     
 end = struct
 
@@ -24,8 +26,8 @@ fun compileProcessState p = let
     val pInit   = Process.getInit p
     val pStates = Process.getStates p
 in
-    num := 0;
-    listFormat { init  = "",
+    num := 0
+  ; listFormat { init  = "",
 		 sep   = "\n",
 		 final = "\n",
 		 fmt   = (fn s => 
@@ -129,65 +131,53 @@ fun compileStateType s = let
 	    comps
     val stateVectorSize = sizeofComps comps
 in
-    (concatLines [
-          processStateTypeDefs,
-          "/*  state type  */",
-          arrayTypeDefs,
-          "typedef struct {",
-          Utils.fmt {init  = "   ",
-		     sep   = "\n   ",
-		     final = "\n   heap_t heap;\n} struct_mstate_t;",
-		     fmt   = compileComp} comps,
-          "#define MODEL_STATE_VECTOR_SIZE " ^ (Int.toString stateVectorSize),
-          "typedef struct_mstate_t * mstate_t;",
-          "void mstate_free(mstate_t s);",
-          "mstate_t mstate_copy(mstate_t s);",
-          "mstate_t mstate_copy_mem(mstate_t s, heap_t heap);",
-          "bool_t mstate_equal(mstate_t s1, mstate_t s2);",
-          "void mstate_print(mstate_t s, FILE * out);",
-          "",
-          Utils.fmt {init  = if consts <> [] then "/*  constants  */\n" else "",
-		     sep   = "\n",
-		     final = "",
-		     fmt   = compileConst} consts
-      ],
-     concatLines [
-         "void mstate_free",
-         "(mstate_t s) {",
-         "   mem_free (s->heap, s);",
-         "}",
-         "",
-         "mstate_t mstate_copy_mem",
-         "(mstate_t s,",
-         " heap_t heap) {",
-         "   mstate_t result = mem_alloc(heap, sizeof (struct_mstate_t));",
-         "   *result = *s;",
-         "   result->heap = heap;",
-         "   return result;",
-         "}",
-         "",
-         "mstate_t mstate_copy",
-         "(mstate_t s) {",
-         "   return mstate_copy_mem (s, SYSTEM_HEAP);",
-         "}",
-         "",
-         "bool_t mstate_equal",
-         "(mstate_t s1,",
-         " mstate_t s2) {",
-         "   if(0 == memcmp(s1, s2, MODEL_STATE_VECTOR_SIZE)) { return TRUE; }",
-         "   else { return FALSE; }",
-         "}",
-         "",
-         "void mstate_print",
-         "(mstate_t s,",
-         " FILE * out) {",
-         "   fprintf (out, \"{\\n\");",
-         Utils.fmt {init  = "   ",
-		    sep   = "\n   ",
-		    final = "\n",
-		    fmt   = compilePrintComp} printComps,
-         "   fprintf (out, \"}\\n\");",
-         "}"
+    ([ processStateTypeDefs,
+       "/*  state type  */",
+       arrayTypeDefs,
+       "typedef struct {",
+       Utils.fmt {init  = "   ",
+		  sep   = "\n   ",
+		  final = "\n   heap_t heap;\n} struct_mstate_t;",
+		  fmt   = compileComp} comps,
+       "#define MODEL_STATE_SIZE " ^ (Int.toString stateVectorSize),
+       "typedef struct_mstate_t * mstate_t;",
+       "void mstate_free(mstate_t s);",
+       "mstate_t mstate_copy(mstate_t s, heap_t heap);",
+       "bool_t mstate_equal(mstate_t s1, mstate_t s2);",
+       "void mstate_print(mstate_t s, FILE * out);",
+       "",
+       Utils.fmt {init  = if consts <> [] then "/*  constants  */\n" else "",
+		  sep   = "\n",
+		  final = "",
+		  fmt   = compileConst} consts
+     ],
+     [ "void mstate_free(mstate_t s) { mem_free (s->heap, s);}",
+       "",
+       "mstate_t mstate_copy",
+       "(mstate_t s,",
+       " heap_t heap) {",
+       "   mstate_t result = mem_alloc(heap, sizeof (struct_mstate_t));",
+       "   *result = *s;",
+       "   result->heap = heap;",
+       "   return result;",
+       "}",
+       "",
+       "bool_t mstate_equal",
+       "(mstate_t s1,",
+       " mstate_t s2) {",
+       "   return (0 == memcmp(s1, s2, MODEL_STATE_SIZE));",
+       "}",
+       "",
+       "void mstate_print",
+       "(mstate_t s,",
+       " FILE * out) {",
+       "   fprintf (out, \"{\\n\");",
+       Utils.fmt {init  = "   ",
+		  sep   = "\n   ",
+		  final = "\n",
+		  fmt   = compilePrintComp} printComps,
+       "   fprintf (out, \"}\\n\");",
+       "}"
     ])
 end
 
@@ -209,76 +199,58 @@ fun compileEventType (s: System.system) = let
     val printCases = concatLines (List.map desc systemEvents)
     val num = ref 0
 in
-    (concatLines [
-          "#define NO_EVENTS " ^ (Int.toString (List.length (systemEvents))),
-          listFormat {init  = "",
-		      sep   = "\n",
-		      final = "\n",
-		      fmt   = fn e => ("#define " ^ (getEventName e) ^ " " ^
-				       (Int.toString (!num)
-				        before (num := !num + 1))) }
-		     systemEvents,
-          "uint32_t mevent_char_size(mevent_t e);",
-          "void mevent_free(mevent_t e);",
-          "mevent_t mevent_copy(mevent_t e);",
-          "mevent_t mevent_copy_mem(mevent_t e, heap_t h);",
-          "void mevent_print(mevent_t e, FILE * out);",
-          "mevent_id_t mevent_id(mevent_t e);",
-          "order_t mevent_cmp(mevent_t e, mevent_t f);",
-          "bool_t mevent_is_safe(mevent_t e);",
-          "unsigned int mevent_safe_set(mevent_t e);",
-          "bool_t mevent_is_visible(mevent_t e);"
-      ],
-     concatLines [
-         "uint32_t mevent_char_size(mevent_t e) {",
-         "   return sizeof(mevent_t);",
-         "}",
-         "",
-         "void mevent_free(mevent_t e) {",
-         "}",
-         "",
-         "mevent_t mevent_copy(mevent_t e) {",
-         "   return e;",
-         "}",
-         "",
-         "mevent_t mevent_copy_mem(mevent_t e, heap_t h) {",
-         "   return e;",
-         "}",
-         "",
-         "void mevent_print(mevent_t e, FILE * out) {",
-         "   switch(e) {",
-         printCases,
-         "      default: assert(0);",
-         "   }",
-         "}",
-         "",
-         "mevent_id_t mevent_id(mevent_t e) {",
-         "   return e;",
-         "}",
-         "",
-         "order_t mevent_cmp(mevent_t e, mevent_t f) {",
-         "   if(e < f) return LESS;",
-         "   if(e > f) return GREATER;",
-         "   return EQUAL;",
-         "}",
-         "",
-         "bool_t mevent_is_safe(mevent_t e) {",
-         "   return FALSE;",
-         "}",
-         "",
-         "unsigned int mevent_safe_set(mevent_t e) {",
-         "   return 0;",
-         "}",
-         "",
-         "bool_t mevent_is_visible(mevent_t e) {",
-         "   return FALSE;",
-         "}"
+    ([ "#define NO_EVENTS " ^ (Int.toString (List.length (systemEvents))),
+       listFormat {init  = "",
+		   sep   = "\n",
+		   final = "\n",
+		   fmt   = fn e => ("#define " ^ (getEventName e) ^ " " ^
+				    (Int.toString (!num)
+				     before (num := !num + 1))) }
+		  systemEvents,
+       "uint32_t mevent_char_size(mevent_t e);",
+       "void mevent_free(mevent_t e);",
+       "mevent_t mevent_copy(mevent_t e, heap_t h);",
+       "void mevent_print(mevent_t e, FILE * out);",
+       "mevent_id_t mevent_id(mevent_t e);",
+       "order_t mevent_cmp(mevent_t e, mevent_t f);",
+       "bool_t mevent_is_safe(mevent_t e);",
+       "unsigned int mevent_safe_set(mevent_t e);",
+       "bool_t mevent_is_visible(mevent_t e);" ],
+     [
+       "uint32_t mevent_char_size(mevent_t e) { return sizeof(mevent_t); }",
+       "",
+       "void mevent_free(mevent_t e) {}",
+       "",
+       "mevent_t mevent_copy(mevent_t e, heap_t h) { return e; }",
+       "",
+       "mevent_id_t mevent_id(mevent_t e) { return e; }",
+       "",
+       "bool_t mevent_is_safe(mevent_t e) { return FALSE; }",
+       "",
+       "unsigned int mevent_safe_set(mevent_t e) { return 0; }",
+       "",
+       "bool_t mevent_is_visible(mevent_t e) { return TRUE; }",
+       "",
+       "void mevent_print(mevent_t e, FILE * out) {",
+       "   switch(e) {",
+       printCases,
+       "      default: assert(0);",
+       "   }",
+       "}",
+       "",
+       "order_t mevent_cmp(mevent_t e, mevent_t f) {",
+       "   if(e < f) return LESS;",
+       "   if(e > f) return GREATER;",
+       "   return EQUAL;",
+       "}"
     ])
 end
 
 fun gen (s, hFile, cFile) = let
     val (eventDefH, eventDefC) = compileEventType s
+    val (eventDefH, eventDefC) = (concatLines eventDefH, concatLines eventDefC)
     val (stateDefH, stateDefC) = compileStateType s
+    val (stateDefH, stateDefC) = (concatLines stateDefH, concatLines stateDefC)
     val comps = buildStateComps s
     val map = buildMapping comps
     val (consts, comps) = List.partition isCompConst comps
@@ -327,12 +299,13 @@ in
             stateDefH,
             "",
             "/*  model initialisation and termination  */",
-            "void init_model ();" ]);
+            "void init_model();",
+            "void finalise_model();" ])
 
-    (*
-     *  C file
-     *)
-    TextIO.output (
+  (*
+   *  C file
+   *)
+  ; TextIO.output (
         cFile,
         concatLines [
             eventDefC,
@@ -344,7 +317,9 @@ in
 	               sep   = "\n",
 	               final = "",
 	               fmt   = compileConstInit} consts,
-	    "   model_compress_data_init();",
+            "}",
+            "",
+            "void finalise_model () {",
             "}" ])
 end
 

@@ -224,7 +224,7 @@ class Net:
     #  enabling test
     ###
     def compileEnablingTestFunctions(self, hw, cw):
-        prot = "list_t mstate_events_mem(mstate_t s, heap_t heap)"
+        prot = "list_t mstate_events(mstate_t s, heap_t heap)"
         hw(prot + ";\n") 
         cw(prot + """ {
    list_t result = list_new(heap, sizeof(mevent_t), NULL);
@@ -263,23 +263,11 @@ class Net:
         cw("   }\n")
         cw("   return result;\n")
         cw("}\n")
-        prot = """list_t mstate_events(mstate_t s)"""
-        hw(prot + ";\n") 
-        cw(prot + """ {
-   return mstate_events_mem(s, SYSTEM_HEAP);
-}
-""")
         
-        prot = "mevent_t mstate_event_mem(mstate_t s, mevent_t e, heap_t h)"
+        prot = "mevent_t mstate_event(mstate_t s, mevent_t e, heap_t h)"
         hw(prot + ";\n") 
         cw(prot + """ {
    return e;
-}
-""")
-        prot = "mevent_t mstate_event(mstate_t s, mevent_t e)"
-        hw(prot + ";\n") 
-        cw(prot + """ {
-   return mstate_event_mem(s, e, SYSTEM_HEAP);
 }
 """)
     
@@ -392,18 +380,12 @@ int marked_place_cmp(void * a, void * b) {
         for f, op in [ ("succ", "exec"),
                        ("pred", "undo") ]:
             prot = "mstate_t mstate_""" + f + \
-                   "_mem(mstate_t s, mevent_t e, heap_t heap)"
+                   "(mstate_t s, mevent_t e, heap_t heap)"
             hw(prot + ";\n") 
             cw(prot + """ {
-   mstate_t result = mstate_copy_mem(s, heap);
+   mstate_t result = mstate_copy(s, heap);
    mevent_""" + op + """(e, result);
    return result;
-}
-""")
-            prot = "mstate_t mstate_" + f + "(mstate_t s, mevent_t e)"
-            hw(prot + ";\n") 
-            cw(prot + """ {
-   return mstate_""" + f + """_mem(s, e, FALSE);
 }
 """)
     
@@ -411,7 +393,7 @@ int marked_place_cmp(void * a, void * b) {
     #  initial marking
     ###
     def compileInitialMarkingFunctions(self, hw, cw):
-        prot = "mstate_t mstate_initial_mem(heap_t heap)"
+        prot = "mstate_t mstate_initial(heap_t heap)"
         hw(prot + ";\n") 
         cw(prot + """ {
    marked_place_t m;
@@ -427,12 +409,6 @@ int marked_place_cmp(void * a, void * b) {
                 cw("   list_append(result->marked, &m);\n")
         cw("   return result;\n")
         cw("}\n") 
-        prot = "mstate_t mstate_initial()"
-        hw(prot + ";\n")
-        cw(prot + """ {
-   return mstate_initial_mem(SYSTEM_HEAP);
-}
-""")
 
     ###
     #  serialisation functions
@@ -450,7 +426,7 @@ int marked_place_cmp(void * a, void * b) {
 """)
         
         # state serialisation
-        prot = "void mstate_serialise(mstate_t s, bit_vector_t v)"
+        prot = "void mstate_serialise(mstate_t s, char * v)"
         hw(prot + ";\n")
         cw(prot + """ {
    const int len = list_size(s->marked);
@@ -471,7 +447,7 @@ int marked_place_cmp(void * a, void * b) {
 """)
         
         # state unserialisation
-        prot = "mstate_t mstate_unserialise_mem(bit_vector_t v, heap_t heap)"
+        prot = "mstate_t mstate_unserialise(char * v, heap_t heap)"
         hw(prot + ";\n")
         cw(prot + """ {
    int len;
@@ -497,13 +473,7 @@ int marked_place_cmp(void * a, void * b) {
                 cw("   m.tok = " + str(init) + ";\n")
                 cw("   list_append(result->marked, &m);\n")
         cw("   return result;\n")
-        cw("}\n") 
-        prot = "mstate_t mstate_unserialise(bit_vector_t v)"
-        hw(prot + ";\n")
-        cw(prot + """ {
-   return mstate_unserialise_mem(v, SYSTEM_HEAP);
-}
-""")
+        cw("}\n")
 
         # event char size
         prot = "unsigned int mevent_char_size(mevent_t e)"
@@ -514,7 +484,7 @@ int marked_place_cmp(void * a, void * b) {
 """)
 
         # state to vector comparison
-        prot = "bool_t mstate_cmp_vector(mstate_t s, bit_vector_t v)"
+        prot = "bool_t mstate_cmp_vector(mstate_t s, char * v)"
         hw(prot + ";\n")
         cw(prot + """ {
    uint32_t not_empty = 0, pid, tokens;
@@ -537,7 +507,7 @@ int marked_place_cmp(void * a, void * b) {
 """)
         
         # event serialisation
-        prot = "void mevent_serialise(mevent_t e, bit_vector_t v)"
+        prot = "void mevent_serialise(mevent_t e, char * v)"
         hw(prot + ";\n")
         cw(prot + """ {
    memcpy(v, &e, sizeof(mevent_t));
@@ -545,18 +515,12 @@ int marked_place_cmp(void * a, void * b) {
 """)
         
         # event unserialisation
-        prot = "mevent_t mevent_unserialise_mem(bit_vector_t v, heap_t heap)"
+        prot = "mevent_t mevent_unserialise(char * v, heap_t heap)"
         hw(prot + ";\n")
         cw(prot + """ {
    mevent_t result;
    memcpy(&result, v, sizeof(mevent_t));
    return result;
-}
-""")
-        prot = "mevent_t mevent_unserialise(bit_vector_t v)"
-        hw(prot + ";\n")
-        cw(prot + """ {
-   return mevent_unserialise_mem(v, SYSTEM_HEAP);
 }
 """)
 
@@ -811,7 +775,7 @@ void dynamic_por_reduction_handle_scapegoat
 #ifndef LIB_MODEL
 #define LIB_MODEL
 
-#define MODEL_EVENT_UNDOABLE
+#define MODEL_HAS_EVENT_UNDOABLE
 #define MODEL_HAS_DYNAMIC_POR_REDUCTION
 
 """)
@@ -906,7 +870,7 @@ typedef uint32_t mevent_id_t;
         ###
         #  state copy
         ###
-        prot = """mstate_t mstate_copy_mem(mstate_t s, heap_t heap)"""
+        prot = """mstate_t mstate_copy(mstate_t s, heap_t heap)"""
         hw(prot + ";\n") 
         cw(prot + """ {
    mstate_t result = mem_alloc(heap, sizeof(struct_mstate_t));
@@ -915,28 +879,16 @@ typedef uint32_t mevent_id_t;
    return result;
 }
 """)
-        prot = """mstate_t mstate_copy(mstate_t s)"""
-        hw(prot + ";\n")
-        cw(prot + """ {
-   return mstate_copy_mem(s, SYSTEM_HEAP);
-}
-""")
 
         ###
         #  event copy
         ###
-        prot = """mevent_t mevent_copy_mem(mevent_t e, heap_t heap)"""
+        prot = """mevent_t mevent_copy(mevent_t e, heap_t heap)"""
         hw(prot + ";\n") 
         cw(prot + """ {
    return e;
 }
 """) 
-        prot = """mevent_t mevent_copy(mevent_t e)"""
-        hw(prot + ";\n")
-        cw(prot + """ {
-   return e;
-}
-""")
 
         ###
         #  hash function
@@ -949,7 +901,7 @@ typedef uint32_t mevent_id_t;
    char buffer[size];
    buffer[size - 1] = 0;
    mstate_serialise(s, buffer);
-   return bit_vector_hash(buffer, size);
+   return string_hash(buffer, size);
 }
 """)
 

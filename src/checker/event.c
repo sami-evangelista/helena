@@ -14,14 +14,14 @@ uint32_t mevent_char_size_void
 void mevent_serialise_void
 (void * e,
  char * data) {
-  return mevent_serialise(* ((mevent_t *) e), (bit_vector_t) data);
+  return mevent_serialise(* ((mevent_t *) e), (char *) data);
 }
 
 void mevent_unserialise_void
 (char * data,
  heap_t heap,
  void * item) {
-  mevent_t e = mevent_unserialise_mem(data, heap);
+  mevent_t e = mevent_unserialise(data, heap);
   memcpy(item, &e, sizeof(mevent_t));
 }
 
@@ -32,17 +32,12 @@ uint32_t mevent_list_char_size
 
 void mevent_list_serialise
 (mevent_list_t l,
- bit_vector_t v) {
+ char * v) {
   list_serialise(l, v, mevent_char_size_void, mevent_serialise_void);
 }
 
 mevent_list_t mevent_list_unserialise
-(bit_vector_t v) {  
-  return mevent_list_unserialise_mem(v, SYSTEM_HEAP);
-}
-
-mevent_list_t mevent_list_unserialise_mem
-(bit_vector_t v,
+(char * v,
  heap_t heap) {
   return list_unserialise(heap, sizeof(mevent_t), mevent_free_void,
                           v, mevent_char_size_void, mevent_unserialise_void);
@@ -68,18 +63,13 @@ void event_free_void
 }
 
 event_t event_copy
-(event_t e) {
-  return event_copy_mem(e, SYSTEM_HEAP);
-}
-
-event_t event_copy_mem
 (event_t e,
  heap_t h) {
   event_t result;
   result.dummy = e.dummy;
   result.b = e.b;
   if(!e.dummy) {
-    result.m = mevent_copy_mem(e.m, h);
+    result.m = mevent_copy(e.m, h);
   }
   return result;
 }
@@ -139,7 +129,7 @@ unsigned int event_char_size
 
 void event_serialise
 (event_t e,
- bit_vector_t v) {
+ char * v) {
   const unsigned int bsize = sizeof(bstate_t);
   
   memcpy(v, &e.b.from, bsize);
@@ -151,12 +141,7 @@ void event_serialise
 }
 
 event_t event_unserialise
-(bit_vector_t v) {
-  return event_unserialise_mem(v, SYSTEM_HEAP);
-}
-
-event_t event_unserialise_mem
-(bit_vector_t v,
+(char * v,
  heap_t heap) {
   const unsigned int bsize = sizeof(bstate_t);
   event_t result;
@@ -167,17 +152,12 @@ event_t event_unserialise_mem
   memcpy(&result.b.to, v + bsize, bsize);
   memcpy(&result.dummy, v + bsize + bsize, 1);
   if(!result.dummy) {
-    result.m = mevent_unserialise_mem(v + bsize + bsize + 1, heap);
+    result.m = mevent_unserialise(v + bsize + bsize + 1, heap);
   }
   return result;
 }
 
-event_list_t state_events
-(state_t s) {
-  return state_events_mem(s, SYSTEM_HEAP);
-}
-
-event_list_t state_events_mem_with_reduction
+event_list_t state_events_with_reduction
 (state_t s,
  bool_t reduce,
  bool_t * reduced,
@@ -191,9 +171,9 @@ event_list_t state_events_mem_with_reduction
   int i, no_succs;
 
   if(reduce) {
-    m_en = mstate_events_reduced_mem(s->m, reduced, heap);
+    m_en = mstate_events_reduced(s->m, reduced, heap);
   } else {
-    m_en = mstate_events_mem(s->m, heap);    
+    m_en = mstate_events(s->m, heap);    
   }
   bstate_succs(s->b, s->m, succs, &no_succs);
 
@@ -230,7 +210,7 @@ event_list_t state_events_mem_with_reduction
           !list_iter_at_end(it);
           it = list_iter_next(it)) {
         e.m = * ((mevent_t *) list_iter_item(it));
-        e.m = mevent_copy_mem(e.m, heap);
+        e.m = mevent_copy(e.m, heap);
         list_append(result, &e);
       }
     }
@@ -239,19 +219,20 @@ event_list_t state_events_mem_with_reduction
   return result;
 }
 
-event_list_t state_events_mem
+event_list_t state_events
 (state_t s,
  heap_t heap) {
-  return state_events_mem_with_reduction(s, FALSE, NULL, heap);
+  return state_events_with_reduction(s, FALSE, NULL, heap);
+}
+
+event_list_t state_events_reduced
+(state_t s,
+ bool_t * red,
+ heap_t heap) {
+  return state_events_with_reduction(s, TRUE, red, heap);  
 }
 
 event_t state_event
-(state_t s,
- event_id_t id) {
-  return state_event_mem(s, id, SYSTEM_HEAP);
-}
-
-event_t state_event_mem
 (state_t s,
  event_id_t id,
  heap_t heap) {
@@ -259,26 +240,7 @@ event_t state_event_mem
   assert(0);
 }
 
-event_list_t state_events_reduced
-(state_t s,
- bool_t * red) {
-  return state_events_reduced_mem(s, red, SYSTEM_HEAP);
-}
-
-event_list_t state_events_reduced_mem
-(state_t s,
- bool_t * red,
- heap_t heap) {
-  return state_events_mem_with_reduction(s, TRUE, red, heap);  
-}
-
 state_t state_succ
-(state_t s,
- event_t e) {
-  return state_succ_mem(s, e, SYSTEM_HEAP);
-}
-
-state_t state_succ_mem
 (state_t s,
  event_t e,
  heap_t heap) {
@@ -287,12 +249,6 @@ state_t state_succ_mem
 }
 
 state_t state_pred
-(state_t s,
- event_t e) {
-  return state_pred_mem(s, e, SYSTEM_HEAP);
-}
-
-state_t state_pred_mem
 (state_t s,
  event_t e,
  heap_t heap) {
@@ -308,14 +264,14 @@ uint32_t event_char_size_void
 void event_serialise_void
 (void * e,
  char * data) {
-  return event_serialise(* ((event_t *) e), (bit_vector_t) data);
+  return event_serialise(* ((event_t *) e), (char *) data);
 }
 
 void event_unserialise_void
 (char * data,
  heap_t heap,
  void * item) {
-  event_t e = event_unserialise_mem(data, heap);
+  event_t e = event_unserialise(data, heap);
   memcpy(item, &e, sizeof(event_t));
 }
 
@@ -326,17 +282,12 @@ unsigned int event_list_char_size
 
 void event_list_serialise
 (event_list_t l,
- bit_vector_t v) {
+ char * v) {
   list_serialise(l, v, event_char_size_void, event_serialise_void);
 }
 
 event_list_t event_list_unserialise
-(bit_vector_t v) {
-  return event_list_unserialise_mem(v, SYSTEM_HEAP);
-}
-
-event_list_t event_list_unserialise_mem
-(bit_vector_t v,
+(char * v,
  heap_t heap) {
   return list_unserialise(heap, sizeof(event_t), event_free_void,
                           v, event_char_size_void, event_unserialise_void);

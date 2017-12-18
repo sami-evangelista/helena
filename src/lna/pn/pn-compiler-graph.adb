@@ -106,11 +106,8 @@ package body Pn.Compiler.Graph is
 	    "sizeof (mevent_t) * no_states);");
       Pc(L, 1, "(*data)->tbl = htbl_new");
       Plc(L, "(TRUE, 4194304, 1, HTBL_FULL_DYNAMIC, 0, 0,");
-      Plc(L, 1, "(htbl_hash_func_t) mstate_serialise,");
-      Plc(L, 1, "(htbl_serialise_func_t) mstate_serialise,");
-      Plc(L, 1, "(htbl_unserialise_func_t) mstate_unserialise,");
-      Plc(L, 1, "(htbl_char_size_func_t) mstate_char_size,");
-      Plc(L, 1, "(htbl_cmp_func_t) mstate_cmp_vector);");
+      Plc(L, 1, "(htbl_compress_func_t) mstate_serialise,");
+      Plc(L, 1, "(htbl_uncompress_func_t) mstate_unserialise);");
       Plc(L, 1, "mstate_init ((*data)->all, SYSTEM_HEAP);");
       Plc(L, 1, "(*data)->qlive_events = harray_new " &
 	    "(SYSTEM_HEAP, 1000000, ptr_mevent_hash," &
@@ -215,7 +212,7 @@ package body Pn.Compiler.Graph is
 	   "(model_graph_data_t data)");
       Plh(L, Prototype & ";");
       Plc(L, Prototype & " {");
-      Plc(L, 1, "data->now = mstate_initial ();");
+      Plc(L, 1, "data->now = mstate_initial (SYSTEM_HEAP);");
       Plc(L, 1, "data->top = -1;");
       Plc(L, 1, "mstate_init (data->proj, SYSTEM_HEAP);");
       Plc(L, 1, "model_graph_handle_state (data, data->now);");
@@ -240,7 +237,7 @@ package body Pn.Compiler.Graph is
       Plc(L, 1, "mstate_free (data->proj);");
       Plc(L, "#if CFG_ACTION_BUILD_GRAPH == 1");
       Plc(L, 1, "htbl_fold (data->tbl, " &
-	    "&model_graph_fold, (void *) data);");
+	    "(htbl_fold_func_t) model_graph_fold, (void *) data);");
       Plc(L, "#endif");
       Plc(L, "}");
       --=======================================================================
@@ -252,10 +249,10 @@ package body Pn.Compiler.Graph is
       Plh(L, Prototype & ";");
       Plc(L, Prototype & " {");
       Plc(L, 1, "ptr_mevent_t pe;");
-      Plc(L, 1, "mevent_t e = mstate_event (data->now, num);");
+      Plc(L, 1, "mevent_t e = mstate_event (data->now, num, SYSTEM_HEAP);");
       Plc(L, 1, "pe = mem_alloc (SYSTEM_HEAP, sizeof (struct_ptr_mevent_t));");
       Plc(L, 1, "pe->bit = 0;");
-      Plc(L, 1, "pe->e = mevent_copy_mem (e, SYSTEM_HEAP);");
+      Plc(L, 1, "pe->e = mevent_copy(e, SYSTEM_HEAP);");
       Plc(L, 1, "if (!harray_insert (data->qlive_events, (void *) pe)) {");
       Plc(L, 2, "ptr_mevent_free (pe);");
       Plc(L, 1, "}");
@@ -289,10 +286,10 @@ package body Pn.Compiler.Graph is
       Plc(L, 1, "hkey_t h;");
       Plc(L, 1, "bool_t b;");
       Plc(L, 1, "htbl_id_t id;");
-      Plc(L, 1, "list_t en = mstate_events(s);");
+      Plc(L, 1, "list_t en = mstate_events(s, SYSTEM_HEAP);");
       Plc(L, 1, "if(list_is_empty(en)) {");
       Plc(L, 2, "if(data->no_dead < MAX_DEAD) {");
-      Plc(L, 3, "data->dead[data->no_dead] = mstate_copy (s);");
+      Plc(L, 3, "data->dead[data->no_dead] = mstate_copy(s, SYSTEM_HEAP);");
       Plc(L, 2, "}");
       Plc(L, 2, "data->no_dead ++;");
       Plc(L, 1, "}");
@@ -306,7 +303,7 @@ package body Pn.Compiler.Graph is
          Plc(L, 1, "data->proj->" & C & ".heap = s->" & C & ".heap;");
          Plc(L, "#if CFG_ACTION_BUILD_GRAPH == 1");
 	 Plc(L, 1, "htbl_insert(data->tbl, data->proj, " &
-	       "&b, &id, &h);");
+	       "&id, &h);");
          Plc(L, "#endif");
 	 Plc(L, 1, Local_State_Init_Func(P) &
 	       "(data->proj->" & C & ", SYSTEM_HEAP);");
@@ -336,7 +333,7 @@ package body Pn.Compiler.Graph is
       Plc(L, Prototype & " {");
       Plc(L, 1, "data->in_terminal = FALSE;");
       Plc(L, 1, "data->terminals = 0;");
-      Plc(L, 1, "data->now = mstate_initial ();");
+      Plc(L, 1, "data->now = mstate_initial (SYSTEM_HEAP);");
       Plc(L, 1, "data->top = -1;");
       Plc(L, 1, "data->alt_bit = FALSE;");
       Plc(L, "}");
@@ -381,14 +378,14 @@ package body Pn.Compiler.Graph is
       Plh(L, Prototype & ";");
       Plc(L, Prototype & " {");
       Plc(L, 1, "ptr_mevent_t pe, prev;");
-      Plc(L, 1, "mevent_t e = mstate_event (data->now, num);");
+      Plc(L, 1, "mevent_t e = mstate_event (data->now, num, SYSTEM_HEAP);");
       Plc(L, 1, "data->top ++;");
       Plc(L, 1, "data->stack[data->top] = e;");
       Plc(L, 1, "mevent_exec (e, data->now);");
       Plc(L, 1, "if (data->in_terminal) {");
       Plc(L, 2, "pe = mem_alloc (SYSTEM_HEAP, sizeof (struct_ptr_mevent_t));");
       Plc(L, 2, "pe->bit = data->alt_bit;");
-      Plc(L, 2, "pe->e = mevent_copy_mem (e, SYSTEM_HEAP);");
+      Plc(L, 2, "pe->e = mevent_copy(e, SYSTEM_HEAP);");
       Plc(L, 2, "if (data->terminals == 1) {");
       Plc(L, 3, "if (!harray_insert (data->live_events, (void *) pe)) {");
       Plc(L, 4, "ptr_mevent_free (pe);");

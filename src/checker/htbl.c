@@ -1,13 +1,11 @@
-#include "config.h"
 #include "htbl.h"
-#include "context.h"
 #include "bit_stream.h"
+#include "state.h"
+#include "event.h"
+
 
 /**
  * TODO
- *
- * - for the implementaton of bitstate hashing we assume that 1 char =
- *   8 bits, but we should use 1 char = CHAR_BIT instead
  *
  * - htbl_free is excessively slow (due to cache effects ?) for
  *   dynamic state vectors.  hence we do not free individual vectors
@@ -15,6 +13,13 @@
  */
 
 #define NO_ATTRS 12
+
+#define BUCKET_EMPTY  0
+#define BUCKET_WRITE  1
+#define BUCKET_READY  2
+#define BUCKET_UPDATE 3
+
+#define HTBL_INSERT_MAX_TRIALS 10000
 
 const uint16_t ATTR_WIDTH[] = {
   1, /* cyan */
@@ -46,24 +51,13 @@ const bool_t ATTR_OF_WORKER[] = {
   0
 };
 
-#define BUCKET_EMPTY  0
-#define BUCKET_WRITE  1
-#define BUCKET_READY  2
-#define BUCKET_UPDATE 3
-
-#define MAX_TRIALS 10000
-
 typedef uint8_t bucket_status_t;
-
-typedef hkey_t (* htbl_hash_func_t) (void *);
-typedef void (* htbl_serialise_func_t) (void *, char *);
-typedef void * (* htbl_unserialise_func_t) (char *, heap_t);
-typedef uint16_t (* htbl_char_size_func_t) (void *);
-typedef bool_t (* htbl_cmp_func_t) (void *, char *);
 
 struct struct_htbl_t {
   htbl_type_t type;
+  uint8_t hash_bits;
   uint64_t hash_size;
+  uint64_t hash_size_m;
   uint32_t item_size;
   uint16_t data_size;
   uint32_t attrs_available;
@@ -72,17 +66,14 @@ struct struct_htbl_t {
   uint16_t no_workers;
   heap_t heap;
   char * data;
-  htbl_hash_func_t hash_func;
-  htbl_serialise_func_t serialise_func;
-  htbl_unserialise_func_t unserialise_func;
-  htbl_char_size_func_t char_size_func;
-  htbl_cmp_func_t cmp_func;
+  htbl_compress_func_t compress_func;
+  htbl_uncompress_func_t uncompress_func;
 };
 typedef struct struct_htbl_t struct_htbl_t;
 
 const struct timespec SLEEP_TIME = { 0, 10 };
 
-#define HTBL_POS_STATE(tbl, id)                 \
+#define HTBL_POS_ITEM(tbl, id)                  \
   (tbl->data + id * tbl->item_size)
 #define HTBL_POS_STATUS(tbl, pos)               \
   (pos)
@@ -95,7 +86,7 @@ const struct timespec SLEEP_TIME = { 0, 10 };
 #define HTBL_POS_DYNAMIC_VECTOR_SIZE(tbl, pos)          \
   (HTBL_POS_ATTRS(tbl, pos) + tbl->attrs_char_size)
 #define HTBL_POS_DYNAMIC_VECTOR(tbl, pos)                               \
-  (HTBL_POS_DYNAMIC_VECTOR_SIZE(tbl, pos) + sizeof(data_size_t))
+  (HTBL_POS_DYNAMIC_VECTOR_SIZE(tbl, pos) + sizeof(htbl_data_size_t))
 #define HTBL_GET_STATUS(tbl, pos, s)            \
   { s = HTBL_POS_STATUS(tbl, pos); }
 #define HTBL_GET_STATIC_VECTOR(tbl, pos, v)     \
@@ -104,14 +95,16 @@ const struct timespec SLEEP_TIME = { 0, 10 };
   { memcpy(h, HTBL_POS_HASH(tbl, pos), sizeof(hkey_t)); }
 #define HTBL_GET_DYNAMIC_VECTOR(tbl, pos, b)                            \
   { memcpy(b, HTBL_POS_DYNAMIC_VECTOR(tbl, pos), sizeof(char *)); }
-#define HTBL_GET_DYNAMIC_VECTOR_SIZE(tbl, pos, s)                       \
-  { memcpy(s, HTBL_POS_DYNAMIC_VECTOR_SIZE(tbl, pos), sizeof(data_size_t)); }
+#define HTBL_GET_DYNAMIC_VECTOR_SIZE(tbl, pos, s)       \
+  { memcpy(s, HTBL_POS_DYNAMIC_VECTOR_SIZE(tbl, pos),   \
+           sizeof(htbl_data_size_t)); }
 #define HTBL_SET_HASH(tbl, pos, h)                              \
   { memcpy(HTBL_POS_HASH(tbl, pos), h, sizeof(hkey_t)); }
 #define HTBL_SET_DYNAMIC_VECTOR(tbl, pos, b)                            \
   { memcpy(HTBL_POS_DYNAMIC_VECTOR(tbl, pos), b, sizeof(char *)); }
-#define HTBL_SET_DYNAMIC_VECTOR_SIZE(tbl, pos, s)                       \
-  { memcpy(HTBL_POS_DYNAMIC_VECTOR_SIZE(tbl, pos), s, sizeof(data_size_t)); } 
+#define HTBL_SET_DYNAMIC_VECTOR_SIZE(tbl, pos, s)       \
+  { memcpy(HTBL_POS_DYNAMIC_VECTOR_SIZE(tbl, pos), s,   \
+           sizeof(htbl_data_size_t)); } 
 #define HTBL_INIT_BITS_ON_ATTRS(tbl, pos, bits)         \
   { bit_stream_init(bits, HTBL_POS_ATTRS(tbl, pos)); }
 #define HTBL_GET_VECTOR(tbl, pos, v) {          \
@@ -124,16 +117,13 @@ const struct timespec SLEEP_TIME = { 0, 10 };
 
 htbl_t htbl_new
 (bool_t use_system_heap,
- uint64_t hash_size,
+ uint64_t hash_bits,
  uint16_t no_workers,
  htbl_type_t type,
  uint16_t data_size,
  uint32_t attrs_available,
- htbl_hash_func_t hash_func,
- htbl_serialise_func_t serialise_func,
- htbl_unserialise_func_t unserialise_func,
- htbl_char_size_func_t char_size_func,
- htbl_cmp_func_t cmp_func) {
+ htbl_compress_func_t compress_func,
+ htbl_uncompress_func_t uncompress_func) {
   const heap_t heap = SYSTEM_HEAP;
   uint64_t i;
   htbl_t result;
@@ -141,11 +131,8 @@ htbl_t htbl_new
   
   result = mem_alloc(SYSTEM_HEAP, sizeof(struct_htbl_t));
   result->type = type;
-  result->hash_func = hash_func;
-  result->serialise_func = serialise_func;
-  result->unserialise_func = unserialise_func;
-  result->char_size_func = char_size_func;
-  result->cmp_func = cmp_func;
+  result->compress_func = compress_func;
+  result->uncompress_func = uncompress_func;
   result->attrs_available = attrs_available;
   for(i = 0; i < NO_ATTRS; i ++) {
     if(htbl_has_attr(result, i)) {
@@ -158,28 +145,27 @@ htbl_t htbl_new
     }
   }
   result->attrs_char_size = pos / 8;
-  if(pos % 8 != 0) {
+  if(pos & 7) {
     result->attrs_char_size ++;
   }
   result->no_workers = no_workers;
-  result->hash_size = hash_size;
+  result->hash_bits = hash_bits;
+  result->hash_size = 1 << hash_bits;
+  result->hash_size_m = result->hash_size - 1;
   result->data_size = data_size;
-  if(type == HTBL_BITSTATE) {
-    result->item_size = 1;
-  } else {
-    result->item_size = 1 + result->attrs_char_size;
-    switch(type) {
-    case HTBL_HASH_COMPACTION:
-      result->item_size += sizeof(hkey_t);
-      break;
-    case HTBL_FULL_STATIC:
-      result->item_size += data_size;
-      break;
-    case HTBL_FULL_DYNAMIC:
-      result->item_size += sizeof(data_size_t) + sizeof(char *);
-      result->heap = use_system_heap ? SYSTEM_HEAP : local_heap_new();
-      break;
-    }
+  result->heap = NULL;
+  result->item_size = 1 + result->attrs_char_size;
+  switch(type) {
+  case HTBL_HASH_COMPACTION:
+    result->item_size += sizeof(hkey_t);
+    break;
+  case HTBL_FULL_STATIC:
+    result->item_size += data_size;
+    break;
+  case HTBL_FULL_DYNAMIC:
+    result->item_size += sizeof(htbl_data_size_t) + sizeof(char *);
+    result->heap = use_system_heap ? SYSTEM_HEAP : local_heap_new();
+    break;
   }
   result->data = mem_alloc0(heap, result->hash_size * result->item_size);
   return result;
@@ -192,7 +178,7 @@ void htbl_free
 
   /*  disabled for now (see TODO)  */
   if(0 && HTBL_FULL_DYNAMIC == tbl->type) {
-    for(id = 0, pos = HTBL_POS_STATE(tbl, id);
+    for(id = 0, pos = HTBL_POS_ITEM(tbl, id);
         id < tbl->hash_size;
         id ++, pos += tbl->item_size) {
       HTBL_GET_STATUS(tbl, pos, status);
@@ -209,12 +195,6 @@ void htbl_free
   mem_free(SYSTEM_HEAP, tbl);
 }
 
-void htbl_reset
-(htbl_t tbl) {
-  assert(HTBL_BITSTATE == tbl->type);
-  memset(tbl->data, 0, tbl->hash_size * tbl->item_size);
-}
-
 bool_t htbl_contains
 (htbl_t tbl,
  void * s,
@@ -223,221 +203,132 @@ bool_t htbl_contains
   assert(0); /* not implemented */
 }
 
-void htbl_insert_real
+htbl_insert_code_t htbl_insert
 (htbl_t tbl,
- void ** s,
- bit_vector_t se,
- uint16_t se_size,
- bool_t * is_new,
+ void * s,
  htbl_id_t * id,
- hkey_t * h,
- bool_t h_set) {
+ hkey_t * h) {
   htbl_id_t i;
-  uint32_t trials = 0;
+  uint32_t trials = HTBL_INSERT_MAX_TRIALS;
   bool_t found;
   uint8_t bit;
+  uint16_t size;
   hkey_t h_other;
-  char * sv, * sv_other, * status, * pos;
-
+  char * sv, * sv_other, * status, * pos, buffer[65536];
+  
   /**
-   * compute the hash value if not available
+   * compress the data and compute its hash value
    */
-  if(!h_set) {
-    assert((*s) != NULL);
-    (*h) = tbl->hash_func((void *) (*s));
-  }
-
-  if(HTBL_BITSTATE == tbl->type) {
-    (*id) = (*h) % (tbl->hash_size << 3);
-    i = (*id) >> 3;
-    bit = 1 << ((*id) & 7);
-    if(tbl->data[i] & bit) {
-      (*is_new) = FALSE;
-    } else {
-      (*is_new) = TRUE;
-      tbl->data[i] |= bit;
-    }
-    return;
-  }
-
-  i = (*h) % tbl->hash_size;
-  pos = HTBL_POS_STATE(tbl, i);
+  tbl->compress_func(s, buffer, &size);
+  (*h) = string_hash(buffer, size);
+  i = (*h) & tbl->hash_size_m;
+  pos = HTBL_POS_ITEM(tbl, i);
   while(TRUE) {
 
     /**
-     * we found a bucket where to insert the state => claim it
+     * we found a bucket where to insert the data => claim it
      */
     HTBL_GET_STATUS(tbl, pos, status);
     if(CAS(status, BUCKET_EMPTY, BUCKET_WRITE)) {
 
       /**
-       * state insertion
+       * data insertion
        */
       switch(tbl->type) {
       case HTBL_HASH_COMPACTION:
         HTBL_SET_HASH(tbl, pos, h);
         break;
       case HTBL_FULL_DYNAMIC:
-        if(NULL == se) {
-          se_size = tbl->char_size_func(*s);
-        }
-        sv = mem_alloc0(tbl->heap, se_size);
-        if(NULL == se) {
-          tbl->serialise_func(*s, sv);
-        } else {
-          memcpy(sv, se, se_size);
-        }
+        sv = mem_alloc0(tbl->heap, size);
+        memcpy(sv, buffer, size);
         HTBL_SET_DYNAMIC_VECTOR(tbl, pos, &sv);
-        HTBL_SET_DYNAMIC_VECTOR_SIZE(tbl, pos, &se_size);
+        HTBL_SET_DYNAMIC_VECTOR_SIZE(tbl, pos, &size);
         break;
       case HTBL_FULL_STATIC:
         HTBL_GET_STATIC_VECTOR(tbl, pos, sv);
-        if(NULL == se) {
-          tbl->serialise_func(*s, sv);
-        } else {
-          memcpy(sv, se, se_size);
-        }        
+        memcpy(sv, buffer, size);
         break;
       default:
         assert(0);
       }
       (*status) = BUCKET_READY;
-      (*is_new) = TRUE;
       (*id) = i;
-      return;
+      return HTBL_INSERT_OK;
     }
 
     /**
      * wait for the bucket to be readable
      */
     while(BUCKET_WRITE == (*status)) {
-      context_sleep(SLEEP_TIME);
+      nanosleep(&SLEEP_TIME, NULL);
     }
 
     /**
-     * the bucket is occupied => compare the state in the bucket to
-     * the state to insert
+     * the bucket is occupied => compare the data in the bucket to the
+     * data to insert
      */
     if(HTBL_HASH_COMPACTION == tbl->type) {
       HTBL_GET_HASH(tbl, pos, &h_other);
       found = h_other == *h;
     } else {
       HTBL_GET_VECTOR(tbl, pos, sv_other);
-      if(NULL == se) {
-        found = tbl->cmp_func(*s, sv_other);
-      } else {
-        found = 0 == memcmp(se, sv_other, se_size);
-      }
+      found = 0 == memcmp(sv_other, buffer, size);
     }
     if(found) {
-      (*is_new) = FALSE;
       (*id) = i;
-      return;
+      return HTBL_INSERT_FOUND;
     }
-
+    
     /**
-     * give up if MAX_TRIALS buckets have been checked
+     * give up if HTBL_INSERT_MAX_TRIALS buckets have been checked
      */
-    if((++ trials) == MAX_TRIALS) {
-      context_error("state table too small (increase --hash-size and rerun)");
-      (*is_new) = FALSE;
-      return;
+    if(!(-- trials)) {
+      return HTBL_INSERT_FULL;
     }
-    i = (i + 1) % tbl->hash_size;
-    pos += tbl->item_size;
+    i = (i + 1) & tbl->hash_size_m;
+    pos = i ? (pos + tbl->item_size) : HTBL_POS_ITEM(tbl, 0);
   }
-}
-
-void htbl_insert
-(htbl_t tbl,
- void * data,
- bool_t * is_new,
- htbl_id_t * id,
- hkey_t * h) {
-  htbl_insert_real(tbl, &data, NULL, 0, is_new, id, h, FALSE);
-}
-
-void htbl_insert_hashed
-(htbl_t tbl,
- void * data,
- hkey_t h,
- bool_t * is_new,
- htbl_id_t * id) {
-  htbl_insert_real(tbl, &data, NULL, 0, is_new, id, &h, TRUE);
-}
-
-void htbl_insert_serialised
-(htbl_t tbl,
- char * data,
- uint16_t data_size,
- hkey_t h,
- bool_t * is_new,
- htbl_id_t * id) {
-  htbl_insert_real(tbl, NULL, data, data_size, is_new, id, &h, TRUE);
 }
 
 void * htbl_get
 (htbl_t tbl,
- htbl_id_t id) {
-  return htbl_get_mem(tbl, id, SYSTEM_HEAP);
-}
-
-void * htbl_get_mem
-(htbl_t tbl,
  htbl_id_t id,
  heap_t heap) {
-  char * v;
-  state_t result;
-  char * pos;
+  char * v, * pos;
+  void * result;
 
-  assert(HTBL_HASH_COMPACTION != tbl->type && HTBL_BITSTATE != tbl->type);
-  pos = HTBL_POS_STATE(tbl, id);
+  assert(HTBL_HASH_COMPACTION != tbl->type);
+  pos = HTBL_POS_ITEM(tbl, id);
   HTBL_GET_VECTOR(tbl, pos, v);
-  result = tbl->unserialise_func(v, heap);
-  return result;
-}
-
-hkey_t htbl_get_hash
-(htbl_t tbl,
- htbl_id_t id) {
-  hkey_t result;
-  char * pos;
-
-  assert(HTBL_HASH_COMPACTION == tbl->type);
-  pos = HTBL_POS_STATE(tbl, id);
-  HTBL_GET_HASH(tbl, pos, &result);
+  result = tbl->uncompress_func(v, heap);
   return result;
 }
 
 bool_t htbl_has_attr
 (htbl_t tbl,
  attr_state_t attr) {
-  if(HTBL_BITSTATE == tbl->type) {
-    return FALSE;
-  } else {
-    return (tbl->attrs_available & ATTR_ID(attr)) ? TRUE : FALSE;
-  }
+  return (tbl->attrs_available & ATTR_ID(attr)) ? TRUE : FALSE;
 }
 
-#define HTBL_GET_ATTR(shift) {                                          \
-    const uint32_t width = ATTR_WIDTH[attr];                            \
-    const uint32_t move = tbl->attr_pos[attr] + shift;                  \
-    uint64_t result;                                                    \
-    bit_stream_t bits;                                                  \
-    char * pos;                                                         \
-                                                                        \
-    pos = HTBL_POS_STATE(tbl, id);                                      \
-    HTBL_INIT_BITS_ON_ATTRS(tbl, pos, bits);                            \
-    bit_stream_move(bits, move);                                        \
-    bit_stream_get(bits, result, width);                                \
-    return result;                                                      \
-}
+#define HTBL_GET_ATTR(shift) {                          \
+    const uint32_t width = ATTR_WIDTH[attr];            \
+    const uint32_t move = tbl->attr_pos[attr] + shift;  \
+    uint64_t result;                                    \
+    bit_stream_t bits;                                  \
+    char * pos;                                         \
+                                                        \
+    pos = HTBL_POS_ITEM(tbl, id);                       \
+    HTBL_INIT_BITS_ON_ATTRS(tbl, pos, bits);            \
+    bit_stream_move(bits, move);                        \
+    bit_stream_get(bits, result, width);                \
+    return result;                                      \
+  }
 
 uint64_t htbl_get_attr
 (htbl_t tbl,
  htbl_id_t id,
  attr_state_t attr) {
-  assert(HTBL_BITSTATE != tbl->type && htbl_has_attr(tbl, attr));
+  assert(htbl_has_attr(tbl, attr));
   HTBL_GET_ATTR(0);
 }
 
@@ -446,7 +337,7 @@ uint64_t htbl_get_worker_attr
  htbl_id_t id,
  attr_state_t attr,
  worker_id_t w) {
-  assert(HTBL_BITSTATE != tbl->type && htbl_has_attr(tbl, attr));
+  assert(htbl_has_attr(tbl, attr));
   HTBL_GET_ATTR(w);
 }
 
@@ -456,13 +347,13 @@ uint64_t htbl_get_worker_attr
     bit_stream_t bits;						\
     char * pos, * status;					\
 								\
-    pos = HTBL_POS_STATE(tbl, id);				\
+    pos = HTBL_POS_ITEM(tbl, id);				\
     HTBL_INIT_BITS_ON_ATTRS(tbl, pos, bits);			\
     bit_stream_move(bits, move);				\
     HTBL_GET_STATUS(tbl, pos, status);				\
     if(tbl->no_workers > 1) {					\
       while(!CAS(status, BUCKET_READY, BUCKET_UPDATE)) {	\
-        context_sleep(SLEEP_TIME);				\
+        nanosleep(&SLEEP_TIME, NULL);				\
       }								\
     }								\
     bit_stream_set(bits, val, width);				\
@@ -474,7 +365,7 @@ void htbl_set_attr
  htbl_id_t id,
  attr_state_t attr,
  uint64_t val) {
-  assert(HTBL_BITSTATE != tbl->type && htbl_has_attr(tbl, attr));
+  assert(htbl_has_attr(tbl, attr));
   HTBL_SET_ATTR(0);
 }
 
@@ -484,7 +375,7 @@ void htbl_set_worker_attr
  attr_state_t attr,
  worker_id_t w,
  uint64_t val) {
-  assert(HTBL_BITSTATE != tbl->type && htbl_has_attr(tbl, attr));
+  assert(htbl_has_attr(tbl, attr));
   HTBL_SET_ATTR(w);
 }
 
@@ -501,26 +392,6 @@ bool_t htbl_get_any_cyan
   return FALSE;
 }
 
-void htbl_get_serialised
-(htbl_t tbl,
- htbl_id_t id,
- bit_vector_t * s,
- uint16_t * size,
- hkey_t * h) {
-  char * pos;
-  
-  assert(HTBL_HASH_COMPACTION != tbl->type &&
-         HTBL_BITSTATE != tbl->type);
-  pos = HTBL_POS_STATE(tbl, id);
-  HTBL_GET_HASH(tbl, pos, h);
-  HTBL_GET_VECTOR(tbl, pos, *s);
-  if(HTBL_FULL_STATIC == tbl->type) {
-    *size = tbl->data_size;
-  } else {
-    HTBL_GET_DYNAMIC_VECTOR_SIZE(tbl, pos, size);
-  }
-}
-
 void htbl_fold
 (htbl_t tbl,
  htbl_fold_func_t f,
@@ -530,13 +401,13 @@ void htbl_fold
   htbl_id_t id;
   heap_t h = local_heap_new();
 
-  for(id = 0, pos = HTBL_POS_STATE(tbl, id);
+  for(id = 0, pos = HTBL_POS_ITEM(tbl, id);
       id < tbl->hash_size;
       id ++, pos += tbl->item_size) {
     HTBL_GET_STATUS(tbl, pos, status);
     if((*status) >= BUCKET_READY) {
       HTBL_GET_VECTOR(tbl, pos, v);
-      s = tbl->unserialise_func(v, h);
+      s = tbl->uncompress_func(v, h);
       f(s, id, data);
       state_free(s);
       heap_reset(h);

@@ -182,7 +182,7 @@ package body Pn.Compiler.Event is
       Plc(L, "}");
       --=======================================================================
       Prototype := To_Ustring
-	("mevent_t mevent_copy_mem (" & Nl &
+	("mevent_t mevent_copy (" & Nl &
 	   "   mevent_t e," & Nl &
 	   "   heap_t  heap)");
       Plh(L, Prototype & ";");
@@ -208,14 +208,6 @@ package body Pn.Compiler.Event is
       Plc(L, 1, "default: assert(0);");
       Plc(L, 1, "}");
       Plc(L, 1, "return result;");
-      Plc(L, "}");
-      --=======================================================================
-      Prototype := To_Ustring
-	("mevent_t mevent_copy (" & Nl &
-	   "   mevent_t e)");
-      Plh(L, Prototype & ";");
-      Plc(L, Prototype & " {");
-      Plc(L, 1, "return mevent_copy_mem (e, SYSTEM_HEAP);");
       Plc(L, "}");
       --=======================================================================
       Prototype := To_Ustring
@@ -251,13 +243,13 @@ package body Pn.Compiler.Event is
 	    Mode := To_Ustring("pred");
 	 end if;
 	 Prototype :=
-	   "mstate_t mstate_" & Mode & "_mem" & Nl &
+	   "mstate_t mstate_" & Mode & Nl &
 	   "(mstate_t s," & Nl &
 	   " mevent_t e," & Nl &
 	   " heap_t heap)";
 	 Plh(L, Prototype & ";");
 	 Plc(L, Prototype & " {");
-	 Plc(L, 1, "mstate_t result = mstate_copy_mem (s, heap);");
+	 Plc(L, 1, "mstate_t result = mstate_copy(s, heap);");
 	 Plc(L, 1, "switch (e.tid) {");
 	 for I in 1..T_Size(N) loop
 	    T := Ith_Trans(N, I);
@@ -269,14 +261,6 @@ package body Pn.Compiler.Event is
 	 Plc(L, 1, "default: assert(0);");
 	 Plc(L, 1, "}");
 	 Plc(L, 1, "return result;");
-	 Plc(L, "}");
-	 Prototype :=
-	   "mstate_t mstate_" & Mode & " (" & Nl &
-	   "   mstate_t s," & Nl &
-	   "   mevent_t e)";
-	 Plh(L, Prototype & ";");
-	 Plc(L, Prototype & " {");
-	 Plc(L, 1, "return mstate_" & Mode & "_mem (s, e, SYSTEM_HEAP);");
 	 Plc(L, "}");
       end loop;
       --=======================================================================
@@ -347,7 +331,7 @@ package body Pn.Compiler.Event is
       Prototype := To_Ustring
 	("void mevent_serialise (" & Nl &
 	   "   mevent_t e," & Nl &
-	   "   bit_vector_t v)");
+	   "   char * v)");
       Plh(L, Prototype & ";");
       Plc(L, Prototype & " {");
       Plc(L, 1, "bit_stream_t bits;");
@@ -366,8 +350,8 @@ package body Pn.Compiler.Event is
       Plc(L, "}");
       --=======================================================================
       Prototype := To_Ustring
-	("mevent_t mevent_unserialise_mem (" & Nl &
-	   "   bit_vector_t v," & Nl &
+	("mevent_t mevent_unserialise (" & Nl &
+	   "   char * v," & Nl &
 	   "   heap_t heap)");
       Plh(L, Prototype & ";");
       Plc(L, Prototype & " {");
@@ -392,14 +376,6 @@ package body Pn.Compiler.Event is
       Plc(L, 1, "default: assert(0);");
       Plc(L, 1, "}");
       Plc(L, 1, "return result;");
-      Plc(L, "}");
-      --=======================================================================
-      Prototype := To_Ustring
-	("mevent_t mevent_unserialise (" & Nl &
-	   "   bit_vector_t v)");
-      Plh(L, Prototype & ";");
-      Plc(L, Prototype & " {");
-      Plc(L, 1, "return mevent_unserialise_mem (v, SYSTEM_HEAP);");
       Plc(L, "}");
       --=======================================================================
       Prototype := To_Ustring

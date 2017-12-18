@@ -12,13 +12,6 @@
 
 
 /**
- * @typedef bit_vector_t
- * @brief a bit vector
- */
-typedef char * bit_vector_t;
-
-
-/**
  * @typedef hkey_t
  * @brief a hash value
  */
@@ -127,19 +120,11 @@ uint64_t duration
 
 
 /**
- * @brief Return a hash value for vector v of length len.
+ * @brief Return a hash value for string v of length len.
  */
-hkey_t bit_vector_hash
-(bit_vector_t v,
+hkey_t string_hash
+(char * v,
  unsigned int len);
-
-
-/**
- * @brief Return memory usage of the current process as a % of
- *        available memory.
- */
-float mem_usage
-();
 
 
 /**

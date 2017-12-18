@@ -36,25 +36,20 @@ typedef struct {
 
 htbl_t H = NULL;
 
-state_t dfs_recover_state
-(dfs_stack_t stack,
- state_t now,
- worker_id_t w,
- heap_t heap) {
-  htbl_id_t id;
-
-#if defined(MODEL_EVENT_UNDOABLE)
-  dfs_stack_event_undo(stack, now);
+#if defined(MODEL_HAS_EVENT_UNDOABLE)
+#define dfs_recover_state() {                   \
+    dfs_stack_event_undo(stack, now);           \
+  }
 #else
-  if(CFG_HASH_COMPACTION) {
-    now = dfs_stack_top_state(stack, heap);
-  } else {
-    id = dfs_stack_top(stack);
-    now = htbl_get_mem(H, id, heap);
+#define dfs_recover_state() {                           \
+    if(CFG_HASH_COMPACTION) {                           \
+      now = dfs_stack_top_state(stack, heap);           \
+    } else {                                            \
+      const htbl_id_t top_id = dfs_stack_top(stack);    \
+      now = htbl_get(H, top_id, heap);                  \
+    }                                                   \
   }
 #endif
-  return now;
-}
 
 #define dfs_push_new_state(id, is_s0) {                                 \
     dfs_stack_push(stack, id, now);                                     \
@@ -115,7 +110,7 @@ void * dfs_worker
     && CFG_ALGO_DDFS || (CFG_ALGO_DFS && CFG_PARALLEL);
   const bool_t tarjan = CFG_ALGO_TARJAN;
   const bool_t states_stored = 
-#if defined(MODEL_EVENT_UNDOABLE)
+#if defined(MODEL_HAS_EVENT_UNDOABLE)
     FALSE
 #else
     CFG_HASH_COMPACTION
@@ -124,7 +119,7 @@ void * dfs_worker
   uint32_t i;
   hkey_t h;
   heap_t heap = local_heap_new();
-  state_t copy, now = state_initial_mem(heap);
+  state_t copy, now = state_initial(heap);
   dfs_stack_t stack = dfs_stack_new(wid, CFG_DFS_STACK_BLOCK_SIZE,
                                     shuffle, states_stored);
   htbl_id_t id, id_seed, id_succ, id_popped;
@@ -144,7 +139,7 @@ void * dfs_worker
   /*
    * insert the initial state and push it on the stack
    */
-  htbl_insert(H, now, &is_new, &id, &h);
+  stbl_insert(H, now, is_new, &id, &h);
   dfs_push_new_state(id, TRUE);
 
   /*
@@ -158,9 +153,9 @@ void * dfs_worker
      * DFS_MAX_HEAP_SIZE
      */
     if(heap_size(heap) >= DFS_MAX_HEAP_SIZE) {
-      copy = state_copy(now);
+      copy = state_copy(now, SYSTEM_HEAP);
       heap_reset(heap);
-      now = state_copy_mem(copy, heap);
+      now = state_copy(copy, heap);
       state_free(copy);
     }
 
@@ -312,7 +307,7 @@ void * dfs_worker
       context_incr_stat(STAT_STATES_PROCESSED, w, 1);
       dfs_stack_pop(stack);
       if(dfs_stack_size(stack)) {
-        now = dfs_recover_state(stack, now, w, heap);
+        dfs_recover_state();
       }
       state_popped = TRUE;
       id_popped = id;
@@ -334,8 +329,8 @@ void * dfs_worker
       /*
        * try to insert the successor
        */
-      htbl_insert(H, now, &is_new, &id_succ, &h);
-
+      stbl_insert(H, now, is_new, &id_succ, &h);
+      
       /*
        * if we check an LTL property and are in the red search, test
        * whether the state reached is the seed.  exit the loop if this
@@ -363,7 +358,7 @@ void * dfs_worker
       if(push) { /* successor state must be explored */
         dfs_push_new_state(id_succ, FALSE);
       } else {
-        now = dfs_recover_state(stack, now, w, heap);
+        dfs_recover_state();
 
         /*
          * tarjan: we reach a live state.

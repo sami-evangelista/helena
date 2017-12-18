@@ -29,7 +29,7 @@ void simulator() {
   event_list_t en;
   list_iter_t it;
 
-  s = mstate_initial();
+  s = mstate_initial(SYSTEM_HEAP);
   stack = list_new(SYSTEM_HEAP, sizeof(state_t), state_free_void);
   stack_evts = list_new(SYSTEM_HEAP, sizeof(event_t), event_free_void);
   list_append(stack, &s);
@@ -72,15 +72,15 @@ void simulator() {
     } else if(!strncmp(cmd, "push ", 5)) {
       sscanf(cmd, "push %d", &i);
       s = * ((mstate_t *) list_last(stack));
-      en = mstate_events(s);
+      en = mstate_events(s, SYSTEM_HEAP);
       if(check_error()) {
 	if(i < 1 || i > list_size(en)) {
 	  printf("error: state has %d enabled event(s)\n", list_size(en));
 	} else {
 	  e = * ((mevent_t *) list_nth(en, i - 1));
-	  s = mstate_succ(s, e);
+	  s = mstate_succ(s, e, SYSTEM_HEAP);
 	  if(check_error()) {
-	    e = mevent_copy(e);
+	    e = mevent_copy(e, SYSTEM_HEAP);
 	    list_append(stack, &s);
 	    list_append(stack_evts, &e);
 	  } else {
@@ -100,7 +100,7 @@ void simulator() {
       }
     } else if(!strcmp(cmd, "enabled")) {
       s = * ((mstate_t *) list_last(stack));
-      en = mstate_events(s);
+      en = mstate_events(s, SYSTEM_HEAP);
       if(check_error()) {
         if(list_is_empty(en)) {
           printf("no enabled event\n");

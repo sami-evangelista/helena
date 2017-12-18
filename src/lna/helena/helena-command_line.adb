@@ -41,11 +41,11 @@ package body Helena.Command_Line is
      (O: in Option) return String is
    begin
       case O is
-	 when Run_Time_Checks   => return "r";
-	 when Capacity          => return "a";
-         when Define            => return "d";
-         when Proposition       => return "p";
-         when Parameter         => return "m";
+	 when Run_Time_Checks => return "r";
+	 when Capacity        => return "a";
+         when Define          => return "d";
+         when Proposition     => return "p";
+         when Parameter       => return "m";
       end case;
    end;
 
@@ -53,11 +53,11 @@ package body Helena.Command_Line is
      (O: in Option) return String is
    begin
       case O is
-	 when Run_Time_Checks   => return "run-time-checks";
-         when Capacity          => return "capacity";
-	 when Define            => return "define";
-	 when Proposition       => return "proposition";
-         when Parameter         => return "parameter";
+	 when Run_Time_Checks => return "run-time-checks";
+         when Capacity        => return "capacity";
+	 when Define          => return "define";
+	 when Proposition     => return "proposition";
+         when Parameter       => return "parameter";
       end case;
    end;
 
@@ -116,7 +116,7 @@ package body Helena.Command_Line is
       Ok :    out Boolean) is
    begin
       case Opt is
-         when Run_Time_Checks   =>
+         when Run_Time_Checks =>
 	    Ok := True;
 	    if Arg = "0" then
 	       Set_Run_Time_Checks(False);
@@ -197,8 +197,7 @@ package body Helena.Command_Line is
                   Options(Opt) := Ok;
                end if;
             else
-               Put_Line('"' & Parser.Get_Value(Element) & '"' &
-			  To_Unbounded_String(" is not a valid option"));
+               null;
             end if;
          else
 	    Lna_File_Found := True;

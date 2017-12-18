@@ -86,13 +86,13 @@ void bfs_report_trace
   list_t trace = list_new(SYSTEM_HEAP, sizeof(event_t), event_free_void);
   list_t trace_id = stbl_get_trace(H, id);
   list_iter_t it;
-  state_t s = state_initial();
+  state_t s = state_initial(SYSTEM_HEAP);
   event_t e;
 
   for(it = list_get_iter(trace_id);
       !list_iter_at_end(it);
       it = list_iter_next(it)) {
-    e = state_event(s, * ((event_id_t *) list_iter_item(it)));
+    e = state_event(s, * ((event_id_t *) list_iter_item(it)), SYSTEM_HEAP);
     event_exec(e, s);
     list_append(trace, &e);
   }
@@ -101,11 +101,11 @@ void bfs_report_trace
   context_set_trace(trace);
 }
 
-#if defined(MODEL_EVENT_UNDOABLE)
+#if defined(MODEL_HAS_EVENT_UNDOABLE)
 #define bfs_goto_succ() {event_exec(e, s); succ = s;}
 #define bfs_back_to_s() {event_undo(e, s);}
 #else
-#define bfs_goto_succ() {succ = state_succ_mem(s, e, heap);}
+#define bfs_goto_succ() {succ = state_succ(s, e, heap);}
 #define bfs_back_to_s() {state_free(succ);}
 #endif
 
@@ -142,18 +142,18 @@ void * bfs_worker
         item = bfs_queue_next(Q, x, w);
         heap_reset(heap);
         if(states_in_queue) {
-          s = state_copy_mem(item.s, heap);
+          s = state_copy(item.s, heap);
         } else {
-          s = htbl_get_mem(H, item.id, heap);
+          s = htbl_get(H, item.id, heap);
         }
 
         /**
          * compute enabled events and apply POR
          */
         if(!por) {
-          en = state_events_mem(s, heap);
+          en = state_events(s, heap);
         } else {
-          en = state_events_reduced_mem(s, &reduced, heap);
+          en = state_events_reduced(s, &reduced, heap);
           if(reduced) {
             context_incr_stat(STAT_STATES_REDUCED, w, 1);
           } else if(proviso && has_safe_attr) {
@@ -189,17 +189,15 @@ void * bfs_worker
           arcs ++;
           list_pick_first(en, &e);
           bfs_goto_succ();
-          if(!CFG_ALGO_DBFS) {
-            htbl_insert(H, succ, &is_new, &id_succ, &h);
-          } else {
+          if(CFG_ALGO_DBFS) {
             h = state_hash(succ);
             if(!dbfs_comm_state_owned(h)) {
               dbfs_comm_process_state(w, succ, h);
               bfs_back_to_s();
               continue;
             }
-            htbl_insert_hashed(H, succ, h, &is_new, &id_succ);
           }
+          stbl_insert(H, succ, is_new, &id_succ, &h);
 
           /**
            * if new, enqueue the successor
@@ -230,7 +228,7 @@ void * bfs_worker
               reduced = FALSE;
               list_free(en);
               bfs_back_to_s();
-              en = state_events_mem(s, heap);
+              en = state_events(s, heap);
               context_incr_stat(STAT_STATES_REDUCED, w, -1);
               if(has_safe_attr) {
                 htbl_set_attr(H, item.id, ATTR_SAFE, TRUE);
@@ -268,7 +266,7 @@ void * bfs_worker
 void bfs
 () {
   const bool_t with_trace = CFG_ACTION_CHECK_SAFETY && CFG_ALGO_BFS;
-  state_t s = state_initial();
+  state_t s = state_initial(SYSTEM_HEAP);
   bool_t is_new;
   htbl_id_t id;
   worker_id_t w;
@@ -295,7 +293,7 @@ void bfs
   }
   
   if(enqueue) {
-    htbl_insert(H, s, &is_new, &id, &h);
+    stbl_insert(H, s, is_new, &id, &h);
     w = h % CFG_NO_WORKERS;
     item.id = id;
     item.s = s;

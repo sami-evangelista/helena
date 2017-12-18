@@ -108,18 +108,18 @@ private
    --  Private constants corresponding to static libraries
    --==========================================================================
 
-   Util_Lib            : constant Ustring := To_Ustring("model_util");
-   Colors_Lib          : constant Ustring := To_Ustring("colors");
-   Constants_Lib       : constant Ustring := To_Ustring("constants");
-   Domains_Lib         : constant Ustring := To_Ustring("domains");
-   Funcs_Lib           : constant Ustring := To_Ustring("funcs");
-   State_Lib           : constant Ustring := To_Ustring("mstate");
-   Mappings_Lib        : constant Ustring := To_Ustring("mappings");
-   Event_Lib           : constant Ustring := To_Ustring("mevent");
-   Enabling_Test_Lib   : constant Ustring := To_Ustring("enabling_test");
-   Model_Lib           : constant Ustring := To_Ustring("model");
-   Interfaces_File     : constant Ustring := To_Ustring("interfaces");
-   Graph_Lib           : constant Ustring := To_Ustring("model_graph");
+   Util_Lib         : constant Ustring := To_Ustring("model_util");
+   Colors_Lib       : constant Ustring := To_Ustring("colors");
+   Constants_Lib    : constant Ustring := To_Ustring("constants");
+   Domains_Lib      : constant Ustring := To_Ustring("domains");
+   Funcs_Lib        : constant Ustring := To_Ustring("funcs");
+   State_Lib        : constant Ustring := To_Ustring("mstate");
+   Mappings_Lib     : constant Ustring := To_Ustring("mappings");
+   Event_Lib        : constant Ustring := To_Ustring("mevent");
+   Enabling_Test_Lib: constant Ustring := To_Ustring("enabling_test");
+   Model_Lib        : constant Ustring := To_Ustring("model");
+   Interfaces_File  : constant Ustring := To_Ustring("interfaces");
+   Graph_Lib        : constant Ustring := To_Ustring("model_graph");
 
 
 

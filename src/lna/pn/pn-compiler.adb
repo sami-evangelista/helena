@@ -90,6 +90,10 @@ package body Pn.Compiler is
       Domains.Gen(N, Path);
       Model.Gen(N, Path);
       Graph.Gen(N, Path);
+
+      --===
+      --  SRC_FILES
+      --===
       Create(F, Out_File, To_String(Net_Path & Dir_Separator & "SRC_FILES"));
       Put_Line(F, Util_Lib);
       Put_Line(F, Colors_Lib);

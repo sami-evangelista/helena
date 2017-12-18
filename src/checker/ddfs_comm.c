@@ -48,7 +48,7 @@ void ddfs_comm_process_explored_state
 (worker_id_t w,
  htbl_id_t id) {
   uint16_t s_char_len, len;
-  bit_vector_t s;
+  char * s;
   bool_t red = FALSE, blue = FALSE;
   hkey_t h;
   void * pos;
@@ -58,9 +58,9 @@ void ddfs_comm_process_explored_state
    */
   if(!BUF.full[w] && CAS(&BUF.status[w], BUCKET_OK, BUCKET_WRITE)) {
     if(CFG_HASH_COMPACTION) {
-      h = htbl_get_hash(H, id);
+      /*h = htbl_get_hash(H, id);*/
     } else {
-      htbl_get_serialised(H, id, &s, &s_char_len, &h);
+      /*htbl_get_compressed(H, id, &s, &s_char_len, &h);*/
     }
     len = BASE_LEN;
     if(!CFG_HASH_COMPACTION) {
@@ -173,7 +173,7 @@ void * ddfs_comm_consumer
   void * pos;
   uint16_t s_char_len, len;
   htbl_id_t sid;
-  bit_vector_t s;
+  char * s;
   bool_t red = FALSE, blue = FALSE, is_new;
   char buffer[CFG_SHMEM_HEAP_SIZE];
   hkey_t h;
@@ -213,8 +213,10 @@ void * ddfs_comm_consumer
             }
        
 	    if(CFG_HASH_COMPACTION) {
-	      htbl_insert_serialised(H, pos, s_char_len,
-                                     h, &is_new, &sid);
+              assert(0);
+	      /*
+                htbl_insert_compressed(H, pos, s_char_len, h, &is_new, &sid);
+              */
 	    } else {
               
 	      /*  get state vector char length  */
@@ -222,7 +224,10 @@ void * ddfs_comm_consumer
 	      pos += sizeof(uint16_t);
               
 	      /*  get state vector and insert it  */
-	      htbl_insert_serialised(H, pos, s_char_len, h, &is_new, &sid);
+              assert(0);
+	      /*
+                htbl_insert_compressed(H, pos, s_char_len, h, &is_new, &sid);
+              */
 	      pos += s_char_len;
 	    }
 

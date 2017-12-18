@@ -82,7 +82,7 @@ char por_is_not_in_set
    }
 }
 
-mevent_list_t mstate_events_reduced_mem
+mevent_list_t mstate_events_reduced
 (mstate_t s,
  bool_t * reduced,
  heap_t heap) {
@@ -90,7 +90,7 @@ mevent_list_t mstate_events_reduced_mem
   mevent_t e;
   void * data;
   unsigned int set;
-  list_t result = mstate_events_mem(s, heap);
+  list_t result = mstate_events(s, heap);
   const list_size_t len = list_size(result);
    
   if(data = list_find(result, por_is_safe_and_invisible, NULL)) {
@@ -112,10 +112,4 @@ mevent_list_t mstate_events_reduced_mem
 #endif
   *reduced = (list_size(result) != len) ? TRUE : FALSE;
   return result;
-}
-
-mevent_list_t mstate_events_reduced
-(mstate_t s,
- bool_t * reduced) {
-  return mstate_events_reduced_mem(s, reduced, SYSTEM_HEAP);
 }

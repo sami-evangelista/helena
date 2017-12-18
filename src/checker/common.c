@@ -89,16 +89,16 @@ const uint64_t crc64_tab[256] = {
   0x29b7d047efec8728
 };
 
-hkey_t bit_vector_hash
-(bit_vector_t v,
+hkey_t string_hash
+(char * v,
  unsigned int len) {
-    unsigned int i;
-    uint64_t result = 0;
-
-    for(i = 0; i < len; i++) {
-      result = crc64_tab[(uint8_t) (result ^ v[i])] ^ (result >> 8);
-    }
-    return result;
+  unsigned int i;
+  uint64_t result = 0;
+  
+  for(i = 0; i < len; i++) {
+    result = crc64_tab[(uint8_t) (result ^ v[i])] ^ (result >> 8);
+  }
+  return result;
 }
 
 void lna_timer_init
@@ -158,18 +158,6 @@ uint64_t random_int
     + RANDOM_HIGH(RANDOM_LOW(s) * RANDOM_LOW(RANDOM_MULT) + RANDOM_CONS);
   *seed = (hi << 16 | lo);
   return *seed;
-}
-
-float mem_usage() {
-  FILE * f;
-  unsigned int size = 0;
-  
-  f = fopen("/proc/self/statm", "r");
-  if(f) {
-    fscanf(f, "%u", &size);
-  }
-  fclose(f);
-  return (float) size / 1000.0;
 }
 
 unsigned long cpu_total

@@ -75,9 +75,9 @@ package body Pn.Compiler.State is
    function Local_State_Decode_Func
      (P: in Place) return Ustring is
    begin return "mstate_" & Place_Name(P) & "_decode"; end;
-   function Local_State_Cmp_Vector_Func
+   function Local_State_Cmp_String_Func
      (P: in Place) return Ustring is
-   begin return "mstate_" & Place_Name(P) & "_cmp_vector"; end;
+   begin return "mstate_" & Place_Name(P) & "_cmp_string"; end;
    function Local_State_Union_Func
      (P: in Place) return Ustring is
    begin return "mstate_" & Place_Name(P) & "_union"; end;
@@ -109,8 +109,8 @@ package body Pn.Compiler.State is
       Plh(L, "typedef struct " & T & "_struct_t * " & T & ";");
       Plh(L, "typedef struct {");
       Plh(L, 1, "unsigned int card;");
-      Plh(L, 1, "int      mult;");
-      Plh(L, 1, "heap_t   heap;");
+      Plh(L, 1, "int mult;");
+      Plh(L, 1, "heap_t heap;");
       Plh(L, 1, T & " list;");
       Plh(L, "} " & Local_State_Type(P) & ";");
       Nlh(L);
@@ -345,7 +345,7 @@ package body Pn.Compiler.State is
       Plh(L, "}");
       --=======================================================================
       Prototype :=
-        "bool_t " & Local_State_Cmp_Vector_Func(P) & "_func (" & Nl &
+        "bool_t " & Local_State_Cmp_String_Func(P) & "_func (" & Nl &
         "   " & T & " list," & Nl &
         "   bit_stream_t * bits)";
       Plh(L, Prototype & ";");
@@ -374,8 +374,8 @@ package body Pn.Compiler.State is
       Plc(L, 1, "}");
       Plc(L, 1, "return last && !tmp;");
       Plc(L, "}");
-      Plh(L, "#define " & Local_State_Cmp_Vector_Func(P) & "(m, bits) " &
-            Local_State_Cmp_Vector_Func(P) & "_func(m.list, bits)");
+      Plh(L, "#define " & Local_State_Cmp_String_Func(P) & "(m, bits) " &
+            Local_State_Cmp_String_Func(P) & "_func(m.list, bits)");
       --=======================================================================
       Prototype :=
         "void " & Local_State_To_Xml_Func(P) & " (" & Nl &
@@ -506,20 +506,7 @@ package body Pn.Compiler.State is
       Plc(L, "}");
       --=======================================================================
       Prototype := To_Ustring
-        ("mstate_t mstate_initial ()");
-      Plh(L, Prototype & ";");
-      Plc(L, Prototype & " {");
-      Plc(L, 1, "mstate_t result;");
-      Plc(L, 1, "mstate_init (result, SYSTEM_HEAP);");
-      for I in 1..P_Size(N) loop
-         P := Ith_Place(N, I);
-         Plc(L, 1, M0_Func(P, Add) & " (result, DUMMY);");
-      end loop;
-      Plc(L, 1, "return result;");
-      Plc(L, "}");
-      --=======================================================================
-      Prototype := To_Ustring
-        ("mstate_t mstate_initial_mem (" & Nl &
+        ("mstate_t mstate_initial (" & Nl &
            "   heap_t heap)");
       Plh(L, Prototype & ";");
       Plc(L, Prototype & " {");
@@ -571,7 +558,7 @@ package body Pn.Compiler.State is
       Plc(L, "}");
       --=======================================================================
       Prototype := To_Ustring
-        ("mstate_t mstate_copy_mem (" & Nl &
+        ("mstate_t mstate_copy (" & Nl &
            "   mstate_t s," & Nl &
            "   heap_t heap)");
       Plh(L, Prototype & ";");
@@ -585,14 +572,6 @@ package body Pn.Compiler.State is
                "(s->" & Comp & ", result->" & Comp & ");");
       end loop;
       Plc(L, 1, "return result;");
-      Plc(L, "}");
-      --=======================================================================
-      Prototype := To_Ustring
-        ("mstate_t mstate_copy (" & Nl &
-           "   mstate_t s)");
-      Plh(L, Prototype & ";");
-      Plc(L, Prototype & " {");
-      Plc(L, 1, "return mstate_copy_mem (s, SYSTEM_HEAP);");
       Plc(L, "}");
       --=======================================================================
       Prototype := To_Ustring
@@ -654,27 +633,32 @@ package body Pn.Compiler.State is
       Prototype := To_Ustring
         ("void mstate_serialise (" & Nl &
            "   mstate_t s," & Nl &
-           "   bit_vector_t v)");
+           "   char * v," & Nl &
+           "   uint16_t * size)");
       Plh(L, Prototype & ";");
       Plc(L, Prototype & " {");
-      Plc(L, 1, "bit_stream_t vec;");
-      Plc(L, 1, "bit_stream_init(vec, v);");
-      Plc(L, 1, "unsigned int ne = mstate_non_empty_places (s);");
-      Plc(L, 1, Bit_Stream_Set_Func(Non_Empty_Size) & "(vec, ne);");
+      Plc(L, "   bit_stream_t vec;");
+      Plc(L, "   unsigned int ne;");
+      Plc(L, "");
+      Plc(L, "   *size = mstate_char_size(s);");
+      Plc(L, "   memset(v, 0, *size);");
+      Plc(L, "   bit_stream_init(vec, v);");
+      Plc(L, "   ne = mstate_non_empty_places (s);");
+      Plc(L, "   " & Bit_Stream_Set_Func(Non_Empty_Size) & "(vec, ne);");
       for I in 1..P_Size(N) loop
          P := Ith_Place(N, I);
-         Plc(L, 1, "if(!(" & Local_State_Is_Empty_Func(P) &
+         Plc(L, "   if(!(" & Local_State_Is_Empty_Func(P) &
                "(s->" & State_Component_Name(P) & "))) {");
-         Plc(L, 2, "PLACE_ID_encode(" & Pid(P) & ", vec);");
-         Plc(L, 2, Local_State_Encode_Func(P) &
-               "(s->" & State_Component_Name(P) & ", vec);");
-         Plc(L, 1, "}");
+         Plc(L, "      PLACE_ID_encode(" & Pid(P) & ", vec);");
+         Plc(L, "      " & Local_State_Encode_Func(P)
+               & "(s->" & State_Component_Name(P) & ", vec);");
+         Plc(L, "   }");
       end loop;
       Plc(L, "}");
       --=======================================================================
       Prototype := To_Ustring
-        ("mstate_t mstate_unserialise_mem (" & Nl &
-           "   bit_vector_t v," & Nl &
+        ("mstate_t mstate_unserialise (" & Nl &
+           "   char * v," & Nl &
            "   heap_t heap)");
       Plh(L, Prototype & ";");
       Plc(L, Prototype & " {");
@@ -702,17 +686,9 @@ package body Pn.Compiler.State is
       Plc(L, "}");
       --=======================================================================
       Prototype := To_Ustring
-        ("mstate_t mstate_unserialise (" & Nl &
-           "   bit_vector_t v)");
-      Plh(L, Prototype & ";");
-      Plc(L, Prototype & " {");
-      Plc(L, "   return mstate_unserialise_mem (v, SYSTEM_HEAP);");
-      Plc(L, "}");
-      --=======================================================================
-      Prototype := To_Ustring
-        ("bool_t mstate_cmp_vector (" & Nl &
+        ("bool_t mstate_cmp_string(" & Nl &
            "   mstate_t s," & Nl &
-           "   bit_vector_t v)");
+           "   char * v)");
       Plh(L, Prototype & ";");
       Plc(L, Prototype & " {");
       Plc(L, 1, "unsigned int ne, i = 0;");
@@ -729,9 +705,9 @@ package body Pn.Compiler.State is
          Comp := State_Component_Name(P);
          Plc(L, 2, "case " & Pid(P) & ":");
          Plc(L, 3, "if (!(" &
-               Local_State_Cmp_Vector_Func(P) & " (s->" & Comp &
+               Local_State_Cmp_String_Func(P) & " (s->" & Comp &
                ", &bits))) return FALSE;");
-	 Plc(L, 3, "break;");
+         Plc(L, 3, "break;");
       end loop;
       Plc(L, 2, "default: assert(0);");
       Plc(L, 2, "}");
@@ -760,6 +736,81 @@ package body Pn.Compiler.State is
 	       State_Component_Name(P) & ");");
       end loop;
       Plc(L, "}");
+      --=======================================================================
+      Plh(L, "#define MODEL_NO_COMPONENTS " & P_Size(N));
+      --=======================================================================
+      Prototype := To_Ustring
+        ("uint16_t model_component_size"
+           & "(unsigned int comp_id)");
+      Plh(L, Prototype & ";");
+      Plc(L, Prototype & " {");
+      Plc(L, "   return 0;");
+      Plc(L, "}");
+      --=======================================================================
+      for I in 1..P_Size(N) loop
+         P := Ith_Place(N, I);
+         Comp := State_Component_Name(P);
+         Prototype :=
+           "void mstate_serialise_component_" & State_Component_Name(P)
+           & "(void * s, char * v, uint16_t * size)";
+         Plh(L, Prototype & ";");
+         Plc(L, Prototype & " {");
+         Plc(L, "   bit_stream_t bits;");
+         Plc(L, "");
+         Plc(L, "   *size = 1 + "
+               & Local_State_Bit_Width_Func(P)
+               & "(((mstate_t) s)->" & Comp & ");");
+         Plc(L, "   *size = ((*size) & 7) ? (((*size) >> 3) + 1) : " &
+               "((*size) >> 3);");
+         Plc(L, "   memset(v, 0, *size);");
+         Plc(L, "   bit_stream_init(bits, v);");
+         Plc(L, "   if(!((mstate_t) s)->" & Comp & ".card) {");
+         Plc(L, "      bit_stream_set(bits, 0, 1);");
+         Plc(L, "   } else {");
+         Plc(L, "      bit_stream_set(bits, 1, 1);");
+         Plc(L, "      " & Local_State_Encode_Func(P) &
+               "(((mstate_t) s)->" & State_Component_Name(P) & ", bits);");
+         Plc(L, "   }");
+         Plc(L, "}");
+      end loop;
+      --=======================================================================
+      Prototype := To_Ustring
+        ("mstate_t mstate_reconstruct_from_components"
+           & "(void ** comps, heap_t heap)");
+      Plh(L, Prototype & ";");
+      Plc(L, Prototype & " {");
+      Plc(L, "   mstate_t result;");
+      Plc(L, "   bit_stream_t bits;");
+      Plc(L, "   bool_t not_empty;");
+      Plc(L, "");
+      Plc(L, "   mstate_init(result, heap);");
+      for I in 1..P_Size(N) loop
+         P := Ith_Place(N, I);
+         Plc(L, "   bit_stream_init(bits, (char *) comps[" & (I - 1) & "]);");
+         Plc(L, "   bit_stream_get(bits, not_empty, 1);");
+         Plc(L, "   if(not_empty) {");
+         Plc(L, "      " & Local_State_Decode_Func(P)
+               & "(bits, result->" & State_Component_Name(P) & ", heap);");
+         Plc(L, "   }");
+      end loop;
+      Plc(L, "   return result;");
+      Plc(L, "}");
+      --=======================================================================
+      Prototype := To_Ustring
+        ("htbl_compress_func_t model_component_compress_func"
+           & "(unsigned int comp_id)");
+      Plh(L, Prototype & ";");
+      Plc(L, Prototype & " {");
+      Plc(L, "   switch(comp_id) {");
+      for I in 1..P_Size(N) loop
+         P := Ith_Place(N, I);
+         Plc(L, "   case " & (I - 1) & ": return mstate_serialise_component_"
+               & State_Component_Name(P) & ";");
+      end loop;
+      Plc(L, "   default: assert(0);");
+      Plc(L, "   }");
+      Plc(L, "}");
+      --=======================================================================
    end;
 
 
@@ -779,6 +830,7 @@ package body Pn.Compiler.State is
       Init_Library(State_Lib, To_Ustring(Comment), Path, L);
       Plh(L, "#include ""mappings.h""");
       Plh(L, "#include ""domains.h""");
+      Plh(L, "#include ""htbl.h""");
       Nlh(L);
       Plh(L, "#define LIST_UNCHANGED 0");
       Plh(L, "#define LIST_ADDED 1");

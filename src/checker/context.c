@@ -1,10 +1,11 @@
+#include "compression.h"
 #include "context.h"
 #include "observer.h"
 #include "config.h"
 #include "comm_gasnet.h"
 #include "papi_stats.h"
 
-#define NO_STATS 18
+#define NO_STATS 15
 
 typedef enum {
   STAT_TYPE_TIME,
@@ -123,7 +124,7 @@ void init_context
 void context_output_trace
 (FILE * out) {
   event_t e;
-  state_t s = state_initial();
+  state_t s = state_initial(SYSTEM_HEAP);
   list_iter_t it;
 
   if(CTX->trace) {
@@ -172,14 +173,11 @@ char * context_stat_xml_name
   case STAT_ARCS:               return "arcs";
   case STAT_MAX_DFS_STACK_SIZE: return "maxDFSStackSize";
   case STAT_EVENT_EXEC:         return "eventsExecuted";
-  case STAT_EVENT_EXEC_DDD:     return "eventsExecutedDDD";
   case STAT_BYTES_SENT:         return "bytesSent";
-  case STAT_MAX_MEM_USED:       return "maxMemoryUsed";
   case STAT_AVG_CPU_USAGE:      return "avgCPUUsage";
   case STAT_SEARCH_TIME:        return "searchTime";
-  case STAT_BARRIER_TIME:       return "barrierTime";
-  case STAT_DDD_TIME:           return "duplicateDetectionTime";
   case STAT_COMP_TIME:          return "compilationTime";
+  case STAT_BWALK_ITERATIONS:   return "bwalkIterations";
   default:
     assert(FALSE);
   }
@@ -198,14 +196,11 @@ stat_type_t context_stat_type
   case STAT_ARCS:               return STAT_TYPE_GRAPH;
   case STAT_MAX_DFS_STACK_SIZE: return STAT_TYPE_GRAPH;
   case STAT_EVENT_EXEC:         return STAT_TYPE_OTHERS;
-  case STAT_EVENT_EXEC_DDD:     return STAT_TYPE_OTHERS;
   case STAT_BYTES_SENT:         return STAT_TYPE_OTHERS;
-  case STAT_MAX_MEM_USED:       return STAT_TYPE_OTHERS;
   case STAT_AVG_CPU_USAGE:      return STAT_TYPE_OTHERS;
+  case STAT_BWALK_ITERATIONS:   return STAT_TYPE_OTHERS;
   case STAT_SEARCH_TIME:        return STAT_TYPE_TIME;
-  case STAT_BARRIER_TIME:       return STAT_TYPE_TIME;
   case STAT_COMP_TIME:          return STAT_TYPE_TIME;
-  case STAT_DDD_TIME:           return STAT_TYPE_TIME;
   default:
     assert(FALSE);
   }
@@ -215,8 +210,7 @@ void context_stat_format
 (uint8_t stat,
  double val,
  FILE * out) {
-  if(STAT_MAX_MEM_USED == stat ||
-     STAT_AVG_CPU_USAGE == stat) {
+  if(STAT_AVG_CPU_USAGE == stat) {
     fprintf(out, "%.2lf", val);
   } else if(STAT_TYPE_TIME == context_stat_type(stat)) {
     fprintf(out, "%.2lf", val / 1000000.0);
@@ -320,8 +314,6 @@ void finalise_context
     switch(CTX->term_state) {
     case TERM_STATE_LIMIT_REACHED:
       fprintf(out, "stateLimitReached"); break;
-    case TERM_MEMORY_EXHAUSTED:
-      fprintf(out, "memoryExhausted"); break;
     case TERM_TIME_ELAPSED:
       fprintf(out, "timeElapsed"); break;
     case TERM_INTERRUPTION:
@@ -378,6 +370,9 @@ void finalise_context
     if(CFG_EDGE_LEAN) {
       fprintf(out, "<edgeLean/>\n");
     }
+    if(CFG_STATE_COMPRESSION) {
+      fprintf(out, "<stateCompression/>\n");
+    }
     if(CFG_ALGO_DELTA_DDD) {
       fprintf(out, "<candidateSetSize>%d</candidateSetSize>\n",
 	      CFG_DELTA_DDD_CAND_SET_SIZE);
@@ -385,7 +380,16 @@ void finalise_context
     fprintf(out, "</searchOptions>\n");
     fprintf(out, "</searchReport>\n");
     fprintf(out, "<statisticsReport>\n");
+    fprintf(out, "<modelStatistics>\n");
     model_xml_statistics(out);
+#if defined(MODEL_STATE_SIZE)
+    fprintf(out, "<stateSize>%d</stateSize>\n", MODEL_STATE_SIZE);
+#endif
+#if CFG_STATE_COMPRESSION == 1 && defined(MODEL_HAS_STATE_COMPRESSION)
+    fprintf(out, "<compressedStateSize>%d</compressedStateSize>\n",
+            state_compressed_char_size());
+#endif
+    fprintf(out, "</modelStatistics>\n");
     fprintf(out, "<timeStatistics>\n");
     context_stats_to_xml(STAT_TYPE_TIME, out);
     fprintf(out, "</timeStatistics>\n");
@@ -471,7 +475,7 @@ void context_faulty_state
   if(CTX->faulty_state) {
     state_free(CTX->faulty_state);
   }
-  CTX->faulty_state = state_copy(s);
+  CTX->faulty_state = state_copy(s, SYSTEM_HEAP);
   CTX->keep_searching = FALSE;
   CTX->term_state = TERM_FAILURE;
   CTX->faulty_state_found = TRUE;
@@ -604,7 +608,6 @@ void context_barrier_wait
   lna_timer_start(&t);
   pthread_barrier_wait(b);
   lna_timer_stop(&t);
-  context_incr_stat(STAT_BARRIER_TIME, 0, lna_timer_value(t));
 }
 
 void context_sleep

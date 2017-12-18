@@ -8,8 +8,9 @@ structure
 DveEventExecutionCompiler:
 sig
 
-    val gen: System.system * bool * TextIO.outstream * TextIO.outstream
-	     -> unit
+    val gen:
+        System.system * bool * TextIO.outstream * TextIO.outstream
+	-> unit
 
 end = struct
 
@@ -117,8 +118,8 @@ fun genEventExec (s: System.system, checks, hFile, cFile) = let
 	    "}"
 	]
 in
-    TextIO.output (hFile, prot ^ ";\n");
-    TextIO.output (cFile, body ^ "\n")
+    TextIO.output (hFile, prot ^ ";\n")
+  ; TextIO.output (cFile, body ^ "\n")
 end
 
 fun genEventUndo (s: System.system, checks, hFile, cFile) = let
@@ -128,16 +129,16 @@ fun genEventUndo (s: System.system, checks, hFile, cFile) = let
 	    prot ^ " { assert(0); }"
 	]
 in
-    TextIO.output (hFile, prot ^ ";\n");
-    TextIO.output (cFile, body ^ "\n")
+    TextIO.output (hFile, prot ^ ";\n")
+  ; TextIO.output (cFile, body ^ "\n")
 end
 
 fun genStateSucc (s: System.system, checks, hFile, cFile) = let
-    val protMem =
-	"mstate_t mstate_succ_mem (mstate_t s, mevent_t e, heap_t heap)"
-    val bodyMem =
+    val prot =
+	"mstate_t mstate_succ(mstate_t s, mevent_t e, heap_t heap)"
+    val body =
 	concatLines [
-	    protMem ^ " {",
+	    prot ^ " {",
 	    "   mstate_t result = mem_alloc(heap, sizeof(struct_mstate_t));",
 	    "   memcpy(result, s, sizeof(struct_mstate_t));",
 	    "   result->heap = heap;",
@@ -145,22 +146,13 @@ fun genStateSucc (s: System.system, checks, hFile, cFile) = let
 	    "   return result;",
 	    "}"
 	]
-    val prot = "mstate_t mstate_succ(mstate_t s, mevent_t e)"
-    val body =
-	concatLines [
-	    prot ^ " {",
-	    "   return mstate_succ_mem(s, e, SYSTEM_HEAP);",
-	    "}"
-	]
 in
-    TextIO.output (hFile, prot ^ ";\n");
-    TextIO.output (hFile, protMem ^ ";\n");
-    TextIO.output (cFile, body ^ "\n");
-    TextIO.output (cFile, bodyMem ^ "\n")
+    TextIO.output (hFile, prot ^ ";\n")
+  ; TextIO.output (cFile, body ^ "\n")
 end
 
 fun genStatePred (s: System.system, checks, hFile, cFile) = let
-    val prot = "mstate_t mstate_pred (mstate_t s, mevent_t e)"
+    val prot = "mstate_t mstate_pred(mstate_t s, mevent_t e, heap_t heap)"
     val body =
 	concatLines [
 	    prot ^ " {",
@@ -171,14 +163,14 @@ fun genStatePred (s: System.system, checks, hFile, cFile) = let
 	    ""
 	]
 in
-    TextIO.output (hFile, prot ^ ";\n");
-    TextIO.output (cFile, body ^ "\n")
+    TextIO.output (hFile, prot ^ ";\n")
+  ; TextIO.output (cFile, body ^ "\n")
 end
 
 fun gen params = (
-    genEventExec params;
-    genEventUndo params;
-    genStateSucc params;
-    genStatePred params)
+    genEventExec params
+  ; genEventUndo params
+  ; genStateSucc params
+  ; genStatePred params)
 
 end

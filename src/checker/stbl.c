@@ -1,8 +1,10 @@
+#include "compression.h"
 #include "config.h"
 #include "stbl.h"
-#include "context.h"
-#include "bit_stream.h"
-
+#include "state.h"
+#include "event.h"
+#include "heap.h"
+#include "model.h"
 
 htbl_t stbl_default_new
 () {
@@ -11,10 +13,11 @@ htbl_t stbl_default_new
   htbl_type_t type;
   uint64_t hsize;
   uint16_t data_size = 0;
+  htbl_compress_func_t compress_func;
+  htbl_uncompress_func_t uncompress_func;
 
   /**
-   *  check which attributes are enabled according to the
-   *  configuration
+   * check which attributes are enabled according to the configuration
    */
   attrs_available |= ATTR_ID(ATTR_CYAN);
   attrs_available |= ATTR_ID(ATTR_BLUE);
@@ -41,43 +44,41 @@ htbl_t stbl_default_new
   }
 
   /**
-   *  type of hash table
+   * size and type of the hash table
    */
+  hsize = CFG_HASH_SIZE_BITS;
   if(CFG_HASH_COMPACTION) {
     type = HTBL_HASH_COMPACTION;
-  } else if(CFG_ALGO_BWALK) {
-    type = HTBL_BITSTATE;
   } else {
-#if defined(MODEL_STATE_VECTOR_SIZE)
+#if (CFG_STATE_COMPRESSION == 1 && defined(MODEL_HAS_STATE_COMPRESSION)) || \
+  (CFG_STATE_COMPRESSION == 0 && defined(MODEL_STATE_SIZE))
     type = HTBL_FULL_STATIC;
-    data_size = MODEL_STATE_VECTOR_SIZE;
+    data_size = state_compressed_char_size();
 #else
     type = HTBL_FULL_DYNAMIC;
 #endif
   }
 
   /**
-   *  hash table size
-   */
-  hsize = CFG_HASH_SIZE;
-  if(HTBL_BITSTATE == type) {
-    hsize = hsize >> 3;
-  }
-
-  /**
-   *  number of threads accessing the table
+   * number of threads accessing the table
    */
   no_workers = CFG_NO_WORKERS;
   if(CFG_DISTRIBUTED) {
     no_workers ++;
   }
+
+  /**
+   * state transformation functions
+   */
+#if CFG_STATE_COMPRESSION == 1 && defined(MODEL_HAS_STATE_COMPRESSION)
+  compress_func = (htbl_compress_func_t) state_compress;
+  uncompress_func = (htbl_uncompress_func_t) state_uncompress;
+#else
+  compress_func = (htbl_compress_func_t) state_serialise;
+  uncompress_func = (htbl_uncompress_func_t) state_unserialise;
+#endif
   return htbl_new(no_workers > 1, hsize, no_workers, type, data_size,
-                  attrs_available,
-                  (htbl_hash_func_t) state_hash,
-                  (htbl_serialise_func_t) state_serialise,
-                  (htbl_unserialise_func_t) state_unserialise,
-                  (htbl_char_size_func_t) state_char_size,
-                  (htbl_cmp_func_t) state_cmp_vector);
+                  attrs_available, compress_func, uncompress_func);
 }
 
 list_t stbl_get_trace

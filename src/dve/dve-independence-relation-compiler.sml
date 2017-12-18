@@ -77,8 +77,8 @@ fun compileAreIndependent (s: System.system, hFile, cFile) = let
                      "   }",
                      "}" ])
 in
-    TextIO.output (hFile, prot ^ ";\n");
-    TextIO.output (cFile, body ^ "\n")
+    TextIO.output (hFile, prot ^ ";\n")
+  ; TextIO.output (cFile, body ^ "\n")
 end
 
 fun compilePersistentSet (s: System.system, hFile, cFile) = let

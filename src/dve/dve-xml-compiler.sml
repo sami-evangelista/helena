@@ -26,8 +26,8 @@ fun compileStateToXml (s: System.system, hFile, cFile) = let
             "}"
 	]
 in
-    TextIO.output (hFile, prot ^ ";\n");
-    TextIO.output (cFile, body ^ "\n")
+    TextIO.output (hFile, prot ^ ";\n")
+  ; TextIO.output (cFile, body ^ "\n")
 end
 
 fun compileEventToXml (s: System.system, hFile, cFile) = let
@@ -41,8 +41,8 @@ fun compileEventToXml (s: System.system, hFile, cFile) = let
             "}"
 	]
 in
-    TextIO.output (hFile, prot ^ ";\n");
-    TextIO.output (cFile, body ^ "\n")
+    TextIO.output (hFile, prot ^ ";\n")
+  ; TextIO.output (cFile, body ^ "\n")
 end
 
 fun compileModelXmlStatistics (s: System.system, hFile, cFile) = let
@@ -50,21 +50,16 @@ fun compileModelXmlStatistics (s: System.system, hFile, cFile) = let
     val body =
 	concatLines [
 	prot ^ " {",
-	"   fprintf (out, \"<modelStatistics>\");",
-	"   fprintf (out, \"<stateVectorSize>\");",
-	"   fprintf (out, \"%d\", MODEL_STATE_VECTOR_SIZE);",
-	"   fprintf (out, \"</stateVectorSize>\");",
-	"   fprintf (out, \"</modelStatistics>\");",
 	"}"
 	]
 in
-    TextIO.output (hFile, prot ^ ";\n");
-    TextIO.output (cFile, body ^ "\n")
+    TextIO.output (hFile, prot ^ ";\n")
+  ; TextIO.output (cFile, body ^ "\n")
 end
 
 fun gen params = (
-    compileStateToXml params;
-    compileEventToXml params;
-    compileModelXmlStatistics params)
+    compileStateToXml params
+  ; compileEventToXml params
+  ; compileModelXmlStatistics params)
 
 end

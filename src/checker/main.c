@@ -1,3 +1,4 @@
+#include "compression.h"
 #include "config.h"
 #include "context.h"
 #include "dfs.h"
@@ -30,6 +31,7 @@ int main
     init_papi_stats();
   }
   init_context();
+  init_compress_data();
 
   if(CFG_ACTION_SIMULATE) { 
     simulator();
@@ -85,6 +87,8 @@ int main
     if(CFG_DISTRIBUTED) {
       finalise_comm();
     }
+    finalise_compress_data();
+    finalise_model();
   }
 
   exit(EXIT_SUCCESS);

@@ -12,20 +12,26 @@ sig
 
 end = struct
 
+fun usage err = (
+    case err
+     of NONE => ()
+     |  SOME err => print (err ^ "\n")
+  ; print "usage: helena-generate-dve [options] my-model.dve out-dir\n"
+  ; OS.Process.exit OS.Process.failure)
+
 fun go () = let
     val args = CommandLine.arguments ()
 in
     if List.length args <> 2
-    then (print "usage: helena-compile-dve my-model.dve out-dir\n";
-	  OS.Process.exit OS.Process.success)
-    else let val inFile = List.nth (args, 0)
-	     val path   = List.nth (args, 1)
-	 in
+    then usage NONE
+    else let val inFile = List.nth (args, List.length args - 2)
+	     val path   = List.nth (args, List.length args - 1)
+         in
 	     if 0 = (DveCompiler.compile
-			 (inFile, path, false, SOME TextIO.stdOut))
+		         (inFile, path, false, SOME TextIO.stdOut))
 	     then OS.Process.exit OS.Process.success
 	     else OS.Process.exit OS.Process.failure
-	 end
+         end
 end
 
 end

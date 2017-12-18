@@ -163,26 +163,6 @@ fun accessedVars e =
 and accessedVarsInVarRef (SIMPLE_VAR v) =  [ v ]
   | accessedVarsInVarRef (ARRAY_ITEM (v, index)) = v :: (accessedVars (index))
 
-	                                                    
-fun toDve (INT (_, n)) = if n > 0
-			 then LargeInt.toString n
-			 else "(- " ^ (LargeInt.toString (~ n)) ^ ")"
-  | toDve (BOOL_CONST (_, false)) = "0"
-  | toDve (BOOL_CONST (_, true)) = "1"
-  | toDve (ARRAY_INIT (_, l)) = ListFormat.fmt {init  = "{",
-						final = "}",
-						sep   = ", ",
-						fmt   = toDve} l
-  | toDve (PROCESS_STATE (_, p, s)) = p ^ "." ^ s
-  | toDve (VAR_REF (_, v)) = refToDve v
-  | toDve (UN_OP (_, unOp, r)) =
-    String.concat [ "(", unOpToString unOp, " ", toDve r, ")" ]
-  | toDve (BIN_OP (_, l, binOp, r)) =
-    String.concat [ "(", toDve l, " ", binOpToString binOp, " ", toDve r, ")" ]
-  | toDve (PROCESS_VAR_REF (_, p, v)) =
-    p ^ "->" ^ (refToDve v)
-and refToDve (SIMPLE_VAR v) = v
-  | refToDve (ARRAY_ITEM (v, i)) = v ^ "[" ^ (toDve i) ^ "]"
 
 fun dnf e = let
     fun removeImply (BIN_OP (p, l, IMPLY, r)) =
@@ -326,14 +306,6 @@ fun getChan ({ chan, ... }: sync) = chan
 fun getTyp ({ typ, ... }: sync) = typ
 fun getData ({ data, ... }: sync) = data
 
-
-fun toDve ({ mode, chan, typ, data, ... }: sync) =
-  String.concat [ case mode of SYNC => "sync " | ASYNC => "async ",
-		  chan,
-		  case typ of RECV  => "?" | SEND => "!",
-		  case data of NONE => "" | SOME e => Expr.toDve e
-		]
-
 fun accessedVars ({ data, ... }: sync) =
   case data of SOME data => Expr.accessedVars data | _ => []
 
@@ -368,16 +340,6 @@ in
     List.find isVar l
 end
 
-
-fun toDve { pos, const, typ, name, init } =
-  (if const then "const " else "") ^
-  (case Typ.getBaseType typ of Typ.BYTE => "byte" | Typ.INT => "int") ^ " " ^
-  name ^
-  (case typ of Typ.BASIC_TYPE _      => ""
-	     | Typ.ARRAY_TYPE (_, n) => "[" ^ Int.toString n ^ "]") ^
-  (case init of NONE => "" | SOME value => " = " ^ (Expr.toDve value)) ^
-  ";"
-
 end
 
 
@@ -396,12 +358,6 @@ in
     List.find isChannel l
 end
 
-
-fun toDve ({ name, size, ... }: channel) =
-  "channel " ^ name ^
-  (if size > 0 then "[" ^ (Int.toString size) ^ "]" else "") ^
-  ";"
-
 end
 
 
@@ -412,11 +368,6 @@ datatype stat =
 	 ASSIGN of Pos.pos *       (*  position of the statement  *)
 		   Expr.var_ref *  (*  variable updated  *)
 		   Expr.expr       (*  value assigned  *)
-
-fun toDve s =
-  case s of
-      ASSIGN (p, var, assign) =>
-      (Expr.refToDve var) ^ " = " ^ (Expr.toDve assign)
 
 fun accessedVars s =
   case s of ASSIGN (_, var, value) =>
@@ -452,23 +403,6 @@ fun getDest ({ dest, ... }: trans) = dest
 fun getGuard ({ guard, ... }: trans) = guard
 fun getSync ({ sync, ... }: trans) = sync
 fun getEffect ({ effect, ... }: trans) = effect
-
-fun toDve ({ src, dest, guard, sync, effect, ... }: trans) =
-  String.concat [
-      src, " -> ", dest, " {\n",
-      case guard
-       of NONE   => ""
-        | SOME g => "      guard " ^ (Expr.toDve g) ^ ";\n",
-      case sync
-       of NONE   => ""
-        | SOME s => "      " ^ (Sync.toDve s) ^ ";\n",
-      case effect
-       of [] => ""
-        | l  => "      effect " ^ (ListFormat.fmt {init  = "",
-						   sep   = ", ",
-						   fmt   = Stat.toDve,
-						   final = ";\n"} effect),
-      "     }" ]
 
 fun accessedVars ({ src, dest, guard, sync, effect, ... }: trans) = let
     val inGuard  = if isSome guard then Expr.accessedVars (valOf guard) else []
@@ -531,31 +465,6 @@ fun getAccept ({ accept, ... }: process) = accept
 fun getProcess (l, name) = valOf (List.find (fn p => getName p = name) l)
 
 fun isProcess (l, name) = List.find (fn p => getName p = name) l
-
-fun toDve { pos, name, vars, states, init, trans, accept } = let
-    val stateListToString = ListFormat.fmt { init  = "",
-					     sep   = ", ",
-					     final = ";\n",
-					     fmt   = State.getName }
-in
-    String.concat [
-        "process ", name, " {\n",
-        ListFormat.fmt { init  = "",
-		         sep   = "\n",
-		         final = "\n",
-		         fmt   = Var.toDve } vars,
-        "state  ", stateListToString states,
-        "init   ", State.getName init, ";\n",
-        case accept
-         of [] => ""
-          | _ => "accept " ^ (stateListToString accept),
-        "trans  ", ListFormat.fmt { init  = "\n   ",
-				    sep   = ",\n   ",
-				    final = ";\n",
-				    fmt   = Trans.toDve } trans,
-        "}"
-    ]
-end
 
 fun outgoingTrans proc state =
   List.filter (fn t => Trans.getSrc t = State.getName state) (getTrans proc)
@@ -670,29 +579,6 @@ fun getProc ({ procs, ... }: system, p) = Process.getProcess (procs, p)
 fun getProp ({ prop, ... }: system) = prop
 fun getProcNamesWithGlobalHidden (s as { procs, ... }: system) =
   "_GLOBAL" :: (List.map (Process.getName) (getProcs s))
-                                                             
-fun toDve ({ t, prop, glob, chans, procs }: system,
-	   fileName) = let
-    val f = TextIO.openOut fileName
-    fun writeVar v = TextIO.output (f, (Var.toDve v) ^ "\n")
-    fun writeChannel c = TextIO.output (f, (Channel.toDve c) ^ "\n")
-    fun writeProcess c = (
-        TextIO.output (f, "\n");
-        TextIO.output (f, (Process.toDve c) ^ "\n"))
-in
-    List.app writeVar glob;
-    TextIO.output (f, "\n");
-    List.app writeChannel chans;
-    List.app writeProcess procs;
-    TextIO.output (f, "\n\nsystem ");
-    TextIO.output (f, case t of SYNCHRONOUS  => "sync"
-			      | ASYNCHRONOUS => "async");
-    case prop
-     of NONE => ()
-     |  SOME prop => TextIO.output (f, " property " ^ prop);
-    TextIO.output (f, ";\n");
-    TextIO.closeOut f
-end
 
 fun channelUsers ({ chans, procs, ... }: system) chan =
   List.filter (fn p => Process.usesChannel p chan) procs

@@ -136,12 +136,16 @@ Activate/deactivate the proviso of partial-order reduction.  It is
 turned on by default if a property (different from deadlock absence)
 is analysed.
 
+### -C[={0|1}], --state-compression[={0|1}]
+
+Activate/deactivate state compression.
+
+### -cb=N, --compression-bits=N
+
+Set the base number of bits used by state compression (option -C)
+to N.  16 is the default value.
+
 ## Limit options
-
-### -ml=N, --memory-limit=N
-
-The memory used by Helena is limited to N megabytes.  When this limit
-is reached the search stops as soon as possible.
 
 ### -tl=N, --time-limit=N
 

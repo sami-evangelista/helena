@@ -52,12 +52,12 @@ void por_analysis_scc
     while(i < darray_size(unsafe)) {
       id = * ((htbl_id_t *) darray_get(unsafe, i));
       heap_reset(heap);
-      s = htbl_get_mem(H, id, heap);
-      en = state_events_reduced_mem(s, &reduced, heap);
+      s = htbl_get(H, id, heap);
+      en = state_events_reduced(s, &reduced, heap);
       all_succ_safe = TRUE;
       while(!list_is_empty(en) && all_succ_safe) {
         list_pick_first(en, &e);
-        succ = state_succ_mem(s, e, heap);
+        succ = state_succ(s, e, heap);
         if(htbl_contains(H, succ, &id_succ, &h)
            && por_analysis_state_is_unsafe(unsafe, id_succ)) {
           all_succ_safe = FALSE;

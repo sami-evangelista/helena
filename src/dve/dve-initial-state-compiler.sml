@@ -29,12 +29,10 @@ fun gen (s: System.system, checks, hFile, cFile) = let
     fun generateLocalStateInit proc = let
 	val procName = Process.getName proc
 	val procInit = Process.getInit proc
-	val stmt     =
-	    String.concat [
-	        "   result->", getCompName (PROCESS_STATE procName), " = ",
-	        getLocalStateName (procName, State.getName procInit), ";" ]
     in
-	stmt
+	String.concat [
+	    "   result->", getCompName (PROCESS_STATE procName), " = ",
+	    getLocalStateName (procName, State.getName procInit), ";" ]
     end
 
     fun generateVarInit (var : Var.var,
@@ -78,36 +76,24 @@ fun gen (s: System.system, checks, hFile, cFile) = let
 	String.concat (List.map generateLocalVarInit (Process.getVars proc))
     end
 
-    val protMem = "mstate_t mstate_initial_mem (heap_t heap)"
-    val bodyMem =
+    val prot = "mstate_t mstate_initial(heap_t heap)"
+    val body =
 	concatLines [
-	    protMem ^ " {",
+	    prot ^ " {",
 	    "   mstate_t result = mem_alloc(heap, sizeof(struct_mstate_t));",
 	    "   result->heap = heap;",
-	    "",
 	    "   /*  process state  */",
 	    concatLines (List.map generateLocalStateInit procs),
-	    "",
 	    "   /*  global variables  */",
 	    String.concat (List.map generateGlobalVarInit (System.getVars s)),
-	    "",
 	    "   /*  local variables  */",
 	    String.concat (List.map generateLocalVarsInit procs),
 	    "   return result;",
 	    "}"
 	]
-    val prot = "mstate_t mstate_initial ()"
-    val body =
-	concatLines [
-	    prot ^ " {",
-	    "   return mstate_initial_mem (SYSTEM_HEAP);",
-	    "}"
-	]
 in
-    TextIO.output (hFile, prot ^ ";\n");
-    TextIO.output (hFile, protMem ^ ";\n");
-    TextIO.output (cFile, body ^ ";\n");
-    TextIO.output (cFile, bodyMem ^ ";\n")
+    TextIO.output (hFile, prot ^ ";\n")
+  ; TextIO.output (cFile, body ^ "\n")
 end
 
 end

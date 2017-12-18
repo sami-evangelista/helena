@@ -44,9 +44,9 @@ versionFile=VERSION
 
 commonFiles="bit_stream"
 checkerSrcFiles="bfs bfs_queue bit_stream buchi bwalk common comm
-context darray ddfs_comm dbfs_comm delta_ddd dfs dfs_stack errors
-event graph heap harray htbl list observer papi_stats por_analysis
-prop reduction rwalk state stbl simulator workers"
+compression context darray ddfs_comm dbfs_comm delta_ddd dfs dfs_stack
+errors event graph heap harray htbl list observer papi_stats
+por_analysis prop reduction rwalk state stbl simulator workers"
 
 exitWithError () {
     rm -rf $tmpDir &> /dev/null
@@ -128,18 +128,18 @@ compileCFiles () {
 	links=$links" "$f".o"
 	if [ ! -e $f.o ]
 	then
-	    compileCmd="$CC -c $f.c"
-	    msg "   > compile file "$f.c" ("$compileCmd")"
-	    eval $compileCmd		
+	    cmd="$CC -c $f.c"
+	    msg "   > "$cmd
+	    eval $cmd	
 	    if [ ! $? -eq 0 ]
 	    then
 		error "compilation of file "$dir"/"$f".c failed"
 	    fi
 	fi
     done
-    compileCmd="$CC $links -o helena-checker main.c $CCL"
-    msg "   > compile file main.c ("$compileCmd")"
-    eval $compileCmd
+    cmd="$CC $links -o helena-checker main.c $CCL"
+    msg "   > compile file main.c ("$cmd")"
+    eval $cmd
     if [ ! $? -eq 0 ]
     then
 	error "compilation of file "$dir"/main.c failed"
@@ -210,34 +210,31 @@ createMakefile () {
     popd &> /dev/null
 }
 
+genericGenerator () {
+    cmd=$1
+    checkExecutable $1
+    cmd=$*
+    msg "> $cmd"
+    eval $cmd || exitWithError
+}
+
 generateConfig () {
-    checkExecutable $configGenerator
-    $configGenerator $* $tmpDir || exitWithError
+    genericGenerator $configGenerator $* $tmpDir
 }
-
 generateBitStreamLib () {
-    checkExecutable $bitStreamGenerator
-    $bitStreamGenerator $tmpDir || exitWithError
+    genericGenerator $bitStreamGenerator $tmpDir
 }
-
 generateLNA () {
-    checkExecutable $lnaGenerator
-    $lnaGenerator $* $tmpDir || exitWithError
+    genericGenerator $lnaGenerator $* $tmpDir
 }
-
 generateDVE () {
-    checkExecutable $dveGenerator
-    $dveGenerator $* $tmpDir || exitWithError
+    genericGenerator $dveGenerator $* $tmpDir
 }
-
 generatePNML () {
-    checkExecutable $pnmlGenerator
-    $pnmlGenerator $* $tmpDir || exitWithError
+    genericGenerator $pnmlGenerator $* $tmpDir
 }
-
 generateChecker () {
-    checkExecutable $checkerGenerator
-    $checkerGenerator $tmpDir || exitWithError
+    genericGenerator $checkerGenerator $tmpDir
 }
 
 collectReportFiles () {

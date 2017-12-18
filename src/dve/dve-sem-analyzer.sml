@@ -29,8 +29,8 @@ fun checkNoRedefinition getName getPos kind l = let
 	  then Errors.addError
 		   (getPos item,
 		    "redefinition of " ^ kind ^ " " ^ getName item)
-	  else ();
-	  checkNoRedefinition' (prev @ [item], next)
+	  else ()
+        ; checkNoRedefinition' (prev @ [item], next)
       end
 in
     checkNoRedefinition' ([], l)
@@ -102,19 +102,19 @@ fun checkVar (var, visible) =
 
 fun checkVarList (vars, visible) = let
     fun checkVarList ([], _) = ()
-      | checkVarList (var :: vars, visible as (visibleVars, p, c)) =
-	(checkVar (var, visible);
-	 checkVarList (vars, (visibleVars @ [var], p, c)))
+      | checkVarList (var :: vars, visible as (visibleVars, p, c)) = (
+          checkVar (var, visible)
+        ; checkVarList (vars, (visibleVars @ [var], p, c)))
 in
-    checkNoVarRedefinition vars;
-    checkVarList (vars, visible)
+    checkNoVarRedefinition vars
+  ; checkVarList (vars, visible)
 end
 
 fun checkStat (s, visible) =
   case s
-   of Stat.ASSIGN (pos, var, assigned) =>
-      (checkExpr (Expr.VAR_REF (pos, var), visible);
-       checkExpr (assigned, visible))
+   of Stat.ASSIGN (pos, var, assigned) => (
+       checkExpr (Expr.VAR_REF (pos, var), visible)
+     ; checkExpr (assigned, visible))
 
 fun checkStatList (l, visible) =
   List.app (fn s => checkStat (s, visible)) l
@@ -131,16 +131,16 @@ in
       | SOME d => 
 	case data
 	 of NONE => ()
-	  | SOME e =>
-	    (checkExpr (e, visible);
-	     if typ = Sync.SEND
-	     then ()
-	     else case e
-		   of Expr.VAR_REF _ => ()
-		    | _ =>
-		      Errors.addError
-			  (pos,
-			   "invalid lvalue in receive on channel " ^ chanName))
+	  | SOME e => (
+              checkExpr (e, visible)
+            ; if typ = Sync.SEND
+	      then ()
+	      else case e
+		    of Expr.VAR_REF _ => ()
+		     | _ =>
+		       Errors.addError
+			   (pos,
+			    "invalid lvalue in receive on channel " ^ chanName))
 end
 
 fun checkTrans (trans, proc, visible) = let
@@ -153,15 +153,15 @@ fun checkTrans (trans, proc, visible) = let
 	| NONE   => Errors.addError (pos, "process " ^ Process.getName proc ^
 					  " has no state " ^ name)
 in
-    checkState src (Trans.getSrc trans);
-    checkState dest (Trans.getDest trans);
-    case Trans.getGuard trans
+    checkState src (Trans.getSrc trans)
+  ; checkState dest (Trans.getDest trans)
+  ; case Trans.getGuard trans
      of NONE   => ()
-      | SOME e => checkExpr (e, visible);
-    case Trans.getSync trans
+      | SOME e => checkExpr (e, visible)
+  ; case Trans.getSync trans
      of NONE   => ()
-      | SOME s => checkSync (s, visible);
-    checkStatList (Trans.getEffect trans, visible)
+      | SOME s => checkSync (s, visible)
+  ; checkStatList (Trans.getEffect trans, visible)
 end
 
 fun checkTransList (l, proc, visible) =
@@ -177,29 +177,29 @@ fun checkProcess (proc, visible as (vars, chans, procs)) = let
     val acceptDefs =
 	List.map (fn s => (s, State.getState (states, State.getName s))) accept
 in
-    checkVarList (Process.getVars proc, visible);
-    checkNoStateRedefinition (Process.getStates proc);
-    case initDef
+    checkVarList (Process.getVars proc, visible)
+  ; checkNoStateRedefinition (Process.getStates proc)
+  ; case initDef
      of NONE => Errors.addError (State.getPos init,
 				 initName ^ " is not a state of process " ^
 				 Process.getName proc)
-      | SOME _ => ();
-    List.app (fn (s, SOME _) => ()
+      | SOME _ => ()
+  ; List.app (fn (s, SOME _) => ()
 	     | (s, NONE) => Errors.addError
 				(State.getPos s,
 				 State.getName s ^
 				 " is not a state of process " ^
-				 Process.getName proc)) acceptDefs;
-    checkTransList (Process.getTrans proc, proc, 
+				 Process.getName proc)) acceptDefs
+  ; checkTransList (Process.getTrans proc, proc, 
 		    (vars @ Process.getVars proc, chans, procs))
 end
 
-fun checkProcessList (procs, visible) =
-  (checkNoProcessRedefinition procs;
-   List.app (fn proc => checkProcess (proc, visible)) procs)
+fun checkProcessList (procs, visible) = (
+    checkNoProcessRedefinition procs
+  ; List.app (fn proc => checkProcess (proc, visible)) procs)
 
-fun checkSystem ({ t, glob, chans, procs, ... }: System.system) =
-  (checkVarList (glob, ([], chans, procs));
-   checkProcessList (procs, (glob, chans, procs)))
+fun checkSystem ({ t, glob, chans, procs, ... }: System.system) = (
+    checkVarList (glob, ([], chans, procs))
+  ; checkProcessList (procs, (glob, chans, procs)))
 
 end

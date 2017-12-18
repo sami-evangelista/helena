@@ -46,35 +46,30 @@ fun parse (fileName, errStream) = let
     val _ = DveSemAnalyzer.checkSystem result
     val _ = Errors.raiseSemErrorsIfAny ()
     val _ = TextIO.closeIn f
-in
-    SOME result
-end
-    handle SyntaxError lineNo =>
-	   (Errors.outputErrorMsg
-		(errStream, fileName, SOME lineNo, "syntax error");
-	    NONE)
-	 | Errors.LexError (lineNo, msg) =>
-	   (Errors.outputErrorMsg
-		(errStream, fileName, SOME lineNo, msg);
-	    NONE)
-	 | Errors.ParseError (lineNo, msg) =>
-	   (Errors.outputErrorMsg
-		(errStream, fileName, SOME lineNo, msg);
-	    NONE)
-	 | Errors.SemError l =>
-	   let
-	       fun printError (pos, msg) =
-		   Errors.outputErrorMsg
-		       (errStream, fileName, SOME pos, msg)
-	   in
-	       (List.app printError l;
-		NONE)
-	   end
-	 | IO.Io _ =>
-	   (Errors.outputErrorMsg
-		(errStream, fileName, NONE, "could not open file");
-	    NONE)
-	   
+in SOME result end
+handle SyntaxError lineNo => (
+    Errors.outputErrorMsg
+	(errStream, fileName, SOME lineNo, "syntax error")
+  ; NONE)
+     | Errors.LexError (lineNo, msg) => (
+         Errors.outputErrorMsg (errStream, fileName, SOME lineNo, msg)
+       ; NONE)
+     | Errors.ParseError (lineNo, msg) => (
+         Errors.outputErrorMsg (errStream, fileName, SOME lineNo, msg)
+       ; NONE)
+     | Errors.SemError l =>
+       let
+	   fun printError (pos, msg) =
+	     Errors.outputErrorMsg (errStream, fileName, SOME pos, msg)
+       in
+	   List.app printError l
+         ; NONE
+       end
+     | IO.Io _ => (
+         Errors.outputErrorMsg
+	     (errStream, fileName, NONE, "could not open file")
+       ; NONE)
+	              
 
 fun parse' fileName = parse (fileName, SOME TextIO.stdOut)	       
 	       
@@ -87,9 +82,9 @@ in
 	 of NONE => ()
 	  | SOME f => let val full = OS.Path.concat (dir, f)
 		      in
-			  TextIO.print ("(*" ^ full ^ "*)\n");
-			  parse (full, SOME TextIO.stdOut);
-			  ()
+			  TextIO.print ("(*" ^ full ^ "*)\n")
+                        ; parse (full, SOME TextIO.stdOut)
+                        ; ()
 		      end
 end
 

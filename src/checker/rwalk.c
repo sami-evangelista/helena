@@ -20,17 +20,17 @@ void * rwalk_worker
   heap = local_heap_new();
   while(context_keep_searching()) {
     heap_reset(heap);
-    s = state_initial_mem(heap);
+    s = state_initial(heap);
     trace = list_new(heap, sizeof(event_t), event_free_void);
     for(i = 0; i < CFG_RWALK_MAX_DEPTH && context_keep_searching(); i ++) {
-      en = state_events_mem(s, heap);
+      en = state_events(s, heap);
       en_size = list_size(en);
       if(CFG_ACTION_CHECK_SAFETY && state_check_property(s, en)) {
         /*  copy the trace to the system heap  */
         new_trace = list_new(SYSTEM_HEAP, sizeof(event_t), event_free_void);
         while(!list_is_empty(trace)) {
           list_pick_first(trace, &e);
-          e = event_copy(e);
+          e = event_copy(e, SYSTEM_HEAP);
           list_append(new_trace, &e);
         }
 	context_faulty_state(s);

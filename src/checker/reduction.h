@@ -22,19 +22,11 @@ void edge_lean_reduction
 
 
 /**
- * @brief mstate_events_reduced_mem
- */
-list_t mstate_events_reduced_mem
-(mstate_t s,
- bool_t * reduced,
- heap_t heap);
-
-
-/**
  * @brief mstate_events_reduced
  */
 list_t mstate_events_reduced
 (mstate_t s,
- bool_t * reduced);
+ bool_t * reduced,
+ heap_t heap);
 
 #endif

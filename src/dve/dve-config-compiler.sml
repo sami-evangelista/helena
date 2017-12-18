@@ -24,8 +24,8 @@ in
              "(char * prop_name);",
 	     "bool_t model_check_state_proposition",
 	     "(char * prop_name, mstate_t s);"
-        ]);
-    TextIO.output
+        ])
+  ; TextIO.output
         (cFile,
          concatLines [
 	     "char * model_name",

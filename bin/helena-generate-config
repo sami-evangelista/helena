@@ -51,9 +51,9 @@ GENERAL_OPTS = ("General options",
 SEARCH_OPTS = ("Search and storage options",
                [ "A", "t", "W", "R", "cs" ])
 REDUCTION_OPTS = ("Reduction techniques",
-                  [ "H", "P", "i" ])
+                  [ "H", "P", "i", "C", "cb" ])
 LIMIT_OPTS = ("Limit options",
-              [ "ml", "tl", "sl" ])
+              [ "tl", "sl" ])
 MODEL_OPTS = ("Model options",
               [ "d", "a", "r", "L", "m" ])
 OUTPUT_OPTS = ("Output options",
@@ -171,6 +171,15 @@ Activate/deactivate hash compaction.  Its principle is to only store a
 hash signature of each visited state.  In case of hash conflict,
 Helena will not necessarily explore the whole state space and may
 report that no error has been found whereas one could exist."""
+    elif o in [ "C", "state-compression" ]:
+        return """-C[={0|1}], --state-compression[={0|1}]
+
+Activate/deactivate state compression."""
+    elif o in [ "cb", "compression-bits" ]:
+        return """-cb=N, --compression-bits=N
+
+Set the base number of bits used by state compression (option -C)
+to N.  16 is the default value."""
     elif o in [ "P", "partial-order" ]:
         return """-P[={0|1}], --partial-order[={0|1}]}
 
@@ -192,11 +201,6 @@ is analysed."""
 #Activate/deactivate edge-lean reduction.  This one allows to prune
 #some arcs of the reachability graph, hence reducing the search
 #time."""
-    elif o in [ "ml", "memory-limit" ]:
-        return """-ml=N, --memory-limit=N
-
-The memory used by Helena is limited to N megabytes.  When this limit
-is reached the search stops as soon as possible."""
     elif o in [ "tl", "time-limit" ]:
         return """-tl=N, --time-limit=N
 
@@ -286,9 +290,10 @@ def printHelpShort():
    -H   --hash-compaction[={0|1}]
    -P   --partial-order[={0|1}]
    -i   --proviso[={0|1}]
+   -C   --state-compression[={0|1}]
+   -cb  --compression-bits=N
  
  Limit options
-   -ml  --memory-limit=N
    -tl  --time-limit=N
    -sl  --state-limit=N
  
@@ -367,9 +372,9 @@ class Config:
         self.withPapi = False
         self.randomSuccs = False
         self.withObserver = True
+        self.stateCompression = False
         self.workers = 1
         self.capacity = 1
-        self.memoryLimit = 0
         self.timeLimit = 0
         self.stateLimit = 0
         self.algo = DFS
@@ -386,6 +391,7 @@ class Config:
         self.propositions = []
         self.parameters = []
         self.hashSize = 22
+        self.compressionBits = 16
         self.bfsQueueBlockSize = 10 ** 4
         self.dfsStackBlockSize = 10 ** 4
         self.rwalkMaxDepth = 10 ** 3
@@ -413,10 +419,17 @@ class Config:
             self.workers = 1
         if self.hashSize > 32:
             self.hashSize = 32
+        if self.hashCompaction:
+            self.stateCompression = False
 
         #  hash compaction not available for random walk and delta-ddd
         self.hashCompaction = self.hashCompaction and self.algo not in [
             BWALK, RWALK, DELTA_DDD ]
+
+        #  same for state compression.  also hash compaction disables
+        #  compression
+        self.stateCompression = self.stateCompression and self.algo not in [
+            BWALK, RWALK, DELTA_DDD ] and not self.hashCompaction
 
         #  partial order reduction not available for random walk,
         #  delta-ddd and distributed algoritms
@@ -501,12 +514,9 @@ class Config:
             ("LANGUAGE_DVE", self.language == "dve"),
             ("LANGUAGE_LNA", self.language == "lna"),
             ("LANGUAGE_PNML", self.language == "pnml"),
-            ("MAX_MEMORY", self.memoryLimit),
             ("MAX_STATE", self.stateLimit),
             ("MAX_TIME", self.timeLimit),
             ("MAX_TRACE_LENGTH", self.maxTraceLength),
-            ("MEMORY_LIMITED", self.memoryLimit != 0),
-            ("MODEL_HAS_GRAPH_ROUTINES", self.language == "lna"),
             ("MODEL_NAME", "\"" + model + "\""),
             ("NO_WORKERS", self.workers),
             ("PARALLEL", self.workers > 1),
@@ -518,6 +528,8 @@ class Config:
             ("RG_REPORT_FILE", "\"rg-report.xml\""),
             ("RWALK_MAX_DEPTH", self.rwalkMaxDepth),
             ("SHMEM_HEAP_SIZE", self.shmemHeapSize),
+            ("STATE_COMPRESSION", self.stateCompression),
+            ("STATE_COMPRESSION_BITS", self.compressionBits),
             ("STATE_LIMITED", self.stateLimit != 0),
             ("TIME_LIMITED", self.timeLimit != 0),
             ("TRACE_EVENTS", self.traceType == EVENTS),
@@ -589,6 +601,8 @@ class Config:
                 self.partialOrder = (val is None) or val == "1"
             elif opt in [ "-i", "--proviso" ]:
                 self.proviso = (val is None) or val == "1"
+            elif opt in [ "-C", "--state-compression" ]:
+                self.stateCompression = (val is None) or val == "1"
             elif opt in [ "-D", "--dynamic-partial-order" ]:
                 self.dynamicPartialOrder = (val is None) or val == "1"
             #elif opt in [ "-E", "--edge-lean" ]:
@@ -609,6 +623,8 @@ class Config:
                     recognized = False
             elif opt in [ "-a", "--capacity" ]:
                 recognized = self.handleNumericalOption("capacity", val)
+            elif opt in [ "-cb", "--compression-bits" ]:
+                recognized = self.handleNumericalOption("compressionBits", val)
             elif opt in [ "-cs", "--candidate-set-size" ]:
                 recognized = self.handleNumericalOption("candidateSetSize",
                                                         val)
@@ -616,8 +632,6 @@ class Config:
             #    recognized = self.handleNumericalOption("shmemHeapSize", val)
             elif opt in [ "-t", "--hash-size" ]:
                 recognized = self.handleNumericalOption("hashSize", val)
-            elif opt in [ "-ml", "--memory-limit" ]:
-                recognized = self.handleNumericalOption("memoryLimit", val)
             elif opt in [ "-tl", "--time-limit" ]:
                 recognized = self.handleNumericalOption("timeLimit", val)
             elif opt in [ "-sl", "--state-limit" ]:

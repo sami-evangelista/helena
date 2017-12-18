@@ -220,10 +220,10 @@ void bfs_queue_enqueue
     bfs_queue_slot_release_lock(slot);
   }
   if(q->states_stored) {
-    item.s = state_copy_mem(item.s, slot->last->heap);
+    item.s = state_copy(item.s, slot->last->heap);
   }
   if(q->events_stored && item.e_set) {
-    item.e = event_copy_mem(item.e, slot->last->heap);
+    item.e = event_copy(item.e, slot->last->heap);
   }
   slot->last->items[slot->last_index] = item;
   slot->last_index ++;

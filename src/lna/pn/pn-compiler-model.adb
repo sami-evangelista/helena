@@ -1,11 +1,13 @@
 with
   Gnat.Directory_Operations,
   Gnat.Os_Lib,
+  Pn.Compiler.Config,
   Pn.Propositions;
 
 use
   Gnat.Directory_Operations,
   Gnat.Os_Lib,
+  Pn.Compiler.Config,
   Pn.Propositions;
 
 package body Pn.Compiler.Model is
@@ -56,14 +58,16 @@ package body Pn.Compiler.Model is
       Params   : constant Ustring_List := Get_Parameters(N);
    begin
       Init_Library(Model_Lib, To_Ustring(Comment), Path, L);
+      --=======================================================================
+      Plh(L, "#define MODEL_HAS_EVENT_UNDOABLE");
+      Plh(L, "#define MODEL_HAS_GRAPH_ROUTINES");
+      Plh(L, "#define MODEL_HAS_XML_PARAMETERS");
+      Plh(L, "#define MODEL_HAS_STATE_COMPRESSION");
+      Nlh(L);
+      --=======================================================================
       for I in Libs'Range loop
 	 Plh(L, "#include """ & Libs(I) & ".h""");
       end loop;
-      --=======================================================================
-      Plh(L, "#define MODEL_EVENT_UNDOABLE");
-      Plh(L, "#define MODEL_HAS_GRAPH_ROUTINES");
-      Plh(L, "#define MODEL_HAS_XML_PARAMETERS");
-      --=======================================================================
       Compile(Props, L);
       --=======================================================================
       while not Expr_Set_Pkg.Is_Empty(Pending) loop
@@ -79,6 +83,11 @@ package body Pn.Compiler.Model is
       for I in Libs'Range loop
 	 Plc(L, 1, Lib_Init_Func(Libs(I)) & " ();");
       end loop;
+      Plc(L, "}");
+      --=======================================================================
+      Prototype := To_Ustring("void finalise_model()");
+      Plh(L, Prototype & ";");
+      Plc(L, Prototype & " {");
       Plc(L, "}");
       --=======================================================================
       Prototype := To_Ustring("void model_xml_parameters (FILE * out)");
@@ -110,22 +119,15 @@ package body Pn.Compiler.Model is
 	 In_Arcs   : Natural;
 	 Out_Arcs  : Natural;
 	 Inhib_Arcs: Natural;
+         Pr        : constant String := "fprintf (out, """;
       begin
 	 Get_Statistics(N, Places, Trans, Arcs, In_Arcs, Out_Arcs, Inhib_Arcs);
-	 Plc(L, 1, "fprintf (out, ""<modelStatistics>"");");
-	 Plc(L, 1, "fprintf (out, ""<places>" &
-	       Places & "</places>"");");
-	 Plc(L, 1, "fprintf (out, ""<transitions>" &
-	       Trans & "</transitions>"");");
-	 Plc(L, 1, "fprintf (out, ""<netArcs>" &
-	       Arcs & "</netArcs>"");");
-	 Plc(L, 1, "fprintf (out, ""<inArcs>" &
-	       In_Arcs & "</inArcs>"");");
-	 Plc(L, 1, "fprintf (out, ""<outArcs>" &
-	       Out_Arcs & "</outArcs>"");");
-	 Plc(L, 1, "fprintf (out, ""<inhibArcs>" &
-	       Inhib_Arcs & "</inhibArcs>"");");
-	 Plc(L, 1, "fprintf (out, ""</modelStatistics>"");");
+	 Plc(L, 1, Pr & "<places>" & Places & "</places>"");");
+	 Plc(L, 1, Pr & "<transitions>" & Trans & "</transitions>"");");
+	 Plc(L, 1, Pr & "<netArcs>" & Arcs & "</netArcs>"");");
+	 Plc(L, 1, Pr & "<inArcs>" & In_Arcs & "</inArcs>"");");
+	 Plc(L, 1, Pr & "<outArcs>" & Out_Arcs & "</outArcs>"");");
+	 Plc(L, 1, Pr & "<inhibArcs>" & Inhib_Arcs & "</inhibArcs>"");");
 	 Plc(L, "}");
       end;
       --=======================================================================

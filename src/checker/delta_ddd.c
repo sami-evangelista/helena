@@ -34,7 +34,7 @@ typedef struct {
   delta_ddd_storage_id_t id;
   delta_ddd_storage_id_t pred;
   event_id_t e;
-  bit_vector_t s;
+  char * s;
   hkey_t h;
   uint16_t width;
 } delta_ddd_candidate_t;
@@ -95,36 +95,36 @@ uint8_t RECONS_ID;
 
 #define DELTA_DDD_OWNER(h) (((h) & CFG_HASH_SIZE_M) % CFG_NO_WORKERS)
 
-#if defined(MODEL_EVENT_UNDOABLE)
-#define DELTA_DDD_VISIT_PRE_HEAP_PROCESS() {    \
-    if(heap_size(heap) > MAX_LOCAL_HEAP_SIZE) {	\
-      state_t copy = state_copy(s);		\
-      heap_reset(heap);                         \
-      s = state_copy_mem(copy, heap);		\
-      state_free(copy);                         \
-    }						\
+#if defined(MODEL_HAS_EVENT_UNDOABLE)
+#define DELTA_DDD_VISIT_PRE_HEAP_PROCESS() {            \
+    if(heap_size(heap) > MAX_LOCAL_HEAP_SIZE) {         \
+      state_t copy = state_copy(s, SYSTEM_HEAP);        \
+      heap_reset(heap);                                 \
+      s = state_copy(copy, heap);                       \
+      state_free(copy);                                 \
+    }                                                   \
     heap_pos = heap_get_position(heap_evts);	\
   }
 #define DELTA_DDD_VISIT_POST_HEAP_PROCESS() {   \
     heap_set_position(heap_evts, heap_pos);	\
   }
-#define DELTA_DDD_VISIT_HANDLE_EVENT(func) {            \
-    e = state_event_mem(s, ST[curr].e, heap_evts);	\
-    event_exec(e, s);                                   \
-    s = func(w, curr, s, depth - 1);                    \
-    event_undo(e, s);                                   \
+#define DELTA_DDD_VISIT_HANDLE_EVENT(func) {    \
+    e = state_event(s, ST[curr].e, heap_evts);	\
+    event_exec(e, s);                           \
+    s = func(w, curr, s, depth - 1);            \
+    event_undo(e, s);                           \
   }
-#else  /*  !defined(MODEL_EVENT_UNDOABLE)  */
+#else  /*  !defined(MODEL_HAS_EVENT_UNDOABLE)  */
 #define DELTA_DDD_VISIT_PRE_HEAP_PROCESS() {    \
     heap_pos = heap_get_position(heap);         \
   }
 #define DELTA_DDD_VISIT_POST_HEAP_PROCESS() {   \
     heap_set_position(heap, heap_pos);		\
   }
-#define DELTA_DDD_VISIT_HANDLE_EVENT(func) {    \
-    e = state_event(s, ST[curr].e);             \
-    t = state_succ_mem(s, e, heap);             \
-    func(w, curr, t, depth - 1);                \
+#define DELTA_DDD_VISIT_HANDLE_EVENT(func) {            \
+    e = state_event(s, ST[curr].e, SYSTEM_HEAP);        \
+    t = state_succ(s, e, heap);                         \
+    func(w, curr, t, depth - 1);                        \
   }
 #endif
 
@@ -205,7 +205,7 @@ uint64_t delta_ddd_storage_size
 void delta_ddd_create_trace
 (delta_ddd_storage_id_t id) {
   event_list_t trace = list_new(SYSTEM_HEAP, sizeof(event_t), event_free_void);
-  state_t s = state_initial();
+  state_t s = state_initial(SYSTEM_HEAP);
   list_t trace_ids = list_new(SYSTEM_HEAP, sizeof(event_id_t), NULL);
   event_id_t eid;
   event_t e;
@@ -219,7 +219,7 @@ void delta_ddd_create_trace
   }
   while(!list_is_empty(trace_ids)) {
     list_pick_last(trace_ids, &eid);
-    e = state_event(s, eid);
+    e = state_event(s, eid, SYSTEM_HEAP);
     event_exec(e, s);
     list_append(trace, &e);
   }
@@ -242,13 +242,14 @@ bool_t delta_ddd_send_candidate
  state_t s) {
   delta_ddd_candidate_t c;
   worker_id_t x;
+  uint16_t size;
   
   c.content = DELTA_DDD_CAND_NEW;
   c.pred = pred;
   c.e = e;
   c.width = state_char_size(s);
   c.s = mem_alloc0(candidates_heaps[w], c.width);
-  state_serialise(s, c.s);
+  state_serialise(s, c.s, &size);
   c.h = state_hash(s);
   x = DELTA_DDD_OWNER(c.h);
   BOX[w][x][BOX_size[w][x]] = c;  
@@ -267,17 +268,11 @@ bool_t delta_ddd_send_candidate
  *  performing duplicate detection
  *
  *****/
-bool_t delta_ddd_cmp_vector
+bool_t delta_ddd_cmp_string
 (uint16_t width,
- bit_vector_t v,
- bit_vector_t w) {
-  uint16_t i;
-  for(i = 0; i < width; i ++) {
-    if(v[i] != w[i]) {
-      return FALSE;
-    }
-  }
-  return TRUE;
+ char * v,
+ char * w) {
+  return (0 == memcmp(v, w, width)) ? TRUE : FALSE;
 }
 
 bool_t delta_ddd_merge_candidate_set
@@ -329,7 +324,7 @@ bool_t delta_ddd_merge_candidate_set
 #else
 	  if(c.h == C[pos].h
              && c.width == C[pos].width
-             && delta_ddd_cmp_vector(c.width, c.s, C[pos].s)) {
+             && delta_ddd_cmp_string(c.width, c.s, C[pos].s)) {
 	    loop = FALSE;
 	  } else {
 	    pos = (pos + 1) % CS_max_size;
@@ -365,7 +360,7 @@ void delta_ddd_storage_delete_candidate
     switch(CS[x][i].content) {
     case DELTA_DDD_CAND_NONE : return;
     case DELTA_DDD_CAND_NEW  :
-      if(state_cmp_vector(s, CS[x][i].s)) {
+      if(state_cmp_string(s, CS[x][i].s)) {
 	CS[x][i].content = DELTA_DDD_CAND_DEL;
 #if CFG_ACTION_BUILD_GRAPH == 1
 	CS[x][i].id = id;
@@ -414,7 +409,6 @@ state_t delta_ddd_duplicate_detection_dfs
     do {
       if(ST[curr].dd || ST[curr].dd_visit) {
         context_incr_stat(STAT_EVENT_EXEC, w, 1);
-        context_incr_stat(STAT_EVENT_EXEC_DDD, w, 1);
 	DELTA_DDD_VISIT_HANDLE_EVENT(delta_ddd_duplicate_detection_dfs);
       }
       if(ST[curr].father & 1) {
@@ -445,7 +439,7 @@ void delta_ddd_remove_duplicates_around
       if(j == CS_max_size) { j = 0; }
       if(C[j].content == DELTA_DDD_CAND_NONE) { break; }
       if(C[j].width == C[i].width
-         && delta_ddd_cmp_vector(C[j].width, C[j].s, C[i].s)) {
+         && delta_ddd_cmp_string(C[j].width, C[j].s, C[i].s)) {
 	C[j].content = DELTA_DDD_CAND_DEL;
 	C[j].id = C[i].id;
       }
@@ -592,11 +586,11 @@ bool_t delta_ddd_duplicate_detection
   /*
    *  initialize heaps for duplicate detection
    */
-#if defined(MODEL_EVENT_UNDOABLE)
+#if defined(MODEL_HAS_EVENT_UNDOABLE)
   heap_reset(detect_evts_heaps[w]);
 #endif
   heap_reset(detect_heaps[w]);
-  s = state_initial_mem(detect_heaps[w]);
+  s = state_initial(detect_heaps[w]);
 
   /*
    *  merge the candidate set and mark states to reconstruct
@@ -672,7 +666,7 @@ state_t delta_ddd_expand_dfs
     /*
      *  we have reached a leaf => we expand it
      */
-    en = state_events_mem(s, heap);
+    en = state_events(s, heap);
     if(CFG_ACTION_CHECK_SAFETY && state_check_property(s, en)) {
       if(!error_reported) {
 	error_reported = TRUE;
@@ -687,7 +681,7 @@ state_t delta_ddd_expand_dfs
     for(i = 0; i < en_size; i ++) {
       e = * ((event_t *) list_nth(en, i));
       e_id = event_id(e);
-      t = state_succ_mem(s, e, heap);
+      t = state_succ(s, e, heap);
       if(delta_ddd_send_candidate(w, now, e_id, t)) {
 	delta_ddd_duplicate_detection(w);
       }
@@ -743,11 +737,11 @@ void delta_ddd_expand
  unsigned int depth) {
   state_t s;
 
-#if defined(MODEL_EVENT_UNDOABLE)
+#if defined(MODEL_HAS_EVENT_UNDOABLE)
   heap_reset(expand_evts_heaps[w]);
 #endif
   heap_reset(expand_heaps[w]);
-  s = state_initial_mem(expand_heaps[w]);
+  s = state_initial(expand_heaps[w]);
   delta_ddd_expand_dfs(w, S->root, s, depth);
   LVL_TERMINATED[w] = TRUE;
   while(delta_ddd_duplicate_detection(w));
@@ -768,7 +762,7 @@ void * delta_ddd_worker
   
   if(0 == w) {
     delta_ddd_state_t ns;
-    state_t s = state_initial();
+    state_t s = state_initial(SYSTEM_HEAP);
     hkey_t h = state_hash(s);
     delta_ddd_storage_id_t slot = h & CFG_HASH_SIZE_M;
     uint8_t t = GT_NODE, succs = 0;
@@ -908,7 +902,6 @@ void delta_ddd
   }
 
   context_close_graph_file();
-  context_set_stat(STAT_DDD_TIME, 0, S->dd_time);
   
   delta_ddd_storage_free(S);
 }

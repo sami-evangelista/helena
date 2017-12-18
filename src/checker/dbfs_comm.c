@@ -109,7 +109,7 @@ void dbfs_comm_process_state
   buf = BUF0[w][pe] + LEN0[w][pe];
   memcpy(buf, &h, sizeof(hkey_t));
   memcpy(buf + sizeof(hkey_t), &len, sizeof(uint16_t));
-  state_serialise(s, buf + sizeof(hkey_t) + sizeof(uint16_t));
+  state_serialise(s, buf + sizeof(hkey_t) + sizeof(uint16_t), NULL);
   LEN0[w][pe] += sizeof(hkey_t) + sizeof(uint16_t) + len;
 }
 
@@ -169,8 +169,11 @@ void dbfs_comm_receive_buffer
   while(b != b_end) {
     memcpy(&h, b, sizeof(hkey_t));
     memcpy(&slen, b + sizeof(hkey_t), sizeof(uint16_t));
-    htbl_insert_serialised(H, b + sizeof(hkey_t) + sizeof(uint16_t),
-                           slen, h, &is_new, &sid);
+    assert(0);
+    /*
+      htbl_insert_serialised(H, b + sizeof(hkey_t) + sizeof(uint16_t),
+      slen, h, &is_new, &sid);
+    */
     b += sizeof(hkey_t) + sizeof(uint16_t) + slen;
     if(is_new) {
       stored ++;

@@ -112,7 +112,8 @@ unsigned int dfs_stack_size
 
 void dfs_stack_write
 (dfs_stack_t stack) {
-  int i, len;
+  int i;
+  uint16_t size;
   unsigned int w;
   FILE * f;
   char buffer[10000];
@@ -126,10 +127,9 @@ void dfs_stack_write
 
     /*  state  */
     if(stack->states_stored) {
-      len = state_char_size(item.s);
-      fwrite(&len, sizeof(int), 1, f);
-      state_serialise(item.s, buffer);
-      fwrite(buffer, len, 1, f);
+      state_serialise(item.s, buffer, &size);
+      fwrite(&size, sizeof(uint16_t), 1, f);
+      fwrite(buffer, size, 1, f);
     }
 
     /*  event list  */
@@ -156,7 +156,8 @@ void dfs_stack_write
 
 void dfs_stack_read
 (dfs_stack_t stack) {
-  int i, len;
+  int i;
+  uint16_t size;
   unsigned int w;
   FILE * f;
   char buffer[10000], name[20];
@@ -172,20 +173,20 @@ void dfs_stack_read
 
     /*  state  */
     if(stack->states_stored) {
-      fread(&len, sizeof(int), 1, f);
-      fread(buffer, len, 1, f);
-      item.s = state_unserialise_mem(buffer, h);
+      fread(&size, sizeof(uint16_t), 1, f);
+      fread(buffer, size, 1, f);
+      item.s = state_unserialise(buffer, h);
     }
     
     /*  event list  */
     fread(&w, sizeof(unsigned int), 1, f);
     fread(buffer, w, 1, f);
-    item.en = event_list_unserialise_mem(buffer, h);
+    item.en = event_list_unserialise(buffer, h);
     
     /*  last event  */
     fread(&w, sizeof(unsigned int), 1, f);
     fread(buffer, w, 1, f);
-    item.e = event_unserialise_mem(buffer, h);
+    item.e = event_unserialise(buffer, h);
     item.e_set = TRUE;
     
     /*  state id  */
@@ -228,7 +229,7 @@ void dfs_stack_push
   item.en = NULL;
   item.e_set = FALSE;
   if(stack->states_stored) {
-    item.s = state_copy_mem(s,h);
+    item.s = state_copy(s, h);
   }
   stack->blocks[stack->current]->items[stack->top] = item;
 }
@@ -261,12 +262,8 @@ htbl_id_t dfs_stack_top
 state_t dfs_stack_top_state
 (dfs_stack_t stack,
  heap_t h) {
-  state_t result;
-
   assert(stack->states_stored && 0 != stack->size);
-  result = stack->blocks[stack->current]->items[stack->top].s;
-  result = state_copy_mem(result, h);
-  return result;
+  return state_copy(stack->blocks[stack->current]->items[stack->top].s, h);
 }
 
 event_list_t dfs_stack_top_events
@@ -287,10 +284,10 @@ event_list_t dfs_stack_compute_events
 
   assert(0 != stack->size);
   if(filter) {
-    result = state_events_reduced_mem(s, &reduced, h);
+    result = state_events_reduced(s, &reduced, h);
     item.fully_expanded = !reduced;
   } else {
-    result = state_events_mem(s, h);
+    result = state_events(s, h);
     item.fully_expanded = TRUE;
   }
   if(e != NULL) {
@@ -351,7 +348,7 @@ void dfs_stack_create_trace
   while(stack->size > 0) {
     item = stack->blocks[stack->current]->items[stack->top];
     if(item.e_set) {
-      e = event_copy(item.e);
+      e = event_copy(item.e, SYSTEM_HEAP);
       list_prepend(trace, &e);
     }
     dfs_stack_pop(stack);

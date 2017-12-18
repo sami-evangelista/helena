@@ -8,6 +8,7 @@ bwalk
 common
 comm_gasnet
 comm_shmem
+compression
 context
 darray
 dbfs_comm

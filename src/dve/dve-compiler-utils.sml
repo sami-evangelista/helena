@@ -174,8 +174,9 @@ fun getVarImage (stateName: string)
 	(*  first look in local variables that hide global ones  *)
 	case List.find isLocalVar mapping
 	 of NONE => (case List.find isGlobalVar mapping
-		      of NONE => (print (varName ^ " not found\n");
-				  raise Errors.InternalError)
+		      of NONE => (
+                          print (varName ^ " not found\n")
+                        ; raise Errors.InternalError)
 		       | SOME (v, img) => (getCompVar v, img))
 	  | SOME (v, img) => (getCompVar v, img)
 in

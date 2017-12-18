@@ -58,57 +58,41 @@ fun compileGetEnabledEvents
 	  "   if(", testName e, "(s)) { e = ", getEventName e,
           "; list_append(result, &e); }" ]
 
-    val protMem = String.concat [ "list_t " ^ funcName ^ "_mem" ^
-			          " (mstate_t s, heap_t heap)" ]
-    val bodyMem = [
-	protMem ^ " {",
-        "   mevent_t e;",
-        "   list_t result = " ^
-        "list_new(heap, sizeof(mevent_t), NULL);",
-	concatLines (List.map (compileTest ("en", "no_evts")) events),
-	"   return result;",
-	"}" ]
-    val bodyMem = concatLines bodyMem
-
-    val prot = String.concat [ "list_t " ^ funcName ^ " (mstate_t s)" ]
-    val body = [
-	prot ^ " {",
-	"   return " ^ funcName ^ "_mem (s, SYSTEM_HEAP);",
-	"}" ]
-    val body = concatLines body
+    val prot = String.concat [ "list_t " ^ funcName ^
+			       " (mstate_t s, heap_t heap)" ]
+    val body = concatLines [
+	    prot ^ " {",
+            "   mevent_t e;",
+            "   list_t result = " ^
+            "list_new(heap, sizeof(mevent_t), NULL);",
+	    concatLines (List.map (compileTest ("en", "no_evts")) events),
+	    "   return result;",
+	    "}" ]
 
     fun compileFuncs events =
       List.app (fn f => TextIO.output (hFile, f))
 	       (List.map compileIsEnabledTest events)
 in
-    compileFuncs events;
-    TextIO.output (hFile, "\n" ^ prot ^ ";\n");
-    TextIO.output (hFile, "\n" ^ protMem ^ ";\n");
-    TextIO.output (cFile, "\n" ^ body ^ "\n");
-    TextIO.output (cFile, "\n" ^ bodyMem ^ "\n")
+    compileFuncs events
+  ; TextIO.output (hFile, "\n" ^ prot ^ ";\n")
+  ; TextIO.output (cFile, "\n" ^ body ^ "\n")
 end
 
 fun compileGetEnabledEvent
         funcName (s: System.system, checks, hFile, cFile) = let
-    val prot    = String.concat [
+    val prot = String.concat [
 	    "mevent_t ", funcName,
-	    " (mstate_t s, mevent_t e)" ]
-    val protMem = String.concat [
-	    "mevent_t ", funcName, "_mem",
 	    " (mstate_t s, mevent_t e, heap_t heap)" ]
-    val body    = concatLines [ prot, " { return e; }" ]
-    val bodyMem = concatLines [ protMem, " { return e; }" ]
+    val body = concatLines [ prot, " { return e; }" ]
 in
-    TextIO.output (hFile, "\n" ^ prot ^ ";\n");
-    TextIO.output (hFile, "\n" ^ protMem ^ ";\n");
-    TextIO.output (cFile, "\n" ^ body ^ "\n");
-    TextIO.output (cFile, "\n" ^ bodyMem ^ "\n")
+    TextIO.output (hFile, "\n" ^ prot ^ ";\n")
+  ; TextIO.output (cFile, "\n" ^ body ^ "\n")
 end
 
 fun gen (s, checks, hFile, cFile) = (
-    TextIO.output (hFile, "#include \"list.h\"");
-    TextIO.output (hFile, "/*  enabling test functions  */");
-    TextIO.output (cFile, "/*  enabling test functions  */");
-    compileGetEnabledEvent "mstate_event" (s, checks, hFile, cFile);
-    compileGetEnabledEvents "mstate_events" (s, checks, hFile, cFile))
+    TextIO.output (hFile, "#include \"list.h\"")
+  ; TextIO.output (hFile, "/*  enabling test functions  */")
+  ; TextIO.output (cFile, "/*  enabling test functions  */")
+  ; compileGetEnabledEvent "mstate_event" (s, checks, hFile, cFile)
+  ; compileGetEnabledEvents "mstate_events" (s, checks, hFile, cFile))
 end

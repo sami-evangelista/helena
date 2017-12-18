@@ -85,29 +85,13 @@ package Pn.Compiler.State is
    function Local_State_To_Xml_Func
      (P: in Place) return Ustring;
 
+   function Local_State_Bit_Width_Func
+     (P: in Place) return Ustring;
 
-private
-
-
-   function Local_State_Set_Heap_Func
-     (P: in Place) return Ustring;
-   function Local_State_Card_Func
-     (P: in Place) return Ustring;
-   function Local_State_Cmp_Local_State_Func
-     (P: in Place) return Ustring;
-   function Local_State_Free_Func
-     (P: in Place) return Ustring;
-   function Local_State_Copy_Func
-     (P: in Place) return Ustring;
-   function Local_State_Print_Func
-     (P: in Place) return Ustring;
    function Local_State_Encode_Func
      (P: in Place) return Ustring;
+
    function Local_State_Decode_Func
-     (P: in Place) return Ustring;
-   function Local_State_Cmp_Vector_Func
-     (P: in Place) return Ustring;
-   function Local_State_Hash_Func
      (P: in Place) return Ustring;
 
 end Pn.Compiler.State;
