@@ -14,7 +14,7 @@ RUN="./helena-checker"
 MPIRUN="/usr/bin/mpirun"
 
 #  options to pass for basic compilation
-CCopt="-pthread"
+CCopt="-pthread" # -Wunused-variable"
 
 CCI=""
 CCL="-lm"
@@ -138,7 +138,7 @@ compileCFiles () {
 	fi
     done
     cmd="$CC $links -o helena-checker main.c $CCL"
-    msg "   > compile file main.c ("$cmd")"
+    msg "   > "$cmd
     eval $cmd
     if [ ! $? -eq 0 ]
     then
@@ -250,7 +250,8 @@ launchChecker () {
     local dir=$(getModelDir)/src
     [ "$machineFile" != "" ] && cp "$machineFile" $dir/machinefile
     pushd $dir &> /dev/null
-    msg "Launching search ($RUN comp-time $ccTime) ..."
+    msg "Launching search"
+    msg "> $RUN comp-time $ccTime"
     if [ $distributed -eq 0 ]
     then
         $RUN comp-time $ccTime

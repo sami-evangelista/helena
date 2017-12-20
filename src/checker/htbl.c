@@ -127,7 +127,7 @@ htbl_t htbl_new
   const heap_t heap = SYSTEM_HEAP;
   uint64_t i;
   htbl_t result;
-  uint32_t pos = 0, width, item_size;
+  uint32_t pos = 0, width;
   
   result = mem_alloc(SYSTEM_HEAP, sizeof(struct_htbl_t));
   result->type = type;
@@ -211,10 +211,9 @@ htbl_insert_code_t htbl_insert
   htbl_id_t i;
   uint32_t trials = HTBL_INSERT_MAX_TRIALS;
   bool_t found;
-  uint8_t bit;
   uint16_t size;
   hkey_t h_other;
-  char * sv, * sv_other, * status, * pos, buffer[65536];
+  char * sv, * sv_other, * pos, buffer[65536];
   
   /**
    * compress the data and compute its hash value
@@ -228,8 +227,7 @@ htbl_insert_code_t htbl_insert
     /**
      * we found a bucket where to insert the data => claim it
      */
-    HTBL_GET_STATUS(tbl, pos, status);
-    if(CAS(status, BUCKET_EMPTY, BUCKET_WRITE)) {
+    if(CAS(HTBL_POS_STATUS(tbl, pos), BUCKET_EMPTY, BUCKET_WRITE)) {
 
       /**
        * data insertion
@@ -245,13 +243,12 @@ htbl_insert_code_t htbl_insert
         HTBL_SET_DYNAMIC_VECTOR_SIZE(tbl, pos, &size);
         break;
       case HTBL_FULL_STATIC:
-        HTBL_GET_STATIC_VECTOR(tbl, pos, sv);
-        memcpy(sv, buffer, size);
+        memcpy(HTBL_POS_STATIC_VECTOR(tbl, pos), buffer, size);
         break;
       default:
         assert(0);
       }
-      (*status) = BUCKET_READY;
+      (*(HTBL_POS_STATUS(tbl, pos))) = BUCKET_READY;
       (*id) = i;
       return HTBL_INSERT_OK;
     }
@@ -259,7 +256,7 @@ htbl_insert_code_t htbl_insert
     /**
      * wait for the bucket to be readable
      */
-    while(BUCKET_WRITE == (*status)) {
+    while(BUCKET_WRITE == (*(HTBL_POS_STATUS(tbl, pos)))) {
       nanosleep(&SLEEP_TIME, NULL);
     }
 

@@ -156,7 +156,7 @@ void delta_ddd_barrier
  *****/
 delta_ddd_storage_t delta_ddd_storage_new
 () {
-  worker_id_t w, x;
+  worker_id_t w;
   unsigned int i, fst, last, s;
   delta_ddd_storage_t result;
 
@@ -656,8 +656,8 @@ state_t delta_ddd_expand_dfs
   event_id_t e_id;
   event_list_t en;
   unsigned int en_size, i;
-  worker_id_t x, y;
   uint32_t size;
+  worker_id_t x;
 
   DELTA_DDD_VISIT_PRE_HEAP_PROCESS();
 
@@ -758,25 +758,27 @@ void * delta_ddd_worker
 (void * arg) {
   worker_id_t x, w = (worker_id_t) (unsigned long int) arg;
   unsigned int depth = 0;
-  FILE * gf;
   
   if(0 == w) {
     delta_ddd_state_t ns;
     state_t s = state_initial(SYSTEM_HEAP);
     hkey_t h = state_hash(s);
     delta_ddd_storage_id_t slot = h & CFG_HASH_SIZE_M;
-    uint8_t t = GT_NODE, succs = 0;
 
     ns.dd = ns.dd_visit = ns.recons[0] = FALSE;
     ns.recons[1] = ns.father = 1;
     ns.next = ns.fst_child = slot;
     ns.h = h;
 #if CFG_ACTION_BUILD_GRAPH == 1
-    gf = context_graph_file();
-    ns.num = next_num ++;
-    fwrite(&t, sizeof(uint8_t), 1, gf);
-    fwrite(&ns.num, sizeof(node_t), 1, gf);
-    fwrite(&succs, sizeof(uint8_t), 1, gf);
+    {
+      FILE * gf;
+      uint8_t t = GT_NODE, succs = 0;
+      gf = context_graph_file();
+      ns.num = next_num ++;
+      fwrite(&t, sizeof(uint8_t), 1, gf);
+      fwrite(&ns.num, sizeof(node_t), 1, gf);
+      fwrite(&succs, sizeof(uint8_t), 1, gf);
+    }
 #endif
     ST[slot] = ns;
     S->root = slot;
@@ -826,7 +828,6 @@ void * delta_ddd_worker
 void delta_ddd
 () {  
   worker_id_t w, x;
-  void * dummy;
   unsigned int i, s;
   FILE * gf;
 

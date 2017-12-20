@@ -112,7 +112,6 @@ void * ddfs_comm_producer
   worker_id_t w;
   uint64_t size = 0, char_len = 0;
   pub_data_t data;
-  const worker_id_t my_worker_id = CFG_NO_WORKERS;
   
   while(context_keep_searching()) {
     context_sleep(PRODUCE_PERIOD);
@@ -171,9 +170,8 @@ void * ddfs_comm_consumer
   bool_t f = FALSE;
   int pe;
   void * pos;
-  uint16_t s_char_len, len;
+  uint16_t s_char_len;
   htbl_id_t sid;
-  char * s;
   bool_t red = FALSE, blue = FALSE, is_new;
   char buffer[CFG_SHMEM_HEAP_SIZE];
   hkey_t h;

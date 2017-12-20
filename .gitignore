@@ -12,5 +12,6 @@ releases
 src/lna/obj
 src/checker/latex
 src/checker/html
+src/checker/test_*
 src/ltl2ba/*.o
 tests

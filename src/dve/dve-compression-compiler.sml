@@ -104,6 +104,7 @@ end
 
 fun gen (s, hFile, cFile) = let
     val comps = buildStateCompsWithGlobalHidden s
+    val (_, comps) = List.partition isCompConst comps
     val procNames = System.getProcNamesWithGlobalHidden s
 in
     TextIO.output(hFile, "#define MODEL_HAS_STATE_COMPRESSION\n")

@@ -1,14 +1,14 @@
 #include "config.h"
 #include "dbfs_comm.h"
 #include "comm_gasnet.h"
+#include "stbl.h"
 
 #if CFG_ALGO_BFS == 1 || CFG_ALGO_DBFS == 1
 
 #define COMM_WAIT_TIME_MUS   2
 #define WORKER_WAIT_TIME_MUS 1
 
-#define DBFS_COMM_DEBUG
-#undef DBFS_COMM_DEBUG
+#define DBFS_COMM_DEBUG_XXX
 
 #if defined(DBFS_COMM_DEBUG)
 #define dbfs_comm_debug(...)   {                        \
@@ -25,6 +25,7 @@ const struct timespec WORKER_WAIT_TIME = { 0, WORKER_WAIT_TIME_MUS * 1000 };
 htbl_t H;
 bfs_queue_t Q;
 pthread_t CW;
+heap_t CW_HEAP;
 char ** BUF0[CFG_NO_WORKERS];
 char ** BUF1[CFG_NO_WORKERS];
 uint32_t * LEN0[CFG_NO_WORKERS];
@@ -98,19 +99,19 @@ void dbfs_comm_process_state
 (worker_id_t w,
  state_t s,
  hkey_t h) {
-  const uint16_t len = state_char_size(s);
   const int pe = dbfs_comm_state_owner(h);
+  uint16_t size = state_char_size(s);;
   char * buf;
 
-  if(LEN0[w][pe] + sizeof(hkey_t) + sizeof(uint16_t) + len >
+  if(LEN0[w][pe] + sizeof(hkey_t) + sizeof(uint16_t) + size >
      DBFS_HEAP_SIZE_WORKER) {
     dbfs_comm_prepare_buffer(w, pe);
   }
   buf = BUF0[w][pe] + LEN0[w][pe];
   memcpy(buf, &h, sizeof(hkey_t));
-  memcpy(buf + sizeof(hkey_t), &len, sizeof(uint16_t));
-  state_serialise(s, buf + sizeof(hkey_t) + sizeof(uint16_t), NULL);
-  LEN0[w][pe] += sizeof(hkey_t) + sizeof(uint16_t) + len;
+  memcpy(buf + sizeof(hkey_t), &size, sizeof(uint16_t));
+  state_serialise(s, buf + sizeof(hkey_t) + sizeof(uint16_t), &size);
+  LEN0[w][pe] += sizeof(hkey_t) + sizeof(uint16_t) + size;
 }
 
 
@@ -159,6 +160,7 @@ void dbfs_comm_receive_buffer
   htbl_id_t sid;
   bfs_queue_item_t item;
   char * b, * b_end;
+  state_t s;
   
   dbfs_comm_debug("comm. receives %d bytes from %d\n", len, pe);
   comm_get(buffer, pos, len, ME);
@@ -169,11 +171,9 @@ void dbfs_comm_receive_buffer
   while(b != b_end) {
     memcpy(&h, b, sizeof(hkey_t));
     memcpy(&slen, b + sizeof(hkey_t), sizeof(uint16_t));
-    assert(0);
-    /*
-      htbl_insert_serialised(H, b + sizeof(hkey_t) + sizeof(uint16_t),
-      slen, h, &is_new, &sid);
-    */
+    heap_reset(CW_HEAP);
+    s = state_unserialise(b + sizeof(hkey_t) + sizeof(uint16_t), CW_HEAP);
+    stbl_insert(H, s, is_new, &sid, &h);
     b += sizeof(hkey_t) + sizeof(uint16_t) + slen;
     if(is_new) {
       stored ++;
@@ -332,6 +332,7 @@ void dbfs_comm_start
       }
     }
   }
+  CW_HEAP = local_heap_new();
   pthread_create(&CW, NULL, &dbfs_comm_worker, NULL);
 }
 
@@ -357,6 +358,7 @@ void dbfs_comm_end
     mem_free(SYSTEM_HEAP, BUF1[w]);
     mem_free(SYSTEM_HEAP, REMOTE_POS[w]);
   }
+  heap_free(CW_HEAP);
 }
 
 #endif

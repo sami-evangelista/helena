@@ -118,17 +118,16 @@ void * bfs_worker
   const bool_t edge_lean = CFG_EDGE_LEAN;
   const bool_t with_trace = CFG_ACTION_CHECK_SAFETY && CFG_ALGO_BFS;
   const bool_t has_safe_attr = htbl_has_attr(H, ATTR_SAFE);
-  uint32_t levels = 0;
   state_t s, succ;
   htbl_id_t id_succ;
   event_list_t en;
   worker_id_t x, y;
   unsigned int arcs;
   heap_t heap = local_heap_new();
-  hkey_t h;
   bfs_queue_item_t item, succ_item;
   event_t e;
   bool_t is_new, reduced;
+  hkey_t h;
 
   do {
     for(x = 0; x < bfs_queue_no_workers(Q) && context_keep_searching(); x ++) {
@@ -270,9 +269,9 @@ void bfs
   bool_t is_new;
   htbl_id_t id;
   worker_id_t w;
-  hkey_t h;
   bool_t enqueue = TRUE;
   bfs_queue_item_t item;
+  hkey_t h;
   
   H = stbl_default_new();
   bfs_init_queue();

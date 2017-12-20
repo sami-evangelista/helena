@@ -143,6 +143,5 @@ generator.addTest(t)
 
 #  generate the script
 generator.genScript(out = outScript,
-                    timeout = 15,
-                    shuffle = True)
+                    timeout = 15)
 exit(0)

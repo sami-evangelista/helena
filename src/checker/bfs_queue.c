@@ -89,7 +89,6 @@ bfs_queue_t bfs_queue_new
  bool_t events_stored) {
   worker_id_t w, x;
   bfs_queue_t result;
-  uint8_t l;
   
   result = mem_alloc(SYSTEM_HEAP, sizeof(struct_bfs_queue_t));
   result->no_workers = no_workers;
@@ -155,7 +154,6 @@ bool_t bfs_queue_local_is_empty
 (bfs_queue_t q,
  worker_id_t w) {
   worker_id_t x;
-  uint8_t l;
   
   for(x = 0; x < q->no_workers; x ++) {
     if(!bfs_queue_slot_is_empty_real(q, x, w)) {

@@ -76,7 +76,7 @@ void papi_stats_get_stat_name
 void papi_stats_output
 (FILE * f) {  
 #if CFG_WITH_PAPI == 1
-  int i, rc, n;
+  int i, n;
   long long values[PAPI_STATS_NO_EVENTS];
   char stat_name[256];
   

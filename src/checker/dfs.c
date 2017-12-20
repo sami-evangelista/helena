@@ -104,8 +104,6 @@ void * dfs_worker
   const bool_t edge_lean = CFG_EDGE_LEAN;
   const bool_t shuffle = CFG_PARALLEL || CFG_ALGO_DDFS || CFG_RANDOM_SUCCS;
   const bool_t ddfs = CFG_ALGO_DDFS;
-  const bool_t ndfs = check_ltl
-    && CFG_ALGO_DFS && !CFG_PARALLEL;
   const bool_t cndfs = check_ltl
     && CFG_ALGO_DDFS || (CFG_ALGO_DFS && CFG_PARALLEL);
   const bool_t tarjan = CFG_ALGO_TARJAN;

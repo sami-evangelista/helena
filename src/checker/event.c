@@ -165,7 +165,6 @@ event_list_t state_events_with_reduction
   event_t e;
   event_list_t result = list_new(heap, sizeof(event_t), event_free_void);
   bstate_t succs[256];
-  uint32_t size;
   list_iter_t it;
   list_t m_en;
   int i, no_succs;
