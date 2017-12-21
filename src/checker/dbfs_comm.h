@@ -38,16 +38,16 @@ void dbfs_comm_process_state
 
 
 /**
- *  @brief dbfs_comm_termination
+ *  @brief dbfs_comm_check_termination
  */
-bool_t dbfs_comm_termination
-();
+bool_t dbfs_comm_check_termination
+(worker_id_t w);
 
 
 /**
- * @brief dbfs_comm_send_all_pending_states
+ * @brief dbfs_comm_send_all_buffers
  */
-void dbfs_comm_send_all_pending_states
+void dbfs_comm_send_all_buffers
 (worker_id_t w);
 
 
@@ -56,5 +56,19 @@ void dbfs_comm_send_all_pending_states
  */
 bool_t dbfs_comm_state_owned
 (hkey_t h);
+
+
+/**
+ * @brief dbfs_comm_set_term_state
+ */
+void dbfs_comm_set_term_state
+(bool_t term);
+
+
+/**
+ * @brief dbfs_comm_process_in_states
+ */
+bool_t dbfs_comm_process_in_states
+(worker_id_t w);
 
 #endif

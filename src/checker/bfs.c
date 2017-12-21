@@ -16,12 +16,12 @@ void bfs() { assert(0); }
 
 #else
 
-struct timespec BFS_WAIT_TIME[CFG_NO_WORKERS];
-
 htbl_t H = NULL;
 bfs_queue_t Q = NULL;
 pthread_barrier_t BFS_BARRIER;
 bool_t BFS_AT_BARRIER = FALSE;
+const struct timespec BFS_SLEEP_TIME = { 0, 1000 };
+
 
 worker_id_t bfs_thread_owner
 (hkey_t h) {
@@ -32,13 +32,6 @@ worker_id_t bfs_thread_owner
     result += (h >> (i * 8)) & 0xff;
   }
   return result % CFG_NO_WORKERS;
-}
-
-void bfs_wait_barrier
-() {
-  if(CFG_PARALLEL) {
-    context_barrier_wait(&BFS_BARRIER);
-  }
 }
 
 void bfs_init_queue
@@ -54,28 +47,34 @@ void bfs_init_queue
 bool_t bfs_check_termination
 (worker_id_t w) {
   bool_t result = FALSE;
-  uint16_t trials;
+  bool_t loop;
 
-  if(CFG_ALGO_DBFS) {
-    trials = 0;
-    dbfs_comm_send_all_pending_states(w);
-    while(!(result = dbfs_comm_termination())
-          && bfs_queue_local_is_empty(Q, w)) {
-      context_sleep(BFS_WAIT_TIME[w]);
-      trials ++;
-    }
-    if(trials == 1) {
-      BFS_WAIT_TIME[w].tv_nsec /= 2;
-    }
-  } else if(!CFG_PARALLEL) {
+  if(!CFG_ALGO_DBFS && !CFG_PARALLEL) {
     result = !context_keep_searching() || bfs_queue_is_empty(Q);
+  } else if(CFG_ALGO_DBFS) {
+    dbfs_comm_send_all_buffers(w);
+    loop = TRUE;
+    dbfs_comm_set_term_state(TRUE);
+    while(loop) {
+      if(!bfs_queue_is_empty(Q) || dbfs_comm_process_in_states(w)) {
+        loop = FALSE;
+      } else {
+        if(result = dbfs_comm_check_termination(w)) {
+          loop = FALSE;
+        }
+        else {
+          nanosleep(&BFS_SLEEP_TIME, NULL);
+        }
+      }
+    }
+    dbfs_comm_set_term_state(FALSE);
   } else {
     if(bfs_queue_is_empty(Q) || !context_keep_searching() || BFS_AT_BARRIER) {
       BFS_AT_BARRIER = TRUE;
-      bfs_wait_barrier();
+      context_barrier_wait(&BFS_BARRIER);
       BFS_AT_BARRIER = FALSE;
       result = !context_keep_searching() || bfs_queue_is_empty(Q);
-      bfs_wait_barrier();
+      context_barrier_wait(&BFS_BARRIER);
     }
   }
   return result;
@@ -132,6 +131,8 @@ void * bfs_worker
   do {
     for(x = 0; x < bfs_queue_no_workers(Q) && context_keep_searching(); x ++) {
       while(!bfs_queue_slot_is_empty(Q, x, w) && context_keep_searching()) {
+
+        dbfs_comm_process_in_states(w);
 
         /**
          * get the next state sent by thread x, get its successors and
@@ -275,10 +276,6 @@ void bfs
   
   H = stbl_default_new();
   bfs_init_queue();
-  for(w = 0; w < CFG_NO_WORKERS; w ++) {
-    BFS_WAIT_TIME[w].tv_sec = 0;
-    BFS_WAIT_TIME[w].tv_nsec = 1000;
-  }
 
   if(CFG_ALGO_DBFS) {
     dbfs_comm_start(H, Q);

@@ -14,7 +14,7 @@ RUN="./helena-checker"
 MPIRUN="/usr/bin/mpirun"
 
 #  options to pass for basic compilation
-CCopt="-pthread" # -Wunused-variable"
+CCopt="-pthread -Wunused-variable -Wfatal-errors"
 
 CCI=""
 CCL="-lm"
