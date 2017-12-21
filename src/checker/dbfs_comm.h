@@ -59,10 +59,10 @@ bool_t dbfs_comm_state_owned
 
 
 /**
- * @brief dbfs_comm_set_term_state
+ * @brief dbfs_comm_set_term_detection_state
  */
-void dbfs_comm_set_term_state
-(bool_t term);
+void dbfs_comm_set_term_detection_state
+(bool_t state);
 
 
 /**

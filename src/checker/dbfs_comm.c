@@ -33,10 +33,13 @@ int ME;
 uint32_t * REMOTE_POS[CFG_NO_WORKERS];
 
 #define POS_TERM 0
+#define POS_TERM_DETECTION sizeof(bool_t)
 #define POS_LEN(w, pe)                                                  \
-  (sizeof(bool_t) + sizeof(uint32_t) * (w + pe * CFG_NO_WORKERS))
+  (sizeof(bool_t) + sizeof(bool_t) +                                    \
+   sizeof(uint32_t) * (w + pe * CFG_NO_WORKERS))
 #define POS_DATA                                                        \
-  (sizeof(bool_t) + sizeof(int32_t) + sizeof(uint32_t) * CFG_NO_WORKERS * PES)
+  (sizeof(bool_t) + sizeof(bool_t) +                                    \
+   sizeof(int32_t) + sizeof(uint32_t) * CFG_NO_WORKERS * PES)
 
 
 uint8_t dbfs_comm_state_owner
@@ -56,50 +59,64 @@ bool_t dbfs_comm_state_owned
   return dbfs_comm_state_owner(h) == ME;
 }
 
-
-int dbfs_comm_no_pes_term
+int dbfs_comm_no_pes_waiting
 () {
-  int pe, result = 0;
-  bool_t rterm;
+  int result = 0, pe;
+  bool_t state;
   
   for(pe = 0; pe < PES; pe ++) {
-    comm_get(&rterm, POS_TERM, sizeof(bool_t), pe);
-    if(rterm) {
+    comm_get(&state, POS_TERM_DETECTION, sizeof(bool_t), pe);
+    if(state) {
       result ++;
     }
   }
   return result;
 }
 
-bool_t dbfs_comm_some_pe_term
+bool_t dbfs_comm_some_pe_waiting
 () {
-  return dbfs_comm_no_pes_term() > 0;
+  return dbfs_comm_no_pes_waiting() > 0;
+}
+
+
+bool_t dbfs_comm_all_pes_waiting
+() {
+  return dbfs_comm_no_pes_waiting() == PES;
 }
 
 
 bool_t dbfs_comm_all_pes_term
 () {
-  return dbfs_comm_no_pes_term() == PES;
+  int pe;
+  bool_t rterm;
+  
+  for(pe = 0; pe < PES; pe ++) {
+    comm_get(&rterm, POS_TERM, sizeof(bool_t), pe);
+    if(!rterm) {
+      return FALSE;
+    }
+  }
+  return TRUE;
 }
 
 
-void dbfs_comm_set_term_state
-(bool_t term) {
-  comm_put(POS_TERM, &term, sizeof(bool_t), ME);
+void dbfs_comm_set_term_detection_state
+(bool_t state) {
+  comm_put(POS_TERM_DETECTION, &state, sizeof(bool_t), ME);
 }
 
 
 bool_t dbfs_comm_check_termination_aux
 (worker_id_t w,
  bool_t term_val) {
-    bool_t term, result;
+  bool_t term, result;
   
-  if(!dbfs_comm_all_pes_term()) {
+  if(!dbfs_comm_all_pes_waiting()) {
     return FALSE;
   }
   comm_barrier();
   term = term_val && bfs_queue_is_empty(Q) && !dbfs_comm_process_in_states(w);
-  dbfs_comm_set_term_state(term);
+  comm_put(POS_TERM, &term, sizeof(bool_t), ME);
   comm_barrier();
   result = dbfs_comm_all_pes_term();
   comm_barrier();
@@ -122,14 +139,14 @@ void dbfs_comm_send_buffer
   do {
     comm_get(&len, POS_LEN(w, ME), sizeof(uint32_t), pe);
     if(len > 0) {
-      if(dbfs_comm_some_pe_term()) {
-        dbfs_comm_set_term_state(TRUE);
+      if(dbfs_comm_some_pe_waiting()) {
+        dbfs_comm_set_term_detection_state(TRUE);
         dbfs_comm_check_termination_aux(w, FALSE);
       }
       nanosleep(&WORKER_WAIT_TIME, NULL);
     }
   } while(len > 0); 
-  dbfs_comm_set_term_state(FALSE); 
+  dbfs_comm_set_term_detection_state(FALSE);
   dbfs_comm_debug("comm. sends %d bytes to %d\n", LEN[w][pe], pe);
   comm_put(REMOTE_POS[w][pe], BUF[w][pe], LEN[w][pe], pe);
   comm_put(POS_LEN(w, ME), &LEN[w][pe], sizeof(uint32_t), pe);

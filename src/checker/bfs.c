@@ -54,20 +54,17 @@ bool_t bfs_check_termination
   } else if(CFG_ALGO_DBFS) {
     dbfs_comm_send_all_buffers(w);
     loop = TRUE;
-    dbfs_comm_set_term_state(TRUE);
+    dbfs_comm_set_term_detection_state(TRUE);
     while(loop) {
       if(!bfs_queue_is_empty(Q) || dbfs_comm_process_in_states(w)) {
         loop = FALSE;
+      } else if(result = dbfs_comm_check_termination(w)) {
+        loop = FALSE;
       } else {
-        if(result = dbfs_comm_check_termination(w)) {
-          loop = FALSE;
-        }
-        else {
-          nanosleep(&BFS_SLEEP_TIME, NULL);
-        }
+        nanosleep(&BFS_SLEEP_TIME, NULL);
       }
     }
-    dbfs_comm_set_term_state(FALSE);
+    dbfs_comm_set_term_detection_state(FALSE);
   } else {
     if(bfs_queue_is_empty(Q) || !context_keep_searching() || BFS_AT_BARRIER) {
       BFS_AT_BARRIER = TRUE;
