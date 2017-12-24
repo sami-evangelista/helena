@@ -128,8 +128,10 @@ void * bfs_worker
   do {
     for(x = 0; x < bfs_queue_no_workers(Q) && context_keep_searching(); x ++) {
       while(!bfs_queue_slot_is_empty(Q, x, w) && context_keep_searching()) {
-
-        dbfs_comm_process_in_states(w);
+        
+        if(CFG_ALGO_DBFS) {
+          dbfs_comm_process_in_states(w);
+        }
 
         /**
          * get the next state sent by thread x, get its successors and
