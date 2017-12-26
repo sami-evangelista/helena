@@ -36,10 +36,10 @@ void * observer_worker
     stored = context_get_stat(STAT_STATES_STORED);
     time = ((float) duration(context_start_time(), now)) / 1000000.0;
     if(CFG_WITH_OBSERVER) {
-      printf("\n\n%sTime elapsed    :   %8.2f s.", pref, time);
-      printf("\n%sStates stored   :%'11llu", pref, (uint64_t) stored);
-      printf("\n%sStates processed:%'11llu", pref, (uint64_t) processed);
-      printf("\n%sCPU usage       :   %8.2f %c", pref, cpu, '%');
+      printf("%sTime: %.1f s.", pref, time);
+      printf(", stored: %llu", (uint64_t) stored);
+      printf(", processed: %llu", (uint64_t) processed);
+      printf(", cpu: %.1f %c\n", cpu, '%');
     }
     
     /*

@@ -5,13 +5,13 @@
 
 helenaDir=$HOME/.helena
 
-defaultDistributedLib='shmem'
-
 CC='/usr/bin/gcc'
 
 RUN="./helena-checker"
 
-MPIRUN="/usr/bin/mpirun"
+MPICC='/usr/bin/oshcc'
+
+MPIRUN="/usr/bin/oshrun"
 
 #  options to pass for basic compilation
 CCopt="-pthread -Wunused-variable -Wfatal-errors"
@@ -19,8 +19,6 @@ CCopt="-pthread -Wunused-variable -Wfatal-errors"
 CCI=""
 CCL="-lm"
 
-gasnetI="-I/usr/include/smp-conduit"
-gasnetL="-lgasnet-smp-par -lrt"
 shmemI=""
 shmemL="-loshmem"
 
@@ -478,43 +476,12 @@ done
 
 #####
 #  tune compilation options in distributed mode
-if [ $distributed -eq 0 ]
+if [ $distributed -eq 1 ]
 then
-    for ext in c h
-    do
-        ln $(getModelDir)/src/comm_shmem.$ext \
-           $(getModelDir)/src/comm.$ext
-    done
-else
-    case $defaultDistributedLib in
-        gasnet)
-            CCI=$CCI" "$gasnetI
-            CCL=$CCL" "$gasnetL
-            for ext in c h
-            do
-                rm $(getModelDir)/src/comm.$ext &> /dev/null
-                ln $(getModelDir)/src/comm_gasnet.$ext \
-                   $(getModelDir)/src/comm.$ext
-            done
-            export MPIRUN_CMD='mpirun -n %N -machinefile machinefile %C'
-            RUN="gasnetrun_mpi -n 1 ./helena-checker"
-            ;;
-        shmem)
-            CCI=$CCI" "$shmemI
-            CCL=$CCL" "$shmemL
-            for ext in c h
-            do
-                rm $(getModelDir)/src/comm.$ext &> /dev/null
-                ln $(getModelDir)/src/comm_shmem.$ext \
-                   $(getModelDir)/src/comm.$ext
-            done
-            RUN=$MPIRUN" -machinefile machinefile ./helena-checker"
-            ;;
-        *)
-            error "invalid value for defaultDistributedLib: "\
-                  $defaultDistributedLib
-            ;;
-    esac
+    CC=$MPICC
+    CCI=$CCI" "$shmemI
+    CCL=$CCL" "$shmemL
+    RUN=$MPIRUN" -machinefile machinefile ./helena-checker"
 fi
 
 #####

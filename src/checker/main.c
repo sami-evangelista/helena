@@ -9,7 +9,7 @@
 #include "rwalk.h"
 #include "graph.h"
 #include "bit_stream.h"
-#include "comm_gasnet.h"
+#include "comm.h"
 #include "papi_stats.h"
 
 int main

@@ -1,4 +1,4 @@
-#include "comm_shmem.h"
+#include "comm.h"
 #include "config.h"
 #include "context.h"
 
@@ -40,6 +40,24 @@ void finalise_comm
   shmem_free(COMM_SHMEM_HEAP);
   shmem_finalize();
 #endif
+}
+
+int comm_me
+() {
+  #if CFG_DISTRIBUTED == 0
+  return 0;
+  #else
+  return shmem_my_pe();
+  #endif
+}
+
+int comm_pes
+() {
+  #if CFG_DISTRIBUTED == 0
+  return 1;
+  #else
+  return shmem_n_pes();
+  #endif
 }
 
 void comm_barrier
@@ -111,23 +129,5 @@ void comm_get
     }
     comm_shmem_debug("get done\n");
   }
-#endif
-}
-
-int comm_me
-() {
-#if CFG_DISTRIBUTED == 0
-  return 0;
-#else
-  return shmem_my_pe();
-#endif
-}
-
-int comm_no
-() {
-#if CFG_DISTRIBUTED == 0
-  return 1;
-#else
-  return shmem_n_pes();
 #endif
 }

@@ -1,6 +1,6 @@
 #include "config.h"
 #include "dbfs_comm.h"
-#include "comm_gasnet.h"
+#include "comm.h"
 #include "stbl.h"
 
 #if CFG_ALGO_BFS == 1 || CFG_ALGO_DBFS == 1
@@ -45,12 +45,14 @@ uint32_t * REMOTE_POS[CFG_NO_WORKERS];
 uint8_t dbfs_comm_state_owner
 (hkey_t h) {
   int i = 0;
+  /*
   uint8_t result = 0;
 
   for(i = 0; i < sizeof(hkey_t); i ++) {
     result ^= h >> (i * 8);
   }
-  return result % PES;
+  */
+  return h % PES;
 }
 
 
@@ -109,17 +111,17 @@ void dbfs_comm_set_term_detection_state
 bool_t dbfs_comm_check_termination_aux
 (worker_id_t w,
  bool_t term_val) {
-  bool_t term, result;
+  bool_t term, result = FALSE;
   
-  if(!dbfs_comm_all_pes_waiting()) {
-    return FALSE;
+  if(dbfs_comm_all_pes_waiting()) {
+    comm_barrier();
+    dbfs_comm_process_in_states(w);
+    term = term_val && bfs_queue_is_empty(Q);
+    comm_put(POS_TERM, &term, sizeof(bool_t), ME);
+    comm_barrier();
+    result = dbfs_comm_all_pes_term();
+    comm_barrier();
   }
-  comm_barrier();
-  term = term_val && bfs_queue_is_empty(Q) && !dbfs_comm_process_in_states(w);
-  comm_put(POS_TERM, &term, sizeof(bool_t), ME);
-  comm_barrier();
-  result = dbfs_comm_all_pes_term();
-  comm_barrier();
   return result;
 }
 
@@ -139,6 +141,7 @@ void dbfs_comm_send_buffer
   do {
     comm_get(&len, POS_LEN(w, ME), sizeof(uint32_t), pe);
     if(len > 0) {
+      dbfs_comm_process_in_states(w);
       if(dbfs_comm_some_pe_waiting()) {
         dbfs_comm_set_term_detection_state(TRUE);
         dbfs_comm_check_termination_aux(w, FALSE);
@@ -247,6 +250,11 @@ bool_t dbfs_comm_process_in_states
 }
 
 
+void dbfs_comm_check_communications
+() {
+  dbfs_comm_process_in_states(0);
+}
+
 void dbfs_comm_start
 (htbl_t h,
  bfs_queue_t q) {
@@ -255,7 +263,7 @@ void dbfs_comm_start
   worker_id_t w;
   bool_t term = FALSE;
   
-  PES = comm_no();
+  PES = comm_pes();
   ME = comm_me();
   DBFS_HEAP_SIZE_WORKER =
     (CFG_SHMEM_HEAP_SIZE - POS_DATA) / ((PES - 1) * CFG_NO_WORKERS);

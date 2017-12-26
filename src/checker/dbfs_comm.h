@@ -71,4 +71,11 @@ void dbfs_comm_set_term_detection_state
 bool_t dbfs_comm_process_in_states
 (worker_id_t w);
 
+
+/**
+ * @brief dbfs_comm_process_in_states
+ */
+void dbfs_comm_check_communications
+();
+
 #endif

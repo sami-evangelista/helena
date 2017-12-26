@@ -1,6 +1,6 @@
 #include "config.h"
 #include "ddfs_comm.h"
-#include "comm_gasnet.h"
+#include "comm.h"
 
 #if CFG_ALGO_DDFS == 1 || CFG_ALGO_DFS == 1 || CFG_ALGO_TARJAN == 1
 
@@ -255,7 +255,7 @@ void ddfs_comm_start
   pub_data_t data;
   
   /*  shmem and symmetrical heap initialisation  */
-  PES = comm_no();
+  PES = comm_pes();
   ME = comm_me();
   assert(PES <= MAX_PES);
   

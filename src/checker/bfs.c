@@ -16,6 +16,8 @@ void bfs() { assert(0); }
 
 #else
 
+#define DBFS_CHECK_PERIOD 100
+
 htbl_t H = NULL;
 bfs_queue_t Q = NULL;
 pthread_barrier_t BFS_BARRIER;
@@ -124,13 +126,17 @@ void * bfs_worker
   event_t e;
   bool_t is_new, reduced;
   hkey_t h;
+  unsigned int dbfs_ctr = DBFS_CHECK_PERIOD;
 
   do {
     for(x = 0; x < bfs_queue_no_workers(Q) && context_keep_searching(); x ++) {
       while(!bfs_queue_slot_is_empty(Q, x, w) && context_keep_searching()) {
 
-        dbfs_comm_process_in_states(w);
-
+	if(CFG_ALGO_DBFS && (-- dbfs_ctr)) {
+	  dbfs_comm_check_communications();
+	  dbfs_ctr = DBFS_CHECK_PERIOD;
+	}
+	
         /**
          * get the next state sent by thread x, get its successors and
          * a valid reduced set.  if the states are not stored in the

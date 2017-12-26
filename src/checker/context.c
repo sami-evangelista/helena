@@ -2,7 +2,7 @@
 #include "context.h"
 #include "observer.h"
 #include "config.h"
-#include "comm_gasnet.h"
+#include "comm.h"
 #include "papi_stats.h"
 
 #define NO_STATS 15
@@ -425,16 +425,23 @@ void finalise_context
 
     /**
      *  in distributed mode the report file must be printed to the
-     *  standard output so that it can be sent to the main process.  we
-     *  prefix each line with [xml-PID]
+     *  standard output so that it can be sent to the main process.
+     *  we prefix each line with [xml-PID].  reports are printed one
+     *  after the other to avoid mixed lines.
      */
     if(CFG_DISTRIBUTED) {
-      out = fopen(file_name, "r");
-      while(getline(&buf, &n, out) != -1) {
-	printf("[xml-%d] %s", context_proc_id(), buf);
+      for(i = 0; i < comm_pes(); i ++) {
+	comm_barrier();
+	if(i == comm_me()) {
+	  out = fopen(file_name, "r");
+	  while(getline(&buf, &n, out) != -1) {
+	    printf("[xml-%d] %s", context_proc_id(), buf);
+	  }
+	  free(buf);
+	  fclose(out);
+	}
+	comm_barrier();
       }
-      free(buf);
-      fclose(out);
     }
 
     /**

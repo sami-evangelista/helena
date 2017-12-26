@@ -6,6 +6,7 @@ bfs_queue
 buchi
 bwalk
 common
+comm
 comm_gasnet
 comm_shmem
 compression
