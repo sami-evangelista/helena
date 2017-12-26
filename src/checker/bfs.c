@@ -132,11 +132,15 @@ void * bfs_worker
     for(x = 0; x < bfs_queue_no_workers(Q) && context_keep_searching(); x ++) {
       while(!bfs_queue_slot_is_empty(Q, x, w) && context_keep_searching()) {
 
+	/**
+	 * in DBFS we check incomming messages every
+	 * DBFS_CHECK_PERIOD^th state processed
+	 */
 	if(CFG_ALGO_DBFS && (-- dbfs_ctr)) {
 	  dbfs_comm_check_communications();
 	  dbfs_ctr = DBFS_CHECK_PERIOD;
 	}
-	
+
         /**
          * get the next state sent by thread x, get its successors and
          * a valid reduced set.  if the states are not stored in the

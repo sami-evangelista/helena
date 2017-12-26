@@ -1,45 +1,26 @@
 #!/bin/bash
 
 MAX=$1
-TYPE=$2
+P=$2
+
+outDir=out/dbfs
 
 [ "$MAX"  = "" ] && echo "missing \$1 = MAX # of nodes" && exit 1
-[ "$TYPE" = "" ] && echo "missing \$2 = BTL (ib/tcp)" && exit 1
-
-outDir=out/dbfs-$TYPE
-
+[ "$P"  = "" ] && echo "missing \$2 = # of proc/node" && exit 1
 [ ! -d $outDir ] && echo "$outDir does not exist" && exit 1
 
-echo -n "set terminal png size 600, 900;
-set output \"dbfs-time.png\";
+echo -n "set terminal png size 600, 600;
+set output \"accel-dbfs-$P.png\";
+set title \"Acceleration de DBFS ($P proc. / noeuds)\"
 set xtics 1;
 set xrange [1:$MAX];
 set yrange [0.75:$MAX];
 set key outside vertical center bottom font \",8\" box;
 set lmargin 4;
-plot x with lines linestyle 1 lw 2 lc rgb '#000000' title \"optimal\"" > plotT
-echo -n "set terminal png size 600, 900;
-set output \"dbfs-time-cpu.png\";
-set xtics 1;
-set xrange [1:$MAX];
-set yrange [0.75:$MAX];
-set key outside vertical center bottom font \",8\" box;
-set lmargin 4;
-plot x with lines linestyle 1 lw 2 lc rgb '#000000' title \"optimal\"" > plotTC
-echo -n "set terminal png size 600, 900;
-set output \"dbfs-cpu.png\";
-set xtics 1;
-set xrange [1:$MAX];
-set yrange [0:2];
-set key outside vertical center bottom font \",8\" box;
-set lmargin 4;
-set size ratio 0.5;
-plot 1 title '' with dots lc rgb '#000000'" > plotC
+plot x with lines linestyle 1 lw 2 lc rgb '#000000' title \"optimal\"" > plot
 for i in $(seq 1 $MAX)
 do
-    echo -n ", $i title '' with dots lc rgb '#000000'" >> plotT
-    echo -n ", $i title '' with dots lc rgb '#000000'" >> plotTC
-    echo -n ", $i title '' with dots lc rgb '#000000'" >> plotC
+    echo -n ", $i title '' with dots lc rgb '#000000'" >> plot
 done
 lp=1
 ls -1 $outDir/*xml | \
@@ -49,59 +30,42 @@ ls -1 $outDir/*xml | \
     while read m
     do
         echo $m
-        datT=$outDir/$m.time.dat
-        datC=$outDir/$m.cpu.dat
-        datTC=$outDir/$m.time-cpu.dat
-        echo > $datT
-        echo > $datC
-        echo > $datTC
+        dat=$outDir/$m.dat
+        echo -n > $dat
+        first=1
         for N in $(seq 1 $MAX)
         do
-            f=$outDir/$m"_N"$N.xml
-            if [ -f "$f" ]
+            f=$outDir/$m"_N"$N"_P"$P".xml"
+            [ ! -f "$f" ] && continue
+            lastN=$N
+	    l=$(scripts/get-stat $f searchTime)
+            resTime=$(scripts/list-op min $l)
+            l=$(scripts/get-stat $f statesStored)
+            st=$(scripts/list-op sum $l)
+	    l=$(scripts/get-stat $f arcs)
+	    tr=$(scripts/list-op sum $l)
+            if [ $first = 1 ]
             then
-		l=$(scripts/get-stat $f searchTime)
-                resT=$(scripts/list-op min $l)
-                l=$(scripts/get-stat $f statesStored)
-                st=$(scripts/list-op sum $l)
-                l=$(scripts/get-stat $f avgCPUUsage)
-                resC=$(scripts/list-op sum $l)
-		l=$(scripts/get-stat $f arcs)
-		tr=$(scripts/list-op sum $l)
-            elif [ $N = 1 ]
- 	    then
-		break
-	    fi
-	    if [ $N = 1 ]
-	    then
-		refSt=$st
-                refT=$resT
-                echo 1 1 >> $datT
-                echo 1 1 >> $datC
-                echo 1 1 >> $datTC
+                first=0
+                ref=$N
+                refSt=$st
+                refTime=$resTime
+                echo $N $N >> $dat
             else
-		if [ $refSt != $st ]
+                if [ $refSt != $st ]
 		then
 		    echo erreur N=$N, ref=$refSt, st=$st
 		fi
-		cpu="$resC / ($N * 100)"
-                echo $N $(echo "scale=2;$refT/$resT" | bc) >> $datT
-                echo $N $(echo "scale=2;$cpu" | bc) >> $datC
-                echo $N $(echo "scale=2;$refT/($resT*$cpu)" | bc) >> $datTC
+                echo $N $(echo "scale=2;$ref*$refTime/$resTime" | bc) >> $dat
             fi
         done
         m=$(echo $m | sed 's/_/-/g')
-	S=$(echo "scale = 1 ; $st/1000000" | bc)
-	T=$(echo "scale = 1 ; $tr/1000000" | bc)
-	t="$m (|S|=${S}E6, |T|=${T}E6)"
-        echo -n ", \"$datT\" title \"$t\" with lp ls "$lp >> plotT
-        echo -n ", \"$datC\" title \"$t\" with lp ls "$lp >> plotC
-        echo -n ", \"$datTC\" title \"$t\" with lp ls "$lp >> plotTC
+	S=$(echo "scale = 2 ; $st/100000000" | bc)
+	T=$(echo "scale = 2 ; $tr/100000000" | bc)
+	t="$m (${S}E8 states, ${T}E8 transitions, T_{$lastN} = $resTime s.)"
+        echo -n ", \"$dat\" title \"$t\" with lp ls "$lp >> plot
         lp=$((lp + 1))
     done
-for l in T C TC
-do
-    echo ";" >> plot$l
-    cat plot$l | gnuplot
-    rm plot$l
-done
+echo ";" >> plot
+cat plot | gnuplot
+rm plot
