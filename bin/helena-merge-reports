@@ -17,11 +17,14 @@ def mergeNode(nodeName, doSum, refDoc, docs):
     l = refDoc.createElement("list")
     s = 0
     for doc in docs:
-        val = doc.getElementsByTagName(nodeName)[0].childNodes[0].nodeValue
+        try:
+            val = doc.getElementsByTagName(nodeName)[0].childNodes[0].nodeValue
+        except:
+            val = "NA"
         item = refDoc.createElement("item")
         item.appendChild(doc.createTextNode(val))
         l.appendChild(item)
-        if doSum:
+        if doSum and val != "NA":
             s += int(val)
     c = n.childNodes[0]
     if doSum:
@@ -54,7 +57,7 @@ def mergeReports(refDoc, docs):
                            ("statesMaxStored", True),
                            ("statesStored", True),
                            ("statesTerminal", False),
-                           ("bytesSent", True),
+                           ("shmemComms", True),
                            ("avgCPUUsage", False),
                            ("lvl1TotalCacheMiss", False),
                            ("lvl2TotalCacheMiss", False),

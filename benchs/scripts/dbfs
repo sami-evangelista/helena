@@ -1,72 +1,78 @@
 #!/bin/bash
-#OAR -l nodes=%%N%%,walltime=04:00:00
-#OAR -p ib='QDR'
-#OAR -t allow_classic_ssh
-#OAR -n dist-helena
-#OAR -O dbfs.out
-#OAR -E dbfs.err
 
 N=$1
+HS=$2
 
 # some checks
 [ -z "$N" ] && echo "missing \$1 = # of nodes" && exit 1
+[ -z "$HS" ] && echo "missing \$2 = shmem heap size" && exit 1
 [ -z "$OAR_NODEFILE" ] && echo 'not in an OAR job' && exit 1
 
-helena="helena --algo=dbfs --machine-file=machinefile -C -cb=22"
-outDir=out/dbfs
+helena="helena --algo=dbfs --machine-file=machinefile -hs=$HS"
+outDir=out/dbfs-$HS
 mkdir -p $outDir &> /dev/null
 
-models='elevator.5;dve;185008051
-lifts.9;dve;266445936
-firewire_link.3;dve;425333983
-leader_filters.8;dve;431401020
-collision.5;dve;431965993
-iprotocol.8;dve;447570146
-public_subscribe.5;dve;1153014089
-lamport.9;dve;1436848880;7025053020
-synapse.9;dve;1675298471
-szymanski.6;dve;6779809484'
+models='elevator.5;dve;185008051;
+lifts.9;dve;266445936;
+firewire_link.3;dve;425333983;
+leader_filters.8;dve;431401020;
+collision.5;dve;431965993;
+iprotocol.8;dve;447570146;
+anderson.8;dve;538699029;
+telephony.8;dve;1051746064;
+public_subscribe.5;dve;1153014089;
+lamport.9;dve;1436848880;
+brp.8;dve;1526547707;
+synapse.9;dve;1675298471;
+szymanski.6;dve;6779809484;'
 
-for P in 8 4 2 1
+for N in $(seq $N -2 6)
 do
-    cat $OAR_NODEFILE | sort -u | \
-	while read host
-	do
-	    echo "$host max-slots=$P"
-	done > machinefile
-    MAX=$(cat machinefile | wc -l)
-    [ $MAX != $N ] && echo "not enough machines" && exit 1
-    for l in $models
+    for P in 8 4 2 1
     do
-	m=$(echo $l | cut -f1 -d';')
-	lang=$(echo $l | cut -f2 -d';')
-	st=$(echo $l | cut -f3 -d';')
-	f=$(scripts/get-file $m $lang)
-	[ ! -f $f ] && continue
-	param=$(scripts/format-parameters $opt)
-	hashSize=1
-	size=2
-	while [ $((size * N * 90 / 100)) -lt $st ]
+	cat $OAR_NODEFILE | sort -u | head -$N | \
+	    while read host
+	    do
+		echo "$host max-slots=$P"
+	    done > machinefile
+	MAX=$(cat machinefile | wc -l)
+	[ $MAX -lt $N ] && echo "not enough machines" && exit 1
+	for l in $models
 	do
-	    hashSize=$((hashSize + 1))
-	    size=$((size * 2))
+	    m=$(echo $l | cut -f1 -d';')
+	    lang=$(echo $l | cut -f2 -d';')
+	    st=$(echo $l | cut -f3 -d';')
+	    opts=$(echo $l | cut -f4 -d';')
+	    f=$(scripts/get-file $m $lang)
+	    [ ! -f $f ] && continue
+	    param=$(scripts/format-parameters $opt)
+	    hashSize=1
+	    size=2
+	    while [ $((size * N * 50 / 100)) -lt $st ]
+	    do
+		hashSize=$((hashSize + 1))
+		size=$((size * 2))
+	    done
+	    [ $hashSize -gt 29 ] && continue
+	    p=$P
+	    while [ $p != 1 ]
+	    do
+		p=$((p / 2))
+		hashSize=$((hashSize - 1))
+	    done
+	    xml=$outDir/$m
+	    if [ "$opt" != "" ]
+	    then
+		xml=$xml-$(echo $opt | tr " " "-")
+	    fi
+	    xml=$xml"_N"$N"_P"$P".xml"
+	    [ -f $xml ] && continue
+	    cmd=$helena" --hash-size=$hashSize "$opts" "$param
+	    cmd=$cmd" --progress=no-report --report-file="$xml" $f"
+	    echo '***** '$m - $st states' *****'
+	    echo $cmd
+	    eval $cmd
 	done
-	[ $hashSize -gt 29 ] && continue
-	[ $P -ge 2 ] && hashSize=$((hashSize - 1))
-	[ $P -ge 4 ] && hashSize=$((hashSize - 1))
-	[ $P -ge 8 ] && hashSize=$((hashSize - 1))
-	xml=$outDir/$m
-	if [ "$opt" != "" ]
-	then
-	    xml=$xml-$(echo $opt | tr " " "-")
-	fi
-	xml=$xml"_N"$N"_P"$P".xml"
-	[ -f $xml ] && continue
-	cmd=$helena" --hash-size=$hashSize "$param
-	cmd=$cmd" --progress=no-report --report-file="$xml" $f"
-	echo '***** '$m - $st states' *****'
-	echo $cmd
-	eval $cmd
     done
 done
 exit 0

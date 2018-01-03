@@ -33,8 +33,7 @@ list_t stbl_get_trace
 #define stbl_insert(tbl, s, is_new, id, h) {                            \
     htbl_insert_code_t ic;                                              \
     if(HTBL_INSERT_FULL == (ic = htbl_insert(tbl, s, id, h))) {         \
-      assert(0);							\
-      context_error                                                     \
+      context_error							\
         ("state table too small (increase --hash-size and rerun)");     \
     }                                                                   \
     is_new = ic == HTBL_INSERT_OK;                                      \

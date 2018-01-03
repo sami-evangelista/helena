@@ -28,7 +28,7 @@ void init_comm
   shmem_init();
   COMM_SHMEM_HEAP = shmem_malloc(CFG_SHMEM_HEAP_SIZE);
   memset(COMM_SHMEM_HEAP, 0, CFG_SHMEM_HEAP_SIZE);
-  shmem_barrier_all();
+  comm_barrier();
 #endif
 }
 
@@ -86,7 +86,7 @@ void comm_put
     memcpy(COMM_SHMEM_HEAP + pos, src, size);
   } else {
     comm_shmem_debug("put %d bytes at %d to %d\n", size, pos, pe);
-    context_incr_stat(STAT_BYTES_SENT, 0, size);
+    context_incr_stat(STAT_SHMEM_COMMS, 0, 1);
     while(size) {
       if(size < COMM_SHMEM_CHUNK_SIZE) {
 	shmem_putmem(COMM_SHMEM_HEAP + pos, src, size, pe);
@@ -115,7 +115,7 @@ void comm_get
     memcpy(dst, COMM_SHMEM_HEAP + pos, size);
   } else {
     comm_shmem_debug("get %d bytes at %d from %d\n", size, pos, pe);
-    context_incr_stat(STAT_BYTES_SENT, 0, size);
+    context_incr_stat(STAT_SHMEM_COMMS, 0, 1);
     while(size) {
       if(size < COMM_SHMEM_CHUNK_SIZE) {
         shmem_getmem(dst, COMM_SHMEM_HEAP + pos, size, pe);

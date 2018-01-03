@@ -32,8 +32,7 @@ void dbfs_comm_end
  * @brief dbfs_comm_process_state
  */
 void dbfs_comm_process_state
-(worker_id_t w,
- state_t s,
+(state_t s,
  hkey_t h);
 
 
@@ -41,14 +40,14 @@ void dbfs_comm_process_state
  *  @brief dbfs_comm_check_termination
  */
 bool_t dbfs_comm_check_termination
-(worker_id_t w);
+();
 
 
 /**
  * @brief dbfs_comm_send_all_buffers
  */
 void dbfs_comm_send_all_buffers
-(worker_id_t w);
+();
 
 
 /**
@@ -69,7 +68,7 @@ void dbfs_comm_set_term_detection_state
  * @brief dbfs_comm_process_in_states
  */
 bool_t dbfs_comm_process_in_states
-(worker_id_t w);
+();
 
 
 /**

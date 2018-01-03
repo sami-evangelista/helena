@@ -148,7 +148,7 @@ statistics = {
     (20, "maxDFSStackSize")        : "Max DFS stack size        ",
     (21, "eventsExecuted")         : "Events executed           ",
     (22, "eventExecPerSecond")     : "Event execution rate      ",
-    (23, "bytesSent")              : "Bytes sent                ",
+    (23, "shmemComms")             : "SHMEM communications      ",
     (24, "avgCPUUsage")            : "Average CPU Usage         ",
     (25, "lvl1TotalCacheMiss")     : "Level 1 total cache miss  ",
     (26, "lvl1TotalCacheHit")      : "Level 1 total cache hit   ",

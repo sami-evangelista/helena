@@ -173,7 +173,7 @@ char * context_stat_xml_name
   case STAT_ARCS:               return "arcs";
   case STAT_MAX_DFS_STACK_SIZE: return "maxDFSStackSize";
   case STAT_EVENT_EXEC:         return "eventsExecuted";
-  case STAT_BYTES_SENT:         return "bytesSent";
+  case STAT_SHMEM_COMMS:        return "shmemComms";
   case STAT_AVG_CPU_USAGE:      return "avgCPUUsage";
   case STAT_SEARCH_TIME:        return "searchTime";
   case STAT_COMP_TIME:          return "compilationTime";
@@ -196,7 +196,7 @@ stat_type_t context_stat_type
   case STAT_ARCS:               return STAT_TYPE_GRAPH;
   case STAT_MAX_DFS_STACK_SIZE: return STAT_TYPE_GRAPH;
   case STAT_EVENT_EXEC:         return STAT_TYPE_OTHERS;
-  case STAT_BYTES_SENT:         return STAT_TYPE_OTHERS;
+  case STAT_SHMEM_COMMS:        return STAT_TYPE_OTHERS;
   case STAT_AVG_CPU_USAGE:      return STAT_TYPE_OTHERS;
   case STAT_BWALK_ITERATIONS:   return STAT_TYPE_OTHERS;
   case STAT_SEARCH_TIME:        return STAT_TYPE_TIME;

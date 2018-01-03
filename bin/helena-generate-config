@@ -628,8 +628,8 @@ class Config:
             elif opt in [ "-cs", "--candidate-set-size" ]:
                 recognized = self.handleNumericalOption("candidateSetSize",
                                                         val)
-            #elif opt in [ "-hs", "--shmem-heap-size" ]:
-            #    recognized = self.handleNumericalOption("shmemHeapSize", val)
+            elif opt in [ "-hs", "--shmem-heap-size" ]:
+                recognized = self.handleNumericalOption("shmemHeapSize", val)
             elif opt in [ "-t", "--hash-size" ]:
                 recognized = self.handleNumericalOption("hashSize", val)
             elif opt in [ "-tl", "--time-limit" ]:

@@ -54,13 +54,13 @@ bool_t bfs_check_termination
   if(!CFG_ALGO_DBFS && !CFG_PARALLEL) {
     result = !context_keep_searching() || bfs_queue_is_empty(Q);
   } else if(CFG_ALGO_DBFS) {
-    dbfs_comm_send_all_buffers(w);
+    dbfs_comm_send_all_buffers();
     loop = TRUE;
     dbfs_comm_set_term_detection_state(TRUE);
     while(loop) {
-      if(!bfs_queue_is_empty(Q) || dbfs_comm_process_in_states(w)) {
+      if(context_keep_searching() && (!bfs_queue_is_empty(Q) || dbfs_comm_process_in_states())) {
         loop = FALSE;
-      } else if(result = dbfs_comm_check_termination(w)) {
+      } else if(result = dbfs_comm_check_termination()) {
         loop = FALSE;
       } else {
         nanosleep(&BFS_SLEEP_TIME, NULL);
@@ -199,7 +199,7 @@ void * bfs_worker
           if(CFG_ALGO_DBFS) {
             h = state_hash(succ);
             if(!dbfs_comm_state_owned(h)) {
-              dbfs_comm_process_state(w, succ, h);
+              dbfs_comm_process_state(succ, h);
               bfs_back_to_s();
               continue;
             }
