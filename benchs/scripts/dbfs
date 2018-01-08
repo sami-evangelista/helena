@@ -8,23 +8,23 @@ HS=$2
 [ -z "$HS" ] && echo "missing \$2 = shmem heap size" && exit 1
 [ -z "$OAR_NODEFILE" ] && echo 'not in an OAR job' && exit 1
 
-helena="helena --algo=dbfs --machine-file=machinefile -hs=$HS"
+helena="helena --algo=dbfs --machine-file=machinefile -hs=$HS -C"
 outDir=out/dbfs-$HS
 mkdir -p $outDir &> /dev/null
 
-models='elevator.5;dve;185008051;
-lifts.9;dve;266445936;
-firewire_link.3;dve;425333983;
-leader_filters.8;dve;431401020;
-collision.5;dve;431965993;
-iprotocol.8;dve;447570146;
-anderson.8;dve;538699029;
-telephony.8;dve;1051746064;
-public_subscribe.5;dve;1153014089;
-lamport.9;dve;1436848880;
-brp.8;dve;1526547707;
-synapse.9;dve;1675298471;
-szymanski.6;dve;6779809484;'
+models='elevator.5;dve;185008051;22
+lifts.9;dve;266445936;22
+firewire_link.3;dve;425333983;22
+leader_filters.8;dve;431401020;22
+collision.5;dve;431965993;22
+iprotocol.8;dve;447570146;22
+anderson.8;dve;538699029;22
+telephony.8;dve;1051746064;24
+public_subscribe.5;dve;1153014089;20
+lamport.9;dve;1436848880;22
+brp.8;dve;1526547707;22
+synapse.9;dve;1675298471;22
+szymanski.6;dve;6779809484;22'
 
 for N in $(seq $N -2 6)
 do
@@ -42,7 +42,7 @@ do
 	    m=$(echo $l | cut -f1 -d';')
 	    lang=$(echo $l | cut -f2 -d';')
 	    st=$(echo $l | cut -f3 -d';')
-	    opts=$(echo $l | cut -f4 -d';')
+	    cb=$(echo $l | cut -f4 -d';')
 	    f=$(scripts/get-file $m $lang)
 	    [ ! -f $f ] && continue
 	    param=$(scripts/format-parameters $opt)
@@ -67,7 +67,7 @@ do
 	    fi
 	    xml=$xml"_N"$N"_P"$P".xml"
 	    [ -f $xml ] && continue
-	    cmd=$helena" --hash-size=$hashSize "$opts" "$param
+	    cmd=$helena" --hash-size=$hashSize -cb=$cb "$param
 	    cmd=$cmd" --progress=no-report --report-file="$xml" $f"
 	    echo '***** '$m - $st states' *****'
 	    echo $cmd

@@ -1,0 +1,32 @@
+#!/bin/bash
+
+HS=$1
+[ -z "$HS" ] && echo "missing \$1 = shmem heap size" && exit 1
+
+models='elevator.5;185008051
+lifts.9;266445936
+firewire_link.3;425333983
+leader_filters.8;431401020
+collision.5;431965993
+iprotocol.8;447570146
+anderson.8;538699029
+telephony.8;1051746064
+public_subscribe.5;1153014089
+lamport.9;1436848880
+brp.8;1526547707
+synapse.9;1675298471
+szymanski.6;6779809484'
+
+for ms in $models
+do
+    m=$(echo $ms | cut -d';' -f1)
+    s=$(echo $ms | cut -d';' -f2)
+    for f in out/dbfs-$HS/$m*.xml
+    do
+	[ ! -f "$f" ] && continue
+	r=$(helena-report $f | grep sum | head -1 | cut -d']' -f2)
+	r=${r//,/}
+	r=${r// /}
+	[ "$r" != "$s" ] && echo "error: $f ($r found, $s expected)"
+    done	
+done
