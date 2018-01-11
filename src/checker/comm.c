@@ -1,6 +1,8 @@
 #include "comm.h"
 #include "config.h"
 #include "context.h"
+#include "common.h"
+
 
 #if CFG_DISTRIBUTED == 1
 #include "shmem.h"
@@ -28,7 +30,7 @@ void init_comm
   shmem_init();
   COMM_SHMEM_HEAP = shmem_malloc(CFG_SHMEM_HEAP_SIZE);
   memset(COMM_SHMEM_HEAP, 0, CFG_SHMEM_HEAP_SIZE);
-  comm_barrier();
+  shmem_barrier_all();
 #endif
 }
 
@@ -65,7 +67,13 @@ void comm_barrier
 #if CFG_DISTRIBUTED == 0
   assert(0);
 #else
+  lna_timer_t t;
+
+  lna_timer_init(&t);
+  lna_timer_start(&t);
   shmem_barrier_all();
+  lna_timer_stop(&t);
+  context_incr_stat(STAT_TIME_BARRIER, 0, (double) lna_timer_value(t));
 #endif
 }
 

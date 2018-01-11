@@ -126,6 +126,8 @@ optionsWithUnits = {
 statistics = {
     (0, "compilationTime")         : "Source compilation        ",
     (1, "searchTime")              : "Search time               ",
+    (2, "sleepTime")               : "        including sleep   ",
+    (2, "barrierTime")             : "        including barriers",
     (2, "places")                  : "Places                    ",
     (3, "transitions")             : "Transitions               ",
     (4, "netArcs")                 : "Arcs                      ",
@@ -161,8 +163,6 @@ statisticsUnits = {
     "searchTime"            : "s.",
     "duplicateDetectionTime": "s.",
     "compilationTime"       : "s.",
-    "barrierTime"           : "s. (sum over all threads)",
-    "sleepTime"             : "s. (sum over all threads)",
     "eventExecPerSecond"    : "exec. / s.",
     "stateSize"             : "bytes",
     "compressedStateSize"   : "bytes",

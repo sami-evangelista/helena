@@ -5,7 +5,7 @@
 #include "comm.h"
 #include "papi_stats.h"
 
-#define NO_STATS 15
+#define NO_STATS 17
 
 typedef enum {
   STAT_TYPE_TIME,
@@ -175,8 +175,10 @@ char * context_stat_xml_name
   case STAT_EVENT_EXEC:         return "eventsExecuted";
   case STAT_SHMEM_COMMS:        return "shmemComms";
   case STAT_AVG_CPU_USAGE:      return "avgCPUUsage";
-  case STAT_SEARCH_TIME:        return "searchTime";
-  case STAT_COMP_TIME:          return "compilationTime";
+  case STAT_TIME_SEARCH:        return "searchTime";
+  case STAT_TIME_COMP:          return "compilationTime";
+  case STAT_TIME_SLEEP:         return "sleepTime";
+  case STAT_TIME_BARRIER:       return "barrierTime";
   case STAT_BWALK_ITERATIONS:   return "bwalkIterations";
   default:
     assert(FALSE);
@@ -199,8 +201,10 @@ stat_type_t context_stat_type
   case STAT_SHMEM_COMMS:        return STAT_TYPE_OTHERS;
   case STAT_AVG_CPU_USAGE:      return STAT_TYPE_OTHERS;
   case STAT_BWALK_ITERATIONS:   return STAT_TYPE_OTHERS;
-  case STAT_SEARCH_TIME:        return STAT_TYPE_TIME;
-  case STAT_COMP_TIME:          return STAT_TYPE_TIME;
+  case STAT_TIME_SEARCH:        return STAT_TYPE_TIME;
+  case STAT_TIME_COMP:          return STAT_TYPE_TIME;
+  case STAT_TIME_SLEEP:         return STAT_TYPE_TIME;
+  case STAT_TIME_BARRIER:       return STAT_TYPE_TIME;
   default:
     assert(FALSE);
   }
@@ -213,7 +217,7 @@ void context_stat_format
   if(STAT_AVG_CPU_USAGE == stat) {
     fprintf(out, "%.2lf", val);
   } else if(STAT_TYPE_TIME == context_stat_type(stat)) {
-    fprintf(out, "%.2lf", val / 1000000.0);
+    fprintf(out, "%.2lf", val / 1000000000.0);
   } else {
     fprintf(out, "%llu", (uint64_t) val);
   }
@@ -277,7 +281,7 @@ void finalise_context
 
   if(!CFG_ACTION_SIMULATE) {
     gettimeofday(&CTX->end_time, NULL);
-    context_set_stat(STAT_SEARCH_TIME, 0,
+    context_set_stat(STAT_TIME_SEARCH, 0,
                      duration(CTX->start_time, CTX->end_time));
     CTX->keep_searching = FALSE;
     pthread_join(CTX->observer, &dummy);
@@ -619,6 +623,7 @@ void context_barrier_wait
 
 void context_sleep
 (struct timespec t) {
+  context_incr_stat(STAT_TIME_SLEEP, 0, t.tv_nsec);
   nanosleep(&t, NULL);
 }
 

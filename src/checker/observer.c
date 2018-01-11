@@ -34,7 +34,7 @@ void * observer_worker
     }
     processed = context_get_stat(STAT_STATES_PROCESSED);
     stored = context_get_stat(STAT_STATES_STORED);
-    time = ((float) duration(context_start_time(), now)) / 1000000.0;
+    time = ((float) duration(context_start_time(), now)) / 1000000000.0;
     if(CFG_WITH_OBSERVER) {
       printf("%sTime: %.1f s.", pref, time);
       printf(", stored: %llu", (uint64_t) stored);
@@ -57,7 +57,7 @@ void * observer_worker
   }
 
   if(CFG_WITH_OBSERVER) {
-    printf("\n%sdone.\n", pref);
+    printf("%sdone.\n", pref);
   }
   return NULL;
 }

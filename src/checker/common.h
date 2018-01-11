@@ -112,7 +112,7 @@ uint64_t lna_timer_value
 
 
 /**
- * @brief Get the duration in micro-seconds between two time values.
+ * @brief Get the duration in nano-seconds between two time values.
  */
 uint64_t duration
 (struct timeval t0,

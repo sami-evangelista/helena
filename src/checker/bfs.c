@@ -63,7 +63,7 @@ bool_t bfs_check_termination
       } else if(result = dbfs_comm_check_termination()) {
         loop = FALSE;
       } else {
-        nanosleep(&BFS_SLEEP_TIME, NULL);
+        context_sleep(BFS_SLEEP_TIME);
       }
     }
     dbfs_comm_set_term_detection_state(FALSE);

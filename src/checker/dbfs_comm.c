@@ -158,7 +158,7 @@ void dbfs_comm_send_buffer
 	  return;
 	}
       }
-      nanosleep(&DBFS_COMM_WAIT_TIME, NULL);
+      context_sleep(DBFS_COMM_WAIT_TIME);
     }
   } while(len > 0); 
   dbfs_comm_set_term_detection_state(FALSE);

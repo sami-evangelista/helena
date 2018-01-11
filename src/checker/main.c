@@ -43,7 +43,7 @@ int main
     for(i = 1; i < argc; i += 2) {
       if(0 == strcmp(argv[i], "comp-time")) {
         sscanf(argv[i + 1], "%lf", &comp_time);
-        context_set_stat(STAT_COMP_TIME, 0, comp_time * 1000000.0);
+        context_set_stat(STAT_TIME_COMP, 0, comp_time * 1000000000.0);
       }
     }
 

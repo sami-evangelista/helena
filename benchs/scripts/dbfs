@@ -3,6 +3,9 @@
 N=$1
 HS=$2
 
+T=28
+H=268435456
+
 # some checks
 [ -z "$N" ] && echo "missing \$1 = # of nodes" && exit 1
 [ -z "$HS" ] && echo "missing \$2 = shmem heap size" && exit 1
@@ -20,13 +23,13 @@ collision.5;dve;431965993;22
 iprotocol.8;dve;447570146;22
 anderson.8;dve;538699029;22
 telephony.8;dve;1051746064;24
-public_subscribe.5;dve;1153014089;20
+public_subscribe.5;dve;1153014089;22
 lamport.9;dve;1436848880;22
 brp.8;dve;1526547707;22
 synapse.9;dve;1675298471;22
 szymanski.6;dve;6779809484;22'
 
-for N in $(seq $N -2 6)
+for N in $(seq $N -2 2)
 do
     for P in 8 4 2 1
     do
@@ -46,19 +49,13 @@ do
 	    f=$(scripts/get-file $m $lang)
 	    [ ! -f $f ] && continue
 	    param=$(scripts/format-parameters $opt)
-	    hashSize=1
-	    size=2
-	    while [ $((size * N * 50 / 100)) -lt $st ]
-	    do
-		hashSize=$((hashSize + 1))
-		size=$((size * 2))
-	    done
-	    [ $hashSize -gt 29 ] && continue
+	    [ $st -gt $((N * H * 50 / 100)) ] && continue
 	    p=$P
+	    t=$T
 	    while [ $p != 1 ]
 	    do
 		p=$((p / 2))
-		hashSize=$((hashSize - 1))
+		t=$((t - 1))
 	    done
 	    xml=$outDir/$m
 	    if [ "$opt" != "" ]
@@ -67,7 +64,7 @@ do
 	    fi
 	    xml=$xml"_N"$N"_P"$P".xml"
 	    [ -f $xml ] && continue
-	    cmd=$helena" --hash-size=$hashSize -cb=$cb "$param
+	    cmd=$helena" -t=$t -cb=$cb "$param
 	    cmd=$cmd" --progress=no-report --report-file="$xml" $f"
 	    echo '***** '$m - $st states' *****'
 	    echo $cmd

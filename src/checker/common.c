@@ -114,10 +114,9 @@ void lna_timer_start
 void lna_timer_stop
 (lna_timer_t * t) {
   struct timeval end;
+  
   gettimeofday(&end, NULL);
-  t->value += (uint64_t)
-    (end.tv_sec * 1000000 + end.tv_usec) -
-    (t->start.tv_sec * 1000000 + t->start.tv_usec);
+  t->value += duration(t->start, end);
 }
 
 uint64_t lna_timer_value
@@ -128,8 +127,8 @@ uint64_t lna_timer_value
 uint64_t duration
 (struct timeval t0,
  struct timeval t1) {
-  uint64_t t0_time = t0.tv_sec * 1000000 + t0.tv_usec;
-  uint64_t t1_time = t1.tv_sec * 1000000 + t1.tv_usec;
+  uint64_t t0_time = t0.tv_sec * 1000000000 + t0.tv_usec * 1000;
+  uint64_t t1_time = t1.tv_sec * 1000000000 + t1.tv_usec * 1000;
   return (uint64_t) t1_time - t0_time;
 }
 
@@ -138,7 +137,6 @@ rseed_t random_seed
   struct timeval t;
   
   gettimeofday(&t, NULL);
-  //printf("%llu\n", t.tv_sec * 1000000 + t.tv_usec + w);
   return t.tv_sec * 1000000 + t.tv_usec + w;
 }
 
