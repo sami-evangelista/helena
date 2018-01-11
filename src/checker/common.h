@@ -128,6 +128,15 @@ hkey_t string_hash
 
 
 /**
+ * @brief Parametrised version of string_hash.
+ */
+hkey_t string_hash_init
+(char * v,
+ unsigned int len,
+ hkey_t init);
+
+
+/**
  * @brief Return CPU usage of the current process as a %.
  */
 float cpu_usage

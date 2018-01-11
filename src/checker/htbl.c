@@ -2,6 +2,7 @@
 #include "bit_stream.h"
 #include "state.h"
 #include "event.h"
+#include "context.h"
 
 
 /**
@@ -10,6 +11,7 @@
  * - htbl_free is excessively slow (due to cache effects ?) for
  *   dynamic state vectors.  hence we do not free individual vectors
  *   for now
+ * - compute cache line
  */
 
 #define NO_ATTRS 12
@@ -20,6 +22,7 @@
 #define BUCKET_UPDATE 3
 
 #define HTBL_INSERT_MAX_TRIALS 10000
+#define HTBL_CACHE_LINE_SIZE   10  /* should be hardware independent */
 
 const uint16_t ATTR_WIDTH[] = {
   1, /* cyan */
@@ -203,6 +206,11 @@ bool_t htbl_contains
   assert(0); /* not implemented */
 }
 
+#define htbl_cas(tbl, ptr, old, new)                            \
+  ((tbl->no_workers > 1) ?                                      \
+   (CAS(ptr, old, new))                                         \
+   : (*ptr == old) ? ((*ptr = new) || TRUE) : FALSE)
+
 htbl_insert_code_t htbl_insert
 (htbl_t tbl,
  void * s,
@@ -210,6 +218,7 @@ htbl_insert_code_t htbl_insert
  hkey_t * h) {
   htbl_id_t i;
   uint32_t trials = HTBL_INSERT_MAX_TRIALS;
+  uint32_t still = HTBL_CACHE_LINE_SIZE, num = 0;
   bool_t found;
   uint16_t size;
   hkey_t h_other;
@@ -219,7 +228,7 @@ htbl_insert_code_t htbl_insert
    * compress the data and compute its hash value
    */
   tbl->compress_func(s, buffer, &size);
-  (*h) = string_hash(buffer, size);
+  (*h) = string_hash_init(buffer, size, 0);
   i = (*h) & tbl->hash_size_m;
   pos = HTBL_POS_ITEM(tbl, i);
   while(TRUE) {
@@ -227,7 +236,7 @@ htbl_insert_code_t htbl_insert
     /**
      * we found a bucket where to insert the data => claim it
      */
-    if(CAS(HTBL_POS_STATUS(tbl, pos), BUCKET_EMPTY, BUCKET_WRITE)) {
+    if(htbl_cas(tbl, HTBL_POS_STATUS(tbl, pos), BUCKET_EMPTY, BUCKET_WRITE)) {
 
       /**
        * data insertion
@@ -257,7 +266,7 @@ htbl_insert_code_t htbl_insert
      * wait for the bucket to be readable
      */
     while(BUCKET_WRITE == (*(HTBL_POS_STATUS(tbl, pos)))) {
-      nanosleep(&SLEEP_TIME, NULL);
+      context_sleep(SLEEP_TIME);
     }
 
     /**
@@ -282,8 +291,21 @@ htbl_insert_code_t htbl_insert
     if(!(-- trials)) {
       return HTBL_INSERT_FULL;
     }
-    i = (i + 1) & tbl->hash_size_m;
-    pos = i ? (pos + tbl->item_size) : HTBL_POS_ITEM(tbl, 0);
+
+    /**
+     * move to the next item of the table if we're still in the cache
+     * line or recompute a new hash value if we've traversed the whole
+     * cache line
+     */
+    if(still --) {
+      i = (i + 1) & tbl->hash_size_m;
+      pos = i ? (pos + tbl->item_size) : HTBL_POS_ITEM(tbl, 0);
+    } else {
+      still = HTBL_CACHE_LINE_SIZE;
+      (*h) = string_hash_init(buffer, size, ++ num);
+      i = (*h) & tbl->hash_size_m;
+      pos = HTBL_POS_ITEM(tbl, i);
+    }
   }
 }
 
@@ -350,7 +372,7 @@ uint64_t htbl_get_worker_attr
     HTBL_GET_STATUS(tbl, pos, status);				\
     if(tbl->no_workers > 1) {					\
       while(!CAS(status, BUCKET_READY, BUCKET_UPDATE)) {	\
-        nanosleep(&SLEEP_TIME, NULL);				\
+        context_sleep(SLEEP_TIME);				\
       }								\
     }								\
     bit_stream_set(bits, val, width);				\

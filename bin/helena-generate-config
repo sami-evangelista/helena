@@ -262,6 +262,7 @@ additional statistics at the end of the search."""
 #        return None
 #    elif o in [ "mf", "machine-file" ]:
 #        return None
+#    elif o in [ "np", "num-procs" ]:
     raise Exception
 
 
@@ -687,7 +688,10 @@ class Config:
                         self.prop = p
 
             #  option that are handled directly by the helena script
+            #  and ignored here
             elif opt in [ "-md", "--model-directory" ]:
+                recognized = True
+            elif opt in [ "-np", "--num-procs" ]:
                 recognized = True
             elif opt in [ "-mf", "--machine-file" ]:
                 recognized = True

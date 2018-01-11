@@ -92,8 +92,15 @@ const uint64_t crc64_tab[256] = {
 hkey_t string_hash
 (char * v,
  unsigned int len) {
+  return string_hash_init(v, len, 0);
+}
+
+hkey_t string_hash_init
+(char * v,
+ unsigned int len,
+ hkey_t init) {
   unsigned int i;
-  uint64_t result = 0;
+  hkey_t result = init;
   
   for(i = 0; i < len; i++) {
     result = crc64_tab[(uint8_t) (result ^ v[i])] ^ (result >> 8);
@@ -143,8 +150,8 @@ rseed_t random_seed
 #define RANDOM_MULT 1664525
 #define RANDOM_CONS 1
 #define RANDOM_MASK 0xFFFF
-#define RANDOM_LOW(X) (X&RANDOM_MASK)
-#define RANDOM_HIGH(X) ((X>>16)&RANDOM_MASK)
+#define RANDOM_LOW(X) (X & RANDOM_MASK)
+#define RANDOM_HIGH(X) ((X >>16) & RANDOM_MASK)
 
 uint64_t random_int
 (rseed_t * seed) {

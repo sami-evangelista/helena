@@ -1,6 +1,8 @@
 #include "config.h"
 #include "ddfs_comm.h"
 #include "comm.h"
+#include "stbl.h"
+#include "heap.h"
 
 #if CFG_ALGO_DDFS == 1 || CFG_ALGO_DFS == 1 || CFG_ALGO_TARJAN == 1
 
@@ -31,62 +33,9 @@ typedef struct {
 
 #define DDFS_COMM_DATA_POS sizeof(pub_data_t)
 
-
-void ddfs_comm_process_explored_state
-(worker_id_t w,
- htbl_id_t id) {
-  uint16_t s_char_len, len;
-  char * s;
-  bool_t red, blue;
-  void * pos;
-
-  /**
-   *  if the buffer is already full we publish states
-   */
-  if(BUF.full[w]) {
-    ddfs_comm_produce(w);
-  } else {
-    len = BASE_LEN + sizeof(uint16_t) + s_char_len;
-    if(len + BUF.char_len[w] > BUFFER_WORKER_SIZE) {
-      BUF.full[w] = TRUE;
-      ddfs_comm_produce(w);
-    } else {
-      if(BUF.size[w] == 0) {
-        memset(BUF.buffer[w], 0, BUFFER_WORKER_SIZE);
-      }
-      BUF.size[w] ++;
-      pos = BUF.buffer[w] + BUF.char_len[w];
-      BUF.char_len[w] += len;
-
-      s = htbl_get(s, id, ST_HEAP);
-     
-      /*  blue attribute  */
-      if(htbl_has_attr(H, ATTR_BLUE)) {
-        blue = htbl_get_attr(H, id, ATTR_BLUE);
-        memcpy(pos, &blue, sizeof(bool_t));
-        pos += sizeof(bool_t);
-      }
-
-      /*  red attribute  */
-      if(htbl_has_attr(H, ATTR_RED)) {
-        red = htbl_get_attr(H, id, ATTR_RED);
-        memcpy(pos, &red, sizeof(bool_t));
-        pos += sizeof(bool_t);
-      }
-
-      /*  char length and state vector */
-      memcpy(pos, &s_char_len, sizeof(uint16_t));
-      pos += sizeof(uint16_t);
-      memcpy(pos, s, s_char_len);
-      pos += s_char_len;
-    }
-  }
-}
-
 void ddfs_comm_produce
 (worker_id_t w) {
   int pe;
-  worker_id_t w;
   uint64_t size = 0, char_len = 0;
   pub_data_t data;
 
@@ -128,6 +77,58 @@ void ddfs_comm_produce
   comm_put(0, &data, sizeof(pub_data_t), ME);
 }
 
+
+void ddfs_comm_process_explored_state
+(worker_id_t w,
+ htbl_id_t id) {
+  uint16_t s_char_len, len;
+  char * s;
+  bool_t red, blue;
+  void * pos;
+
+  /**
+   *  if the buffer is already full we publish states
+   */
+  if(BUF.full[w]) {
+    ddfs_comm_produce(w);
+  } else {
+    len = BASE_LEN + sizeof(uint16_t) + s_char_len;
+    if(len + BUF.char_len[w] > BUFFER_WORKER_SIZE) {
+      BUF.full[w] = TRUE;
+      ddfs_comm_produce(w);
+    } else {
+      if(BUF.size[w] == 0) {
+        memset(BUF.buffer[w], 0, BUFFER_WORKER_SIZE);
+      }
+      BUF.size[w] ++;
+      pos = BUF.buffer[w] + BUF.char_len[w];
+      BUF.char_len[w] += len;
+
+      s = htbl_get(H, id, ST_HEAP);
+     
+      /*  blue attribute  */
+      if(htbl_has_attr(H, ATTR_BLUE)) {
+        blue = htbl_get_attr(H, id, ATTR_BLUE);
+        memcpy(pos, &blue, sizeof(bool_t));
+        pos += sizeof(bool_t);
+      }
+
+      /*  red attribute  */
+      if(htbl_has_attr(H, ATTR_RED)) {
+        red = htbl_get_attr(H, id, ATTR_RED);
+        memcpy(pos, &red, sizeof(bool_t));
+        pos += sizeof(bool_t);
+      }
+
+      /*  char length and state vector */
+      memcpy(pos, &s_char_len, sizeof(uint16_t));
+      pos += sizeof(uint16_t);
+      memcpy(pos, s, s_char_len);
+      pos += s_char_len;
+    }
+  }
+}
+
 void ddfs_comm_consume
 (worker_id_t w) {
   bool_t f = FALSE;
@@ -138,6 +139,8 @@ void ddfs_comm_consume
   bool_t red = FALSE, blue = FALSE, is_new;
   char buffer[CFG_SHMEM_HEAP_SIZE];
   pub_data_t remote_data;
+  state_t s;
+  hkey_t h;
   
   /**
    * get states put by remote PEs in their heap and put these in my
@@ -169,7 +172,7 @@ void ddfs_comm_consume
           pos += sizeof(uint16_t);
               
           /*  get state vector and insert it  */
-          stbl_insert(H, s, is_new, &sid, &h);
+          //stbl_insert(H, s, is_new, &sid, &h);
           pos += s_char_len;
 	  
           if(is_new) {

@@ -65,8 +65,8 @@ void init_context
    */
   for(i = 0; i < NO_STATS; i ++) {
     CTX->stat_set[i] = FALSE;
-    CTX->stat[i] = mem_alloc(SYSTEM_HEAP, (no_workers + 1) * sizeof(double));
-    for(w = 0; w < no_workers + 1; w ++) {
+    CTX->stat[i] = mem_alloc(SYSTEM_HEAP, no_workers * sizeof(double));
+    for(w = 0; w < no_workers; w ++) {
       CTX->stat[i][w] = 0.0;
     }
   }
@@ -648,7 +648,7 @@ double context_get_stat
   worker_id_t w;
   double result = 0;
 
-  for(w = 0; w < CTX->no_workers + 1; w ++) {
+  for(w = 0; w < CTX->no_workers; w ++) {
     result += CTX->stat[stat][w];
   }
   return result;

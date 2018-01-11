@@ -3,22 +3,17 @@
 #  File: helena
 #
 
+####################
+#  PARAMETERS TO MODIFY ACCORDING TO YOUR CONFIGURATION
 helenaDir=$HOME/.helena
-
 CC='/usr/bin/gcc'
-
-RUN="./helena-checker"
-
 MPICC='/usr/bin/oshcc'
-
 MPIRUN="/usr/bin/oshrun"
+####################
 
-#  options to pass for basic compilation
 CCopt="-pthread -Wunused-variable -Wfatal-errors"
-
 CCI=""
 CCL="-lm"
-
 shmemI=""
 shmemL="-loshmem"
 
@@ -39,6 +34,7 @@ xmlGraphReportFile=rg-report.xml
 graphFile=graph.dat
 version=2.3
 versionFile=VERSION
+RUN=./helena-checker
 
 commonFiles="bit_stream"
 checkerSrcFiles="bfs bfs_queue bit_stream buchi bwalk common comm
@@ -349,33 +345,26 @@ do
         -wp|--with-papi)
             CCopt=$CCopt" -lpapi"
             ;;
+        -np=*|--num-procs=*)
+            MPIRUN=$MPIRUN" -np "${arg:$idx}
+            ;;
+	-mf=*|--machine-file=*)
+	    idx=$(expr index $arg =)
+	    machineFile=${arg:$idx}
+            [ ! -e "$machineFile" ] && \
+                error "machine file '$machineFile' could not be found"
+            ;;
     esac
 done
-if [ $distributed -eq 1 ]
-then
-    for arg in $*
-    do
-        case $arg in
-	    -mf=*|--machine-file=*)
-	        idx=$(expr index $arg =)
-	        machineFile=${arg:$idx}
-                [ ! -e "$machineFile" ] && \
-                    error "machine file '$machineFile' could not be found"
-                ;;
-        esac
-    done
-    [ z"$machineFile" = z ] && \
-        error "algorithm $algo needs a machine file (option \
-                --machine-file=FILE)"
-fi
-
                 
 #####
-#  check that model file exists and is readable
+#  check that provided files exist and are readable
 modelFile=$arg
 [ "$modelFile" = "" ] &&  error "model file expected"
 [ ! -f $modelFile -o ! -r $modelFile ] && \
     error "file $modelFile does not exist or is not readable"
+[ $distributed -eq 1 -a z"$machineFile" = z ] && \
+    error "algorithm $algo needs a machine file (option --machine-file=FILE)"
 
 createEnvironment
 
