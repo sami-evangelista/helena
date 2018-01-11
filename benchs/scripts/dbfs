@@ -1,19 +1,21 @@
 #!/bin/bash
 
-N=$1
-P=$2
-
-# H = max hash table size and T = log_2(H)
-T=29
+# H = max hash table size for a node and T = log_2(H)
+T=27
 H=$(echo "2 ^ $T" | bc)
 
-# some checks
-[ -z "$N" ] && echo "missing \$1 = # of nodes" && exit 1
-[ -z "$P" ] && echo "missing \$2 = # of procs per node" && exit 1
-[ -z "$OAR_NODEFILE" ] && echo 'not in an OAR job' && exit 1
-[ $(cat $OAR_NODEFILE | wc -l) -lt $N ] && echo "not enough machines" && exit 1
+# HS = SHMEM heap size of each process
+HS=1000000
 
-helena="helena --algo=dbfs --machine-file=$OAR_NODEFILE -hs=10000000 -C --progress=no-report"
+# some checks
+[ -z "$1" ] && echo "missing \$1 = # of procs per node" && exit 1
+[ -z "$OAR_NODEFILE" ] && echo 'not in an OAR job' && exit 1
+
+MAXP=$1
+MAXN=$(sort -u $OAR_NODEFILE | wc -l)
+
+helena="helena --algo=dbfs --machine-file=/tmp/machinefile"
+helena=$helena" -hs=$HS -C --progress=no-report"
 outDir=out/dbfs
 mkdir -p $outDir &> /dev/null
 
@@ -31,19 +33,21 @@ brp.8;1526547707;22
 synapse.9;1675298471;22
 szymanski.6;6779809484;22'
 
-for N in $(seq $N -2 2) 1
+for N in $(seq $MAXN -1 1)
 do
-    for P in $(seq $P -2 2) 1
+    sort -u $OAR_NODEFILE | head -$N > /tmp/machinefile
+    P=$MAXP
+    while [ $P -gt 0 ]
     do
-	[ $P = 1 -a $P = 1 ] && continue
+	[ $N = 1 -a $P = 1 ] && P=$((P / 2)) && continue
 	for l in $models
 	do
-	    m=$(echo $l  | cut -f1 -d';')
+	    m=$(echo $l | cut -f1 -d';')
 	    st=$(echo $l | cut -f2 -d';')
 	    cb=$(echo $l | cut -f3 -d';')
 	    f=$(scripts/get-file $m dve)
 	    [ ! -f $f ] && continue
-	    [ $st -gt $((N * H * 50 / 100)) ] && continue
+	    [ $st -gt $((N * H * 80 / 100)) ] && continue
 	    p=$P
 	    t=$T
 	    while [ $p != 1 ]
@@ -58,6 +62,8 @@ do
 	    echo $cmd
 	    eval $cmd
 	done
+        P=$((P / 2))
     done
 done
+
 exit 0
