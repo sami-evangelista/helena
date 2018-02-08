@@ -5,21 +5,18 @@ T=27
 H=$(echo "2 ^ $T" | bc)
 
 # HS = SHMEM heap size of each process
-HS=1000000
+HS=10000000
 
 # some checks
-[ -z "$1" ] && echo "missing \$1 = # of procs per node" && exit 1
 [ -z "$OAR_NODEFILE" ] && echo 'not in an OAR job' && exit 1
 
-MAXP=$1
-MAXN=$(sort -u $OAR_NODEFILE | wc -l)
-
-helena="helena --algo=dbfs --machine-file=/tmp/machinefile"
-helena=$helena" -hs=$HS -C --progress=no-report"
+helena="helena --algo=dbfs --machine-file=/tmp/machinefile --observer=1"
+helena=$helena" -hs=$HS --progress=no-report -C"
 outDir=out/dbfs
 mkdir -p $outDir &> /dev/null
 
-models='elevator.5;185008051;22
+models='
+elevator.5;185008051;22
 lifts.9;266445936;22
 firewire_link.3;425333983;22
 leader_filters.8;431401020;22
@@ -31,13 +28,20 @@ public_subscribe.5;1153014089;22
 lamport.9;1436848880;22
 brp.8;1526547707;22
 synapse.9;1675298471;22
-szymanski.6;6779809484;22'
+szymanski.6;6779809484;20'
 
-for N in $(seq $MAXN -1 1)
+for m in $models
+do
+    m=$(echo $m | cut -f1 -d';')
+    echo $outDir/$m
+    mkdir $outDir/$m &> /dev/null
+done
+
+for N in $(seq 96 -4 8) 6 4 2 1
 do
     sort -u $OAR_NODEFILE | head -$N > /tmp/machinefile
-    P=$MAXP
-    while [ $P -gt 0 ]
+    [ $(cat /tmp/machinefile | wc -l) -lt $N ] && continue
+    for P in 4
     do
 	[ $N = 1 -a $P = 1 ] && P=$((P / 2)) && continue
 	for l in $models
@@ -55,14 +59,17 @@ do
 		p=$((p / 2))
 		t=$((t - 1))
 	    done
-	    xml=$outDir/$m"_N"$N"_P"$P".xml"
-	    [ -f $xml ] && continue
-	    cmd=$helena" -t=$t -cb=$cb --report-file=$xml -np=$P $f"
-	    echo "***** MODEL=$m - NODES=$N - PROCESSES=$P *****"
-	    echo $cmd
-	    eval $cmd
+	    for i in $(seq 1 5)
+	    do
+		xml=$outDir/$m/"N"$N"_P"$P"_"$i".xml"
+		out=$outDir/$m/"N"$N"_P"$P"_"$i".out"
+		[ -f $xml ] && continue
+		cmd=$helena" -t=$t --report-file=$xml -np=$P -cb=$cb $f"
+		echo "***** MODEL=$m - NODES=$N - PROCESSES=$P *****"
+		echo $cmd
+		eval $cmd | tee $out
+	    done
 	done
-        P=$((P / 2))
     done
 done
 

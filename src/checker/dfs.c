@@ -9,16 +9,6 @@
 #include "workers.h"
 #include "por_analysis.h"
 
-/*
- * TODO:
- *
- * if edge-lean is turned on, DFS may report a deadlock whereas it's
- * just edge-lean that removed all enabled transitions
- *
- * possible deadlocks when combining hash-compaction and cndfs
- *
- */
-
 #if CFG_ALGO_DDFS == 0 && CFG_ALGO_DFS == 0 && CFG_ALGO_TARJAN == 0
 
 void dfs() { assert(0); }
@@ -53,8 +43,7 @@ htbl_t H = NULL;
 
 #define dfs_push_new_state(id, is_s0) {                                 \
     dfs_stack_push(stack, id, now);                                     \
-    e_ref = is_s0 && edge_lean ? &e : NULL;                             \
-    en = dfs_stack_compute_events(stack, now, por, e_ref);              \
+    en = dfs_stack_compute_events(stack, now, por);			\
     if(blue) {                                                          \
       htbl_set_worker_attr(H, id, ATTR_CYAN, w, TRUE);                  \
     } else {                                                            \
@@ -101,7 +90,6 @@ void * dfs_worker
   const bool_t check_safety = CFG_ACTION_CHECK_SAFETY;
   const bool_t por = CFG_POR;
   const bool_t proviso = CFG_POR && CFG_PROVISO;
-  const bool_t edge_lean = CFG_EDGE_LEAN;
   const bool_t shuffle = CFG_PARALLEL || CFG_ALGO_DDFS || CFG_RANDOM_SUCCS;
   const bool_t ddfs = CFG_ALGO_DDFS;
   const bool_t cndfs = check_ltl
@@ -123,7 +111,6 @@ void * dfs_worker
   htbl_id_t id, id_seed, id_succ, id_popped;
   bool_t push, blue = TRUE, is_new, state_popped = FALSE, on_stack;
   event_t e;
-  event_t * e_ref;
   event_list_t en;
   uint64_t red_stack_size = 0, index = 0, index_other, lowlink, lowlink_popped;
   red_processed_t proc;
@@ -204,7 +191,7 @@ void * dfs_worker
           htbl_set_attr(H, id, ATTR_SAFE, TRUE);
         } else if(htbl_get_attr(H, id, ATTR_TO_REVISIT)) {
           htbl_set_attr(H, id, ATTR_SAFE, TRUE);
-          dfs_stack_compute_events(stack, now, FALSE, NULL);
+          dfs_stack_compute_events(stack, now, FALSE);
           context_incr_stat(STAT_STATES_REDUCED, w, - 1);
           goto loop_start;
         }
@@ -218,7 +205,7 @@ void * dfs_worker
         id_seed = dfs_stack_top(stack);
         blue = FALSE;
         red_stack_size = 1;
-        dfs_stack_compute_events(stack, now, por, NULL);
+        dfs_stack_compute_events(stack, now, por);
         if(cndfs) {
           darray_reset(red_states);
         }

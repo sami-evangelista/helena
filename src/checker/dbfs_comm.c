@@ -5,7 +5,6 @@
 
 #if CFG_ALGO_BFS == 1 || CFG_ALGO_DBFS == 1
 
-
 #define DBFS_COMM_DEBUG_XXX
 
 #if defined(DBFS_COMM_DEBUG)
@@ -17,10 +16,8 @@
 #define dbfs_comm_debug(...) {}
 #endif
 
-#define DBFS_COMM_WAIT_TIME_MUS 1
-const struct timespec DBFS_COMM_WAIT_TIME = {
-  0, DBFS_COMM_WAIT_TIME_MUS * 1000
-};
+#define DBFS_COMM_PACKET_MIN_SIZE 10000
+#define DBFS_COMM_TERM_CHECK_PERIOD_MS 100
 
 htbl_t H;
 bfs_queue_t Q;
@@ -34,57 +31,30 @@ uint32_t * REMOTE_POS;
 bool_t TERM_DETECTED = FALSE;
 
 typedef enum {
-  DBFS_COMM_NO_TERM,
-  DBFS_COMM_TERM,
-  DBFS_COMM_FORCE_TERM,
+  DBFS_COMM_NO_TERM = 0,
+  DBFS_COMM_TERM = 1,
+  DBFS_COMM_FORCE_TERM = 2,
 } dbfs_comm_term_t;
+
 
 #define POS_TERM 0
 #define POS_TERM_DETECTION sizeof(dbfs_comm_term_t)
-#define POS_LEN(pe)							\
-  (sizeof(dbfs_comm_term_t) + sizeof(bool_t) + sizeof(uint32_t) * pe)
-#define POS_DATA                                                        \
-  (sizeof(dbfs_comm_term_t) + sizeof(bool_t) + sizeof(uint32_t) * PES)
+#define POS_LEN(pe) (POS_TERM_DETECTION + sizeof(bool_t) +	\
+		     sizeof(uint32_t) * pe)
+#define POS_OCCUPIED(pe) (POS_LEN(PES) + sizeof(bool_t) * pe)
+#define POS_DATA POS_OCCUPIED(PES)
 
-
-uint8_t dbfs_comm_state_owner
+uint16_t dbfs_comm_state_owner
 (hkey_t h) {
   return h % PES;
 }
-
 
 bool_t dbfs_comm_state_owned
 (hkey_t h) {
   return dbfs_comm_state_owner(h) == ME;
 }
 
-int dbfs_comm_no_pes_waiting
-() {
-  int result = 0, pe;
-  bool_t state;
-  
-  for(pe = 0; pe < PES; pe ++) {
-    comm_get(&state, POS_TERM_DETECTION, sizeof(bool_t), pe);
-    if(state) {
-      result ++;
-    }
-  }
-  return result;
-}
-
-bool_t dbfs_comm_some_pe_waiting
-() {
-  return dbfs_comm_no_pes_waiting() > 0;
-}
-
-
-bool_t dbfs_comm_all_pes_waiting
-() {
-  return dbfs_comm_no_pes_waiting() == PES;
-}
-
-
-bool_t dbfs_comm_all_pes_term
+bool_t dbfs_comm_do_terminate
 () {
   int pe;
   dbfs_comm_term_t rterm;
@@ -92,84 +62,125 @@ bool_t dbfs_comm_all_pes_term
   
   for(pe = 0; pe < PES; pe ++) {
     comm_get(&rterm, POS_TERM, sizeof(dbfs_comm_term_t), pe);
-    if(rterm == DBFS_COMM_NO_TERM) {
+    if(DBFS_COMM_NO_TERM == rterm) {
       result = FALSE;
-    } else if(rterm == DBFS_COMM_FORCE_TERM) {
-      context_stop_search();
+    } else if(DBFS_COMM_FORCE_TERM == rterm) {
       return TRUE;
     }
   }
   return result;
 }
 
-
-void dbfs_comm_set_term_detection_state
-(bool_t state) {
-  comm_put(POS_TERM_DETECTION, &state, sizeof(bool_t), ME);
+void dbfs_comm_ask_for_term_detection
+() {
+  int pe;
+  bool_t term_detection = TRUE;
+  
+  for(pe = 0; pe < PES; pe ++) {
+    comm_put(POS_TERM_DETECTION, &term_detection, sizeof(bool_t), pe);
+  }
 }
 
+bool_t dbfs_comm_term_detection_asked
+() {
+  bool_t result = TRUE;
 
-bool_t dbfs_comm_check_termination_aux
-(bool_t term_val) {
+  comm_get(&result, POS_TERM_DETECTION, sizeof(bool_t), ME);
+  return result;
+}
+
+void dbfs_comm_set_term_state
+(dbfs_comm_term_t term) {
+  comm_put(POS_TERM, &term, sizeof(dbfs_comm_term_t), ME);
+}
+
+void dbfs_comm_set_term_detection
+(bool_t term_detection) {
+  comm_put(POS_TERM_DETECTION, &term_detection, sizeof(bool_t), ME);
+}
+
+void dbfs_comm_simulate_check_termination() {
+  comm_barrier();
+  dbfs_comm_set_term_detection(FALSE);
+  dbfs_comm_set_term_state(DBFS_COMM_NO_TERM);
+  comm_barrier();
+  comm_barrier();
+}
+
+bool_t dbfs_comm_check_termination
+() {
   dbfs_comm_term_t term;
-  bool_t result = FALSE;
-
+  bool_t result = FALSE, loop = TRUE;
+  clock_t start = clock();
+  uint64_t duration;
+  
   if(TERM_DETECTED) {
-    result = TRUE;
-  } else if(dbfs_comm_all_pes_waiting()) {
-    comm_barrier();
+    return TRUE;
+  }
+  dbfs_comm_send_all_buffers();
+  while(loop) {
     dbfs_comm_process_in_states();
-    if(!context_keep_searching()) {
-      term = DBFS_COMM_FORCE_TERM;
-    } else if(term_val && bfs_queue_is_empty(Q)) {
-      term = DBFS_COMM_TERM;
+    if(!bfs_queue_is_empty(Q)) {
+      loop = FALSE;
     } else {
-      term = DBFS_COMM_NO_TERM;
+      duration = 1000 * (clock() - start) / CLOCKS_PER_SEC;
+      if(duration >= DBFS_COMM_TERM_CHECK_PERIOD_MS) {
+	dbfs_comm_ask_for_term_detection();
+	comm_barrier();
+	dbfs_comm_process_in_states();
+	if(!context_keep_searching()) {
+	  term = DBFS_COMM_FORCE_TERM;
+	} else if(bfs_queue_is_empty(Q)) {
+	  term = DBFS_COMM_TERM;
+	} else {
+	  term = DBFS_COMM_NO_TERM;
+	}
+	dbfs_comm_set_term_detection(FALSE);
+	dbfs_comm_set_term_state(term);
+	comm_barrier();
+	if(dbfs_comm_do_terminate()) {
+	  TERM_DETECTED = TRUE;
+	  loop = FALSE;
+	  context_stop_search();
+	}
+	comm_barrier();
+	start = clock();
+      }
     }
-    comm_put(POS_TERM, &term, sizeof(dbfs_comm_term_t), ME);
-    comm_barrier();
-    if(result = dbfs_comm_all_pes_term()) {
-      TERM_DETECTED = TRUE;
-    }
-    comm_barrier();
   }
   return result;
 }
 
-
-bool_t dbfs_comm_check_termination
-() {
-  return dbfs_comm_check_termination_aux(TRUE);
-}
-
-
 void dbfs_comm_send_buffer
-(int pe) {
+(int pe,
+ bool_t wait) {
+  //bool_t occupied = TRUE;
   uint32_t len;
-
-  dbfs_comm_debug("comm. polls %d\n", pe);
+  
+  dbfs_comm_debug("polls %d\n", pe);
   do {
+    //comm_get(&occupied, POS_OCCUPIED(pe), sizeof(bool_t), ME);  
     comm_get(&len, POS_LEN(ME), sizeof(uint32_t), pe);
     if(len > 0) {
-      dbfs_comm_process_in_states();
-      if(dbfs_comm_some_pe_waiting()) {
-        dbfs_comm_set_term_detection_state(TRUE);
-        if(dbfs_comm_check_termination_aux(FALSE)) {
-	  return;
-	}
+      if(wait) {
+	dbfs_comm_check_communications();
+      } else {
+	return;
       }
-      context_sleep(DBFS_COMM_WAIT_TIME);
     }
-  } while(len > 0); 
-  dbfs_comm_set_term_detection_state(FALSE);
-  dbfs_comm_debug("comm. sends %d bytes to %d\n", LEN[pe], pe);
+  }
+  while(len > 0);
+  dbfs_comm_debug("sends %d bytes to %d\n", LEN[pe], pe);
+  /*
+    occupied = TRUE;
+    comm_put(POS_OCCUPIED(pe), &occupied, sizeof(bool_t), ME);
+  */
   comm_put(REMOTE_POS[pe], BUF[pe], LEN[pe], pe);
   comm_put(POS_LEN(ME), &LEN[pe], sizeof(uint32_t), pe);
   memset(BUF[pe], 0, LEN[pe]);
   LEN[pe] = 0;
-  dbfs_comm_debug("comm. sent done\n");
+  dbfs_comm_debug("sent done\n");
 }
-
 
 void dbfs_comm_send_all_buffers
 () {
@@ -177,55 +188,53 @@ void dbfs_comm_send_all_buffers
 
   for(pe = 0; pe < PES; pe ++) {
     if(pe != ME && LEN[pe] > 0) {
-      dbfs_comm_send_buffer(pe);
+      dbfs_comm_send_buffer(pe, TRUE);
     }
   }
 }
-
 
 void dbfs_comm_process_state
 (state_t s,
  hkey_t h) {
   const int pe = dbfs_comm_state_owner(h);
-  uint16_t size = state_char_size(s);;
+  uint16_t size;
   char * buf;
 
-  if(LEN[pe] + sizeof(uint16_t) + size > DBFS_HEAP_SIZE_PE) {
-    dbfs_comm_send_buffer(pe);
+  if(LEN[pe] + MODEL_STATE_SIZE > DBFS_HEAP_SIZE_PE) {
+    dbfs_comm_send_buffer(pe, TRUE);
   }
   buf = BUF[pe] + LEN[pe];
-  memcpy(buf, &size, sizeof(uint16_t));
-  state_serialise(s, buf + sizeof(uint16_t), &size);
-  LEN[pe] += sizeof(uint16_t) + size;
+  state_serialise(s, buf, &size);
+  LEN[pe] += MODEL_STATE_SIZE;
+  if(LEN[pe] >= DBFS_COMM_PACKET_MIN_SIZE) {
+    dbfs_comm_send_buffer(pe, FALSE);
+  }
 }
-
 
 void dbfs_comm_receive_buffer
 (int pe,
  uint32_t len,
  int pos) {
   uint32_t stored = 0;
-  uint16_t slen;
   bool_t is_new;
   hkey_t h;
   char buffer[DBFS_HEAP_SIZE_PE];
   htbl_id_t sid;
   bfs_queue_item_t item;
   char * b, * b_end;
-  state_t s;
+  //bool_t occupied = FALSE;
   
-  dbfs_comm_debug("comm. receives %d bytes from %d\n", len, pe);
+  dbfs_comm_debug("receives %d bytes from %d\n", len, pe);
   comm_get(buffer, pos, len, ME);
   b = buffer;
   b_end = b + len;
   len = 0;
   comm_put(POS_LEN(pe), &len, sizeof(uint32_t), ME);
+  //comm_put(POS_OCCUPIED(ME), &occupied, sizeof(bool_t), pe);
   while(b != b_end) {
-    memcpy(&slen, b, sizeof(uint16_t));
     heap_reset(CW_HEAP);
-    s = state_unserialise(b +sizeof(uint16_t), CW_HEAP);
-    stbl_insert(H, s, is_new, &sid, &h);
-    b += sizeof(uint16_t) + slen;
+    stbl_insert(H, state_unserialise(b, CW_HEAP), is_new, &sid, &h);
+    b += MODEL_STATE_SIZE;
     if(is_new) {
       stored ++;
       item.id = sid;
@@ -233,9 +242,8 @@ void dbfs_comm_receive_buffer
     }
   }
   context_incr_stat(STAT_STATES_STORED, 0, stored);
-  dbfs_comm_debug("comm. stored %d states received from %d\n", stored, pe);
+  dbfs_comm_debug("stored %d states received from %d\n", stored, pe);
 }
-
 
 bool_t dbfs_comm_process_in_states
 () {
@@ -256,10 +264,12 @@ bool_t dbfs_comm_process_in_states
   return result;
 }
 
-
 void dbfs_comm_check_communications
 () {
-  dbfs_comm_process_in_states(0);
+  dbfs_comm_process_in_states();
+  if(dbfs_comm_term_detection_asked()) {
+    dbfs_comm_simulate_check_termination();
+  }
 }
 
 void dbfs_comm_start
@@ -267,42 +277,43 @@ void dbfs_comm_start
  bfs_queue_t q) {
   uint32_t len;
   int pe, remote_pos;
-  bool_t term = FALSE;
-  
+  dbfs_comm_term_t term = DBFS_COMM_NO_TERM;
+
+  dbfs_comm_debug("dbfs_comm starting\n");
   PES = comm_pes();
   ME = comm_me();
   DBFS_HEAP_SIZE_PE = (CFG_SHMEM_HEAP_SIZE - POS_DATA) / (PES - 1);
-  comm_put(POS_TERM, &term, sizeof(bool_t), ME);
+  comm_put(POS_TERM, &term, sizeof(dbfs_comm_term_t), ME);
   Q = q;
   H = h;
   LEN = mem_alloc0(SYSTEM_HEAP, sizeof(uint32_t) * PES);
   BUF = mem_alloc0(SYSTEM_HEAP, sizeof(char *) * PES);
   REMOTE_POS = mem_alloc0(SYSTEM_HEAP, sizeof(uint32_t) * PES);
   for(pe = 0; pe < PES; pe ++) {
-    remote_pos = POS_DATA + ME * DBFS_HEAP_SIZE_PE;
-    if(ME > pe) {
-      remote_pos -= DBFS_HEAP_SIZE_PE;
-    }
     len = 0;
     comm_put(POS_LEN(pe), &len, sizeof(uint32_t), ME);
     if(ME == pe) {
       REMOTE_POS[pe] = 0;
     } else {
+      remote_pos = POS_DATA + ME * DBFS_HEAP_SIZE_PE;
+      if(ME > pe) {
+	remote_pos -= DBFS_HEAP_SIZE_PE;
+      }
       REMOTE_POS[pe] = remote_pos;
       BUF[pe] = mem_alloc0(SYSTEM_HEAP, DBFS_HEAP_SIZE_PE);
-      remote_pos += DBFS_HEAP_SIZE_PE;
     }
   }
+  dbfs_comm_debug("dbfs_comm at barrier\n");
   CW_HEAP = local_heap_new();
   comm_barrier();
+  dbfs_comm_debug("dbfs_comm started\n");
 }
-
 
 void dbfs_comm_end
 () {
   int pe;
 
-  dbfs_comm_debug("comm. terminated\n");
+  dbfs_comm_debug("dbfs_comm terminated\n");
   for(pe = 0; pe < PES; pe ++) {
     if(pe != ME) {
       mem_free(SYSTEM_HEAP, BUF[pe]);

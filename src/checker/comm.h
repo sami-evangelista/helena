@@ -65,4 +65,11 @@ void comm_get
  int size,
  int pe);
 
+
+/**
+ * @brief comm_heap
+ */
+void * comm_heap
+();
+
 #endif

@@ -1,8 +1,5 @@
 #!/bin/bash
 
-HS=$1
-[ -z "$HS" ] && echo "missing \$1 = shmem heap size" && exit 1
-
 models='elevator.5;185008051
 lifts.9;266445936
 firewire_link.3;425333983
@@ -21,12 +18,17 @@ for ms in $models
 do
     m=$(echo $ms | cut -d';' -f1)
     s=$(echo $ms | cut -d';' -f2)
-    for f in out/dbfs-$HS/$m*.xml
+    for f in out/dbfs/$m/*.xml
     do
 	[ ! -f "$f" ] && continue
 	r=$(helena-report $f | grep sum | head -1 | cut -d']' -f2)
 	r=${r//,/}
 	r=${r// /}
-	[ "$r" != "$s" ] && echo "error: $f ($r found, $s expected)"
+	if [ "$r" != "$s" ]
+	then
+	    echo "ERR: $f ($r found, $s expected)"
+	else
+	    echo "OK: $f"
+	fi
     done	
 done

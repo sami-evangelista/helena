@@ -4,6 +4,7 @@
 #include "config.h"
 #include "comm.h"
 #include "papi_stats.h"
+#include <unistd.h>
 
 #define NO_STATS 17
 
@@ -177,7 +178,6 @@ char * context_stat_xml_name
   case STAT_AVG_CPU_USAGE:      return "avgCPUUsage";
   case STAT_TIME_SEARCH:        return "searchTime";
   case STAT_TIME_COMP:          return "compilationTime";
-  case STAT_TIME_SLEEP:         return "sleepTime";
   case STAT_TIME_BARRIER:       return "barrierTime";
   case STAT_BWALK_ITERATIONS:   return "bwalkIterations";
   default:
@@ -203,7 +203,6 @@ stat_type_t context_stat_type
   case STAT_BWALK_ITERATIONS:   return STAT_TYPE_OTHERS;
   case STAT_TIME_SEARCH:        return STAT_TYPE_TIME;
   case STAT_TIME_COMP:          return STAT_TYPE_TIME;
-  case STAT_TIME_SLEEP:         return STAT_TYPE_TIME;
   case STAT_TIME_BARRIER:       return STAT_TYPE_TIME;
   default:
     assert(FALSE);
@@ -371,9 +370,6 @@ void finalise_context
     if(CFG_RANDOM_SUCCS) {
       fprintf(out, "<randomSuccs/>\n");
     }
-    if(CFG_EDGE_LEAN) {
-      fprintf(out, "<edgeLean/>\n");
-    }
     if(CFG_STATE_COMPRESSION) {
       fprintf(out, "<stateCompression/>\n");
     }
@@ -434,6 +430,7 @@ void finalise_context
      *  after the other to avoid mixed lines.
      */
     if(CFG_DISTRIBUTED) {
+      struct timespec t = { 0, 100000000 };
       for(i = 0; i < comm_pes(); i ++) {
 	comm_barrier();
 	if(i == comm_me()) {
@@ -444,6 +441,7 @@ void finalise_context
 	  free(buf);
 	  fclose(out);
 	}
+	nanosleep(&t, NULL); 
 	comm_barrier();
       }
     }
@@ -623,7 +621,6 @@ void context_barrier_wait
 
 void context_sleep
 (struct timespec t) {
-  context_incr_stat(STAT_TIME_SLEEP, 0, t.tv_nsec);
   nanosleep(&t, NULL);
 }
 

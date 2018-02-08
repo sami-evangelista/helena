@@ -346,7 +346,7 @@ do
             CCopt=$CCopt" -lpapi"
             ;;
         -np=*|--num-procs=*)
-            MPIRUN=$MPIRUN" -np "${arg:$idx}
+            MPIRUN=$MPIRUN" -npernode "${arg:$idx}
             ;;
 	-mf=*|--machine-file=*)
 	    idx=$(expr index $arg =)

@@ -24,7 +24,7 @@
 
 #define bwalk_push() {                                  \
     dfs_stack_push(stack, 0, now);                      \
-    dfs_stack_compute_events(stack, now, FALSE, NULL);  \
+    dfs_stack_compute_events(stack, now, FALSE);	\
     context_incr_stat(STAT_STATES_STORED, w, 1);        \
   }
 

@@ -195,12 +195,6 @@ preserves the existence of deadlock states."""
 Activate/deactivate the proviso of partial-order reduction.  It is
 turned on by default if a property (different from deadlock absence)
 is analysed."""
-#    elif o in [ "E", "edge-lean" ]:
-#        return """-E[={0|1}], --edge-lean[={0|1}]
-#
-#Activate/deactivate edge-lean reduction.  This one allows to prune
-#some arcs of the reachability graph, hence reducing the search
-#time."""
     elif o in [ "tl", "time-limit" ]:
         return """-tl=N, --time-limit=N
 
@@ -369,7 +363,6 @@ class Config:
         self.proviso = False
         self.dynamicPartialOrder = False
         self.hashCompaction = False
-        self.edgeLean = False
         self.withPapi = False
         self.randomSuccs = False
         self.withObserver = True
@@ -408,7 +401,6 @@ class Config:
             self.workers = 1
         elif self.action == CHECK and self.propType == LTL:
             self.algo = DFS
-            self.edgeLean = False
             if self.traceType == STATE:
                 self.traceType = EVENTS
         elif self.action == SIMULATE:
@@ -435,10 +427,6 @@ class Config:
         #  partial order reduction not available for random walk,
         #  delta-ddd and distributed algoritms
         self.partialOrder = self.partialOrder and self.algo not in [
-            BWALK, RWALK, DELTA_DDD, DDFS, DBFS ]
-
-        #  same for edge-lean reduction
-        self.edgeLean = self.edgeLean and self.algo not in [
             BWALK, RWALK, DELTA_DDD, DDFS, DBFS ]
 
         #  random successors selection only available for BWALK, DFS
@@ -503,7 +491,6 @@ class Config:
             ("DFS_STACK_BLOCK_SIZE", self.dfsStackBlockSize),
             ("DISTRIBUTED", self.algo in [ DBFS, DDFS ]),
             ("DYNAMIC_POR", self.dynamicPartialOrder),
-            ("EDGE_LEAN", self.edgeLean),
             ("FILE_PATH", "\"" + os.path.realpath(self.inFile) + "\""),
             ("GRAPH_FILE", "\"graph.dat\""),
             ("HASH_COMPACTION", self.hashCompaction),
@@ -606,8 +593,6 @@ class Config:
                 self.stateCompression = (val is None) or val == "1"
             elif opt in [ "-D", "--dynamic-partial-order" ]:
                 self.dynamicPartialOrder = (val is None) or val == "1"
-            #elif opt in [ "-E", "--edge-lean" ]:
-            #    self.edgeLean = (val is None) or val == "1"
             elif opt in [ "-r", "--run-time-checks" ]:
                 self.runTimeChecks = (val is None) or val == "1"
             elif opt in [ "-H", "--hash-compaction" ]:

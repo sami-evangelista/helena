@@ -1,25 +1,6 @@
 #include "reduction.h"
 #include "event.h"
 
-char edge_lean_is_independent_and_inferior
-(void * item,
- void * data) {
-  event_t e = * ((event_t *) item);
-  event_t f = * ((event_t *) data);
-
-  if(event_are_independent(e, f) && (LESS == event_cmp(e, f))) {
-    return TRUE;
-  } else {
-    return FALSE;
-  }
-}
-
-void edge_lean_reduction
-(event_list_t en,
- event_t e) {
-  list_filter(en, edge_lean_is_independent_and_inferior, &e);
-}
-
 char por_is_safe_and_invisible
 (void * item,
  void * data) {

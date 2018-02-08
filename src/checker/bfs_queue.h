@@ -23,16 +23,11 @@
  *
  * The queue stores state identifiers.  If states cannot be recovered
  * from the hash table (e.g., if hash-compaction is one) we also need
- * to save the full state descriptor.  In some case (e.g. edge-lean
- * reduction, we also store the event that generated the state from
- * the successor).  e_set = TRUE if and only if the event e is
- * relevant.  Otherwise it is false, e.g. for the initial state.
+ * to save the full state descriptor
  */
 typedef struct {
   htbl_id_t id;
   state_t s;
-  event_t e;
-  bool_t e_set;
 } bfs_queue_item_t;
 
 
@@ -48,13 +43,11 @@ typedef struct struct_bfs_queue_t * bfs_queue_t;
  * @param no_workers - number of workers that will access the queue
  * @param slot_size - number of states in each block of a slot
  * @param states_stored - do we store full states in the queue?
- * @param events_stored - do we store events in the queue?
  */
 bfs_queue_t bfs_queue_new
 (uint16_t no_workers,
  uint32_t slot_size,
- bool_t states_stored,
- bool_t events_stored);
+ bool_t states_stored);
 
 
 /**

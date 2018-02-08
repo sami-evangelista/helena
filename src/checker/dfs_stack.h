@@ -105,14 +105,11 @@ event_list_t dfs_stack_top_events
  * @param s - the state on top of the stack if states are not stored in the
  *        stack
  * @param filter - TRUE if enabled events are filtered according to POR
- * @param e - the event executed to reach s (to apply edge-lean reduction).
- *        NULL if edge-reduction if OFF or s is the initial state
  */
 event_list_t dfs_stack_compute_events
 (dfs_stack_t stack,
  state_t s,
- bool_t filter,
- event_t * e);
+ bool_t filter);
 
 
 /**

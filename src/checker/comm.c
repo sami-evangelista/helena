@@ -8,12 +8,12 @@
 #include "shmem.h"
 #endif
 
-#define COMM_SHMEM_CHUNK_SIZE 10000
+#define COMM_SHMEM_CHUNK_SIZE 65000
 #define COMM_SHMEM_DEBUG_XXX
 
 #if defined(COMM_SHMEM_DEBUG)
 #define comm_shmem_debug(...)   {			\
-    printf("[%d:%d] ", shmem_my_pe(), getpid());	\
+    printf("[pe=%d:pid=%d] ", shmem_my_pe(), getpid());	\
     printf(__VA_ARGS__);				\
 }
 #else
@@ -30,7 +30,7 @@ void init_comm
   shmem_init();
   COMM_SHMEM_HEAP = shmem_malloc(CFG_SHMEM_HEAP_SIZE);
   memset(COMM_SHMEM_HEAP, 0, CFG_SHMEM_HEAP_SIZE);
-  shmem_barrier_all();
+  comm_shmem_debug("init_comm done\n");
 #endif
 }
 
@@ -46,20 +46,20 @@ void finalise_comm
 
 int comm_me
 () {
-  #if CFG_DISTRIBUTED == 0
+#if CFG_DISTRIBUTED == 0
   return 0;
-  #else
+#else
   return shmem_my_pe();
-  #endif
+#endif
 }
 
 int comm_pes
 () {
-  #if CFG_DISTRIBUTED == 0
+#if CFG_DISTRIBUTED == 0
   return 1;
-  #else
+#else
   return shmem_n_pes();
-  #endif
+#endif
 }
 
 void comm_barrier
@@ -86,6 +86,7 @@ void comm_put
 #if CFG_DISTRIBUTED == 0
   assert(0);
 #else
+  comm_shmem_debug("put %d bytes at %d to %d\n", size, pos, pe);
   /**
    * NOTE: shmem_put fails on local PE in some cases.  we do memcpy
    * instead which seems equivalent.
@@ -93,7 +94,6 @@ void comm_put
   if(pe == shmem_my_pe()) {
     memcpy(COMM_SHMEM_HEAP + pos, src, size);
   } else {
-    comm_shmem_debug("put %d bytes at %d to %d\n", size, pos, pe);
     context_incr_stat(STAT_SHMEM_COMMS, 0, 1);
     while(size) {
       if(size < COMM_SHMEM_CHUNK_SIZE) {
@@ -106,8 +106,8 @@ void comm_put
 	src += COMM_SHMEM_CHUNK_SIZE;
       }
     }
-    comm_shmem_debug("put done\n");
   }
+  comm_shmem_debug("put done\n");
 #endif
 }
 
@@ -138,4 +138,8 @@ void comm_get
     comm_shmem_debug("get done\n");
   }
 #endif
+}
+
+void * comm_heap() {
+  return COMM_SHMEM_HEAP;
 }

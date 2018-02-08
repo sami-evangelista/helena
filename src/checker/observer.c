@@ -15,6 +15,7 @@ void * observer_worker
   double stored;
   char name[100], pref[100];
   int n = 0;
+  uint64_t old_processed = 0;
  
   pref[0] = 0;  
   if(CFG_WITH_OBSERVER) {
@@ -39,7 +40,9 @@ void * observer_worker
       printf("%sTime: %.1f s.", pref, time);
       printf(", stored: %llu", (uint64_t) stored);
       printf(", processed: %llu", (uint64_t) processed);
+      printf(", newly processed: %llu", (uint64_t) processed - old_processed);
       printf(", cpu: %.1f %c\n", cpu, '%');
+      old_processed = processed;
     }
     
     /*

@@ -126,7 +126,6 @@ optionsWithUnits = {
 statistics = {
     (0, "compilationTime")         : "Source compilation        ",
     (1, "searchTime")              : "Search time               ",
-    (2, "sleepTime")               : "        including sleep   ",
     (2, "barrierTime")             : "        including barriers",
     (2, "places")                  : "Places                    ",
     (3, "transitions")             : "Transitions               ",
@@ -149,7 +148,6 @@ statistics = {
     (19, "arcs")                   : "Transitions               ",
     (20, "maxDFSStackSize")        : "Max DFS stack size        ",
     (21, "eventsExecuted")         : "Events executed           ",
-    (22, "eventExecPerSecond")     : "Event execution rate      ",
     (23, "shmemComms")             : "SHMEM communications      ",
     (24, "avgCPUUsage")            : "Average CPU Usage         ",
     (25, "lvl1TotalCacheMiss")     : "Level 1 total cache miss  ",
@@ -161,9 +159,7 @@ statistics = {
     (31, "bwalkIterations")        : "BWALK iterations          " }
 statisticsUnits = {
     "searchTime"            : "s.",
-    "duplicateDetectionTime": "s.",
     "compilationTime"       : "s.",
-    "eventExecPerSecond"    : "exec. / s.",
     "stateSize"             : "bytes",
     "compressedStateSize"   : "bytes",
     "avgCPUUsage"           : "%" }

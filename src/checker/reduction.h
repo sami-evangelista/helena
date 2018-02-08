@@ -14,14 +14,6 @@
 
 
 /**
- * @brief edge_lean_reduction
- */
-void edge_lean_reduction
-(event_list_t en,
- event_t e);
-
-
-/**
  * @brief mstate_events_reduced
  */
 list_t mstate_events_reduced

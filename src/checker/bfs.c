@@ -16,14 +16,12 @@ void bfs() { assert(0); }
 
 #else
 
-#define DBFS_CHECK_PERIOD 100
+#define DBFS_CHECK_PERIOD 1000
 
 htbl_t H = NULL;
 bfs_queue_t Q = NULL;
 pthread_barrier_t BFS_BARRIER;
 bool_t BFS_AT_BARRIER = FALSE;
-const struct timespec BFS_SLEEP_TIME = { 0, 1000 };
-
 
 worker_id_t bfs_thread_owner
 (hkey_t h) {
@@ -38,35 +36,20 @@ worker_id_t bfs_thread_owner
 
 void bfs_init_queue
 () {
-  bool_t events_in_queue = CFG_EDGE_LEAN;
-  uint16_t no_workers = CFG_NO_WORKERS + (CFG_ALGO_DBFS ? 1 : 0);
   bool_t states_in_queue = CFG_HASH_COMPACTION;
 
-  Q = bfs_queue_new(no_workers, CFG_BFS_QUEUE_BLOCK_SIZE,
-                    states_in_queue, events_in_queue);
+  Q = bfs_queue_new(CFG_NO_WORKERS, CFG_BFS_QUEUE_BLOCK_SIZE,
+                    states_in_queue);
 }
 
 bool_t bfs_check_termination
 (worker_id_t w) {
   bool_t result = FALSE;
-  bool_t loop;
 
   if(!CFG_ALGO_DBFS && !CFG_PARALLEL) {
     result = !context_keep_searching() || bfs_queue_is_empty(Q);
   } else if(CFG_ALGO_DBFS) {
-    dbfs_comm_send_all_buffers();
-    loop = TRUE;
-    dbfs_comm_set_term_detection_state(TRUE);
-    while(loop) {
-      if(context_keep_searching() && (!bfs_queue_is_empty(Q) || dbfs_comm_process_in_states())) {
-        loop = FALSE;
-      } else if(result = dbfs_comm_check_termination()) {
-        loop = FALSE;
-      } else {
-        context_sleep(BFS_SLEEP_TIME);
-      }
-    }
-    dbfs_comm_set_term_detection_state(FALSE);
+    result = dbfs_comm_check_termination();
   } else {
     if(bfs_queue_is_empty(Q) || !context_keep_searching() || BFS_AT_BARRIER) {
       BFS_AT_BARRIER = TRUE;
@@ -113,7 +96,6 @@ void * bfs_worker
   const bool_t states_in_queue = bfs_queue_states_stored(Q);
   const bool_t por = CFG_POR;
   const bool_t proviso = CFG_PROVISO;
-  const bool_t edge_lean = CFG_EDGE_LEAN;
   const bool_t with_trace = CFG_ACTION_CHECK_SAFETY && CFG_ALGO_BFS;
   const bool_t has_safe_attr = htbl_has_attr(H, ATTR_SAFE);
   state_t s, succ;
@@ -179,14 +161,6 @@ void * bfs_worker
         }
 
         /**
-         * apply edge lean reduction after checking state property
-         * (EDGE-LEAN may remove all enabled events)
-         */
-        if(edge_lean && item.e_set) {
-          edge_lean_reduction(en, item.e);
-        }
-
-        /**
          * expand the current state and put its unprocessed successors
          * in the queue
          */
@@ -214,8 +188,6 @@ void * bfs_worker
             htbl_set_worker_attr(H, id_succ, ATTR_CYAN, y, TRUE);
             succ_item.id = id_succ;
             succ_item.s = succ;
-            succ_item.e_set = TRUE;
-            succ_item.e = e;
             bfs_queue_enqueue(Q, succ_item, w, y);
             if(with_trace) {
               htbl_set_attr(H, succ_item.id, ATTR_PRED, item.id);
@@ -280,7 +252,7 @@ void bfs
   bool_t enqueue = TRUE;
   bfs_queue_item_t item;
   hkey_t h;
-  
+
   H = stbl_default_new();
   bfs_init_queue();
 
@@ -300,7 +272,6 @@ void bfs
     w = h % CFG_NO_WORKERS;
     item.id = id;
     item.s = s;
-    item.e_set = FALSE;
     if(with_trace) {
       htbl_set_attr(H, id, ATTR_PRED, id);
       htbl_set_attr(H, id, ATTR_EVT, 0);
