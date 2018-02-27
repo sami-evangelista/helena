@@ -1,23 +1,52 @@
 #!/bin/bash
 
+# some checks
+[ -z "$OAR_NODEFILE" ] && echo 'not in an OAR job' && exit 1
+[ "$1" = "" ] && echo "missing \$1 = SHMEM buffer size" && exit 1
+
+# $1 = buffer size
+BS=$1
+
 # H = max hash table size for a node and T = log_2(H)
 T=28
 H=$(echo "2 ^ $T" | bc)
 
+# number of times a test is launched
 REP=5
 
-# HS = SHMEM heap size of each process
-HS=10000000
+# number of nodes we'll try to launch the search with
+NODES="128 112 96 80 64 56 48 40 32 28 24 20 16 12 8 4 2"
 
-# some checks
-[ -z "$OAR_NODEFILE" ] && echo 'not in an OAR job' && exit 1
+# number of processes per node
+PROCS="4"
 
-helena="helena --algo=dbfs --machine-file=/tmp/machinefile --observer=1"
-helena=$helena" -hs=$HS --progress=no-report -C"
-outDir=out/dbfs
-mkdir -p $outDir &> /dev/null
+# the models (model-name;number-of-states;number-of-bits-for-collapse)
+MODELS='
+iprotocol.7;59794192;20
+peterson.5;131064750;20
+elevator.5;185008051;22
+lifts.9;266445936;22
+firewire_link.3;425333983;22
+leader_filters.8;431401020;22
+collision.5;431965993;22
+iprotocol.8;447570146;22
+anderson.8;538699029;22
+telephony.8;1051746064;24
+public_subscribe.5;1153014089;22                                               
+lamport.9;1436848880;22
+brp.8;1526547707;22
+synapse.9;1675298471;22
+szymanski.6;6779809484;20'
 
-models='
+# helena base command
+HELENA="helena --algo=dbfs --machine-file=/tmp/machinefile --observer=1 \
+-bs=$BS --progress=no-report -C"
+
+# output directory
+OUTDIR=out/dbfs
+
+# the models (model-name;number-of-states;number-of-bits-for-collapse)
+MODELS='
 iprotocol.7;59794192;20
 peterson.5;131064750;20
 elevator.5;185008051;22
@@ -34,30 +63,30 @@ brp.8;1526547707;22
 synapse.9;1675298471;22
 szymanski.6;6779809484;20'
 
-models='elevator.5;185008051;22'
-
-for m in $models
+for N in $NODES
 do
-    m=$(echo $m | cut -f1 -d';')
-    echo $outDir/$m
-    mkdir $outDir/$m &> /dev/null
-done
-
-for N in 127 112 96 80 64 56 48 40 32 28 24 20 16 12 8 4 2
-do
+    # create the machine file with N nodes
     sort -u $OAR_NODEFILE | head -$N > /tmp/machinefile
     [ $(cat /tmp/machinefile | wc -l) -lt $N ] && continue
-    for P in 4
+    
+    for P in $PROCS
     do
-	#[ $N = 1 -a $P = 1 ] && P=$((P / 2)) && continue
-	for l in $models
+	for l in $MODELS
 	do
+	    # get data on the model
 	    m=$(echo $l | cut -f1 -d';')
 	    st=$(echo $l | cut -f2 -d';')
 	    cb=$(echo $l | cut -f3 -d';')
+	    
 	    f=$(scripts/get-file $m dve)
+	    mkdir -p $OUTDIR/$m &> /dev/null
+
+	    # check the model file exists and the table is large
+	    # enough
 	    [ ! -f $f ] && continue
 	    [ $st -gt $((N * H * 80 / 100)) ] && continue
+
+	    # ajust the size of the hash table
 	    p=$P
 	    t=$T
 	    while [ $p != 1 ]
@@ -65,12 +94,14 @@ do
 		p=$((p / 2))
 		t=$((t - 1))
 	    done
+
+	    # launch $REP tests
 	    for i in $(seq 1 $REP)
 	    do
-		xml=$outDir/$m/"N"$N"_P"$P"_I"$i".xml"
-		out=$outDir/$m/"N"$N"_P"$P"_I"$i".out"
+		xml=$OUTDIR/$m/"B"$BS"_N"$N"_P"$P"_I"$i".xml"
+		out=$OUTDIR/$m/"B"$BS"_N"$N"_P"$P"_I"$i".out"
 		[ -f $xml ] && continue
-		cmd=$helena" -t=$t --report-file=$xml -np=$P -cb=$cb $f"
+		cmd=$HELENA" -t=$t --report-file=$xml -np=$P -cb=$cb $f"
 		echo "***** MODEL=$m - NODES=$N - PROCESSES=$P *****"
 		echo $cmd
 		eval $cmd | tee $out
