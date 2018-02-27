@@ -25,10 +25,10 @@ Be verbose.
 
 ### -N=ACTION, --action=ACTION
 
-Indicate the action performed on the model.  ACTION must have one of
-the following values:
+Indicate the action performed on the model.
+Available actions are:
 * EXPLORE - Explore the state space of the model and then prints some
-   statistics.  This is the default.
+   statistics.
 * SIMULATE - Start interactive simulation mode.  You can then navigate
    through the reachability graph of the model. A simple command
    language is provided.  Once the simulation is started, type help to
@@ -38,6 +38,8 @@ the following values:
    graph can then be analyzed using the helena-graph tool.
 * CHECK-prop - Check whether or not property prop (which must be a
    property defined in the model file) is verified.
+
+default value = EXPLORE
 
 ### -g=LEVEL, --progress=LEVEL
 
@@ -51,7 +53,9 @@ LEVEL can take one of these three values:
 ### -b[={0|1}], --observer[={0|1}]
 
 Activate/deactivate the observer thread that prints some progression
-informations during the search.  It is turned on by default.
+informations during the search.
+
+default value = 1
 
 ### -p=FILE, --property-file=FILE
 
@@ -71,16 +75,18 @@ Activate/deactivate the use of the PAPI (Performance Application
 Programming Interface, see http://icl.utk.edu/papi/) to print
 additional statistics at the end of the search.
 
+default value = 0
+
 ## Search and storage options
 
 ### -A=ALGO, --algo=ALGO
 
-Sets search algorithm used to explore the state space.  Available
-algorithms are:
+Sets search algorithm used to explore the state space.
+Available algorithms are:
 
-* DFS - The state space is explored using a depth-first search.  This
-   is the default.
+* DFS - The state space is explored using a depth-first search.
 * BFS - The state space is explored using a breadth-first search.
+* DBFS - The state space is explored using a distributed breadth-first search.
 * DELTA-DDD - The state space is explored using a parallel
    breadth-first search based on state compression.
 * RWALK - A random walk is used.  The principle is to randomly select
@@ -89,15 +95,21 @@ algorithms are:
    met.  If no limit is specified (e.g., option --state-limit) the
    search will last forever.
 
+default value = DFS
+
 ### -t=N, --hash-size=N
 
 Set to 2^N the size of the hash table which stores the set of
-reachable states.  The default value is 22.  
+reachable states.
+
+default value = 22
 
 ### -W=N, --workers=N
 
 Set to N the number of working threads that will perform the
 search.
+
+default value = 1
 
 ### -R[={0|1}], --random-succs[={0|1}]
 
@@ -106,11 +118,33 @@ valid if algorithm DFS is used.  This option is useful if the
 counter-example produced is too long.  Using randomisation can often
 produce a smaller counter-example.
 
+default value = 0
+
 ### -cs=N, --candidate-set-size=N
 
-Set the candidate set size of algorithm DELTA-DDD.  100000 is the
-default value.  Increasing it may consume more memory but can fasten
-the search.
+Set the candidate set size of algorithm DELTA-DDD.  Increasing it may
+consume more memory but can fasten the search.
+
+default value = 100000
+
+## Distributed search options
+
+### -mf=FILE, --machine-file=FILE
+
+Provides the machine-file to be passed to MPI for algorithm DBFS.
+
+### -bs=N, --shmem-buffer-size=N
+
+Set to N bytes the size of the shared memory buffer size used by algorithm
+DBFS.
+
+default value = 65000
+
+### -np=N, --num-procs=N
+
+Set the number of processes to execute on each node for algorithm DBFS.
+
+default value = 1
 
 ## Reduction techniques
 
@@ -121,6 +155,8 @@ hash signature of each visited state.  In case of hash conflict,
 Helena will not necessarily explore the whole state space and may
 report that no error has been found whereas one could exist.
 
+default value = 0
+
 ### -P[={0|1}], --partial-order[={0|1}]}
 
 Activate/deactivate partial-order reduction.  This reduction limits
@@ -129,6 +165,8 @@ the desired property.  This causes some states to be never explored
 during the search.  The reductions done depend on the property
 verified.  If there is no property checked, the reduction done only
 preserves the existence of deadlock states.
+
+default value = 0
 
 ### -i[={0|1}], --proviso[={0|1}]}
 
@@ -140,10 +178,14 @@ is analysed.
 
 Activate/deactivate state compression.
 
+default value = 1
+
 ### -cb=N, --compression-bits=N
 
 Set the base number of bits used by state compression (option -C)
-to N.  16 is the default value.
+to N.
+
+default value = 16
 
 ## Limit options
 
@@ -152,10 +194,14 @@ to N.  16 is the default value.
 The search time is limited to N seconds.  When this limit is reached
 the search stops as soon as possible.
 
+default value = 0
+
 ### -sl=N, --state-limit=N
 
 As soon as N states have been processed the search is stopped as soon
 as possible.
+
+default value = 0
 
 ## Model options
 
@@ -173,6 +219,8 @@ Activate/deactivate run time checks such as: division by 0,
 expressions out of range, capacity of places exceeded, ...  If this
 option is not activated, and such an error occurs during the analysis,
 Helena may either crash, either produce wrong results.
+
+default value = 1
 
 ### -L=OBJECT-FILE, --link=OBJECT-FILE
 
@@ -201,3 +249,5 @@ must take one of these three values:
    displayed.
 * STATE - Only the faulty state reached is displayed.  No information
    on how this state can be reached is therefore available.
+
+default value = FULL

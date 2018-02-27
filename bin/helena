@@ -11,7 +11,7 @@ MPICC='/usr/bin/oshcc'
 MPIRUN="/usr/bin/oshrun"
 ####################
 
-CCopt="-pthread -Wunused-variable -Wfatal-errors"
+CCopt="-pthread -Wfatal-errors"
 CCI=""
 CCL="-lm"
 shmemI=""

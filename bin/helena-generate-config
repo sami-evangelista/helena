@@ -49,6 +49,8 @@ GENERAL_OPTS = ("General options",
                 [ "h", "V", "v", "N", "g", "b", "p", "md", "wp" ])
 SEARCH_OPTS = ("Search and storage options",
                [ "A", "t", "W", "R", "cs" ])
+DISTRIBUTED_SEARCH_OPTS = ("Distributed search options",
+                           [ "mf", "bs", "np" ])
 REDUCTION_OPTS = ("Reduction techniques",
                   [ "H", "P", "i", "C", "cb" ])
 LIMIT_OPTS = ("Limit options",
@@ -60,34 +62,58 @@ OUTPUT_OPTS = ("Output options",
 OPTION_TYPES = [
     GENERAL_OPTS,
     SEARCH_OPTS,
+    DISTRIBUTED_SEARCH_OPTS,
     REDUCTION_OPTS,
     LIMIT_OPTS,
     MODEL_OPTS,
     OUTPUT_OPTS ]
 
+def defaultValue(p):
+    if p in [ "N", "action" ]: return EXPLORE
+    if p in [ "A", "algo" ]: return DFS
+    if p in [ "t", "hash-size" ]: return 22
+    if p in [ "cb", "compression-bits" ]: return 16        
+    if p in [ "cs", "candidate-set-size" ]: return 100000
+    if p in [ "bs", "shmem-buffer-size" ]: return 65000
+    if p in [ "W", "workers" ]: return 1
+    if p in [ "np", "num-procs" ]: return 1
+    if p in [ "c", "capacity" ]: return 1
+    if p in [ "b", "observer" ]: return 1
+    if p in [ "H", "hash-compaction" ]: return 0
+    if p in [ "C", "state-compression" ]: return 1
+    if p in [ "wp", "with-papi" ]: return 0
+    if p in [ "P", "partial-order" ]: return 0
+    if p in [ "tl", "time-limit" ]: return 0
+    if p in [ "sl", "state-limit" ]: return 0
+    if p in [ "r", "run-time-checks" ]: return 1
+    if p in [ "R", "random-succs" ]: return 0
+    if p in [ "r", "run-time-checks" ]: return 1
+    if p in [ "tr", "trace-type" ]: return FULL
+    return None
 
 def helpMessage(o):
+    result = None
     if   o in [ "h", "help" ]:
-        return """-h[=opt], --help[=opt]
+        result = """-h[=opt], --help[=opt]
 
 Prints help and exit.  If an option is provided, a specific help
 message for this option is printed.  If opt=FULL a detailed help for
 all options is printed."""
     elif o in [ "V", "version" ]:
-        return """-V, --version
+        result = """-V, --version
 
 Prints the version number and exit."""
     elif o in [ "v", "verbose" ]:
-        return """-v, --verbose
+        result = """-v, --verbose
 
 Be verbose."""
     elif o in [ "N", "action" ]:
-        return """-N=ACTION, --action=ACTION
+        result = """-N=ACTION, --action=ACTION
 
-Indicate the action performed on the model.  ACTION must have one of
-the following values:
+Indicate the action performed on the model.
+Available actions are:
 * EXPLORE - Explore the state space of the model and then prints some
-   statistics.  This is the default.
+   statistics.
 * SIMULATE - Start interactive simulation mode.  You can then navigate
    through the reachability graph of the model. A simple command
    language is provided.  Once the simulation is started, type help to
@@ -98,7 +124,7 @@ the following values:
 * CHECK-prop - Check whether or not property prop (which must be a
    property defined in the model file) is verified."""
     elif o in [ "g", "progress" ]:
-        return """-g=LEVEL, --progress=LEVEL
+        result = """-g=LEVEL, --progress=LEVEL
 
 LEVEL can take one of these three values:
 * no-compile - Helena stops after the generation of source files.
@@ -108,31 +134,31 @@ LEVEL can take one of these three values:
   report."""
     
     elif o in [ "b", "observer" ]:
-        return """-b[={0|1}], --observer[={0|1}]
+        result = """-b[={0|1}], --observer[={0|1}]
 
 Activate/deactivate the observer thread that prints some progression
-informations during the search.  It is turned on by default."""  
+informations during the search."""  
     elif o in [ "p", "property-file" ]:
-        return """-p=FILE, --property-file=FILE
+        result = """-p=FILE, --property-file=FILE
 
 File FILE contains the definition of the property to check (specified
 with option --action=CHECK-prop).  By default, if the input file of
 the model is model.lna, Helena will look into model.prop.lna for the
 property definition."""
     elif o in [ "md", "model-directory" ]:
-        return """-md=DIRECTORY, --model-directory=DIRECTORY
+        result = """-md=DIRECTORY, --model-directory=DIRECTORY
 
 All generated files such as source files are put in directory
 DIRECTORY (instead of ~/.helena/models/lna/my-net)."""
     elif o in [ "A", "algo" ]:
-        return """-A=ALGO, --algo=ALGO
+        result = """-A=ALGO, --algo=ALGO
 
-Sets search algorithm used to explore the state space.  Available
-algorithms are:
+Sets search algorithm used to explore the state space.
+Available algorithms are:
 
-* DFS - The state space is explored using a depth-first search.  This
-   is the default.
+* DFS - The state space is explored using a depth-first search.
 * BFS - The state space is explored using a breadth-first search.
+* DBFS - The state space is explored using a distributed breadth-first search.
 * DELTA-DDD - The state space is explored using a parallel
    breadth-first search based on state compression.
 * RWALK - A random walk is used.  The principle is to randomly select
@@ -141,46 +167,45 @@ algorithms are:
    met.  If no limit is specified (e.g., option --state-limit) the
    search will last forever."""
     elif o in [ "t", "hash-size" ]:
-        return """-t=N, --hash-size=N
+        result = """-t=N, --hash-size=N
 
 Set to 2^N the size of the hash table which stores the set of
-reachable states.  The default value is 22.  """
+reachable states."""
     elif o in [ "W", "workers" ]:
-        return """-W=N, --workers=N
+        result = """-W=N, --workers=N
 
 Set to N the number of working threads that will perform the
 search."""
     elif o in [ "R", "random-succs" ]:
-        return """-R[={0|1}], --random-succs[={0|1}]
+        result = """-R[={0|1}], --random-succs[={0|1}]
 
 Activate/deactivate randomised successor selection.  This is only
 valid if algorithm DFS is used.  This option is useful if the
 counter-example produced is too long.  Using randomisation can often
 produce a smaller counter-example."""
     elif o in [ "cs", "candidate-set-size" ]:
-        return """-cs=N, --candidate-set-size=N
+        result = """-cs=N, --candidate-set-size=N
 
-Set the candidate set size of algorithm DELTA-DDD.  100000 is the
-default value.  Increasing it may consume more memory but can fasten
-the search."""
+Set the candidate set size of algorithm DELTA-DDD.  Increasing it may
+consume more memory but can fasten the search."""
     elif o in [ "H", "hash-compaction" ]:
-        return """-H[={0|1}], --hash-compaction[={0|1}]
+        result = """-H[={0|1}], --hash-compaction[={0|1}]
 
 Activate/deactivate hash compaction.  Its principle is to only store a
 hash signature of each visited state.  In case of hash conflict,
 Helena will not necessarily explore the whole state space and may
 report that no error has been found whereas one could exist."""
     elif o in [ "C", "state-compression" ]:
-        return """-C[={0|1}], --state-compression[={0|1}]
+        result = """-C[={0|1}], --state-compression[={0|1}]
 
 Activate/deactivate state compression."""
     elif o in [ "cb", "compression-bits" ]:
-        return """-cb=N, --compression-bits=N
+        result = """-cb=N, --compression-bits=N
 
 Set the base number of bits used by state compression (option -C)
-to N.  16 is the default value."""
+to N."""
     elif o in [ "P", "partial-order" ]:
-        return """-P[={0|1}], --partial-order[={0|1}]}
+        result = """-P[={0|1}], --partial-order[={0|1}]}
 
 Activate/deactivate partial-order reduction.  This reduction limits
 the exploration of multiple paths that are redundant with respect to
@@ -189,53 +214,53 @@ during the search.  The reductions done depend on the property
 verified.  If there is no property checked, the reduction done only
 preserves the existence of deadlock states."""
     elif o in [ "i", "proviso" ]:
-        return """-i[={0|1}], --proviso[={0|1}]}
+        result = """-i[={0|1}], --proviso[={0|1}]}
 
 Activate/deactivate the proviso of partial-order reduction.  It is
 turned on by default if a property (different from deadlock absence)
 is analysed."""
     elif o in [ "tl", "time-limit" ]:
-        return """-tl=N, --time-limit=N
+        result = """-tl=N, --time-limit=N
 
 The search time is limited to N seconds.  When this limit is reached
 the search stops as soon as possible."""
     elif o in [ "sl", "state-limit" ]:
-        return """-sl=N, --state-limit=N
+        result = """-sl=N, --state-limit=N
 
 As soon as N states have been processed the search is stopped as soon
 as possible."""
     elif o in [ "d", "define" ]:
-        return """-d=SYMBOL-NAME, --define=SYMBOL-NAME
+        result = """-d=SYMBOL-NAME, --define=SYMBOL-NAME
 
 Define preprocessor symbol SYMBOL-NAME in the net."""
     elif o in [ "a", "capacity" ]:
-        return """-a=N, --capacity=N
+        result = """-a=N, --capacity=N
 
 The default capacity of places is set to N."""
     elif o in [ "r", "run-time-checks" ]:
-        return """-r[={0|1}], --run-time-checks[={0|1}]
+        result = """-r[={0|1}], --run-time-checks[={0|1}]
 
 Activate/deactivate run time checks such as: division by 0,
 expressions out of range, capacity of places exceeded, ...  If this
 option is not activated, and such an error occurs during the analysis,
 Helena may either crash, either produce wrong results."""
     elif o in [ "L", "link" ]:
-        return """-L=OBJECT-FILE, --link=OBJECT-FILE
+        result = """-L=OBJECT-FILE, --link=OBJECT-FILE
 
 Add file OBJECT-FILE to the files linked by Helena when compiling the
 net.  Please consult user guide for further help on this option."""
     elif o in [ "m", "parameter" ]:
-        return """-m=PARAM=VAL, --parameter=PARAM=VAL
+        result = """-m=PARAM=VAL, --parameter=PARAM=VAL
 
 This gives value VAL (an integer) to net parameter PARAM."""
     elif o in [ "o", "report-file" ]:
-        return """-o=FILE, --report-file=FILE
+        result = """-o=FILE, --report-file=FILE
 
 An XML report file is created by Helena once the search terminated.
 It contains some informations such as the result of the search, or
 some statistics."""
     elif o in [ "tr", "trace-type" ]:
-        return """-tr=TYPE, --trace-type=TYPE
+        result = """-tr=TYPE, --trace-type=TYPE
 
 Specify the type of trace (i.e., counter-example) displayed.  TYPE
 must take one of these three values:
@@ -246,17 +271,34 @@ must take one of these three values:
 * STATE - Only the faulty state reached is displayed.  No information
    on how this state can be reached is therefore available."""
     elif o in [ "wp", "with-papi" ]:
-        return """-wp[={0|1}], --with-papi[={0|1}]
+        result = """-wp[={0|1}], --with-papi[={0|1}]
 
 Activate/deactivate the use of the PAPI (Performance Application
 Programming Interface, see http://icl.utk.edu/papi/) to print
 additional statistics at the end of the search."""
-#    elif o in [ "bs", "shmem-buffer-size" ]:
-#        return None
-#    elif o in [ "mf", "machine-file" ]:
-#        return None
-#    elif o in [ "np", "num-procs" ]:
-    raise Exception
+    
+    elif o in [ "bs", "shmem-buffer-size" ]:
+        result = """-bs=N, --shmem-buffer-size=N
+
+Set to N bytes the size of the shared memory buffer size used by algorithm
+DBFS."""
+    elif o in [ "mf", "machine-file" ]:
+        result = """-mf=FILE, --machine-file=FILE
+
+Provides the machine-file to be passed to MPI for algorithm DBFS."""
+    elif o in [ "np", "num-procs" ]:
+        result = """-np=N, --num-procs=N
+
+Set the number of processes to execute on each node for algorithm DBFS."""
+
+    #  append the default value to the result
+    if result is not None:
+        default = defaultValue(o)
+        if default is not None:
+            result += "\n\ndefault value = " + str(default)
+        return result
+    else:
+        raise Exception
 
 
 def printHelpShort():
@@ -274,11 +316,16 @@ def printHelpShort():
    -wp  --with-papi[={0|1}]
  
  Search and storage options
-   -A   --algo={BFS|DFS|DELTA-DDD|RWALK}
+   -A   --algo={DFS|BFS|DBFS|DELTA-DDD|RWALK}
    -t   --hash-size=N
    -W   --workers=N
    -R   --random-succs[={0|1}]
    -cs  --candidate-set-size=N
+
+ Distributed search options
+   -mf  --machine-file=FILE
+   -bs  --shmem-buffer-size=N
+   -np  --num-procs=N
  
  Reduction techniques
    -H   --hash-compaction[={0|1}]
@@ -358,24 +405,20 @@ class Config:
         self.language = None
         self.verbose = False
         self.version = False
-        self.partialOrder = False
+        self.partialOrder = bool(defaultValue("P"))
         self.proviso = False
         self.dynamicPartialOrder = False
-        self.hashCompaction = False
-        self.withPapi = False
-        self.randomSuccs = False
-        self.withObserver = True
-        self.stateCompression = False
-        self.workers = 1
-        self.capacity = 1
-        self.timeLimit = 0
-        self.stateLimit = 0
-        self.algo = DFS
-        self.traceType = FULL
+        self.hashCompaction = bool(defaultValue("H"))
+        self.withPapi = bool(defaultValue("wp"))
+        self.randomSuccs = bool(defaultValue("R"))
+        self.withObserver = bool(defaultValue("b"))
+        self.stateCompression = bool(defaultValue("C"))
+        self.timeLimit = defaultValue("tl")
+        self.stateLimit = defaultValue("sl")
+        self.traceType = defaultValue("tr")
         self.directory = None
         self.symbols = []
-        self.action = EXPLORE
-        self.runTimeChecks = True
+        self.runTimeChecks = defaultValue("r")
         self.inFile = None
         self.inFileExt = None
         self.prop = None
@@ -383,13 +426,17 @@ class Config:
         self.propType = None
         self.propositions = []
         self.parameters = []
-        self.hashSize = 22
-        self.compressionBits = 16
+        self.algo = defaultValue("A")
+        self.action = defaultValue("N")
+        self.hashSize = defaultValue("t")
+        self.workers = defaultValue("W")
+        self.capacity = defaultValue("c")
+        self.compressionBits = defaultValue("cb")
+        self.shmemBufferSize = defaultValue("bs")
+        self.candidateSetSize = defaultValue("cs")
         self.bfsQueueBlockSize = 10 ** 4
         self.dfsStackBlockSize = 10 ** 4
         self.rwalkMaxDepth = 10 ** 3
-        self.shmemBufferSize = 65000
-        self.candidateSetSize = 10 ** 5
         self.maxTraceLength = 10 ** 3
 
     #  correct inconsistencies in received arguments
@@ -466,7 +513,8 @@ class Config:
             
         params = [
             ("ACTION_BUILD_GRAPH", self.action == BUILD_GRAPH),
-            ("ACTION_CHECK_LTL", self.action == CHECK and self.propType == LTL),
+            ("ACTION_CHECK_LTL", self.action == CHECK and \
+             self.propType == LTL),
             ("ACTION_CHECK_SAFETY", self.action == CHECK and
              self.propType in [ STATE, DEADLOCK]),
             ("ACTION_CHECK", self.action == CHECK),
