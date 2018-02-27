@@ -2,19 +2,9 @@
 #include "dbfs_comm.h"
 #include "comm.h"
 #include "stbl.h"
+#include "debug.h"
 
 #if CFG_ALGO_BFS == 1 || CFG_ALGO_DBFS == 1
-
-#define DBFS_COMM_DEBUG_XXX
-
-#if defined(DBFS_COMM_DEBUG)
-#define dbfs_comm_debug(...)   {                \
-    printf("[pe=%d:pid=%d] ", ME, getpid());    \
-    printf(__VA_ARGS__);                        \
-  }
-#else
-#define dbfs_comm_debug(...) {}
-#endif
 
 #define DBFS_COMM_TERM_CHECK_PERIOD_MS 100
 
@@ -217,7 +207,7 @@ void dbfs_comm_send_buffer
   if(TERM_DETECTED) {
     return;
   }
-  dbfs_comm_debug("polls %d\n", pe);
+  debug("polls %d\n", pe);
   do {
     comm_get(&len, POS_LEN(ME), sizeof(uint32_t), pe);
     if(len > 0) {
@@ -228,12 +218,12 @@ void dbfs_comm_send_buffer
     }
   }
   while(len > 0);
-  dbfs_comm_debug("sends %d bytes to %d\n", LEN[pe], pe);
+  debug("sends %d bytes to %d\n", LEN[pe], pe);
   comm_put(REMOTE_POS[pe], BUF[pe], LEN[pe], pe);
   comm_put(POS_LEN(ME), &LEN[pe], sizeof(uint32_t), pe);
   memset(BUF[pe], 0, LEN[pe]);
   LEN[pe] = 0;
-  dbfs_comm_debug("sent done\n");
+  debug("sent done\n");
 }
 
 void dbfs_comm_send_all_buffers
@@ -275,7 +265,7 @@ void dbfs_comm_receive_buffer
   bfs_queue_item_t item;
   char * b, * b_end;
   
-  dbfs_comm_debug("receives %d bytes from %d\n", len, pe);
+  debug("receives %d bytes from %d\n", len, pe);
   comm_get(buffer, pos, len, ME);
   b = buffer;
   b_end = b + len;
@@ -292,7 +282,7 @@ void dbfs_comm_receive_buffer
     }
   }
   context_incr_stat(STAT_STATES_STORED, 0, stored);
-  dbfs_comm_debug("stored %d states received from %d\n", stored, pe);
+  debug("stored %d states received from %d\n", stored, pe);
 }
 
 bool_t dbfs_comm_process_in_states
@@ -321,7 +311,7 @@ void dbfs_comm_start
   int pe;
   dbfs_comm_term_t term = DBFS_COMM_NO_TERM;
 
-  dbfs_comm_debug("dbfs_comm starting\n");
+  debug("dbfs_comm starting\n");
   PES = comm_pes();
   ME = comm_me();
   comm_malloc(POS_DATA + CFG_SHMEM_BUFFER_SIZE * (PES - 1));
@@ -346,14 +336,14 @@ void dbfs_comm_start
   }
   CW_HEAP = local_heap_new();
   comm_barrier();
-  dbfs_comm_debug("dbfs_comm started\n");
+  debug("dbfs_comm started\n");
 }
 
 void dbfs_comm_end
 () {
   int pe;
 
-  dbfs_comm_debug("dbfs_comm terminating\n");
+  debug("dbfs_comm terminating\n");
   for(pe = 0; pe < PES; pe ++) {
     if(pe != ME) {
       mem_free(SYSTEM_HEAP, BUF[pe]);
@@ -363,7 +353,7 @@ void dbfs_comm_end
   mem_free(SYSTEM_HEAP, BUF);
   mem_free(SYSTEM_HEAP, REMOTE_POS);
   heap_free(CW_HEAP);
-  dbfs_comm_debug("dbfs_comm terminated\n");
+  debug("dbfs_comm terminated\n");
 }
 
 #endif

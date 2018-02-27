@@ -201,7 +201,7 @@ def printSearchReport(r):
                 getBasicNodeValue(e, formatSearchResult, 27)
         elif name in searchInfos:
             print "    " + searchInfos[name] + ": " + \
-                getBasicNodeValue(e, noFormat)
+                getBasicNodeValue(e, noFormat, len(searchInfos[name]) + 6)
         elif name == "searchOptions":
             pref = "    Options              : "
             for o in [ o for o in e.childNodes if o.nodeName in options ]:

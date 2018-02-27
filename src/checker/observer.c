@@ -58,7 +58,6 @@ void * observer_worker
   if(cpu_avg != 0) {
     context_set_stat(STAT_AVG_CPU_USAGE, 0, cpu_avg);
   }
-
   if(CFG_WITH_OBSERVER) {
     printf("%sdone.\n", pref);
   }

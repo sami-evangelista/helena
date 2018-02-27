@@ -438,6 +438,7 @@ class Config:
         self.dfsStackBlockSize = 10 ** 4
         self.rwalkMaxDepth = 10 ** 3
         self.maxTraceLength = 10 ** 3
+        self.debug = False
 
     #  correct inconsistencies in received arguments
     def correct(self):
@@ -529,6 +530,7 @@ class Config:
             ("ALGO_TARJAN", self.algo == TARJAN),
             ("BFS_QUEUE_BLOCK_SIZE", self.bfsQueueBlockSize),
             ("DATE", "\"" + now.strftime("%B, %d, %Y at %H:%M:%S") + "\""),
+            ("DEBUG", self.debug),
             ("DELTA_DDD_CAND_SET_SIZE", self.candidateSetSize),
             ("DELTA_DDD_STORAGE", self.algo == DELTA_DDD),
             ("DFS_STACK_BLOCK_SIZE", self.dfsStackBlockSize),
