@@ -1,8 +1,10 @@
 #!/bin/bash
 
 # H = max hash table size for a node and T = log_2(H)
-T=27
+T=28
 H=$(echo "2 ^ $T" | bc)
+
+REP=5
 
 # HS = SHMEM heap size of each process
 HS=10000000
@@ -16,6 +18,8 @@ outDir=out/dbfs
 mkdir -p $outDir &> /dev/null
 
 models='
+iprotocol.7;59794192;20
+peterson.5;131064750;20
 elevator.5;185008051;22
 lifts.9;266445936;22
 firewire_link.3;425333983;22
@@ -30,6 +34,8 @@ brp.8;1526547707;22
 synapse.9;1675298471;22
 szymanski.6;6779809484;20'
 
+models='elevator.5;185008051;22'
+
 for m in $models
 do
     m=$(echo $m | cut -f1 -d';')
@@ -37,13 +43,13 @@ do
     mkdir $outDir/$m &> /dev/null
 done
 
-for N in $(seq 96 -4 8) 6 4 2 1
+for N in 127 112 96 80 64 56 48 40 32 28 24 20 16 12 8 4 2
 do
     sort -u $OAR_NODEFILE | head -$N > /tmp/machinefile
     [ $(cat /tmp/machinefile | wc -l) -lt $N ] && continue
     for P in 4
     do
-	[ $N = 1 -a $P = 1 ] && P=$((P / 2)) && continue
+	#[ $N = 1 -a $P = 1 ] && P=$((P / 2)) && continue
 	for l in $models
 	do
 	    m=$(echo $l | cut -f1 -d';')
@@ -59,10 +65,10 @@ do
 		p=$((p / 2))
 		t=$((t - 1))
 	    done
-	    for i in $(seq 1 5)
+	    for i in $(seq 1 $REP)
 	    do
-		xml=$outDir/$m/"N"$N"_P"$P"_"$i".xml"
-		out=$outDir/$m/"N"$N"_P"$P"_"$i".out"
+		xml=$outDir/$m/"N"$N"_P"$P"_I"$i".xml"
+		out=$outDir/$m/"N"$N"_P"$P"_I"$i".out"
 		[ -f $xml ] && continue
 		cmd=$helena" -t=$t --report-file=$xml -np=$P -cb=$cb $f"
 		echo "***** MODEL=$m - NODES=$N - PROCESSES=$P *****"

@@ -8,29 +8,32 @@
 #include "shmem.h"
 #endif
 
-#define COMM_SHMEM_CHUNK_SIZE 65000
-#define COMM_SHMEM_DEBUG_XXX
+#define COMM_CHUNK_SIZE 65000
+#define COMM_DEBUG_XXX
 
-#if defined(COMM_SHMEM_DEBUG)
-#define comm_shmem_debug(...)   {			\
+#if defined(COMM_DEBUG)
+#define comm_debug(...)   {			\
     printf("[pe=%d:pid=%d] ", shmem_my_pe(), getpid());	\
     printf(__VA_ARGS__);				\
 }
 #else
-#define comm_shmem_debug(...) {}
+#define comm_debug(...) {}
 #endif
 
-void * COMM_SHMEM_HEAP;
+void * COMM_HEAP;
+int COMM_ME;
+int COMM_PES;
 
 void init_comm
 () {
 #if CFG_DISTRIBUTED == 0
   assert(0);
 #else
+  comm_debug("init_comm started\n");
   shmem_init();
-  COMM_SHMEM_HEAP = shmem_malloc(CFG_SHMEM_HEAP_SIZE);
-  memset(COMM_SHMEM_HEAP, 0, CFG_SHMEM_HEAP_SIZE);
-  comm_shmem_debug("init_comm done\n");
+  COMM_ME = shmem_my_pe();
+  COMM_PES = shmem_n_pes();
+  comm_debug("init_comm done\n");
 #endif
 }
 
@@ -39,8 +42,10 @@ void finalise_comm
 #if CFG_DISTRIBUTED == 0
   assert(0);
 #else
-  shmem_free(COMM_SHMEM_HEAP);
+  comm_debug("finalise_comm_comm started\n");
+  shmem_free(COMM_HEAP);
   shmem_finalize();
+  comm_debug("finalise_comm done\n");
 #endif
 }
 
@@ -49,7 +54,7 @@ int comm_me
 #if CFG_DISTRIBUTED == 0
   return 0;
 #else
-  return shmem_my_pe();
+  return COMM_ME;
 #endif
 }
 
@@ -58,7 +63,19 @@ int comm_pes
 #if CFG_DISTRIBUTED == 0
   return 1;
 #else
-  return shmem_n_pes();
+  return COMM_PES;
+#endif
+}
+
+void * comm_malloc
+(size_t heap_size) {
+#if CFG_DISTRIBUTED == 0
+  return NULL;
+#else
+  COMM_HEAP = shmem_malloc(heap_size);
+  memset(COMM_HEAP, 0, heap_size);
+  comm_barrier();
+  return COMM_HEAP;
 #endif
 }
 
@@ -86,28 +103,22 @@ void comm_put
 #if CFG_DISTRIBUTED == 0
   assert(0);
 #else
-  comm_shmem_debug("put %d bytes at %d to %d\n", size, pos, pe);
-  /**
-   * NOTE: shmem_put fails on local PE in some cases.  we do memcpy
-   * instead which seems equivalent.
-   */
-  if(pe == shmem_my_pe()) {
-    memcpy(COMM_SHMEM_HEAP + pos, src, size);
-  } else {
+  comm_debug("put %d bytes at %d to %d\n", size, pos, pe);
+  if(pe != COMM_ME) {
     context_incr_stat(STAT_SHMEM_COMMS, 0, 1);
-    while(size) {
-      if(size < COMM_SHMEM_CHUNK_SIZE) {
-	shmem_putmem(COMM_SHMEM_HEAP + pos, src, size, pe);
-	size = 0;
-      } else {
-	shmem_putmem(COMM_SHMEM_HEAP + pos, src, COMM_SHMEM_CHUNK_SIZE, pe);
-	size -= COMM_SHMEM_CHUNK_SIZE;
-	pos += COMM_SHMEM_CHUNK_SIZE;
-	src += COMM_SHMEM_CHUNK_SIZE;
-      }
+  }
+  while(size) {
+    if(size < COMM_CHUNK_SIZE) {
+      shmem_putmem(COMM_HEAP + pos, src, size, pe);
+      size = 0;
+    } else {
+      shmem_putmem(COMM_HEAP + pos, src, COMM_CHUNK_SIZE, pe);
+      size -= COMM_CHUNK_SIZE;
+      pos += COMM_CHUNK_SIZE;
+      src += COMM_CHUNK_SIZE;
     }
   }
-  comm_shmem_debug("put done\n");
+  comm_debug("put done\n");
 #endif
 }
 
@@ -119,27 +130,25 @@ void comm_get
 #if CFG_DISTRIBUTED == 0
   assert(0);
 #else
-  if(pe == shmem_my_pe()) {
-    memcpy(dst, COMM_SHMEM_HEAP + pos, size);
-  } else {
-    comm_shmem_debug("get %d bytes at %d from %d\n", size, pos, pe);
+  comm_debug("get %d bytes at %d from %d\n", size, pos, pe);
+  if(pe != COMM_ME) {
     context_incr_stat(STAT_SHMEM_COMMS, 0, 1);
-    while(size) {
-      if(size < COMM_SHMEM_CHUNK_SIZE) {
-        shmem_getmem(dst, COMM_SHMEM_HEAP + pos, size, pe);
-	size = 0;
-      } else {
-	shmem_getmem(dst, COMM_SHMEM_HEAP + pos, COMM_SHMEM_CHUNK_SIZE, pe);
-	size -= COMM_SHMEM_CHUNK_SIZE;
-	pos += COMM_SHMEM_CHUNK_SIZE;
-	dst += COMM_SHMEM_CHUNK_SIZE;
-      }
-    }
-    comm_shmem_debug("get done\n");
   }
+  while(size) {
+    if(size < COMM_CHUNK_SIZE) {
+      shmem_getmem(dst, COMM_HEAP + pos, size, pe);
+      size = 0;
+    } else {
+      shmem_getmem(dst, COMM_HEAP + pos, COMM_CHUNK_SIZE, pe);
+      size -= COMM_CHUNK_SIZE;
+      pos += COMM_CHUNK_SIZE;
+      dst += COMM_CHUNK_SIZE;
+    }
+  }
+  comm_debug("get done\n");
 #endif
 }
 
 void * comm_heap() {
-  return COMM_SHMEM_HEAP;
+  return COMM_HEAP;
 }

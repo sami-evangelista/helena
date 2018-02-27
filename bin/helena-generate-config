@@ -29,7 +29,6 @@ CHECK       = "CHECK"
 BFS         = "BFS"
 BWALK       = "BWALK"
 DBFS        = "DBFS"
-DDFS        = "DDFS"
 DFS         = "DFS"
 RWALK       = "RWALK"
 DELTA_DDD   = "DELTA-DDD"
@@ -252,7 +251,7 @@ must take one of these three values:
 Activate/deactivate the use of the PAPI (Performance Application
 Programming Interface, see http://icl.utk.edu/papi/) to print
 additional statistics at the end of the search."""
-#    elif o in [ "hs", "shmem-heap-size" ]:
+#    elif o in [ "bs", "shmem-buffer-size" ]:
 #        return None
 #    elif o in [ "mf", "machine-file" ]:
 #        return None
@@ -389,7 +388,7 @@ class Config:
         self.bfsQueueBlockSize = 10 ** 4
         self.dfsStackBlockSize = 10 ** 4
         self.rwalkMaxDepth = 10 ** 3
-        self.shmemHeapSize = 10 ** 6
+        self.shmemBufferSize = 65000
         self.candidateSetSize = 10 ** 5
         self.maxTraceLength = 10 ** 3
 
@@ -408,8 +407,6 @@ class Config:
         if self.algo == DBFS:
             self.traceType = STATE
             self.workers = 1
-        if self.algo == DDFS:
-            self.workers = 1
         if self.hashSize > 32:
             self.hashSize = 32
         if self.hashCompaction:
@@ -427,12 +424,11 @@ class Config:
         #  partial order reduction not available for random walk,
         #  delta-ddd and distributed algoritms
         self.partialOrder = self.partialOrder and self.algo not in [
-            BWALK, RWALK, DELTA_DDD, DDFS, DBFS ]
+            BWALK, RWALK, DELTA_DDD, DBFS ]
 
         #  random successors selection only available for BWALK, DFS
-        #  and DDFS
         self.randomSuccs = self.randomSuccs and self.algo in [
-            BWALK, DFS, DDFS ]
+            BWALK, DFS ]
 
     def openFile(self, name, mode):
         if self.directory is None:
@@ -479,7 +475,6 @@ class Config:
             ("ALGO_BFS", self.algo == BFS),
             ("ALGO_BWALK", self.algo == BWALK),
             ("ALGO_DBFS", self.algo == DBFS),
-            ("ALGO_DDFS", self.algo == DDFS),
             ("ALGO_DELTA_DDD", self.algo == DELTA_DDD),
             ("ALGO_DFS", self.algo == DFS),
             ("ALGO_RWALK", self.algo == RWALK),
@@ -489,7 +484,7 @@ class Config:
             ("DELTA_DDD_CAND_SET_SIZE", self.candidateSetSize),
             ("DELTA_DDD_STORAGE", self.algo == DELTA_DDD),
             ("DFS_STACK_BLOCK_SIZE", self.dfsStackBlockSize),
-            ("DISTRIBUTED", self.algo in [ DBFS, DDFS ]),
+            ("DISTRIBUTED", self.algo in [ DBFS ]),
             ("DYNAMIC_POR", self.dynamicPartialOrder),
             ("FILE_PATH", "\"" + os.path.realpath(self.inFile) + "\""),
             ("GRAPH_FILE", "\"graph.dat\""),
@@ -515,7 +510,7 @@ class Config:
             ("REPORT_FILE", "\"report.xml\""),
             ("RG_REPORT_FILE", "\"rg-report.xml\""),
             ("RWALK_MAX_DEPTH", self.rwalkMaxDepth),
-            ("SHMEM_HEAP_SIZE", self.shmemHeapSize),
+            ("SHMEM_BUFFER_SIZE", self.shmemBufferSize),
             ("STATE_COMPRESSION", self.stateCompression),
             ("STATE_COMPRESSION_BITS", self.compressionBits),
             ("STATE_LIMITED", self.stateLimit != 0),
@@ -614,8 +609,8 @@ class Config:
             elif opt in [ "-cs", "--candidate-set-size" ]:
                 recognized = self.handleNumericalOption("candidateSetSize",
                                                         val)
-            elif opt in [ "-hs", "--shmem-heap-size" ]:
-                recognized = self.handleNumericalOption("shmemHeapSize", val)
+            elif opt in [ "-bs", "--shmem-buffer-size" ]:
+                recognized = self.handleNumericalOption("shmemBufferSize", val)
             elif opt in [ "-t", "--hash-size" ]:
                 recognized = self.handleNumericalOption("hashSize", val)
             elif opt in [ "-tl", "--time-limit" ]:
@@ -657,7 +652,7 @@ class Config:
             #  enum options
             elif opt in [ "-A", "--algo" ]:
                 recognized = self.handleEnumOption \
-                             ("algo", val, [BFS, BWALK, DBFS, DFS, DDFS, \
+                             ("algo", val, [BFS, BWALK, DBFS, DFS, \
                                             DELTA_DDD, RWALK, TARJAN])
             elif opt in [ "-tr", "--trace-type" ]:
                 recognized = self.handleEnumOption \

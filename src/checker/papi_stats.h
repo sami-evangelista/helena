@@ -1,6 +1,6 @@
 /**
- * @file bfs.h
- * @brief 
+ * @file papi_stats.h
+ * @brief Output some statistics provided by the PAPI library.
  * @date 16 oct 2017
  * @author Sami Evangelista
  */

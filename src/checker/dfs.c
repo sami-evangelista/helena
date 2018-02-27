@@ -3,13 +3,12 @@
 #include "dfs.h"
 #include "model.h"
 #include "dfs_stack.h"
-#include "ddfs_comm.h"
 #include "prop.h"
 #include "reduction.h"
 #include "workers.h"
 #include "por_analysis.h"
 
-#if CFG_ALGO_DDFS == 0 && CFG_ALGO_DFS == 0 && CFG_ALGO_TARJAN == 0
+#if CFG_ALGO_DFS == 0 && CFG_ALGO_TARJAN == 0
 
 void dfs() { assert(0); }
 
@@ -90,10 +89,8 @@ void * dfs_worker
   const bool_t check_safety = CFG_ACTION_CHECK_SAFETY;
   const bool_t por = CFG_POR;
   const bool_t proviso = CFG_POR && CFG_PROVISO;
-  const bool_t shuffle = CFG_PARALLEL || CFG_ALGO_DDFS || CFG_RANDOM_SUCCS;
-  const bool_t ddfs = CFG_ALGO_DDFS;
-  const bool_t cndfs = check_ltl
-    && CFG_ALGO_DDFS || (CFG_ALGO_DFS && CFG_PARALLEL);
+  const bool_t shuffle = CFG_PARALLEL || CFG_RANDOM_SUCCS;
+  const bool_t cndfs = check_ltl && CFG_ALGO_DFS && CFG_PARALLEL;
   const bool_t tarjan = CFG_ALGO_TARJAN;
   const bool_t states_stored = 
 #if defined(MODEL_HAS_EVENT_UNDOABLE)
@@ -261,13 +258,6 @@ void * dfs_worker
       }
 
       /*
-       * in distributed DFS we process the state to be later sent
-       */
-      if(ddfs) {
-	ddfs_comm_process_explored_state(w, id);
-      }
-
-      /*
        * in tarjan we check the state popped if the root of an SCC in
        * which case we pop this SCC
        */
@@ -389,14 +379,7 @@ void * dfs_worker
 void dfs
 () {
   H = stbl_default_new();
-  if(CFG_ALGO_DDFS) {
-    ddfs_comm_start(H);
-  }
   launch_and_wait_workers(&dfs_worker);
-  if(CFG_ALGO_DDFS) {
-    context_stop_search();
-    ddfs_comm_end();
-  }
   htbl_free(H);
 }
 

@@ -11,7 +11,6 @@ compression
 context
 darray
 dbfs_comm
-ddfs_comm
 delta_ddd
 dfs
 dfs_stack
@@ -39,18 +38,16 @@ binName=../../bin/$toolName
 
 function genString () {
     F=$1
-    if [ -e $F ]
-    then
-	echo "    ############################################################"
-	echo "    f = open (dir + \"/\" + \"$F\", \"w\")"
-	echo "    f.write (\"\\"
-	cat $F | \
-	    sed 's/\\/\\\\/g' | \
-	    sed 's/"/\\"/g' | \
-	    sed 's/$/\\n\\/'
-	echo "\"    )"
-	echo "    f.close ()"
-    fi
+    [ ! -e $F ] && return
+    echo "    ############################################################"
+    echo "    f = open (dir + \"/\" + \"$F\", \"w\")"
+    echo "    f.write (\"\\"
+    cat $F | \
+	sed 's/\\/\\\\/g' | \
+	sed 's/"/\\"/g' | \
+	sed 's/$/\\n\\/'
+    echo "\"    )"
+    echo "    f.close ()"
 }
 
 echo "#!/usr/bin/python" > $binName

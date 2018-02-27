@@ -16,8 +16,7 @@ void bfs() { assert(0); }
 
 #else
 
-#define DBFS_CHECK_PERIOD 1000
-
+uint32_t DBFS_CHECK_PERIOD = 10000;
 htbl_t H = NULL;
 bfs_queue_t Q = NULL;
 pthread_barrier_t BFS_BARRIER;
@@ -49,7 +48,7 @@ bool_t bfs_check_termination
   if(!CFG_ALGO_DBFS && !CFG_PARALLEL) {
     result = !context_keep_searching() || bfs_queue_is_empty(Q);
   } else if(CFG_ALGO_DBFS) {
-    result = dbfs_comm_check_termination();
+    result = dbfs_comm_idle();
   } else {
     if(bfs_queue_is_empty(Q) || !context_keep_searching() || BFS_AT_BARRIER) {
       BFS_AT_BARRIER = TRUE;
@@ -109,7 +108,7 @@ void * bfs_worker
   bool_t is_new, reduced;
   hkey_t h;
   unsigned int dbfs_ctr = DBFS_CHECK_PERIOD;
-
+  
   do {
     for(x = 0; x < bfs_queue_no_workers(Q) && context_keep_searching(); x ++) {
       while(!bfs_queue_slot_is_empty(Q, x, w) && context_keep_searching()) {
@@ -118,8 +117,11 @@ void * bfs_worker
 	 * in DBFS we check incomming messages every
 	 * DBFS_CHECK_PERIOD^th state processed
 	 */
-	if(CFG_ALGO_DBFS && (-- dbfs_ctr)) {
+	if(CFG_ALGO_DBFS && (0 == (-- dbfs_ctr))) {
 	  dbfs_comm_check_communications();
+	  if(!context_keep_searching()) {
+	    goto check_termination;
+	  }
 	  dbfs_ctr = DBFS_CHECK_PERIOD;
 	}
 
@@ -170,11 +172,19 @@ void * bfs_worker
           arcs ++;
           list_pick_first(en, &e);
           bfs_goto_succ();
+
+	  /**
+	   * in DBFS we check if the successor state is ours.
+	   * otherwise we go back to s to get the next successor
+	   */
           if(CFG_ALGO_DBFS) {
             h = state_hash(succ);
             if(!dbfs_comm_state_owned(h)) {
               dbfs_comm_process_state(succ, h);
-              bfs_back_to_s();
+	      if(!context_keep_searching()) {
+		goto check_termination;
+	      }
+	      bfs_back_to_s();
               continue;
             }
           }
@@ -238,6 +248,7 @@ void * bfs_worker
         htbl_set_worker_attr(H, item.id, ATTR_CYAN, w, FALSE);
       }
     }
+  check_termination: {}    
   } while(!bfs_check_termination(w));
   heap_free(heap);
 }
@@ -284,7 +295,6 @@ void bfs
   launch_and_wait_workers(&bfs_worker);
 
   if(CFG_ALGO_DBFS) {
-    context_stop_search();
     dbfs_comm_end();
   }
   htbl_free(H);

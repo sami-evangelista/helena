@@ -342,8 +342,6 @@ void finalise_context
       fprintf(out, "depthSearch");
     } else if(CFG_ALGO_BFS) {
       fprintf(out, "breadthSearch");
-    } else if(CFG_ALGO_DDFS) {
-      fprintf(out, "distributedDepthSearch");
     } else if(CFG_ALGO_DBFS) {
       fprintf(out, "distributedBreadthSearch");
     } else if(CFG_ALGO_RWALK) {
@@ -359,7 +357,8 @@ void finalise_context
     }
     fprintf(out, "<workers>%d</workers>\n", CTX->no_workers);
     if(CFG_DISTRIBUTED) {
-      fprintf(out, "<shmemHeapSize>%d</shmemHeapSize>\n", CFG_SHMEM_HEAP_SIZE);
+      fprintf(out, "<shmemBufferSize>%d</shmemBufferSize>\n",
+	      CFG_SHMEM_BUFFER_SIZE);
     }
     if(CFG_POR) {
       fprintf(out, "<partialOrder/>\n");
@@ -430,7 +429,7 @@ void finalise_context
      *  after the other to avoid mixed lines.
      */
     if(CFG_DISTRIBUTED) {
-      struct timespec t = { 0, 100000000 };
+      struct timespec t = { 0, 10000000 };
       for(i = 0; i < comm_pes(); i ++) {
 	comm_barrier();
 	if(i == comm_me()) {

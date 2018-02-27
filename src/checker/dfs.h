@@ -1,6 +1,6 @@
 /**
  * @file dfs.h
- * @brief Implementation of DFS based algorithms: DFS, DDFS (distributed DFS).
+ * @brief Implementation of DFS based algorithms.
  *        Nested DFS algorithms for LTL verification (sequential or multi-core)
  *        are also implemented here.
  * @date 12 sep 2017

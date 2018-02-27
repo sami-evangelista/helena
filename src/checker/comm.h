@@ -26,6 +26,13 @@ void finalise_comm
 
 
 /**
+ * @brief comm_malloc
+ */
+void * comm_malloc
+(size_t heap_size);
+
+
+/**
  * @brief comm_me
  */
 int comm_me

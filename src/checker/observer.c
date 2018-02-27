@@ -16,7 +16,7 @@ void * observer_worker
   char name[100], pref[100];
   int n = 0;
   uint64_t old_processed = 0;
- 
+
   pref[0] = 0;  
   if(CFG_WITH_OBSERVER) {
     if(CFG_DISTRIBUTED) {

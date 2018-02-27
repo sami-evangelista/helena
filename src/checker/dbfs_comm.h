@@ -37,9 +37,9 @@ void dbfs_comm_process_state
 
 
 /**
- *  @brief dbfs_comm_check_termination
+ *  @brief dbfs_comm_idle
  */
-bool_t dbfs_comm_check_termination
+bool_t dbfs_comm_idle
 ();
 
 
@@ -74,7 +74,7 @@ bool_t dbfs_comm_process_in_states
 /**
  * @brief dbfs_comm_process_in_states
  */
-void dbfs_comm_check_communications
+bool_t dbfs_comm_check_communications
 ();
 
 #endif
