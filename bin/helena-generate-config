@@ -80,7 +80,7 @@ def defaultValue(p):
     if p in [ "c", "capacity" ]: return 1
     if p in [ "b", "observer" ]: return 1
     if p in [ "H", "hash-compaction" ]: return 0
-    if p in [ "C", "state-compression" ]: return 1
+    if p in [ "C", "state-compression" ]: return 0
     if p in [ "wp", "with-papi" ]: return 0
     if p in [ "P", "partial-order" ]: return 0
     if p in [ "tl", "time-limit" ]: return 0
@@ -295,7 +295,7 @@ Set the number of processes to execute on each node for algorithm DBFS."""
     if result is not None:
         default = defaultValue(o)
         if default is not None:
-            result += "\n\ndefault value = " + str(default)
+            result += "\n\n*default value = " + str(default) + "*"
         return result
     else:
         raise Exception
