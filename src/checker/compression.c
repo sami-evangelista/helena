@@ -80,7 +80,7 @@ void * compression_get_compressed_comp
   return v;
 }
 
-void init_compress_data
+void init_compression
 () {
 #if CFG_STATE_COMPRESSION == 1 && defined(MODEL_HAS_STATE_COMPRESSION)
   int i;
@@ -105,7 +105,7 @@ void init_compress_data
 #endif
 }
 
-void finalise_compress_data
+void finalise_compression
 () {
 #if CFG_STATE_COMPRESSION == 1 && defined(MODEL_HAS_STATE_COMPRESSION)
   int i;

@@ -13,16 +13,16 @@
 
 
 /**
- * @brief compress_data_init
+ * @brief init_compression
  */
-void init_compress_data
+void init_compression
 ();
 
 
 /**
- * @brief compress_data_finalise
+ * @brief finalise_compression
  */
-void finalise_compress_data
+void finalise_compression
 ();
 
 

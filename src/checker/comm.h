@@ -47,6 +47,13 @@ int comm_pes
 
 
 /**
+ * @brief comm_heap_size
+ */
+size_t comm_heap_size
+();
+
+
+/**
  * @brief comm_barrier
  */
 void comm_barrier

@@ -110,21 +110,24 @@ options = {
     "candidateSetSize": "Candidate set size (for Delta-DDD) = ",
     "hashTableSize"   : "Hash table size = ",
     "shmemBufferSize" : "SHMEM buffer size = ",
+    "shmemHeapSize"   : "SHMEM total heap size = ",
     "workers"         : "Exploration threads = " }
 optionsWithVal = {
     "workers"         : formatNumber,
     "shmemBufferSize" : formatNumber,
+    "shmemHeapSize"   : formatNumber,
     "candidateSetSize": formatNumber,
     "hashTableSize"   : formatNumber,
     "searchAlgorithm" : lambda a: algorithms[a] }
 optionsWithUnits = {
     "shmemBufferSize" : "bytes",
+    "shmemHeapSize"   : "bytes",
     "candidateSetSize": "states",
     "hashTableSize"   : "states" }
 statistics = {
     (0, "compilationTime")         : "Source compilation        ",
     (1, "searchTime")              : "Search time               ",
-    (2, "barrierTime")             : "        including barriers",
+    #(2, "barrierTime")             : "        including barriers",
     (3, "places")                  : "Places                    ",
     (4, "transitions")             : "Transitions               ",
     (5, "netArcs")                 : "Arcs                      ",

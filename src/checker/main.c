@@ -11,6 +11,8 @@
 #include "bit_stream.h"
 #include "comm.h"
 #include "papi_stats.h"
+#include "dist_compression.h"
+
 
 int main
 (int argc,
@@ -26,12 +28,13 @@ int main
   init_model();
   if(CFG_DISTRIBUTED) {
     init_comm();
+    init_dist_compression();
   }
   if(CFG_WITH_PAPI) {
     init_papi_stats();
   }
   init_context();
-  init_compress_data();
+  init_compression();
 
   if(CFG_ACTION_SIMULATE) { 
     simulator();
@@ -85,9 +88,10 @@ int main
       finalise_papi_stats();
     }
     if(CFG_DISTRIBUTED) {
+      finalise_dist_compression();
       finalise_comm();
     }
-    finalise_compress_data();
+    finalise_compression();
     finalise_model();
   }
 

@@ -4,7 +4,6 @@
 #include "config.h"
 #include "comm.h"
 #include "papi_stats.h"
-#include <unistd.h>
 
 #define NO_STATS 17
 
@@ -359,6 +358,8 @@ void finalise_context
     if(CFG_DISTRIBUTED) {
       fprintf(out, "<shmemBufferSize>%d</shmemBufferSize>\n",
 	      CFG_SHMEM_BUFFER_SIZE);
+      fprintf(out, "<shmemHeapSize>%llu</shmemHeapSize>\n",
+	      comm_heap_size());
     }
     if(CFG_POR) {
       fprintf(out, "<partialOrder/>\n");

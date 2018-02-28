@@ -11,6 +11,7 @@
 
 #define COMM_CHUNK_SIZE 65000
 
+size_t COMM_HEAP_SIZE;
 void * COMM_HEAP;
 int COMM_ME;
 int COMM_PES;
@@ -63,11 +64,17 @@ void * comm_malloc
 #if CFG_DISTRIBUTED == 0
   return NULL;
 #else
+  COMM_HEAP_SIZE = heap_size;
   COMM_HEAP = shmem_malloc(heap_size);
   memset(COMM_HEAP, 0, heap_size);
   comm_barrier();
   return COMM_HEAP;
 #endif
+}
+
+size_t comm_heap_size
+() {
+  return COMM_HEAP_SIZE;
 }
 
 void comm_barrier

@@ -6,8 +6,6 @@
 
 #if CFG_ALGO_BFS == 1 || CFG_ALGO_DBFS == 1
 
-#define DBFS_COMM_TERM_CHECK_PERIOD_MS 100
-
 htbl_t H;
 bfs_queue_t Q;
 heap_t CW_HEAP;
@@ -193,7 +191,7 @@ bool_t dbfs_comm_idle
       return FALSE;
     }
     duration = 1000 * (clock() - start) / CLOCKS_PER_SEC;
-    if(duration >= DBFS_COMM_TERM_CHECK_PERIOD_MS && 0 == ME) {
+    if(duration >= CFG_DBFS_CHECK_TERM_PERIOD_MS && 0 == ME) {
       dbfs_comm_send_token();
       start = clock();
     }
