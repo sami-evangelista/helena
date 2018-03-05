@@ -213,9 +213,7 @@ bool_t htbl_contains
 
 htbl_insert_code_t htbl_insert
 (htbl_t tbl,
- void * s,
- htbl_id_t * id,
- hkey_t * h) {
+ htbl_meta_data_t * mdata) {
   htbl_id_t i;
   uint32_t trials = HTBL_INSERT_MAX_TRIALS;
   uint32_t still = HTBL_CACHE_LINE_SIZE, num = 0;
@@ -227,9 +225,13 @@ htbl_insert_code_t htbl_insert
   /**
    * compress the data and compute its hash value
    */
-  tbl->compress_func(s, buffer, &size);
-  (*h) = string_hash_init(buffer, size, 0);
-  i = (*h) & tbl->hash_size_m;
+  tbl->compress_func(mdata->item, buffer, &size);
+  if(!mdata->h_set) {
+    mdata->h_set = TRUE;
+    mdata->h = string_hash_init(buffer, size, 0);
+  }
+  
+  i = mdata->h & tbl->hash_size_m;
   pos = HTBL_POS_ITEM(tbl, i);
   while(TRUE) {
 
@@ -243,7 +245,7 @@ htbl_insert_code_t htbl_insert
        */
       switch(tbl->type) {
       case HTBL_HASH_COMPACTION:
-        HTBL_SET_HASH(tbl, pos, h);
+        HTBL_SET_HASH(tbl, pos, &(mdata->h));
         break;
       case HTBL_FULL_DYNAMIC:
         sv = mem_alloc0(tbl->heap, size);
@@ -258,7 +260,8 @@ htbl_insert_code_t htbl_insert
         assert(0);
       }
       (*(HTBL_POS_STATUS(tbl, pos))) = BUCKET_READY;
-      (*id) = i;
+      mdata->id = i;
+      mdata->id_set = TRUE;
       return HTBL_INSERT_OK;
     }
 
@@ -275,13 +278,14 @@ htbl_insert_code_t htbl_insert
      */
     if(HTBL_HASH_COMPACTION == tbl->type) {
       HTBL_GET_HASH(tbl, pos, &h_other);
-      found = h_other == *h;
+      found = h_other == mdata->h;
     } else {
       HTBL_GET_VECTOR(tbl, pos, sv_other);
       found = 0 == memcmp(sv_other, buffer, size);
     }
     if(found) {
-      (*id) = i;
+      mdata->id = i;
+      mdata->id_set = TRUE;
       return HTBL_INSERT_FOUND;
     }
     
@@ -302,8 +306,7 @@ htbl_insert_code_t htbl_insert
       pos = i ? (pos + tbl->item_size) : HTBL_POS_ITEM(tbl, 0);
     } else {
       still = HTBL_CACHE_LINE_SIZE;
-      (*h) = string_hash_init(buffer, size, ++ num);
-      i = (*h) & tbl->hash_size_m;
+      i = (string_hash_init(buffer, size, ++ num)) & tbl->hash_size_m;
       pos = HTBL_POS_ITEM(tbl, i);
     }
   }

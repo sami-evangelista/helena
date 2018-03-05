@@ -99,8 +99,8 @@ void * dfs_worker
     CFG_HASH_COMPACTION
 #endif
     ;
+  htbl_meta_data_t mdata;
   uint32_t i;
-  hkey_t h;
   heap_t heap = local_heap_new();
   state_t copy, now = state_initial(heap);
   dfs_stack_t stack = dfs_stack_new(wid, CFG_DFS_STACK_BLOCK_SIZE,
@@ -121,7 +121,9 @@ void * dfs_worker
   /*
    * insert the initial state and push it on the stack
    */
-  stbl_insert(H, now, is_new, &id, &h);
+  htbl_meta_data_init(mdata, now);
+  stbl_insert(H, mdata, is_new);
+  id = mdata.id;
   dfs_push_new_state(id, TRUE);
 
   /*
@@ -304,7 +306,9 @@ void * dfs_worker
       /*
        * try to insert the successor
        */
-      stbl_insert(H, now, is_new, &id_succ, &h);
+      htbl_meta_data_init(mdata, now);
+      stbl_insert(H, mdata, is_new);
+      id_succ = mdata.id;
       
       /*
        * if we check an LTL property and are in the red search, test

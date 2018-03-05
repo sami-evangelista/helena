@@ -8,7 +8,7 @@
 BS=$1
 
 # H = max hash table size for a node and T = log_2(H)
-T=28
+T=27
 H=$(echo "2 ^ $T" | bc)
 
 # number of times a test is launched
@@ -29,7 +29,9 @@ lifts.9;266445936;22
 firewire_link.3;425333983;22
 leader_filters.8;431401020;22
 collision.5;431965993;22
-iprotocol.8;447570146;22
+iprotocol.8;447570146;22'
+
+MODELS2='
 anderson.8;538699029;22
 telephony.8;1051746064;24
 public_subscribe.5;1153014089;22                                               

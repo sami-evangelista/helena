@@ -10,6 +10,12 @@
  * by Alfons Laarman, Jaco van de Pol, Michael Weber.
  * in Formal Methods in Computer-Aided Design.
  *
+ * TODO
+ * - htbl_free is excessively slow (due to cache effects ?) for
+ *   dynamic state vectors.  hence we do not free individual vectors
+ *   for now
+ * - compute cache line
+ * - remove state attributes from here
  */
 
 #ifndef LIB_HTBL
@@ -74,6 +80,23 @@ typedef void * (* htbl_uncompress_func_t) (char *, heap_t);
 
 typedef void (* htbl_fold_func_t) (void *, htbl_id_t, void *);
 
+/**
+ * @typedef htbl_meta_data_t
+ * @brief meta data associated to items of the hash table
+ */
+typedef struct {
+  void * item;
+  bool_t h_set;
+  hkey_t h;
+  bool_t id_set;
+  htbl_id_t id;
+} htbl_meta_data_t;
+
+#define htbl_meta_data_init(data, it) {		\
+    data.item = (void *) it;			\
+    data.h_set = data.id_set = FALSE;		\
+  }
+
 
 /**
  * @brief htbl_new
@@ -111,9 +134,7 @@ bool_t htbl_contains
  */
 htbl_insert_code_t htbl_insert
 (htbl_t tbl,
- void * data,
- htbl_id_t * id,
- hkey_t * h);
+ htbl_meta_data_t * data);
 
 
 /**

@@ -257,9 +257,9 @@ void dbfs_comm_receive_buffer
  int pos) {
   uint32_t stored = 0;
   bool_t is_new;
-  hkey_t h;
   char buffer[CFG_SHMEM_BUFFER_SIZE];
   htbl_id_t sid;
+  htbl_meta_data_t mdata;
   bfs_queue_item_t item;
   char * b, * b_end;
   
@@ -271,11 +271,12 @@ void dbfs_comm_receive_buffer
   comm_put(POS_LEN(pe), &len, sizeof(uint32_t), ME);
   while(b != b_end) {
     heap_reset(CW_HEAP);
-    stbl_insert(H, state_unserialise(b, CW_HEAP), is_new, &sid, &h);
+    htbl_meta_data_init(mdata, state_unserialise(b, CW_HEAP));
+    stbl_insert(H, mdata, is_new);
     b += MODEL_STATE_SIZE;
     if(is_new) {
       stored ++;
-      item.id = sid;
+      item.id = mdata.id;
       bfs_queue_enqueue(Q, item, 0, 0);
     }
   }

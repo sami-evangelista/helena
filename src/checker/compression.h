@@ -27,7 +27,7 @@ void finalise_compression
 
 
 /**
- * @brief mstate_uncompress
+ * @brief mstate_compress
  */
 void mstate_compress
 (mstate_t s,

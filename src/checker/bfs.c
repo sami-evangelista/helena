@@ -108,6 +108,7 @@ void * bfs_worker
   bool_t is_new, reduced;
   hkey_t h;
   unsigned int dbfs_ctr = DBFS_CHECK_PERIOD;
+  htbl_meta_data_t mdata;
   
   do {
     for(x = 0; x < bfs_queue_no_workers(Q) && context_keep_searching(); x ++) {
@@ -188,7 +189,10 @@ void * bfs_worker
               continue;
             }
           }
-          stbl_insert(H, succ, is_new, &id_succ, &h);
+	  htbl_meta_data_init(mdata, succ);
+          stbl_insert(H, mdata, is_new);
+	  id_succ = mdata.id;
+	  h = mdata.h;
 
           /**
            * if new, enqueue the successor
@@ -263,6 +267,7 @@ void bfs
   bool_t enqueue = TRUE;
   bfs_queue_item_t item;
   hkey_t h;
+  htbl_meta_data_t mdata;
 
   H = stbl_default_new();
   bfs_init_queue();
@@ -279,7 +284,10 @@ void bfs
   }
   
   if(enqueue) {
-    stbl_insert(H, s, is_new, &id, &h);
+    htbl_meta_data_init(mdata, s);
+    stbl_insert(H, mdata, is_new);
+    id = mdata.id;
+    h = mdata.h;
     w = h % CFG_NO_WORKERS;
     item.id = id;
     item.s = s;

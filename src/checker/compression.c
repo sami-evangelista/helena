@@ -18,16 +18,17 @@ void mstate_compress
   bit_stream_t bits;
   htbl_id_t id;
   hkey_t h;
+  htbl_meta_data_t mdata;
 
   *size = compression_compressed_char_size;
   memset(v, 0, *size);
   bit_stream_init(bits, v);
   for(i = 0; i < MODEL_NO_COMPONENTS; i ++) {
-    if(HTBL_INSERT_FULL ==
-       htbl_insert(compression_htbls[i], (void *) s, &id, &h)) {
+    htbl_meta_data_init(mdata, s);
+    if(HTBL_INSERT_FULL == htbl_insert(compression_htbls[i], &mdata)) {
       context_error(compression_tbl_full_msg);
     } else {
-      bit_stream_set(bits, id, CFG_STATE_COMPRESSION_BITS);
+      bit_stream_set(bits, mdata.id, CFG_STATE_COMPRESSION_BITS);
     }
   }
   return;
