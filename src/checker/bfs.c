@@ -9,6 +9,7 @@
 #include "reduction.h"
 #include "workers.h"
 #include "state.h"
+#include "dist_compression.h"
 
 #if CFG_ALGO_BFS == 0 && CFG_ALGO_DBFS == 0
 
@@ -109,6 +110,7 @@ void * bfs_worker
   hkey_t h;
   unsigned int dbfs_ctr = DBFS_CHECK_PERIOD;
   htbl_meta_data_t mdata;
+  bool_t mine;
   
   do {
     for(x = 0; x < bfs_queue_no_workers(Q) && context_keep_searching(); x ++) {
@@ -138,6 +140,7 @@ void * bfs_worker
         } else {
           s = htbl_get(H, item.id, heap);
         }
+        //state_print(s, stdout);
 
         /**
          * compute enabled events and apply POR
@@ -173,29 +176,31 @@ void * bfs_worker
           arcs ++;
           list_pick_first(en, &e);
           bfs_goto_succ();
-
+          htbl_meta_data_init(mdata, succ);
+          
 	  /**
 	   * in DBFS we check if the successor state is ours.
 	   * otherwise we go back to s to get the next successor
 	   */
           if(CFG_ALGO_DBFS) {
-            h = state_hash(succ);
-            if(!dbfs_comm_state_owned(h)) {
-              dbfs_comm_process_state(succ, h);
-	      if(!context_keep_searching()) {
-		goto check_termination;
-	      }
-	      bfs_back_to_s();
+            mine = dbfs_comm_process_state(&mdata);
+            if(!context_keep_searching()) {
+              goto check_termination;
+            } else if(!mine) {
+              bfs_back_to_s();
               continue;
             }
           }
-	  htbl_meta_data_init(mdata, succ);
+
+          /**
+           * try to insert the successor state in the table
+           */
           stbl_insert(H, mdata, is_new);
 	  id_succ = mdata.id;
 	  h = mdata.h;
 
           /**
-           * if new, enqueue the successor
+           * the successor state is new => enqueue it
            */
           if(is_new) {
             y = bfs_thread_owner(h);
@@ -211,9 +216,9 @@ void * bfs_worker
           } else {
 
             /**
-             * if the successor state is not new and if the current
-             * state is reduced then the successor must be in the
-             * queue (i.e., cyan for some worker) or safe
+             * the successor state is not new => if the current state
+             * is reduced then the successor must be in the queue
+             * (i.e., cyan for some worker) or safe
              */
             if(por && proviso && reduced &&
                !htbl_get_any_cyan(H, id_succ) &&

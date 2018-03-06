@@ -1,4 +1,5 @@
 #include "compression.h"
+#include "dist_compression.h"
 #include "context.h"
 #include "observer.h"
 #include "config.h"
@@ -370,7 +371,7 @@ void finalise_context
     if(CFG_RANDOM_SUCCS) {
       fprintf(out, "<randomSuccs/>\n");
     }
-    if(CFG_STATE_COMPRESSION) {
+    if(CFG_STATE_COMPRESSION || CFG_DISTRIBUTED_STATE_COMPRESSION) {
       fprintf(out, "<stateCompression/>\n");
     }
     if(CFG_ALGO_DELTA_DDD) {
@@ -385,9 +386,13 @@ void finalise_context
 #if defined(MODEL_STATE_SIZE)
     fprintf(out, "<stateSize>%d</stateSize>\n", MODEL_STATE_SIZE);
 #endif
-#if CFG_STATE_COMPRESSION == 1 && defined(MODEL_HAS_STATE_COMPRESSION)
+#if CFG_STATE_COMPRESSION && defined(MODEL_HAS_STATE_COMPRESSION)
     fprintf(out, "<compressedStateSize>%d</compressedStateSize>\n",
             state_compressed_char_size());
+#endif
+#if CFG_DISTRIBUTED_STATE_COMPRESSION && defined(MODEL_HAS_STATE_COMPRESSION)
+    fprintf(out, "<compressedStateSize>%d</compressedStateSize>\n",
+            state_dist_compressed_char_size());
 #endif
     fprintf(out, "</modelStatistics>\n");
     fprintf(out, "<timeStatistics>\n");

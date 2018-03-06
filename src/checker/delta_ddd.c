@@ -157,7 +157,7 @@ void delta_ddd_barrier
 delta_ddd_storage_t delta_ddd_storage_new
 () {
   worker_id_t w;
-  unsigned int i, fst, last, s;
+  unsigned int i;
   delta_ddd_storage_t result;
 
   result = mem_alloc(SYSTEM_HEAP, sizeof(struct_delta_ddd_storage_t));
@@ -180,8 +180,6 @@ delta_ddd_storage_t delta_ddd_storage_new
 
 void delta_ddd_storage_free
 (delta_ddd_storage_t storage) {
-  worker_id_t w, x;
-  unsigned int i;
   mem_free(SYSTEM_HEAP, storage);
 }
 
@@ -489,7 +487,7 @@ delta_ddd_storage_id_t delta_ddd_insert_new_state
  delta_ddd_state_t s,
  delta_ddd_storage_id_t pred) {
   uint8_t r = (RECONS_ID + 1) & 1;
-  unsigned int id, fst = h & CFG_HASH_SIZE_M, slot = fst;
+  unsigned int fst = h & CFG_HASH_SIZE_M, slot = fst;
 
   context_incr_stat(STAT_STATES_STORED, w, 1);
   

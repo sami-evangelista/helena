@@ -49,4 +49,18 @@ void * mstate_dist_uncompress
 uint16_t mstate_dist_compressed_char_size
 ();
 
+
+/**
+ * @brief dist_compression_heap_size
+ */
+size_t dist_compression_heap_size
+();
+
+
+/**
+ * @brief dist_compression_set_heap_pos
+ */
+void dist_compression_set_heap_pos
+(uint32_t pos);
+
 #endif

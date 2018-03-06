@@ -90,11 +90,14 @@ typedef struct {
   hkey_t h;
   bool_t id_set;
   htbl_id_t id;
+  bool_t v_set;
+  char v[65536];
+  uint16_t v_size;
 } htbl_meta_data_t;
 
-#define htbl_meta_data_init(data, it) {		\
-    data.item = (void *) it;			\
-    data.h_set = data.id_set = FALSE;		\
+#define htbl_meta_data_init(data, it) {                 \
+    data.item = (void *) it;                            \
+    data.h_set = data.id_set = data.v_set = FALSE;      \
   }
 
 
@@ -103,7 +106,7 @@ typedef struct {
  */
 htbl_t htbl_new
 (bool_t use_system_heap,
- uint64_t hash_bits,
+ uint8_t hash_bits,
  uint16_t no_workers,
  htbl_type_t type,
  htbl_data_size_t data_size,

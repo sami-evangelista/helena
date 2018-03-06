@@ -75,6 +75,9 @@ typedef mstate_t state_t;
 #define state_compressed_char_size mstate_compressed_char_size
 #define state_compress mstate_compress
 #define state_uncompress mstate_uncompress
+#define state_dist_compressed_char_size mstate_dist_compressed_char_size
+#define state_dist_compress mstate_dist_compress
+#define state_dist_uncompress mstate_dist_uncompress
 
 #endif
 

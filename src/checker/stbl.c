@@ -1,4 +1,5 @@
 #include "compression.h"
+#include "dist_compression.h"
 #include "config.h"
 #include "stbl.h"
 #include "state.h"
@@ -50,10 +51,15 @@ htbl_t stbl_default_new
   if(CFG_HASH_COMPACTION) {
     type = HTBL_HASH_COMPACTION;
   } else {
-#if (CFG_STATE_COMPRESSION == 1 && defined(MODEL_HAS_STATE_COMPRESSION)) || \
-  (CFG_STATE_COMPRESSION == 0 && defined(MODEL_STATE_SIZE))
+#if ((CFG_STATE_COMPRESSION || CFG_DISTRIBUTED_STATE_COMPRESSION) &&    \
+     defined(MODEL_HAS_STATE_COMPRESSION)) ||                           \
+  (!CFG_STATE_COMPRESSION && defined(MODEL_STATE_SIZE))
     type = HTBL_FULL_STATIC;
+#if CFG_DISTRIBUTED_STATE_COMPRESSION && defined(MODEL_HAS_STATE_COMPRESSION)
+    data_size = state_dist_compressed_char_size();
+#else
     data_size = state_compressed_char_size();
+#endif
 #else
     type = HTBL_FULL_DYNAMIC;
 #endif
@@ -70,9 +76,12 @@ htbl_t stbl_default_new
   /**
    * state transformation functions
    */
-#if CFG_STATE_COMPRESSION == 1 && defined(MODEL_HAS_STATE_COMPRESSION)
+#if CFG_STATE_COMPRESSION && defined(MODEL_HAS_STATE_COMPRESSION)
   compress_func = (htbl_compress_func_t) state_compress;
   uncompress_func = (htbl_uncompress_func_t) state_uncompress;
+#elif CFG_DISTRIBUTED_STATE_COMPRESSION && defined(MODEL_HAS_STATE_COMPRESSION)
+  compress_func = (htbl_compress_func_t) state_dist_compress;
+  uncompress_func = (htbl_uncompress_func_t) state_dist_uncompress;
 #else
   compress_func = (htbl_compress_func_t) state_serialise;
   uncompress_func = (htbl_uncompress_func_t) state_unserialise;

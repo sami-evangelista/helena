@@ -4,6 +4,10 @@
 #include "context.h"
 #include "htbl.h"
 
+#if CFG_STATE_COMPRESSION == 1 && defined(MODEL_HAS_STATE_COMPRESSION)
+#define COMPRESSION_ENABLED
+#endif
+
 htbl_t * compression_htbls;
 char * compression_tbl_full_msg =
   "compression table too small (increase --compression-bits and rerun)";
@@ -13,7 +17,7 @@ void mstate_compress
 (mstate_t s,
  char * v,
  uint16_t * size) {
-#if CFG_STATE_COMPRESSION == 1 && defined(MODEL_HAS_STATE_COMPRESSION)
+#if defined(COMPRESSION_ENABLED)
   int i;
   bit_stream_t bits;
   htbl_id_t id;
@@ -39,7 +43,7 @@ void mstate_compress
 void * mstate_uncompress
 (char * v,
  heap_t heap) {
-#if CFG_STATE_COMPRESSION == 1 && defined(MODEL_HAS_STATE_COMPRESSION)
+#if defined(COMPRESSION_ENABLED)
   bit_stream_t bits;
   htbl_id_t id;
   int i = 0;
@@ -57,7 +61,7 @@ void * mstate_uncompress
 
 uint16_t mstate_compressed_char_size
 () {
-#if CFG_STATE_COMPRESSION == 1 && defined(MODEL_HAS_STATE_COMPRESSION)
+#if defined(COMPRESSION_ENABLED)
   uint32_t bits = CFG_STATE_COMPRESSION_BITS * MODEL_NO_COMPONENTS;
   uint16_t result = bits / CHAR_BIT;
 
@@ -83,7 +87,7 @@ void * compression_get_compressed_comp
 
 void init_compression
 () {
-#if CFG_STATE_COMPRESSION == 1 && defined(MODEL_HAS_STATE_COMPRESSION)
+#if defined(COMPRESSION_ENABLED)
   int i;
   htbl_data_size_t size;
   htbl_type_t t;
@@ -108,7 +112,7 @@ void init_compression
 
 void finalise_compression
 () {
-#if CFG_STATE_COMPRESSION == 1 && defined(MODEL_HAS_STATE_COMPRESSION)
+#if defined(COMPRESSION_ENABLED)
   int i;
 
   for(i = 0; i < MODEL_NO_COMPONENTS; i ++) {

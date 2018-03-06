@@ -31,9 +31,8 @@ void dbfs_comm_end
 /**
  * @brief dbfs_comm_process_state
  */
-void dbfs_comm_process_state
-(state_t s,
- hkey_t h);
+bool_t dbfs_comm_process_state
+(htbl_meta_data_t * mdata);
 
 
 /**
@@ -44,31 +43,10 @@ bool_t dbfs_comm_idle
 
 
 /**
- * @brief dbfs_comm_send_all_buffers
- */
-void dbfs_comm_send_all_buffers
-();
-
-
-/**
  * @brief dbfs_comm_state_owned
  */
 bool_t dbfs_comm_state_owned
 (hkey_t h);
-
-
-/**
- * @brief dbfs_comm_set_term_detection_state
- */
-void dbfs_comm_set_term_detection_state
-(bool_t state);
-
-
-/**
- * @brief dbfs_comm_process_in_states
- */
-bool_t dbfs_comm_process_in_states
-();
 
 
 /**

@@ -3,6 +3,7 @@
 #include "comm.h"
 #include "stbl.h"
 #include "debug.h"
+#include "dist_compression.h"
 
 #if CFG_ALGO_BFS == 1 || CFG_ALGO_DBFS == 1
 
@@ -33,6 +34,12 @@ typedef enum {
   (POS_TERM_DETECTION_ASKED + sizeof(bool_t) + sizeof(uint32_t) * pe)
 #define POS_DATA \
   (POS_LEN(PES))
+
+void dbfs_comm_send_all_buffers
+();
+
+bool_t dbfs_comm_process_in_states
+();
 
 uint16_t dbfs_comm_state_owner
 (hkey_t h) {
@@ -235,20 +242,51 @@ void dbfs_comm_send_all_buffers
   }
 }
 
-void dbfs_comm_process_state
-(state_t s,
- hkey_t h) {
-  const int pe = dbfs_comm_state_owner(h);
+bool_t dbfs_comm_process_state
+(htbl_meta_data_t * mdata) {
+  int pe;
   uint16_t size;
 
-  if(LEN[pe] + MODEL_STATE_SIZE > CFG_SHMEM_BUFFER_SIZE) {
+  if(CFG_DISTRIBUTED_STATE_COMPRESSION) {
+    state_dist_compress((state_t) mdata->item, mdata->v, &size);
+    mdata->v_set = TRUE;
+    mdata->v_size = size;
+    mdata->h = string_hash(mdata->v, size);
+    mdata->h_set = TRUE;
+  } else {
+    mdata->h = state_hash((state_t) mdata->item);
+    mdata->h_set = TRUE;
+  }
+  pe = dbfs_comm_state_owner(mdata->h);
+  
+  /**
+   *  state is not mine => exit
+   */
+  if(ME == pe) {
+    return TRUE;
+  }
+  
+  if(!CFG_DISTRIBUTED_STATE_COMPRESSION) {
+    size = state_char_size((state_t) mdata->item);
+  }
+  if(LEN[pe] + sizeof(uint16_t) + sizeof(hkey_t) + size
+     > CFG_SHMEM_BUFFER_SIZE) {
     dbfs_comm_send_buffer(pe);
     if(TERM_DETECTED) {
-      return;
+      return FALSE;
     }
   }
-  state_serialise(s, BUF[pe] + LEN[pe], &size);
-  LEN[pe] += MODEL_STATE_SIZE;
+  memcpy(BUF[pe] + LEN[pe], &size, sizeof(uint16_t));
+  LEN[pe] += sizeof(uint16_t);
+  memcpy(BUF[pe] + LEN[pe], &(mdata->h), sizeof(hkey_t));
+  LEN[pe] += sizeof(hkey_t);
+  if(CFG_DISTRIBUTED_STATE_COMPRESSION) {
+    memcpy(BUF[pe] + LEN[pe], mdata->v, size);
+  } else {
+    state_serialise((state_t) mdata->item, BUF[pe] + LEN[pe], &size);
+  }
+  LEN[pe] += size;
+  return FALSE;
 }
 
 void dbfs_comm_receive_buffer
@@ -262,6 +300,7 @@ void dbfs_comm_receive_buffer
   htbl_meta_data_t mdata;
   bfs_queue_item_t item;
   char * b, * b_end;
+  uint16_t size;
   
   debug("receives %d bytes from %d\n", len, pe);
   comm_get(buffer, pos, len, ME);
@@ -270,10 +309,22 @@ void dbfs_comm_receive_buffer
   len = 0;
   comm_put(POS_LEN(pe), &len, sizeof(uint32_t), ME);
   while(b != b_end) {
-    heap_reset(CW_HEAP);
-    htbl_meta_data_init(mdata, state_unserialise(b, CW_HEAP));
+    htbl_meta_data_init(mdata, NULL);
+    memcpy(&size, b, sizeof(uint16_t));
+    b += sizeof(uint16_t);
+    memcpy(&(mdata.h), b, sizeof(hkey_t));
+    mdata.h_set = TRUE;
+    b += sizeof(hkey_t);
+    if(CFG_DISTRIBUTED_STATE_COMPRESSION) {
+      memcpy(&mdata.v, b, size);
+      mdata.v_set = TRUE;
+      mdata.v_size = size;
+    } else {
+      heap_reset(CW_HEAP);
+      mdata.item = state_unserialise(b, CW_HEAP);
+    }
+    b += size;
     stbl_insert(H, mdata, is_new);
-    b += MODEL_STATE_SIZE;
     if(is_new) {
       stored ++;
       item.id = mdata.id;
@@ -309,11 +360,16 @@ void dbfs_comm_start
   uint32_t len;
   int pe;
   dbfs_comm_term_t term = DBFS_COMM_NO_TERM;
+  size_t hs;
+  uint32_t data_size;
 
   debug("dbfs_comm starting\n");
   PES = comm_pes();
   ME = comm_me();
-  comm_malloc(POS_DATA + CFG_SHMEM_BUFFER_SIZE * (PES - 1));
+  data_size = POS_DATA + CFG_SHMEM_BUFFER_SIZE * (PES - 1);
+  hs = data_size + dist_compression_heap_size();
+  dist_compression_set_heap_pos(data_size);
+  comm_malloc(hs);
   comm_put(POS_TERM, &term, sizeof(dbfs_comm_term_t), ME);
   Q = q;
   H = h;

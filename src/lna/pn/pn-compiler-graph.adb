@@ -105,7 +105,7 @@ package body Pn.Compiler.Graph is
       Plc(L, 1, "(*data)->stack = mem_alloc (SYSTEM_HEAP, " &
 	    "sizeof (mevent_t) * no_states);");
       Pc(L, 1, "(*data)->tbl = htbl_new");
-      Plc(L, "(TRUE, 4194304, 1, HTBL_FULL_DYNAMIC, 0, 0,");
+      Plc(L, "(TRUE, 26, 1, HTBL_FULL_DYNAMIC, 0, 0,");
       Plc(L, 1, "(htbl_compress_func_t) mstate_serialise,");
       Plc(L, 1, "(htbl_uncompress_func_t) mstate_unserialise);");
       Plc(L, 1, "mstate_init ((*data)->all, SYSTEM_HEAP);");
@@ -283,9 +283,8 @@ package body Pn.Compiler.Graph is
 	   " mstate_t s)");
       Plh(L, Prototype & ";");
       Plc(L, Prototype & " {");
-      Plc(L, 1, "hkey_t h;");
       Plc(L, 1, "bool_t b;");
-      Plc(L, 1, "htbl_id_t id;");
+      Plc(L, 1, "htbl_meta_data_t mdata;");
       Plc(L, 1, "list_t en = mstate_events(s, SYSTEM_HEAP);");
       Plc(L, 1, "if(list_is_empty(en)) {");
       Plc(L, 2, "if(data->no_dead < MAX_DEAD) {");
@@ -302,8 +301,8 @@ package body Pn.Compiler.Graph is
          Plc(L, 1, "data->proj->" & C & ".mult = s->" & C & ".mult;");
          Plc(L, 1, "data->proj->" & C & ".heap = s->" & C & ".heap;");
          Plc(L, "#if CFG_ACTION_BUILD_GRAPH == 1");
-	 Plc(L, 1, "htbl_insert(data->tbl, data->proj, " &
-	       "&id, &h);");
+	 Plc(L, 1, "htbl_meta_data_init(mdata, data->proj);");
+	 Plc(L, 1, "htbl_insert(data->tbl, &mdata);");
          Plc(L, "#endif");
 	 Plc(L, 1, Local_State_Init_Func(P) &
 	       "(data->proj->" & C & ", SYSTEM_HEAP);");

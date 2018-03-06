@@ -81,6 +81,16 @@ void comm_get
 
 
 /**
+ * @brief comm_int_cswap
+ */
+int comm_int_cswap
+(uint32_t pos,
+ int cond,
+ int value,
+ int pe);
+
+
+/**
  * @brief comm_heap
  */
 void * comm_heap

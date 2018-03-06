@@ -4,16 +4,6 @@
 #include "event.h"
 #include "context.h"
 
-
-/**
- * TODO
- *
- * - htbl_free is excessively slow (due to cache effects ?) for
- *   dynamic state vectors.  hence we do not free individual vectors
- *   for now
- * - compute cache line
- */
-
 #define NO_ATTRS 12
 
 #define BUCKET_EMPTY  0
@@ -120,7 +110,7 @@ const struct timespec SLEEP_TIME = { 0, 10 };
 
 htbl_t htbl_new
 (bool_t use_system_heap,
- uint64_t hash_bits,
+ uint8_t hash_bits,
  uint16_t no_workers,
  htbl_type_t type,
  uint16_t data_size,
@@ -218,17 +208,19 @@ htbl_insert_code_t htbl_insert
   uint32_t trials = HTBL_INSERT_MAX_TRIALS;
   uint32_t still = HTBL_CACHE_LINE_SIZE, num = 0;
   bool_t found;
-  uint16_t size;
   hkey_t h_other;
-  char * sv, * sv_other, * pos, buffer[65536];
+  char * sv, * pos;
   
   /**
    * compress the data and compute its hash value
    */
-  tbl->compress_func(mdata->item, buffer, &size);
+  if(!mdata->v_set) {
+    mdata->v_set = TRUE;
+    tbl->compress_func(mdata->item, mdata->v, &mdata->v_size);
+  }
   if(!mdata->h_set) {
     mdata->h_set = TRUE;
-    mdata->h = string_hash_init(buffer, size, 0);
+    mdata->h = string_hash_init(mdata->v, mdata->v_size, 0);
   }
   
   i = mdata->h & tbl->hash_size_m;
@@ -248,13 +240,13 @@ htbl_insert_code_t htbl_insert
         HTBL_SET_HASH(tbl, pos, &(mdata->h));
         break;
       case HTBL_FULL_DYNAMIC:
-        sv = mem_alloc0(tbl->heap, size);
-        memcpy(sv, buffer, size);
+        sv = mem_alloc0(tbl->heap, mdata->v_size);
+        memcpy(sv, mdata->v, mdata->v_size);
         HTBL_SET_DYNAMIC_VECTOR(tbl, pos, &sv);
-        HTBL_SET_DYNAMIC_VECTOR_SIZE(tbl, pos, &size);
+        HTBL_SET_DYNAMIC_VECTOR_SIZE(tbl, pos, &(mdata->v_size));
         break;
       case HTBL_FULL_STATIC:
-        memcpy(HTBL_POS_STATIC_VECTOR(tbl, pos), buffer, size);
+        memcpy(HTBL_POS_STATIC_VECTOR(tbl, pos), mdata->v, mdata->v_size);
         break;
       default:
         assert(0);
@@ -280,8 +272,8 @@ htbl_insert_code_t htbl_insert
       HTBL_GET_HASH(tbl, pos, &h_other);
       found = h_other == mdata->h;
     } else {
-      HTBL_GET_VECTOR(tbl, pos, sv_other);
-      found = 0 == memcmp(sv_other, buffer, size);
+      HTBL_GET_VECTOR(tbl, pos, sv);
+      found = 0 == memcmp(sv, mdata->v, mdata->v_size);
     }
     if(found) {
       mdata->id = i;
@@ -306,7 +298,8 @@ htbl_insert_code_t htbl_insert
       pos = i ? (pos + tbl->item_size) : HTBL_POS_ITEM(tbl, 0);
     } else {
       still = HTBL_CACHE_LINE_SIZE;
-      i = (string_hash_init(buffer, size, ++ num)) & tbl->hash_size_m;
+      i = (string_hash_init(mdata->v, mdata->v_size, ++ num))
+        & tbl->hash_size_m;
       pos = HTBL_POS_ITEM(tbl, i);
     }
   }

@@ -409,8 +409,6 @@ class Config:
         self.verbose = False
         self.version = False
         self.partialOrder = bool(defaultValue("P"))
-        self.proviso = False
-        self.dynamicPartialOrder = False
         self.hashCompaction = bool(defaultValue("H"))
         self.withPapi = bool(defaultValue("wp"))
         self.randomSuccs = bool(defaultValue("R"))
@@ -419,16 +417,6 @@ class Config:
         self.timeLimit = defaultValue("tl")
         self.stateLimit = defaultValue("sl")
         self.traceType = defaultValue("tr")
-        self.directory = None
-        self.symbols = []
-        self.runTimeChecks = defaultValue("r")
-        self.inFile = None
-        self.inFileExt = None
-        self.prop = None
-        self.propFile = None
-        self.propType = None
-        self.propositions = []
-        self.parameters = []
         self.algo = defaultValue("A")
         self.action = defaultValue("N")
         self.hashSize = defaultValue("t")
@@ -437,6 +425,20 @@ class Config:
         self.compressionBits = defaultValue("cb")
         self.shmemBufferSize = defaultValue("bs")
         self.candidateSetSize = defaultValue("cs")
+        self.runTimeChecks = defaultValue("r")
+        self.stateCompression = bool(defaultValue("C"))
+        self.distributedStateCompression = False
+        self.directory = None
+        self.symbols = []
+        self.inFile = None
+        self.inFileExt = None
+        self.prop = None
+        self.propFile = None
+        self.propType = None
+        self.dynamicPartialOrder = False
+        self.proviso = False
+        self.propositions = []
+        self.parameters = []
         self.bfsQueueBlockSize = 10 ** 4
         self.dfsStackBlockSize = 10 ** 4
         self.rwalkMaxDepth = 10 ** 3
@@ -464,21 +466,12 @@ class Config:
         if self.hashCompaction:
             self.stateCompression = False
 
-        #  hash compaction not available for random walk and delta-ddd
         self.hashCompaction = self.hashCompaction and self.algo not in [
-            BWALK, RWALK, DELTA_DDD ]
-
-        #  same for state compression.  also hash compaction disables
-        #  compression
-        self.stateCompression = self.stateCompression and self.algo not in [
-            BWALK, RWALK, DELTA_DDD ] and not self.hashCompaction
-
-        #  partial order reduction not available for random walk,
-        #  delta-ddd and distributed algoritms
+            BWALK, RWALK, DELTA_DDD, DBFS ]
         self.partialOrder = self.partialOrder and self.algo not in [
             BWALK, RWALK, DELTA_DDD, DBFS ]
-
-        #  random successors selection only available for BWALK, DFS
+        self.stateCompression = self.stateCompression and self.algo not in [
+            BWALK, RWALK, DELTA_DDD ] and not self.hashCompaction
         self.randomSuccs = self.randomSuccs and self.algo in [
             BWALK, DFS ]
 
@@ -515,13 +508,25 @@ class Config:
         if self.partialOrder and not self.proviso:
             self.proviso = self.propType is not None and \
                            self.propType != DEADLOCK
+        distributed = self.algo in [ DBFS ]
+
+        #  compression mode (distributed or sequential)
+        stateCompression = self.stateCompression
+        distributedStateCompression = False
+        if stateCompression:
+            if distributed and self.language in [ "dave" ]:
+                stateCompression = False
+                distributedStateCompression = True
+            else:
+                stateCompression = True
+                distributedStateCompression = False                
             
         params = [
             ("ACTION_BUILD_GRAPH", self.action == BUILD_GRAPH),
             ("ACTION_CHECK_LTL", self.action == CHECK and \
              self.propType == LTL),
             ("ACTION_CHECK_SAFETY", self.action == CHECK and
-             self.propType in [ STATE, DEADLOCK]),
+             self.propType in [ STATE, DEADLOCK ]),
             ("ACTION_CHECK", self.action == CHECK),
             ("ACTION_EXPLORE", self.action == EXPLORE),
             ("ACTION_SIMULATE", self.action == SIMULATE),
@@ -539,7 +544,8 @@ class Config:
             ("DELTA_DDD_CAND_SET_SIZE", self.candidateSetSize),
             ("DELTA_DDD_STORAGE", self.algo == DELTA_DDD),
             ("DFS_STACK_BLOCK_SIZE", self.dfsStackBlockSize),
-            ("DISTRIBUTED", self.algo in [ DBFS ]),
+            ("DISTRIBUTED", distributed),
+            ("DISTRIBUTED_STATE_COMPRESSION", distributedStateCompression),
             ("DYNAMIC_POR", self.dynamicPartialOrder),
             ("FILE_PATH", "\"" + os.path.realpath(self.inFile) + "\""),
             ("GRAPH_FILE", "\"graph.dat\""),
@@ -566,7 +572,7 @@ class Config:
             ("RG_REPORT_FILE", "\"rg-report.xml\""),
             ("RWALK_MAX_DEPTH", self.rwalkMaxDepth),
             ("SHMEM_BUFFER_SIZE", self.shmemBufferSize),
-            ("STATE_COMPRESSION", self.stateCompression),
+            ("STATE_COMPRESSION", stateCompression),
             ("STATE_COMPRESSION_BITS", self.compressionBits),
             ("STATE_LIMITED", self.stateLimit != 0),
             ("TIME_LIMITED", self.timeLimit != 0),

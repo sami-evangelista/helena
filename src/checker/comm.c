@@ -147,6 +147,23 @@ void comm_get
 #endif
 }
 
+int comm_int_cswap
+(uint32_t pos,
+ int cond,
+ int value,
+ int pe) {
+#if CFG_DISTRIBUTED == 0
+  assert(0);
+#else
+  int result;
+  
+  debug("swap %d to %d at %d from %d\n", cond, value, pos, pe);
+  result = shmem_int_cswap((int *) (COMM_HEAP + pos), cond, value, pe);
+  debug("swap done\n");
+  return result;
+#endif
+}
+
 void * comm_heap() {
   return COMM_HEAP;
 }
