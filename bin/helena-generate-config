@@ -514,7 +514,7 @@ class Config:
         stateCompression = self.stateCompression
         distributedStateCompression = False
         if stateCompression:
-            if distributed and self.language in [ "dave" ]:
+            if distributed and self.language in [ "dve" ]:
                 stateCompression = False
                 distributedStateCompression = True
             else:

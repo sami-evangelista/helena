@@ -116,6 +116,15 @@ void dist_compression_set_heap_pos
 }
 
 
+#define DIST_COMPRESSION_UPDATE() {                                     \
+    uint32_t no = 65000 / item_size;                                    \
+                                                                        \
+    if(slot + no > (1 << CFG_STATE_COMPRESSION_BITS)) {                 \
+      no = (1 << CFG_STATE_COMPRESSION_BITS) - slot;                    \
+    }                                                                   \
+    comm_get(lpos, rpos, item_size * no, owner);                        \
+  }
+
 void mstate_dist_compress
 (mstate_t s,
  char * v,
@@ -126,11 +135,12 @@ void mstate_dist_compress
   hkey_t h;
   uint32_t i, owner, slot, rpos, item_size;
   void * lpos;
-  int prev, status;
+  int status;
   bool_t loop;
   const uint32_t mask = (1 << CFG_STATE_COMPRESSION_BITS) - 1;
   bit_stream_t bits;
   uint32_t trials;
+  bool_t remote;
   
   *size = dist_compression_compressed_char_size;
   memset(v, 0, *size);
@@ -146,10 +156,12 @@ void mstate_dist_compress
     loop = TRUE;
     trials = DIST_COMPRESSION_MAX_INSERT_TRIALS;
     while(loop) {
+      remote = FALSE;
       memcpy(&status, lpos, sizeof(int));
       if(status == DIST_COMPRESSION_EMPTY) {
-        if((prev = comm_int_cswap(rpos, DIST_COMPRESSION_EMPTY,
-                                  DIST_COMPRESSION_WRITING, owner)) ==
+        remote = TRUE;
+        if((status = comm_int_cswap(rpos, DIST_COMPRESSION_EMPTY,
+                                    DIST_COMPRESSION_WRITING, owner)) ==
            DIST_COMPRESSION_EMPTY) {
           comm_put(rpos + sizeof(int), buffer, comp_size, owner);
           assert(DIST_COMPRESSION_WRITING ==
@@ -159,21 +171,22 @@ void mstate_dist_compress
           memcpy(lpos, &status, sizeof(int));
           memcpy(lpos + sizeof(int), buffer, comp_size);
           loop = FALSE;
-        } else {
-          while(prev == DIST_COMPRESSION_WRITING) {
+        }
+      }
+      if(loop) {
+        if(status == DIST_COMPRESSION_WRITING) {
+          remote = TRUE;
+          do {
             nanosleep(&dist_compression_sleep_time, NULL);
-            comm_get(&prev, rpos, sizeof(int), owner);
-          }
-          assert(prev == DIST_COMPRESSION_READY);
+            comm_get(&status, rpos, sizeof(int), owner);
+          } while(status == DIST_COMPRESSION_WRITING);
+        }
+        assert(status == DIST_COMPRESSION_READY);
+        if(remote) {
           status = DIST_COMPRESSION_READY;
           memcpy(lpos, &status, sizeof(int));
-          comm_get(lpos + sizeof(int), rpos + sizeof(int), comp_size, owner);
-          if(!(memcmp(lpos + sizeof(int), buffer, comp_size))) {
-            loop = FALSE;
-          }
+          DIST_COMPRESSION_UPDATE();
         }
-      } else {
-        assert(status == DIST_COMPRESSION_READY);
         if(!(memcmp(lpos + sizeof(int), buffer, comp_size))) {
           loop = FALSE;
         }
@@ -217,7 +230,7 @@ void * mstate_dist_uncompress
     if(status != DIST_COMPRESSION_READY) {
       owner = dist_compression_comp_owner[i];
       rpos = dist_compression_tbl_start_pos[i] + slot * item_size;
-      comm_get(lpos, rpos, item_size, owner);
+      DIST_COMPRESSION_UPDATE();
     }
     data[i] = lpos + sizeof(int);
   }
