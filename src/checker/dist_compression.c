@@ -19,6 +19,7 @@
 
 struct timespec dist_compression_sleep_time = { 0, 10000 }; /*  10 mus  */
 htbl_compress_func_t * dist_compression_comp_funcs;
+uint32_t dist_compression_me;
 uint32_t dist_compression_pes;
 uint32_t dist_compression_slots_per_pe;
 size_t * dist_compression_comp_size;
@@ -26,12 +27,12 @@ char ** dist_compression_tbls;
 char * dist_compression_tbl_full_msg =
   "compression table too small (increase --compression-bits and rerun)";
 uint16_t dist_compression_compressed_char_size;
-int dist_compression_me;
 
 #define dist_compression_slot_owner(slot, owner)        {       \
-  if((owner = slot / dist_compression_slots_per_pe) ==          \
-     dist_compression_pes) {                                    \
-  owner = 
+    if((owner = slot / dist_compression_slots_per_pe) ==        \
+       dist_compression_pes) {                                  \
+      owner = dist_compression_pes - 1;                         \
+    }                                                           \
   }
 
 uint16_t mstate_dist_compressed_char_size
@@ -72,7 +73,7 @@ void dist_compression_training_run_state_hook
     h = string_hash(buffer, comp_size);
     slot = h & mask;
     item_size = sizeof(int) + dist_compression_comp_size[i];
-    owner = slot % dist_compression_pes;
+    dist_compression_slot_owner(slot, owner);
     if(owner == dist_compression_me) {
       pos = dist_compression_tbls[i] + slot * item_size;
       memcpy(&status, pos, sizeof(int));
@@ -90,9 +91,23 @@ void dist_compression_training_run_state_hook
 void dist_compression_training_run
 () {
 #if defined(DIST_COMPRESSION_ENABLED)
+  uint32_t i, pe, item_size, slot;
+  void * pos;
+  
   bwalk_generic(0, DIST_COMPRESSION_TRAINING_RUN_HASH, FALSE,
                 DIST_COMPRESSION_TRAINING_RUN_TIME * 1000,
                 dist_compression_training_run_state_hook, NULL);
+  shmem_barrier_all();
+  for(i = 0; i < MODEL_NO_COMPONENTS; i ++) {
+    item_size = sizeof(int) + dist_compression_comp_size[i];
+    for(pe = 0; pe < dist_compression_pes; pe ++) {
+      if(pe != dist_compression_me) {
+        slot = pe * dist_compression_slots_per_pe;
+        pos = dist_compression_tbls[i] + slot * item_size;
+        shmem_getmem(pos, pos, dist_compression_slots_per_pe * item_size, pe);
+      }
+    }
+  }
   shmem_barrier_all();
 #endif
 }
@@ -185,7 +200,7 @@ void mstate_dist_compress
     while(loop) {
       remote = FALSE;
       memcpy(&status, pos, sizeof(int));
-      owner = slot % dist_compression_pes;
+      dist_compression_slot_owner(slot, owner);
       if(status == DIST_COMPRESSION_EMPTY) {
         remote = TRUE;
         if((status = shmem_int_cswap(pos, DIST_COMPRESSION_EMPTY,
@@ -255,7 +270,7 @@ void * mstate_dist_uncompress
     pos = dist_compression_tbls[i] + slot * item_size;
     memcpy(&status, pos, sizeof(int));
     if(status != DIST_COMPRESSION_READY) {
-      owner = slot % dist_compression_pes;
+      dist_compression_slot_owner(slot, owner);
       pos = dist_compression_tbls[i] + slot * item_size;
       DIST_COMPRESSION_UPDATE();
     }
