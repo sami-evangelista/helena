@@ -361,14 +361,11 @@ void dbfs_comm_start
   int pe;
   dbfs_comm_term_t term = DBFS_COMM_NO_TERM;
   size_t hs;
-  uint32_t data_size;
 
   debug("dbfs_comm starting\n");
   PES = comm_pes();
   ME = comm_me();
-  data_size = POS_DATA + CFG_SHMEM_BUFFER_SIZE * (PES - 1);
-  hs = data_size + dist_compression_heap_size();
-  dist_compression_set_heap_pos(data_size);
+  hs = POS_DATA + CFG_SHMEM_BUFFER_SIZE * (PES - 1);
   comm_malloc(hs);
   comm_put(POS_TERM, &term, sizeof(dbfs_comm_term_t), ME);
   Q = q;
@@ -391,6 +388,7 @@ void dbfs_comm_start
   }
   CW_HEAP = local_heap_new();
   comm_barrier();
+  dist_compression_training_run();
   debug("dbfs_comm started\n");
 }
 

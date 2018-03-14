@@ -480,7 +480,7 @@ msg "Copying files to model directory ($(getModelDir)/src/) ..."
 cp $helenaDir/common/* $(getModelDir)/src/ &> /dev/null
 CC_GP=$CC" "$CCI" "$CCopt" -pg"
 CC_VG=$CC" "$CCI" "$CCopt" -O0 -g"
-CC=$CC" "$CCI" "$CCopt" -O3"
+CC=$CC" "$CCI" "$CCopt" -O3 -fno-ipa-cp-clone -fno-inline-functions"
 createMakefile
 
 #####
