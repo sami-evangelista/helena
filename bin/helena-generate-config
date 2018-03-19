@@ -44,13 +44,18 @@ LTL         = "LTL"
 STATE       = "STATE"
 DEADLOCK    = "DEADLOCK"
 
+#  languages
+LNA  = "lna"
+DVE  = "dve"
+PNML = "pnml"
+
 #  options
 GENERAL_OPTS = ("General options",
-                [ "h", "V", "v", "N", "g", "b", "p", "md", "wp" ])
+                [ "h", "V", "v", "N", "g", "b", "p", "pf", "md", "wp" ])
 SEARCH_OPTS = ("Search and storage options",
                [ "A", "t", "W", "R", "cs" ])
 DISTRIBUTED_SEARCH_OPTS = ("Distributed search options",
-                           [ "mf", "bs", "np" ])
+                           [ "mf", "bs", "np", "DC" ])
 REDUCTION_OPTS = ("Reduction techniques",
                   [ "H", "P", "i", "C", "cb" ])
 LIMIT_OPTS = ("Limit options",
@@ -68,90 +73,11 @@ OPTION_TYPES = [
     MODEL_OPTS,
     OUTPUT_OPTS ]
 
-def defaultValue(p):
-    if p in [ "N", "action" ]: return EXPLORE
-    if p in [ "A", "algo" ]: return DFS
-    if p in [ "t", "hash-size" ]: return 22
-    if p in [ "cb", "compression-bits" ]: return 16        
-    if p in [ "cs", "candidate-set-size" ]: return 100000
-    if p in [ "bs", "shmem-buffer-size" ]: return 65000
-    if p in [ "W", "workers" ]: return 1
-    if p in [ "np", "num-procs" ]: return 1
-    if p in [ "c", "capacity" ]: return 1
-    if p in [ "b", "observer" ]: return 1
-    if p in [ "H", "hash-compaction" ]: return 0
-    if p in [ "C", "state-compression" ]: return 0
-    if p in [ "wp", "with-papi" ]: return 0
-    if p in [ "P", "partial-order" ]: return 0
-    if p in [ "tl", "time-limit" ]: return 0
-    if p in [ "sl", "state-limit" ]: return 0
-    if p in [ "r", "run-time-checks" ]: return 1
-    if p in [ "R", "random-succs" ]: return 0
-    if p in [ "r", "run-time-checks" ]: return 1
-    if p in [ "tr", "trace-type" ]: return FULL
-    return None
-
-def helpMessage(o):
-    result = None
-    if   o in [ "h", "help" ]:
-        result = """-h[=opt], --help[=opt]
-
-Prints help and exit.  If an option is provided, a specific help
-message for this option is printed.  If opt=FULL a detailed help for
-all options is printed."""
-    elif o in [ "V", "version" ]:
-        result = """-V, --version
-
-Prints the version number and exit."""
-    elif o in [ "v", "verbose" ]:
-        result = """-v, --verbose
-
-Be verbose."""
-    elif o in [ "N", "action" ]:
-        result = """-N=ACTION, --action=ACTION
-
-Indicate the action performed on the model.
-Available actions are:
-* EXPLORE - Explore the state space of the model and then prints some
-   statistics.
-* SIMULATE - Start interactive simulation mode.  You can then navigate
-   through the reachability graph of the model. A simple command
-   language is provided.  Once the simulation is started, type help to
-   see the list of commands.
-* BUILD-GRAPH - Build the reachability graph of the model using
-   algorithm DELTA-DDD (see option algo) and store it on disk.  This
-   graph can then be analyzed using the helena-graph tool.
-* CHECK-prop - Check whether or not property prop (which must be a
-   property defined in the model file) is verified."""
-    elif o in [ "g", "progress" ]:
-        result = """-g=LEVEL, --progress=LEVEL
-
-LEVEL can take one of these three values:
-* no-compile - Helena stops after the generation of source files.
-* no-check - Helena launches compilation but does not launches the
-  search.
-* no-report - Helena launches the search but does not print any
-  report."""
-    
-    elif o in [ "b", "observer" ]:
-        result = """-b[={0|1}], --observer[={0|1}]
-
-Activate/deactivate the observer thread that prints some progression
-informations during the search."""  
-    elif o in [ "p", "property-file" ]:
-        result = """-p=FILE, --property-file=FILE
-
-File FILE contains the definition of the property to check (specified
-with option --action=CHECK-prop).  By default, if the input file of
-the model is model.lna, Helena will look into model.prop.lna for the
-property definition."""
-    elif o in [ "md", "model-directory" ]:
-        result = """-md=DIRECTORY, --model-directory=DIRECTORY
-
-All generated files such as source files are put in directory
-DIRECTORY (instead of ~/.helena/models/lna/my-net)."""
-    elif o in [ "A", "algo" ]:
-        result = """-A=ALGO, --algo=ALGO
+OPTS = [
+    ###########################################################################
+    ("A", "algo", str, "DFS", None,
+     [ BFS, BWALK, DBFS, DFS, RWALK, DELTA_DDD, TARJAN ], "algo",
+     """-A=ALGO          --algo=ALGO
 
 Sets search algorithm used to explore the state space.
 Available algorithms are:
@@ -159,196 +85,261 @@ Available algorithms are:
 * DFS - The state space is explored using a depth-first search.
 * BFS - The state space is explored using a breadth-first search.
 * DBFS - The state space is explored using a distributed breadth-first search.
-* DELTA-DDD - The state space is explored using a parallel
-   breadth-first search based on state compression.
-* RWALK - A random walk is used.  The principle is to randomly select
-   at each state an enabled transition, execute it and reiterate this
-   process.  The walk is reinitiated each time a deadlock state is
-   met.  If no limit is specified (e.g., option --state-limit) the
-   search will last forever."""
-    elif o in [ "t", "hash-size" ]:
-        result = """-t=N, --hash-size=N
+* DELTA-DDD - The state space is explored using a parallel breadth-first search
+   based on state compression.
+* RWALK - A random walk is used.  The principle is to randomly select at each
+   state an enabled transition, execute it and reiterate this process.  The
+   walk is reinitiated each time a deadlock state is met.  If no limit is
+   specified (e.g., option --state-limit) the search will last forever."""),
+    ###########################################################################
+    ("a", "capacity", int, 1, None, None, "capacity",
+     """-a=N             --capacity=N
 
-Set to 2^N the size of the hash table which stores the set of
-reachable states."""
-    elif o in [ "W", "workers" ]:
-        result = """-W=N, --workers=N
+The default capacity of places is set to N."""),
+    ###########################################################################
+    ("b", "observer", int, 1, 1, [0, 1], "withObserver",
+     """-b[={0|1}]       --observer[={0|1}]
 
-Set to N the number of working threads that will perform the
-search."""
-    elif o in [ "R", "random-succs" ]:
-        result = """-R[={0|1}], --random-succs[={0|1}]
+Activate/deactivate the observer thread that prints some progression
+informations during the search."""),
+    ###########################################################################
+    ("bs", "shmem-buffer-size", int, 65000, None, None, "shmemBufferSize",
+     """-bs=N            --shmem-buffer-size=N
 
-Activate/deactivate randomised successor selection.  This is only
-valid if algorithm DFS is used.  This option is useful if the
-counter-example produced is too long.  Using randomisation can often
-produce a smaller counter-example."""
-    elif o in [ "cs", "candidate-set-size" ]:
-        result = """-cs=N, --candidate-set-size=N
+Set to N bytes the size of the shared memory buffer size used by algorithm
+DBFS."""),
+    ###########################################################################
+    ("cb", "compression-bits", int, 16, None, range(1, 25), "compressionBits",
+     """-cb=N            --compression-bits=N
+
+Set the base number of bits used by state compression (option -C) to N."""),
+    ###########################################################################
+    ("cs", "candidate-set-size", int, 100000, None, None, "candidateSetSize",
+     """-cs=N            --candidate-set-size=N
 
 Set the candidate set size of algorithm DELTA-DDD.  Increasing it may
-consume more memory but can fasten the search."""
-    elif o in [ "H", "hash-compaction" ]:
-        result = """-H[={0|1}], --hash-compaction[={0|1}]
+consume more memory but can fasten the search."""),
+    ###########################################################################
+    ("C", "state-compression", int, 0, 1, [0, 1], "stateCompression",
+     """-C[={0|1}]       --state-compression[={0|1}]
+
+Activate/deactivate state compression."""),
+    ###########################################################################
+    ("DC", "distributed-state-compression", int, 0, 1, [ 0, 1 ],
+     "distributedStateCompression",
+     """-DC[={0|1}]      --distributed-state-compression[={0|1}]
+
+Activate/deactivate state compression based on distributed hash tables."""),
+    ###########################################################################
+    ("d", "define", list, [], None, None, "defines",
+     """-d=SYMBOL-NAME   --define=SYMBOL-NAME
+
+Define preprocessor symbol SYMBOL-NAME in the net."""),
+    ###########################################################################
+    ("g", "progress", None, None, None, None, None,
+     """-g=LEVEL         --progress=LEVEL
+
+LEVEL can take one of these three values:
+* no-compile - Helena stops after the generation of source files.
+* no-check - Helena launches compilation but does not launches the search.
+* no-report - Helena launches the search but does not print any report."""),
+    ###########################################################################
+    ("H", "hash-compaction", int, 0, 1, [0, 1], "hashCompaction",
+     """-H[={0|1}]       --hash-compaction[={0|1}]
 
 Activate/deactivate hash compaction.  Its principle is to only store a
 hash signature of each visited state.  In case of hash conflict,
 Helena will not necessarily explore the whole state space and may
-report that no error has been found whereas one could exist."""
-    elif o in [ "C", "state-compression" ]:
-        result = """-C[={0|1}], --state-compression[={0|1}]
+report that no error has been found whereas one could exist."""),
+    ###########################################################################
+    ("h", "help", str, None, "", None, "printHelp",
+     """-h[=opt]         --help[=opt]
 
-Activate/deactivate state compression."""
-    elif o in [ "cb", "compression-bits" ]:
-        result = """-cb=N, --compression-bits=N
+Prints help and exit.  If an option is provided, a specific help
+message for this option is printed.  If opt=FULL a detailed help for
+all options is printed."""),
+    ###########################################################################
+    ("i", "proviso", int, 0, 1, [0, 1], "proviso",
+     """-i[={0|1}]       --proviso[={0|1}]}
 
-Set the base number of bits used by state compression (option -C)
-to N."""
-    elif o in [ "P", "partial-order" ]:
-        result = """-P[={0|1}], --partial-order[={0|1}]}
+Activate/deactivate the proviso of partial-order reduction.  It is
+turned on by default if a property (different from deadlock absence)
+is analysed."""),
+    ###########################################################################
+    ("L", "link", None, None, None, None, None,
+     """-L=FILE          --link=FILE
+
+Add file FILE to the files linked by Helena when compiling the net.  Please
+consult user guide for further help on this option."""),
+    ###########################################################################
+    ("md", "model-directory", None, None, None, None, None,
+     """-md=DIRECTORY    --model-directory=DIRECTORY
+
+All generated files such as source files are put in directory
+DIRECTORY (instead of ~/.helena/models/lna/my-net)."""),
+    ###########################################################################
+    ("mf", "machine-file", None, None, None, None, None,
+     """-mf=FILE         --machine-file=FILE
+
+Provides the machine-file to be passed to MPI for algorithm DBFS."""),
+    ###########################################################################
+    ("m", "parameter", list, [], None, None, "parameters",
+     """-m=PARAM=VAL     --parameter=PARAM=VAL
+
+This gives value VAL (an integer) to net parameter PARAM."""),
+    ###########################################################################
+    ("N", "action", str, "EXPLORE", None,
+     [ EXPLORE, SIMULATE, BUILD_GRAPH, CHECK ], "action",
+     """-N=ACTION        --action=ACTION
+
+Indicate the action performed on the model.
+Available actions are:
+* EXPLORE - Explore the state space of the model and then prints some
+   statistics.
+* SIMULATE - Start interactive simulation mode.  You can then navigate through
+   the reachability graph of the model. A simple command language is provided.
+   Once the simulation is started, type help to see the list of commands.
+* BUILD-GRAPH - Build the reachability graph of the model using algorithm
+   DELTA-DDD (see option algo) and store it on disk.  This graph can then be
+   analyzed using the helena-graph tool.
+* CHECK - Check property specified by option --property."""),
+    ###########################################################################
+    ("np", "num-procs", None, None, None, None, None,
+     """-np=N            --num-procs=N
+
+Set the number of processes to execute on each node for algorithm DBFS."""),
+    ###########################################################################
+    ("o", "report-file", None, None, None, None, None,
+     """-o=FILE          --report-file=FILE
+
+An XML report file is created by Helena once the search terminated.
+It contains some informations such as the result of the search, or
+some statistics."""),
+    ###########################################################################
+    ("P", "partial-order", int, 0, 1, [0, 1], "partialOrder",
+     """-P[={0|1}]       --partial-order[={0|1}]}
 
 Activate/deactivate partial-order reduction.  This reduction limits
 the exploration of multiple paths that are redundant with respect to
 the desired property.  This causes some states to be never explored
 during the search.  The reductions done depend on the property
 verified.  If there is no property checked, the reduction done only
-preserves the existence of deadlock states."""
-    elif o in [ "i", "proviso" ]:
-        result = """-i[={0|1}], --proviso[={0|1}]}
+preserves the existence of deadlock states."""),
+    ###########################################################################
+    ("p", "property", str, None, None, None, "prop",
+     """-p=PROPERTY      --property=PROPERTY
 
-Activate/deactivate the proviso of partial-order reduction.  It is
-turned on by default if a property (different from deadlock absence)
-is analysed."""
-    elif o in [ "tl", "time-limit" ]:
-        result = """-tl=N, --time-limit=N
+Set the property to check if option --action=CHECK has been set."""),
+    ###########################################################################
+    ("pf", "property-file", str, None, None, None, "propFile",
+     """-pf=FILE         --property-file=FILE
 
-The search time is limited to N seconds.  When this limit is reached
-the search stops as soon as possible."""
-    elif o in [ "sl", "state-limit" ]:
-        result = """-sl=N, --state-limit=N
+File FILE contains the definition of the property to check (specified with
+option --action=CHECK and --property=PROP).  By default, if the input file of
+the model is model.lna, Helena will look into model.prop.lna for the property
+definition."""),
+    ###########################################################################
+    ("R", "random-succs", int, 0, 1, [0, 1], "randomSuccs",
+     """-R[={0|1}]       --random-succs[={0|1}]
+
+Activate/deactivate randomised successor selection.  This is only valid if
+algorithm DFS is used.  This option is useful if the counter-example produced
+is too long.  Using randomisation can often produce a smaller
+counter-example."""),
+    ###########################################################################
+    ("r", "run-time-checks", int, 1, 1, [0, 1], "runTimeChecks",
+     """-r[={0|1}]       --run-time-checks[={0|1}]
+
+Activate/deactivate run time checks such as: division by 0, expressions out of
+range, capacity of places exceeded, ...  If this option is not activated, and
+such an error occurs during the analysis, Helena may either crash, either
+produce wrong results."""),
+    ###########################################################################
+    ("sl", "state-limit", int, 0, None, None, "stateLimit",
+     """-sl=N            --state-limit=N
 
 As soon as N states have been processed the search is stopped as soon
-as possible."""
-    elif o in [ "d", "define" ]:
-        result = """-d=SYMBOL-NAME, --define=SYMBOL-NAME
+as possible.  0 = no limit"""),
+    ###########################################################################
+    ("t", "hash-size", int, 22, None, range(1, 33), "hashSize",
+     """-t=N             --hash-size=N
 
-Define preprocessor symbol SYMBOL-NAME in the net."""
-    elif o in [ "a", "capacity" ]:
-        result = """-a=N, --capacity=N
+Set to 2^N the size of the hash table which stores the set of
+reachable states."""),
+    ###########################################################################
+    ("tl", "time-limit", int, 0, None, None, "timeLimit",
+     """-tl=N            --time-limit=N
 
-The default capacity of places is set to N."""
-    elif o in [ "r", "run-time-checks" ]:
-        result = """-r[={0|1}], --run-time-checks[={0|1}]
-
-Activate/deactivate run time checks such as: division by 0,
-expressions out of range, capacity of places exceeded, ...  If this
-option is not activated, and such an error occurs during the analysis,
-Helena may either crash, either produce wrong results."""
-    elif o in [ "L", "link" ]:
-        result = """-L=OBJECT-FILE, --link=OBJECT-FILE
-
-Add file OBJECT-FILE to the files linked by Helena when compiling the
-net.  Please consult user guide for further help on this option."""
-    elif o in [ "m", "parameter" ]:
-        result = """-m=PARAM=VAL, --parameter=PARAM=VAL
-
-This gives value VAL (an integer) to net parameter PARAM."""
-    elif o in [ "o", "report-file" ]:
-        result = """-o=FILE, --report-file=FILE
-
-An XML report file is created by Helena once the search terminated.
-It contains some informations such as the result of the search, or
-some statistics."""
-    elif o in [ "tr", "trace-type" ]:
-        result = """-tr=TYPE, --trace-type=TYPE
+The search time is limited to N seconds.  When this limit is reached
+the search stops as soon as possible.  0 = no limit"""),
+    ###########################################################################
+    ("tr", "trace-type", str, FULL, None,
+     [ FULL, EVENTS, STATE], "traceType",
+     """-tr=TYPE         --trace-type=TYPE
 
 Specify the type of trace (i.e., counter-example) displayed.  TYPE
 must take one of these three values:
 * FULL - The full trace is displayed.
-* EVENTS - Only the sequence of events, the initial and the final
-   faulty states are displayed.  Intermediary states are not
-   displayed.
-* STATE - Only the faulty state reached is displayed.  No information
-   on how this state can be reached is therefore available."""
-    elif o in [ "wp", "with-papi" ]:
-        result = """-wp[={0|1}], --with-papi[={0|1}]
+* EVENTS - Only the sequence of events, the initial and the final faulty states
+   are displayed.  Intermediary states are not displayed.
+* STATE - Only the faulty state reached is displayed.  No information on how
+   this state can be reached is therefore available."""),
+    ###########################################################################
+    ("v", "verbose", int, 0, 1, [0, 1], "verbose",
+     """-v[={0|1}]       --verbose[={0|1}]
 
-Activate/deactivate the use of the PAPI (Performance Application
-Programming Interface, see http://icl.utk.edu/papi/) to print
-additional statistics at the end of the search."""
-    
-    elif o in [ "bs", "shmem-buffer-size" ]:
-        result = """-bs=N, --shmem-buffer-size=N
+Be verbose."""),
+    ###########################################################################
+    ("V", "version", int, None, 1, [0, 1], "version",
+     """-V               --version
 
-Set to N bytes the size of the shared memory buffer size used by algorithm
-DBFS."""
-    elif o in [ "mf", "machine-file" ]:
-        result = """-mf=FILE, --machine-file=FILE
+Prints the version number and exit."""),
+    ###########################################################################
+    ("wp", "with-papi", int, 0, 1, [0, 1], "withPapi",
+     """-wp[={0|1}]      --with-papi[={0|1}]
 
-Provides the machine-file to be passed to MPI for algorithm DBFS."""
-    elif o in [ "np", "num-procs" ]:
-        result = """-np=N, --num-procs=N
+Activate/deactivate the use of the PAPI (Performance Application Programming
+Interface, see http://icl.utk.edu/papi/) to print additional statistics at the
+end of the search."""),
+    ###########################################################################
+    ("W", "workers", int, 1, None, None, "workers",
+     """-W=N             --workers=N
 
-Set the number of processes to execute on each node for algorithm DBFS."""
+Set to N the number of working threads that will perform the search.""")
+]
 
-    #  append the default value to the result
-    if result is not None:
-        default = defaultValue(o)
-        if default is not None:
-            result += "\n\n*default value = " + str(default) + "*"
-        return result
-    else:
-        raise Exception
+for o in OPTS:
+    assert len(o) == 8
 
+def optShort(opt): return opt[0]
+def optLong(opt): return opt[1]
+def optType(opt): return opt[2]
+def optDefaultValue(opt): return opt[3]
+def optDefaultValueCommandLine(opt): return opt[4]
+def optAcceptable(opt): return opt[5]
+def optConfigAttr(opt): return opt[6]
+def optHelp(opt): return opt[7]
+
+def helpMessage(o):
+    result = None
+    for opt in OPTS:
+        if o == optShort(opt) or o == optLong(opt):
+            result = optHelp(opt)
+            default = optDefaultValue(opt)
+            if default is not None:
+                result += "\n\n*default value = " + str(default) + "*"
+            return result
+    raise Exception
 
 def printHelpShort():
-    print """usage: helena [options] my-net.lna
- 
- General options
-   -h   --help[=opt]
-   -V   --version
-   -v   --verbose
-   -N   --action={EXPLORE|SIMULATE|BUILD-GRAPH|CHECK-prop}
-   -g   --progress={no-compile|no-check|no-report}
-   -b   --observer[={0|1}]
-   -p   --property-file=FILE
-   -md  --model-directory=DIRECTORY
-   -wp  --with-papi[={0|1}]
- 
- Search and storage options
-   -A   --algo={DFS|BFS|DBFS|DELTA-DDD|RWALK}
-   -t   --hash-size=N
-   -W   --workers=N
-   -R   --random-succs[={0|1}]
-   -cs  --candidate-set-size=N
-
- Distributed search options
-   -mf  --machine-file=FILE
-   -bs  --shmem-buffer-size=N
-   -np  --num-procs=N
- 
- Reduction techniques
-   -H   --hash-compaction[={0|1}]
-   -P   --partial-order[={0|1}]
-   -i   --proviso[={0|1}]
-   -C   --state-compression[={0|1}]
-   -cb  --compression-bits=N
- 
- Limit options
-   -tl  --time-limit=N
-   -sl  --state-limit=N
- 
- Model options
-   -d   --define=SYMBOL-NAME
-   -a   --capacity=N
-   -r   --run-time-checks[={0|1}]
-   -L   --link=OBJECT-FILE
-   -m   --parameter=p=N
- 
- Output options
-   -o   --report-file=FILE-NAME
-   -tr  --trace-type={FULL|EVENTS|STATE}"""
-
+    print "usage: helena [options] my-net.lna"
+    for title, opts in OPTION_TYPES:
+        print "\n", title
+        for o in opts:
+            for O in OPTS:
+                s = optShort(O)
+                if s == o:
+                    print "   " + optHelp(O).split("\n")[0]
 
 def printHelpMD():
     print """# Helena help
@@ -368,7 +359,7 @@ helena [options] my-net.lna
 
 def printVersion():
     print "helena " + VERSION + " --- " + DATE
-        
+
 
 def exitWithError(err):
     print >> sys.stderr, "error: " + err
@@ -385,69 +376,38 @@ def parseArgument(arg):
     else:
         return (None, None)
 
-def parseCheckArgument(val):
-    if val.upper() == "CHECK":
-        return (True, None)
-    else:
-        S = re.search
-        if not(S("^CHECK-", val.upper())):
-            return (False, None)
-        else:
-            l = val.split("-")
-            if len(l) <> 2:
-                return (False, None)
-            else:
-                if len(l[1]) == 0:
-                    return (False, None)
-                else:
-                    return (True, l[1])
-
-class Config:        
+class Config:
 
     def __init__(self):
         self.language = None
-        self.verbose = False
-        self.version = False
-        self.partialOrder = bool(defaultValue("P"))
-        self.hashCompaction = bool(defaultValue("H"))
-        self.withPapi = bool(defaultValue("wp"))
-        self.randomSuccs = bool(defaultValue("R"))
-        self.withObserver = bool(defaultValue("b"))
-        self.stateCompression = bool(defaultValue("C"))
-        self.timeLimit = defaultValue("tl")
-        self.stateLimit = defaultValue("sl")
-        self.traceType = defaultValue("tr")
-        self.algo = defaultValue("A")
-        self.action = defaultValue("N")
-        self.hashSize = defaultValue("t")
-        self.workers = defaultValue("W")
-        self.capacity = defaultValue("c")
-        self.compressionBits = defaultValue("cb")
-        self.shmemBufferSize = defaultValue("bs")
-        self.candidateSetSize = defaultValue("cs")
-        self.runTimeChecks = defaultValue("r")
-        self.stateCompression = bool(defaultValue("C"))
-        self.distributedStateCompression = False
         self.directory = None
-        self.symbols = []
         self.inFile = None
         self.inFileExt = None
-        self.prop = None
-        self.propFile = None
         self.propType = None
         self.dynamicPartialOrder = False
-        self.proviso = False
         self.propositions = []
-        self.parameters = []
         self.bfsQueueBlockSize = 10 ** 4
         self.dfsStackBlockSize = 10 ** 4
         self.rwalkMaxDepth = 10 ** 3
         self.maxTraceLength = 10 ** 3
         self.dbfsCheckTermPeriodMS = 100
         self.debug = False
+        for o in OPTS:
+            default = optDefaultValue(o)
+            attr = optConfigAttr(o)
+            t = optType(o)
+            if attr is not None:
+                if default is not None:
+                    val = t(default)
+                else:
+                    val = None
+                setattr(self, attr, val)
 
     #  correct inconsistencies in received arguments
     def correct(self):
+        self.action = self.action.upper()
+        self.algo = self.algo.upper()
+        self.traceType = self.traceType.upper()
         if self.action == BUILD_GRAPH:
             self.algo = DELTA_DDD
             self.prop = ""
@@ -461,11 +421,6 @@ class Config:
         if self.algo == DBFS:
             self.traceType = STATE
             self.workers = 1
-        if self.hashSize > 32:
-            self.hashSize = 32
-        if self.hashCompaction:
-            self.stateCompression = False
-
         self.hashCompaction = self.hashCompaction and self.algo not in [
             BWALK, RWALK, DELTA_DDD, DBFS ]
         self.partialOrder = self.partialOrder and self.algo not in [
@@ -474,6 +429,12 @@ class Config:
             BWALK, RWALK, DELTA_DDD ] and not self.hashCompaction
         self.randomSuccs = self.randomSuccs and self.algo in [
             BWALK, DFS ]
+        self.distributedStateCompression = self.distributedStateCompression \
+            and self.algo in [ DBFS ] and not self.hashCompaction \
+            and self.language == DVE
+        self.stateCompression = self.stateCompression and self.algo not in [
+            BWALK, RWALK, DELTA_DDD ] and not self.hashCompaction \
+            and not self.distributedStateCompression
 
     def openFile(self, name, mode):
         if self.directory is None:
@@ -482,22 +443,18 @@ class Config:
             return open(self.directory + os.sep + name, mode)
 
     def generateConfigFile(self):
-        
         f = self.openFile("config.h", "w")
         W = f.write
-        
         W("#ifndef LIB_CONFIG\n")
         W("#define LIB_CONFIG\n")
         W("\n")
-        
         now = datetime.now()
         model = ""
-        self.language = self.inFileExt[1:].lower()
-        if self.language == "lna":
+        if self.language == LNA:
             languageLong = "Helena"
-        elif self.language == "pnml":
+        elif self.language == PNML:
             languageLong = "Petri net"
-        elif self.language == "dve":
+        elif self.language == DVE:
             languageLong = "DVE"
             (model, _) = os.path.splitext(os.path.basename(self.inFile))
             if model == "":
@@ -509,18 +466,6 @@ class Config:
             self.proviso = self.propType is not None and \
                            self.propType != DEADLOCK
         distributed = self.algo in [ DBFS ]
-
-        #  compression mode (distributed or sequential)
-        stateCompression = self.stateCompression
-        distributedStateCompression = False
-        if stateCompression:
-            if distributed and self.language in [ "dve" ]:
-                stateCompression = False
-                distributedStateCompression = True
-            else:
-                stateCompression = True
-                distributedStateCompression = False                
-            
         params = [
             ("ACTION_BUILD_GRAPH", self.action == BUILD_GRAPH),
             ("ACTION_CHECK_LTL", self.action == CHECK and \
@@ -545,7 +490,8 @@ class Config:
             ("DELTA_DDD_STORAGE", self.algo == DELTA_DDD),
             ("DFS_STACK_BLOCK_SIZE", self.dfsStackBlockSize),
             ("DISTRIBUTED", distributed),
-            ("DISTRIBUTED_STATE_COMPRESSION", distributedStateCompression),
+            ("DISTRIBUTED_STATE_COMPRESSION",
+             self.distributedStateCompression),
             ("DYNAMIC_POR", self.dynamicPartialOrder),
             ("FILE_PATH", "\"" + os.path.realpath(self.inFile) + "\""),
             ("GRAPH_FILE", "\"graph.dat\""),
@@ -555,9 +501,9 @@ class Config:
             ("HASH_SIZE", pow(2, self.hashSize)),
             ("HASH_STORAGE", self.algo not in [ DELTA_DDD, RWALK ]),
             ("LANGUAGE", "\"" + languageLong + "\""),
-            ("LANGUAGE_DVE", self.language == "dve"),
-            ("LANGUAGE_LNA", self.language == "lna"),
-            ("LANGUAGE_PNML", self.language == "pnml"),
+            ("LANGUAGE_DVE", self.language == DVE),
+            ("LANGUAGE_LNA", self.language == LNA),
+            ("LANGUAGE_PNML", self.language == PNML),
             ("MAX_STATE", self.stateLimit),
             ("MAX_TIME", self.timeLimit),
             ("MAX_TRACE_LENGTH", self.maxTraceLength),
@@ -572,7 +518,7 @@ class Config:
             ("RG_REPORT_FILE", "\"rg-report.xml\""),
             ("RWALK_MAX_DEPTH", self.rwalkMaxDepth),
             ("SHMEM_BUFFER_SIZE", self.shmemBufferSize),
-            ("STATE_COMPRESSION", stateCompression),
+            ("STATE_COMPRESSION", self.stateCompression),
             ("STATE_COMPRESSION_BITS", self.compressionBits),
             ("STATE_LIMITED", self.stateLimit != 0),
             ("TIME_LIMITED", self.timeLimit != 0),
@@ -582,7 +528,6 @@ class Config:
             ("WITH_OBSERVER", self.withObserver),
             ("WITH_PAPI", self.withPapi)
         ]
-        
         for (p, v) in params:
             if type(v) == bool:
                 W("#define CFG_" + p + " " + ("1" if v else "0") + "\n")
@@ -595,160 +540,62 @@ class Config:
         W("\n#endif  /*  LIB_CONFIG  */\n")
         f.close()
 
-    def handleNumericalOption(self, attr, val):
-        try:
-            if val is None:
-                return False
-            i = int(val)
-            setattr(self, attr, i)
-            return True
-        except ValueError:
-            return False
-
-    def handleStringOption(self, attr, val):
-        if val is None:
-            return False
-        else:
-            if attr is not None:
-                setattr(self, attr, val)
-            return True
-
-    def handleEnumOption(self, attr, val, okVal):
-        if val is None:
-            return False
-        if val.upper() in okVal:
-            if attr is not None:
-                setattr(self, attr, val.upper())
-            return True
-        else:
-            return False
-        
     def parseFromCommandLine(self):
         for arg in sys.argv[1 : len(sys.argv) - 2]:
-            recognized = True
+            optOK = False
+            valOK = True
             (opt, val) = parseArgument(arg)
-
-            #  options with no value
-            if   (opt, val) in [ ("-v", None), ("--verbose", None) ]:
-                self.verbose = True
-            elif (opt, val) in [ ("-V", None), ("--version", None) ]:
+            for o in OPTS:
+                if opt == "-" + optShort(o) or opt == "--" + optLong(o):
+                    t = optType(o)
+                    if t is None:
+                        optOK = True
+                        break
+                    else:
+                        attr = optConfigAttr(o)
+                        assert attr is not None
+                        default = optDefaultValueCommandLine(o)
+                        if val is None:
+                            val = default
+                        if val is not None:
+                            try:
+                                accept = optAcceptable(o)
+                                if accept is not None and \
+                                   str(val).upper() not in map(str, accept):
+                                    valOK = False
+                                else:
+                                    if t == list:
+                                        l = getattr(self, attr)
+                                        l.append(val)
+                                    else:
+                                        setattr(self, attr, t(val))
+                                    optOK = True
+                            except:
+                                pass
+                    break
+            if self.version:
                 printVersion()
                 exit(0)
-            elif (opt, val) in [ ("-h", None), ("--help", None) ]:
-                printHelpShort()
-                exit(0)
-                
-            #  boolean options
-            elif opt in [ "-b", "--observer" ]:
-                self.withObserver = (val is None) or val == "1"
-            elif opt in [ "-P", "--partial-order" ]:
-                self.partialOrder = (val is None) or val == "1"
-            elif opt in [ "-i", "--proviso" ]:
-                self.proviso = (val is None) or val == "1"
-            elif opt in [ "-C", "--state-compression" ]:
-                self.stateCompression = (val is None) or val == "1"
-            elif opt in [ "-D", "--dynamic-partial-order" ]:
-                self.dynamicPartialOrder = (val is None) or val == "1"
-            elif opt in [ "-r", "--run-time-checks" ]:
-                self.runTimeChecks = (val is None) or val == "1"
-            elif opt in [ "-H", "--hash-compaction" ]:
-                self.hashCompaction = (val is None) or val == "1"
-            elif opt in [ "-R", "--random-succs" ]:
-                self.randomSuccs = (val is None) or val == "1"
-            elif opt in [ "-wp", "--with-papi" ]:
-                self.withPapi = (val is None) or val == "1"
-
-            #  numerical options
-            elif opt in [ "-W", "--workers" ]:
-                recognized = self.handleNumericalOption("workers", val)
-                if self.workers == 0:
-                    recognized = False
-            elif opt in [ "-a", "--capacity" ]:
-                recognized = self.handleNumericalOption("capacity", val)
-            elif opt in [ "-cb", "--compression-bits" ]:
-                recognized = self.handleNumericalOption("compressionBits", val)
-            elif opt in [ "-cs", "--candidate-set-size" ]:
-                recognized = self.handleNumericalOption("candidateSetSize",
-                                                        val)
-            elif opt in [ "-bs", "--shmem-buffer-size" ]:
-                recognized = self.handleNumericalOption("shmemBufferSize", val)
-            elif opt in [ "-t", "--hash-size" ]:
-                recognized = self.handleNumericalOption("hashSize", val)
-            elif opt in [ "-tl", "--time-limit" ]:
-                recognized = self.handleNumericalOption("timeLimit", val)
-            elif opt in [ "-sl", "--state-limit" ]:
-                recognized = self.handleNumericalOption("stateLimit", val)
-
-            #  string options
-            elif opt in [ "-h", "--help" ]:
-                if val == "FULL":
+            if self.printHelp is not None:
+                if self.printHelp == "":
+                    printHelpShort()
+                    exit(0)
+                elif self.printHelp == "FULL":
                     printHelpMD()
+                    exit(0)
                 else:
                     try:
-                        msg = helpMessage(val)
-                        if msg is None:
-                            msg = "No help for option " + val + ".  Sorry."
-                        print msg
+                        print helpMessage(self.printHelp)
+                        exit(0)
                     except:
-                        exitWithError(val + " is not a valid option")
-                exit(0)
-            elif opt in [ "-d", "--define" ]:
-                recognized = self.handleStringOption(None, val)
-                if recognized:
-                    self.symbols.append(val)
-            elif opt in [ "-L", "--link" ]:
-                recognized = self.handleStringOption("link", val)
-            elif opt in [ "-p", "--property-file" ]:
-                recognized = self.handleStringOption("propertyFile", val)
-            elif opt in [ "-o", "--report-file" ]:
-                recognized = self.handleStringOption("reportFile", val)
-            elif opt in [ "-m", "--parameter" ]:
-                recognized = self.handleStringOption(None, val)
-                if recognized:
-                    l = val.split("=")
-                    recognized = len(l) == 2
-                    if recognized:
-                        self.parameters.append(val)
+                        optOK = False
 
-            #  enum options
-            elif opt in [ "-A", "--algo" ]:
-                recognized = self.handleEnumOption \
-                             ("algo", val, [BFS, BWALK, DBFS, DFS, \
-                                            DELTA_DDD, RWALK, TARJAN])
-            elif opt in [ "-tr", "--trace-type" ]:
-                recognized = self.handleEnumOption \
-                             ("traceType", val, [FULL, EVENTS, STATE])
-            elif opt in [ "-N", "--action" ]:
-                self.prop = None
-                recognized = self.handleEnumOption \
-                             ("action", val, [SIMULATE, EXPLORE, BUILD_GRAPH])
-                if not recognized:
-                    (recognized, p) = parseCheckArgument(val)
-                    if recognized:
-                        self.action = CHECK
-                        self.prop = p
-
-            #  option that are handled directly by the helena script
-            #  and ignored here
-            elif opt in [ "-md", "--model-directory" ]:
-                recognized = True
-            elif opt in [ "-np", "--num-procs" ]:
-                recognized = True
-            elif opt in [ "-mf", "--machine-file" ]:
-                recognized = True
-            elif opt in [ "-g", "--progress" ]:
-                recognized = True
-
-            #  does not match any option
-            else:
-                recognized = False
-                val = None
-
-            if not recognized:
-                if val is not None:
-                    err = "invalid value for option " + opt + ": " + val
-                else:
-                    err = "invalid option: " + arg
+            err = None
+            if not valOK:
+                err = "invalid value for option " + opt + ": " + val
+            elif not optOK:
+                err = "invalid option: " + arg
+            if err is not None:
                 exitWithError(err)
         if len(sys.argv) >= 2:
             self.inFile = sys.argv[len(sys.argv) - 2]
@@ -764,11 +611,12 @@ class Config:
         f.write("#define state_check_property(now, en) FALSE\n")
         f.close()
         self.openFile("prop.c", "w").close()
-        if self.action == CHECK and self.language == "dve":
+        if self.action == CHECK and self.language == DVE:
             self.propType = LTL
-        elif self.action == CHECK and self.language == "lna":
+        elif self.action == CHECK and self.language == LNA:
             if self.prop is None:
-                exitWithError("property name excepted for action check")
+                exitWithError("action check needs a property " +
+                              "(option --property=PROP)")
             cmd = "helena-generate-property "
             cmd = cmd + " " + self.prop + " " + self.propFile
             if self.directory is None:
@@ -803,8 +651,8 @@ class Config:
             opts.append("--run-time-checks=0")
         for prop in self.propositions:
             opts.append("--proposition=" + prop)
-        for sym in self.symbols:
-            opts.append("--define=" + sym)
+        for define in self.defines:
+            opts.append("--define=" + define)
         for param in self.parameters:
             opts.append("--parameter=" + param)
         f = open("model-options", "w")
@@ -815,8 +663,8 @@ class Config:
 if __name__ == "__main__":
     C = Config()
     C.parseFromCommandLine()
-    C.generatePropertyCode()
     C.correct()
+    C.generatePropertyCode()
     C.generateConfigFile()
     C.outputModelOptions()
     exit(0)

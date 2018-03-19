@@ -6,7 +6,7 @@
 ####################
 #  PARAMETERS TO MODIFY ACCORDING TO YOUR CONFIGURATION
 helenaDir=$HOME/.helena
-CC='/usr/bin/gcc -Wunused-variable'
+CC='/usr/bin/gcc'
 MPICC='/usr/bin/oshcc'
 MPIRUN="/usr/bin/oshrun"
 ####################
@@ -314,10 +314,11 @@ for arg in $*
 do
     idx=$(expr index $arg =)
     case $arg in
-	-v|--verbose) verbose=1 ;;
-	-h|--help) $configGenerator -h dummy dummy ; exit 0 ;;
+	-v|-v=1|--verbose|--verbose=1) verbose=1 ;;
+	-h|--help) $configGenerator $arg dummy dummy ; exit 0 ;;
 	-h=*|--help=*) $configGenerator $arg dummy dummy ; exit 0 ;;
-	-V|--version) $configGenerator -V dummy dummy ; exit 0 ;;
+	-V|-V=1|--version=1|--version)
+            $configGenerator -V dummy dummy ; exit 0 ;;
 	-md=*|--model-directory=*)
 	    modelDir=${arg:$idx}
             ;;
