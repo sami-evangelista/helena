@@ -403,11 +403,15 @@ class Config:
                     val = None
                 setattr(self, attr, val)
 
-    #  correct inconsistencies in received arguments
-    def correct(self):
+    def fixAttributes(self):
         self.action = self.action.upper()
         self.algo = self.algo.upper()
         self.traceType = self.traceType.upper()
+
+    #  correct inconsistencies in received arguments
+    def correct(self):
+        if self.algo == DBFS and self.action == CHECK and self.propType == LTL:
+            self.action = EXPLORE
         if self.action == BUILD_GRAPH:
             self.algo = DELTA_DDD
             self.prop = ""
@@ -663,8 +667,9 @@ class Config:
 if __name__ == "__main__":
     C = Config()
     C.parseFromCommandLine()
-    C.correct()
+    C.fixAttributes()
     C.generatePropertyCode()
+    C.correct()
     C.generateConfigFile()
     C.outputModelOptions()
     exit(0)

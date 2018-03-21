@@ -125,9 +125,6 @@ package body Pn.Compiler.Model is
 	 Plc(L, 1, Pr & "<places>" & Places & "</places>"");");
 	 Plc(L, 1, Pr & "<transitions>" & Trans & "</transitions>"");");
 	 Plc(L, 1, Pr & "<netArcs>" & Arcs & "</netArcs>"");");
-	 Plc(L, 1, Pr & "<inArcs>" & In_Arcs & "</inArcs>"");");
-	 Plc(L, 1, Pr & "<outArcs>" & Out_Arcs & "</outArcs>"");");
-	 Plc(L, 1, Pr & "<inhibArcs>" & Inhib_Arcs & "</inhibArcs>"");");
 	 Plc(L, "}");
       end;
       --=======================================================================

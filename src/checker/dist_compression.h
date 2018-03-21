@@ -27,26 +27,33 @@ void finalise_dist_compression
 
 
 /**
- * @brief mstate_dist_compress
+ * @brief dist_compression_output_statistics
  */
-void mstate_dist_compress
+void dist_compression_output_statistics
+(FILE * f);
+
+
+/**
+ * @brief dist_compression_compress
+ */
+void dist_compression_compress
 (mstate_t s,
  char * v,
  uint16_t * size);
 
 
 /**
- * @brief mstate_dist_uncompress
+ * @brief dist_compression_uncompress
  */
-void * mstate_dist_uncompress
+void * dist_compression_uncompress
 (char * v,
  heap_t heap);
 
 
 /**
- * @brief mstate_dist_compressed_char_size
+ * @brief dist_compression_char_size
  */
-uint16_t mstate_dist_compressed_char_size
+uint16_t dist_compression_char_size
 ();
 
 

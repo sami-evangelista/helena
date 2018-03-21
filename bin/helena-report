@@ -5,11 +5,15 @@
 #  Parse an XML report file and print it to the standard output.
 #
 
-from xml.dom.minidom import parse, parseString
+from xml.dom.minidom import parse, parseString, Node
 import os
 import shutil
 import subprocess
 import sys
+from textwrap import TextWrapper
+
+WIDTH = 80
+WRAPPER = TextWrapper(width = WIDTH)
 
 def exitWithError(errMsg):
     sys.stderr.write(str(errMsg) + "\n")
@@ -18,207 +22,178 @@ def exitWithError(errMsg):
 def printDashes(n):
     str = ""
     for i in range(0, n): str += " "
-    for i in range(0, 80 - n): str += "-"
+    for i in range(0, WIDTH - n): str += "-"
     print str
-
-def formatSearchResult(r):
-    global terminationStates
-    return terminationStates[r.strip()]
-
-def formatNumber(n):
-    pos = n.find(".")
-    if pos >= 0:
-        left = formatNumber(n[0 : pos])
-        right = n[pos + 1 : len(n)]
-        right = formatNumber(right[::-1])
-        return left + "." + right[::-1]
-    else:
-        tmp = n[::-1]
-        result = ""
-        for i in range(0, len(tmp)):
-            if (i % 3 == 0) and i > 0: result += ","
-            result += tmp[i] 
-        return result[::-1]
-
-def noFormat(val):
-    return val
 
 def nodeValue(n):
     if len(n.childNodes) == 0:
         return "NA"
     else:
-        return n.childNodes[0].nodeValue   
+        return n.childNodes[0].nodeValue
 
-def getBasicNodeValue(n, fmt, space = 0, unit = None):
+def getBasicNodeComment(n, fmt = None, unit = None):
+    result = None
+    l = n.getElementsByTagName("list")
+    if len(l) > 0:
+        l = l[0]
+        for (t, nt) in [ ("total", "sum"),
+                         ("min", "min"),
+                         ("max", "max"),
+                         ("dev", "dev"),
+                         ("avg", "avg") ]:
+            items = l.getElementsByTagName(nt)
+            if len(items) > 0:
+                if result is None:
+                    result = ""
+                else:
+                    result += ", "
+                result = t + " = "
+                v = nodeValue(items[0])
+                result += fmt(v) if fmt is not None else v
+                if unit is not None:
+                    result += " " + unit
+    return result
+
+def getBasicNodeValue(n, fmt = None, unit = None):
     result = ""
     l = n.getElementsByTagName("list")
     if len(l) == 0:
-        result = fmt(nodeValue(n))
+        v = nodeValue(n)
+        result += fmt(v) if fmt is not None else v
         if unit is not None:
             result += " " + unit
     else:
-        l = l[0]
-        node = 1
-        result = "" 
-        for item in l.getElementsByTagName("item"):
+        l = l[0]      
+        result = ""
+        for c in n.getElementsByTagName("item"):
             if result != "":
-                result += "\n" + (space * " ")
-            result += "[node " + str(node) + "] "
-            result += fmt(nodeValue(item))
-            if unit is not None:
-                result += " " + unit
-            node += 1
-        sumItem = l.getElementsByTagName("sum")
-        if len(sumItem) > 0:
-            if result != "":
-                result += "\n" + (space * " ")
-            result += "[sum   ] " + fmt(nodeValue(sumItem[0]))
+                result += ", "
+            result += getBasicNodeValue(c, fmt, unit)
+        result = "[" + result + "]"
     return result
-            
-            
-generalInfos = {
-    "model"   : "Model analyzed  ",
-    "date"    : "Analysis date   ",
-    "language": "Model language  ",
-    "filePath": "File path       ",
-    "host"    : "Host machine    " }
-searchInfos = {
-    "property"    : "Property analysed    ",
-    "errorMessage": "Error message        " }
-terminationStates = {
-    "searchTerminated" : "Search terminated",
-    "stateLimitReached": "State limit reached",
-    "timeElapsed"      : "Time limit reached",
-    "noCounterExample" : "No counter-example found",
-    "propertyHolds"    : "Property holds",
-    "propertyViolated" : "Property violated (see the trace report)",
-    "interruption"     : "Search interrupted",
-    "error"            : "An error occurred" }
-algorithms = {
-    "breadthSearch"           : "BFS",
-    "depthSearch"             : "DFS",
-    "distributedBreadthSearch": "DBFS",
-    "randomWalk"              : "RWALK",
-    "bitstateWalk"            : "BWALK",
-    "deltaDDD"                : "Delta-DDD" }
-options = {
-    "stateCompression": "State compression",
-    "partialOrder"    : "Partial order reduction",
-    "hashCompaction"  : "Hash compaction",
-    "randomSuccs"     : "Random successor selection",
-    "searchAlgorithm" : "Search algorithm = ",
-    "candidateSetSize": "Candidate set size (for Delta-DDD) = ",
-    "hashTableSize"   : "Hash table size = ",
-    "shmemBufferSize" : "SHMEM buffer size = ",
-    "shmemHeapSize"   : "SHMEM total heap size = ",
-    "workers"         : "Exploration threads = " }
-optionsWithVal = {
-    "workers"         : formatNumber,
-    "shmemBufferSize" : formatNumber,
-    "shmemHeapSize"   : formatNumber,
-    "candidateSetSize": formatNumber,
-    "hashTableSize"   : formatNumber,
-    "searchAlgorithm" : lambda a: algorithms[a] }
-optionsWithUnits = {
-    "shmemBufferSize" : "bytes",
-    "shmemHeapSize"   : "bytes",
-    "candidateSetSize": "states",
-    "hashTableSize"   : "states" }
-statistics = {
-    (0, "compilationTime")         : "Source compilation        ",
-    (1, "searchTime")              : "Search time               ",
-    #(2, "barrierTime")             : "        including barriers",
-    (3, "places")                  : "Places                    ",
-    (4, "transitions")             : "Transitions               ",
-    (5, "netArcs")                 : "Arcs                      ",
-    (6, "inArcs")                  : "  in arcs                 ",
-    (7, "outArcs")                 : "  out arcs                ",
-    (8, "inhibArcs")               : "  inhibitor arcs          ",
-    (9, "stateSize")               : "State size                ",
-    (10, "compressedStateSize")    : "Compressed state size     ",
-    (11, "statesStored")           : ("States                   \n" +
-                                      "        stored                  "),
-    (12, "statesProcessed")        : "  processed               ",
-    (13, "statesProcessedMin")     : "    min. over threads     ",
-    (14, "statesProcessedMax")     : "    max. over threads     ",
-    (15, "statesProcessedDev")     : "    std. dev. over threads",
-    (16, "statesReduced")          : "  reduced                 ",
-    (17, "statesAccepting")        : "  accepting               ",
-    (18, "statesTerminal")         : "  deadlock                ",
-    (19, "statesUnsafe")           : "  unsafe                  ",
-    (20, "arcs")                   : "Transitions               ",
-    (21, "maxDFSStackSize")        : "Max DFS stack size        ",
-    (22, "eventsExecuted")         : "Events executed           ",
-    (23, "shmemComms")             : "SHMEM communications      ",
-    (24, "avgCPUUsage")            : "Average CPU Usage         ",
-    (25, "lvl1TotalCacheMiss")     : "Level 1 total cache miss  ",
-    (26, "lvl1TotalCacheHit")      : "Level 1 total cache hit   ",
-    (27, "lvl2TotalCacheMiss")     : "Level 2 total cache miss  ",
-    (28, "lvl2TotalCacheHit")      : "Level 2 total cache hit   ",
-    (29, "lvl3TotalCacheMiss")     : "Level 3 total cache miss  ",
-    (30, "lvl3TotalCacheHit")      : "Level 3 total cache hit   ",
-    (31, "bwalkIterations")        : "BWALK iterations          " }
-statisticsUnits = {
-    "searchTime"            : "s.",
-    "compilationTime"       : "s.",
-    "stateSize"             : "bytes",
-    "compressedStateSize"   : "bytes",
-    "avgCPUUsage"           : "%" }
-statisticsCategories = {
-    "timeStatistics" : "Time statistics",
-    "modelStatistics": "Model statistics",
-    "graphStatistics": "Exploration statistics",
-    "papiStatistics" : "PAPI statistics",
-    "otherStatistics": "Other statistics" }
-subReports = {
-    "infoReport"      : "General informations",
-    "searchReport"    : "Search report",
-    "statisticsReport": "Statistics report",
-    "traceReport"     : "Trace report" }
 
 def printInfoReport(r):
+    WRAPPER.initial_indent = 6 * " "
+    WRAPPER.subsequent_indent = WRAPPER.initial_indent
+    generalInfos = { "model"   : "Model analyzed",
+                     "date"    : "Analysis date",
+                     "language": "Model language",
+                     "filePath": "File path" }
     for e in r.childNodes:
         name = e.nodeName
-        if e.childNodes:
-            val = getBasicNodeValue(e, noFormat, 22)
-        else:
-            val = ""
         if name in generalInfos:
-            print "    " + generalInfos[name] + ": " + val
+            print (4 * " ") + generalInfos[name]
+            print WRAPPER.fill(getBasicNodeValue(e))
         elif name == "modelParameters":
             P = [ c for c in e.childNodes if c.nodeName == "modelParameter" ]
-            pref = "    Model parameters: "
+            print (4 * " ") + "Model parameters"
             for p in P:
                 n = p.getElementsByTagName("modelParameterName")[0]
-                n = getBasicNodeValue(n, noFormat)
                 v = p.getElementsByTagName("modelParameterValue")[0]
-                v = getBasicNodeValue(v, noFormat)
-                print pref + n + " = " + v
-                pref = "                      "
+                print (6 * " ") + getBasicNodeValue(n) + " = " + \
+                    getBasicNodeValue(v)
 
 def printSearchReport(r):
+    WRAPPER.initial_indent = 6 * " "
+    WRAPPER.subsequent_indent = WRAPPER.initial_indent
+    def formatTermState(s):
+        values = {
+            "searchTerminated" : "SEARCH-TERMINATED",
+            "stateLimitReached": "STATE-LIMIT-REACHED",
+            "timeElapsed"      : "TIME-LIMIT-REACHED",
+            "noCounterExample" : "NO-COUNTER-EXAMPLE",
+            "propertyHolds"    : "PROPERTY-HOLDS",
+            "propertyViolated" : "PROPERTY-VIOLATED",
+            "interruption"     : "INTERRUPTION",
+            "error"            : "ERROR" }
+        try:
+            return values[s]
+        except:
+            return "NA"
+    def formatAction(a):
+        values = {
+            "buildGraph": "state space graph construction",
+            "check"     : "property checking",
+            "explore"   : "state space exploration" }
+        try:
+            return values[a]
+        except:
+            return "NA"
+    options = {
+        "stateCompression"           : ("State compression", None),
+        "distributedStateCompression": ("Distributed state compression", None),
+        "partialOrder"               : ("Partial order reduction", None),
+        "partialOrderProviso"        : ("Partial order reduction proviso",
+                                        None),
+        "hashCompaction"             : ("Hash compaction", None),
+        "randomSuccs"                : ("Random successor selection", None),
+        "searchAlgorithm"            : ("Search algorithm", None),
+        "candidateSetSize"           : ("Candidate set size", "states"),
+        "hashTableSize"              : ("Hash table size", "states"),
+        "shmemBufferSize"            : ("SHMEM buffer size", "bytes"),
+        "shmemHeapSize"              : ("SHMEM total heap size", "bytes"),
+        "workers"                    : ("Worker threads", None) }
+    l = [ ("action", "Action performed", formatAction),
+          ("host", "Host machine", None),
+          ("property", "Property checked", None),
+          ("searchResult", "Termination state", formatTermState),
+          ("errorMessage", "Error message", None) ]
+    strlen = 17
+    for tag, desc, fmt in l:
+        n = r.getElementsByTagName(tag)
+        if len(n) > 0:
+            print (4 * " ") + desc
+            print WRAPPER.fill(getBasicNodeValue(n[0], fmt = fmt))
     for e in r.childNodes:
         name = e.nodeName
-        if name == "searchResult":
-            print "    Termination state    : " + \
-                getBasicNodeValue(e, formatSearchResult, 27)
-        elif name in searchInfos:
-            print "    " + searchInfos[name] + ": " + \
-                getBasicNodeValue(e, noFormat, len(searchInfos[name]) + 6)
+        if name == "searchInfo":
+            i = getBasicNodeValue(e)
+            line = "    " + searchInfos[name] + ": " + i
+            print WRAPPER.fill(line)              
         elif name == "searchOptions":
-            pref = "    Options              : "
+            print "    Options"
             for o in [ o for o in e.childNodes if o.nodeName in options ]:
                 name = o.nodeName
-                line = pref + options[name]
-                if o.nodeName in optionsWithVal:
-                    f = optionsWithVal[o.nodeName]
-                    line += f(nodeValue(o))
-                    if o.nodeName in optionsWithUnits:
-                        line += " " + optionsWithUnits[o.nodeName]
-                print line
-                pref = "                           "
+                desc, units = options[name]
+                line = desc + " = " + nodeValue(o)
+                if units is not None:
+                    line += " " + units
+                print WRAPPER.fill(line)
 
 def printStatisticsReport(r):
+    WRAPPER.initial_indent = 6 * " "
+    WRAPPER.subsequent_indent = WRAPPER.initial_indent + (2 * " ")
+    statistics = {
+        (0, "compilationTime")      : ("for source compilation", "s."),
+        (1, "searchTime")           : ("for exploration", "s."),
+        (2, "places")               : ("places", None),
+        (3, "transitions")          : ("transitions", None),
+        (4, "netArcs")              : ("arcs", None),
+        (5, "stateSize")            : ("for state size", "bytes"),
+        (6, "compressedStateSize")  : ("for compressed state size", "bytes"),
+        (7, "statesStored")         : ("states stored", None),
+        (8, "statesProcessed")      : ("states processed", None),
+        (9, "statesReduced")        : ("reduced states", None),
+        (10, "statesAccepting")     : ("accepting states", None),
+        (11, "statesTerminal")      : ("deadlock states", None),
+        (12, "arcs")                : ("transitions", None),
+        (13, "eventsExecuted")      : ("events executed", None),
+        (14, "shmemComms")          : ("SHMEM communications", None),
+        (15, "avgCPUUsage")         : ("of average CPU Usage", "%"),
+        (16, "lvl1TotalCacheMiss")  : ("lvl 1 cache misses", None),
+        (17, "lvl1TotalCacheHit")   : ("lvl 1 cache hits", None),
+        (18, "lvl2TotalCacheMiss")  : ("lvl 2 cache misses", None),
+        (19, "lvl2TotalCacheHit")   : ("lvl 2 cache hits", None),
+        (20, "lvl3TotalCacheMiss")  : ("lvl 3 cache misses", None),
+        (21, "lvl3TotalCacheHit")   : ("lvl 3 cache hits", None),
+        (22, "bwalkIterations")     : ("BWALK iterations", None),
+        (23, "compressionTemplates"): ("compression templates", None) }
+    statisticsCategories = {
+        "timeStatistics" : "Time statistics",
+        "modelStatistics": "Model statistics",
+        "graphStatistics": "Exploration statistics",
+        "papiStatistics" : "PAPI statistics",
+        "otherStatistics": "Other statistics" }
     c = [ c for c in r.childNodes if c.nodeName in statisticsCategories ]
     for e in c:
         name = e.nodeName
@@ -229,13 +204,13 @@ def printStatisticsReport(r):
             snode = e.getElementsByTagName(s)
             if len(snode) > 0:
                 snode = snode[0]
-                if s in statisticsUnits:
-                    unit = statisticsUnits[s]
-                else:
-                    unit = None
-                val = getBasicNodeValue(snode, formatNumber, 35, unit)
-                line = "      " + statistics[num, s] + " : " + val
-                print line
+                desc, unit = statistics[(num, s)]
+                val = getBasicNodeValue(snode, unit = unit)
+                comment = getBasicNodeComment(snode, unit = unit)
+                line = val + " " + desc
+                if comment is not None:
+                    line += " (" + comment + ")"
+                print WRAPPER.fill(line)
 
 def printTraceReport(r):
     def printExprList(e, d):
@@ -333,11 +308,11 @@ def printTraceReport(r):
                         traceItem[name](sub, traceItem)
 
 def printDoc(doc):
-    printer = {
-        "infoReport"      : printInfoReport,
-        "searchReport"    : printSearchReport,
-        "statisticsReport": printStatisticsReport,
-        "traceReport"     : printTraceReport }
+    subReports = {
+        "infoReport"      : ("General informations", printInfoReport),
+        "searchReport"    : ("Search report", printSearchReport),
+        "statisticsReport": ("Statistics report", printStatisticsReport),
+        "traceReport"     : ("Trace report", printTraceReport) }
     report = doc.getElementsByTagName("helenaReport")
     printDashes(0)
     print "Helena report"
@@ -345,10 +320,10 @@ def printDoc(doc):
     for e in report[0].childNodes:
         name = e.nodeName
         if name in subReports:
-            print ""
-            print "  " + subReports[name]
+            desc, printer = subReports[name]
+            print "\n  " + desc
             printDashes(2)
-            printer[name](e)
+            printer(e)
     printDashes(0)
 
 def findReportFile(m):
@@ -365,37 +340,41 @@ def findReportFile(m):
                     raise IOError("error: report file \"" + f + "\" not found")
     raise IOError("error: model \"" + m + "\" not found")
 
-if not(len(sys.argv) in range(2, 4)):
-    print "usage: helena-report model-name [out-file]"
-    print "       helena-report report.xml [out-file]"
-    exit(1)
-else:
-    helenaDir = os.path.join(os.getenv("HOME"), ".helena")
-    modelsDir = os.path.join(helenaDir, "models")
-    model = sys.argv[1]
-    if len(sys.argv) > 2:
-        out = sys.argv[2]
-        (_, outType) = os.path.splitext(out)
+def main():
+    if not(len(sys.argv) in range(2, 4)):
+        print "usage: helena-report model-name [out-file]"
+        print "       helena-report report.xml [out-file]"
+        exit(1)
     else:
-        outType = "stdout"
-    if os.path.exists(model):
-        xml = model
-    else:
-        try:
-            xml = findReportFile(model)
-        except IOError, err:
-            exitWithError(err)
-    if outType == "stdout":
-        try:
-            doc = parse(xml)
-        except:
-            msg = "error: could not parse file " + xml
+        helenaDir = os.path.join(os.getenv("HOME"), ".helena")
+        modelsDir = os.path.join(helenaDir, "models")
+        model = sys.argv[1]
+        if len(sys.argv) > 2:
+            out = sys.argv[2]
+            (_, outType) = os.path.splitext(out)
+        else:
+            outType = "stdout"
+        if os.path.exists(model):
+            xml = model
+        else:
+            try:
+                xml = findReportFile(model)
+            except IOError, err:
+                exitWithError(err)
+        if outType == "stdout":
+            try:
+                doc = parse(xml)
+            except:
+                msg = "error: could not parse file " + xml
+                exitWithError(msg)
+            printDoc(doc)
+        elif outType == ".xml":
+            shutil.copyfile(xml, out)
+        else:
+            msg = "error: \"" + outType + \
+                  "\" is not a valid extension for output file"
             exitWithError(msg)
-        printDoc(doc)
-    elif outType == ".xml":
-        shutil.copyfile(xml, out)
-    else:
-        msg = "error: \"" + outType + \
-            "\" is not a valid extension for output file"
-        exitWithError(msg)
-exit(0)
+        exit(0)
+
+if __name__ == "__main__":
+    main()        

@@ -188,6 +188,23 @@ void htbl_free
   mem_free(SYSTEM_HEAP, tbl);
 }
 
+uint64_t htbl_no_items
+(htbl_t tbl) {
+  htbl_id_t id = 0;
+  uint64_t result = 0;
+  char * status, * pos;
+
+  for(id = 0, pos = HTBL_POS_ITEM(tbl, id);
+      id < tbl->hash_size;
+      id ++, pos += tbl->item_size) {
+    HTBL_GET_STATUS(tbl, pos, status);
+    if(*status != BUCKET_EMPTY) {
+      result ++;
+    }
+  }
+  return result;  
+}
+
 bool_t htbl_contains
 (htbl_t tbl,
  void * s,

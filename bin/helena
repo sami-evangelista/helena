@@ -15,7 +15,7 @@ CCopt="-pthread"
 CCI=""
 CCL="-lm"
 shmemI=""
-shmemL="-loshmem"
+shmemL=""
 
 #  executable names
 lnaGenerator=helena-generate-lna
@@ -253,7 +253,6 @@ launchChecker () {
         [ $? != 0 ] && exit 1
     else
         $RUN comp-time $ccTime | tee $xmlReportTmpFile | grep -v "^\[xml"
-        [ $? != 0 ] && exit 1
         collectReportFiles
         checkExecutable $reportsMerger
         $reportsMerger report-*.xml

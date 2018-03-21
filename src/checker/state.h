@@ -72,12 +72,12 @@ typedef mstate_t state_t;
 #define state_serialise mstate_serialise
 #define state_unserialise mstate_unserialise
 #define state_cmp_string mstate_cmp_string
-#define state_compressed_char_size mstate_compressed_char_size
-#define state_compress mstate_compress
-#define state_uncompress mstate_uncompress
-#define state_dist_compressed_char_size mstate_dist_compressed_char_size
-#define state_dist_compress mstate_dist_compress
-#define state_dist_uncompress mstate_dist_uncompress
+#define state_compressed_char_size compression_char_size
+#define state_compress compression_compress
+#define state_uncompress compression_uncompress
+#define state_dist_compressed_char_size dist_compression_char_size
+#define state_dist_compress dist_compression_compress
+#define state_dist_uncompress dist_compression_uncompress
 
 #endif
 

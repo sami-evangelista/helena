@@ -9,64 +9,101 @@ from xml.dom.minidom import parse, parseString
 import os
 import sys
 
-def mergeNode(nodeName, doSum, refDoc, docs):
-    n = refDoc.getElementsByTagName(nodeName)
-    if len(n) == 0:
+def valToString(val):
+    if val is None:
+        return "NA"
+    else:
+        return str(val)
+
+def mergeNode(nodeName, parentNodeName, refDoc, docs, doSum, doMax, doAvg):
+
+    #  get the parent node.  exit if not present
+    p = refDoc.getElementsByTagName(parentNodeName)
+    if len(p) == 0:
         return
-    n = n[0]
+    p = p[0]
+
+    sumVal = None
+    minVal = None
+    nVal = 0
     l = refDoc.createElement("list")
-    s = 0
     for doc in docs:
         try:
             val = doc.getElementsByTagName(nodeName)[0].childNodes[0].nodeValue
+            nVal = nVal + 1
         except:
-            val = "NA"
+            val = None
         item = refDoc.createElement("item")
-        item.appendChild(doc.createTextNode(val))
+        item.appendChild(doc.createTextNode(valToString(val)))
         l.appendChild(item)
-        if doSum and val != "NA":
-            s += int(val)
-    c = n.childNodes[0]
-    if doSum:
-        item = refDoc.createElement("sum")
-        item.appendChild(doc.createTextNode(str(s)))
-        l.appendChild(item)
-    n.replaceChild(l, c)
+        if (doSum or doAvg) and val is not None:
+            if sumVal is None:
+                sumVal = 0
+            try:
+                sumVal += int(val)
+            except:
+                sumVal += float(val)
+        if doMax and val is not None:
+            try:
+                rVal = int(val)
+            except:
+                rVal = float(val)
+            if minVal is None:
+                minVal = rVal
+            elif rVal < minVal:
+                minVal = rVal
+    n = p.getElementsByTagName(nodeName)
+    if nVal > 0:
+        if len(n) > 0:
+            p.removeChild(n[0])
+        if doSum:
+            item = refDoc.createElement("sum")
+            item.appendChild(doc.createTextNode(valToString(sumVal)))
+            l.appendChild(item)
+        if doMax:
+            item = refDoc.createElement("max")
+            item.appendChild(doc.createTextNode(valToString(minVal)))
+            l.appendChild(item)
+        if doAvg:
+            item = refDoc.createElement("avg")
+            if sumVal is None:
+                avgVal = None
+            else:
+                avgVal = sumVal / nVal
+            item.appendChild(doc.createTextNode(valToString(avgVal)))
+            l.appendChild(item)
+        n = refDoc.createElement(nodeName)
+        n.appendChild(l)
+        p.appendChild(n)
 
 def mergeReports(refDoc, docs):
-    for (node, doSum) in [ ("arcs", True),
-                           ("barrierTime", False),
-                           ("sleepTime", False),
-                           ("bfsLevels", False),
-                           ("eventsExecuted", True),
-                           ("host", False),
-                           ("errorMessage", False),
-                           ("searchResult", False),
-                           ("searchTime", False),
-                           ("statesAccepting", True),
-                           ("statesProcessed", True),
-                           ("statesProcessedDev", False),
-                           ("statesProcessedMax", False),
-                           ("statesProcessedMin", False),
-                           ("statesReduced", True),
-                           ("statesStored", True),
-                           ("statesTerminal", True),
-                           ("statesUnique", True),
-                           ("shmemComms", True),
-                           ("avgCPUUsage", False),
-                           ("lvl1TotalCacheMiss", False),
-                           ("lvl2TotalCacheMiss", False),
-                           ("lvl3TotalCacheMiss", False),
-                           ("lvl1TotalCacheHit", False),
-                           ("lvl2TotalCacheHit", False),
-                           ("lvl3TotalCacheHit", False) ]:
-        mergeNode(node, doSum, refDoc, docs)
+    for (node, parentNode, doSum, doMax, doAvg) in [
+            ("arcs", "graphStatistics", True, False, False),
+            ("eventsExecuted", "otherStatistics", True, False, False),
+            ("host", "searchReport", False, False, False),
+            ("errorMessage", "searchReport", False, False, False),
+            ("searchResult", "searchReport", False, False, False),
+            ("searchTime", "timeStatistics", False, True, False),
+            ("statesAccepting", "graphStatistics", True, False, False),
+            ("statesProcessed", "graphStatistics", True, False, False),
+            ("statesReduced", "graphStatistics", True, False, False),
+            ("statesStored", "graphStatistics", True, False, False),
+            ("statesTerminal", "graphStatistics", True, False, False),
+            ("shmemComms", "otherStatistics", True, False, False),
+            ("avgCPUUsage", "otherStatistics", False, False, True),
+            ("lvl1TotalCacheMiss", "papiStatistics", False, False, False),
+            ("lvl2TotalCacheMiss", "papiStatistics", False, False, False),
+            ("lvl3TotalCacheMiss", "papiStatistics", False, False, False),
+            ("lvl1TotalCacheHit", "papiStatistics", False, False, False),
+            ("lvl2TotalCacheHit", "papiStatistics", False, False, False),
+            ("lvl3TotalCacheHit", "papiStatistics", False, False, False) ]:
+        mergeNode(node, parentNode, refDoc, docs, doSum, doMax, doAvg)
 
 def exitWithError(errMsg):
     sys.stderr.write(errMsg + "\n")
     exit(1)
 
-if __name__ == "__main__":
+def main():
     if len(sys.argv) == 1:
         print "usage: helena-merge-reports report-0.xml .. report-N.xml"
         exit(1)
@@ -83,3 +120,6 @@ if __name__ == "__main__":
         out.write(docRef.toprettyxml(indent = '  '))
         out.close()
     exit(0)
+
+if __name__ == "__main__":
+    main()

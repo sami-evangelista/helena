@@ -69,8 +69,6 @@ htbl_t H = NULL;
     if(is_new && blue && (0 == list_size(en))) {                        \
       context_incr_stat(STAT_STATES_DEADLOCK, w, 1);                    \
     }                                                                   \
-    context_set_max_stat(STAT_MAX_DFS_STACK_SIZE, 0,                    \
-                         dfs_stack_size(stack));                        \
     if(check_safety && state_check_property(now, en)) {                 \
       context_faulty_state(now);                                        \
       dfs_stack_create_trace(stack);                                    \
@@ -374,7 +372,6 @@ void * dfs_worker
   if(tarjan) {
     darray_free(scc);
     darray_free(scc_stack);
-    context_set_stat(STAT_STATES_UNSAFE, 0, por_analysis_no_unsafe_states());
   }
 
   return NULL;

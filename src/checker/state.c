@@ -98,7 +98,7 @@ state_t state_unserialise
 
 uint16_t state_compressed_char_size
 () {
-  const uint16_t ssize = mstate_compressed_char_size();
+  const uint16_t ssize = compression_char_size();
 
   if(0 == ssize) {
     return 0;
@@ -112,7 +112,7 @@ void state_compress
  char * v,
  uint16_t * size) {  
   memcpy(v, &(s->b), sizeof(bstate_t));
-  mstate_compress(s->m, v + sizeof(bstate_t), size);
+  compression_compress(s->m, v + sizeof(bstate_t), size);
   *size += sizeof(bstate_t);
 }
 
@@ -124,7 +124,7 @@ state_t state_uncompress
   
   result->b = 0;
   memcpy(&(result->b), v, bsize);
-  result->m = mstate_uncompress(v + bsize, heap);
+  result->m = compression_uncompress(v + bsize, heap);
   result->heap = heap;
   return result;
 }

@@ -6,7 +6,7 @@
 #include "comm.h"
 #include "papi_stats.h"
 
-#define NO_STATS 17
+#define NO_STATS 14
 
 typedef enum {
   STAT_TYPE_TIME,
@@ -153,7 +153,7 @@ void context_output_trace
   state_free(s);
 }
 
-bool_t context_stat_do_average
+bool_t context_stat_is_list
 (stat_t stat) {
   switch(stat) {
   case STAT_STATES_PROCESSED: return TRUE;
@@ -169,10 +169,7 @@ char * context_stat_xml_name
   case STAT_STATES_DEADLOCK:    return "statesTerminal";
   case STAT_STATES_ACCEPTING:   return "statesAccepting";
   case STAT_STATES_REDUCED:     return "statesReduced";
-  case STAT_STATES_UNSAFE:      return "statesUnsafe";
-  case STAT_STATES_UNIQUE:      return "statesUnique";
   case STAT_ARCS:               return "arcs";
-  case STAT_MAX_DFS_STACK_SIZE: return "maxDFSStackSize";
   case STAT_EVENT_EXEC:         return "eventsExecuted";
   case STAT_SHMEM_COMMS:        return "shmemComms";
   case STAT_AVG_CPU_USAGE:      return "avgCPUUsage";
@@ -193,10 +190,7 @@ stat_type_t context_stat_type
   case STAT_STATES_DEADLOCK:    return STAT_TYPE_GRAPH;
   case STAT_STATES_ACCEPTING:   return STAT_TYPE_GRAPH;
   case STAT_STATES_REDUCED:     return STAT_TYPE_GRAPH;
-  case STAT_STATES_UNSAFE:      return STAT_TYPE_GRAPH;
-  case STAT_STATES_UNIQUE:      return STAT_TYPE_GRAPH;
   case STAT_ARCS:               return STAT_TYPE_GRAPH;
-  case STAT_MAX_DFS_STACK_SIZE: return STAT_TYPE_GRAPH;
   case STAT_EVENT_EXEC:         return STAT_TYPE_OTHERS;
   case STAT_SHMEM_COMMS:        return STAT_TYPE_OTHERS;
   case STAT_AVG_CPU_USAGE:      return STAT_TYPE_OTHERS;
@@ -209,10 +203,14 @@ stat_type_t context_stat_type
   }
 }
 
-void context_stat_format
+void context_stat_to_xml
 (uint8_t stat,
- double val,
  FILE * out) {
+  char * name = context_stat_xml_name(stat);
+  double val = context_get_stat(stat);
+  worker_id_t w;
+  
+  fprintf(out, "<%s>", name);
   if(STAT_AVG_CPU_USAGE == stat) {
     fprintf(out, "%.2lf", val);
   } else if(STAT_TYPE_TIME == context_stat_type(stat)) {
@@ -220,41 +218,7 @@ void context_stat_format
   } else {
     fprintf(out, "%llu", (uint64_t) val);
   }
-}
-
-void context_stat_to_xml
-(uint8_t stat,
- FILE * out) {
-  char * name = context_stat_xml_name(stat);
-  double sum = context_get_stat(stat), min, max, avg, dev;
-  worker_id_t w;
-  
-  fprintf(out, "<%s>", name);
-  context_stat_format(stat, sum, out);
-  fprintf(out, "</%s>\n", name);
-  if(context_stat_do_average(stat) && CTX->no_workers > 1) {
-    min = max = CTX->stat[stat][0];
-    avg = sum / CFG_NO_WORKERS - 1;
-    dev = 0;
-    for(w = 1; w < CTX->no_workers; w ++) {
-      if(CTX->stat[stat][w] > max) {
-        max = CTX->stat[stat][w];
-      } else if(CTX->stat[stat][w] < min) {
-        min = CTX->stat[stat][w];
-      }
-      dev += (CTX->stat[stat][w] - avg) * (CTX->stat[stat][w] - avg);
-    }
-    dev = sqrt(dev / CTX->no_workers);
-    fprintf(out, "<%sMin>", name);
-    context_stat_format(stat, min, out);
-    fprintf(out, "</%sMin>\n", name);
-    fprintf(out, "<%sMax>", name);
-    context_stat_format(stat, max, out);
-    fprintf(out, "</%sMax>\n", name);
-    fprintf(out, "<%sDev>", name);
-    context_stat_format(stat, dev, out);
-    fprintf(out, "</%sDev>\n", name);
-  }
+  fprintf(out, "</%s>", name);
 }
 
 void context_stats_to_xml
@@ -306,13 +270,22 @@ void finalise_context
     fprintf(out, "<language>%s</language>\n", CFG_LANGUAGE);
     fprintf(out, "<date>%s</date>\n", CFG_DATE);
     fprintf(out, "<filePath>%s</filePath>\n", CFG_FILE_PATH);
-    gethostname(name, 1024);
-    fprintf(out, "<host>%s (pid = %d)</host>\n", name, getpid());
     fprintf(out, "</infoReport>\n");
     fprintf(out, "<searchReport>\n");
+    fprintf(out, "<action>");
+    if(CFG_ACTION_BUILD_GRAPH) {
+      fprintf(out, "buildGraph");
+    } else if(CFG_ACTION_CHECK) {
+      fprintf(out, "check");
+    } else if(CFG_ACTION_EXPLORE) {
+      fprintf(out, "explore");
+    }
+    fprintf(out, "</action>\n");
     if(strcmp("", CFG_PROPERTY)) {
       fprintf(out, "<property>%s</property>\n", CFG_PROPERTY);
     }
+    gethostname(name, 1024);
+    fprintf(out, "<host>%s (pid = %d)</host>\n", name, getpid());
     fprintf(out, "<searchResult>");
     switch(CTX->term_state) {
     case TERM_STATE_LIMIT_REACHED:
@@ -339,19 +312,41 @@ void finalise_context
     fprintf(out, "<searchOptions>\n");
     fprintf(out, "<searchAlgorithm>");
     if(CFG_ALGO_DFS || CFG_ALGO_TARJAN) {
-      fprintf(out, "depthSearch");
+      fprintf(out, "DFS");
     } else if(CFG_ALGO_BFS) {
-      fprintf(out, "breadthSearch");
+      fprintf(out, "BFS");
     } else if(CFG_ALGO_DBFS) {
-      fprintf(out, "distributedBreadthSearch");
+      fprintf(out, "DBFS");
     } else if(CFG_ALGO_RWALK) {
-      fprintf(out, "randomWalk");
+      fprintf(out, "RWALK");
     } else if(CFG_ALGO_BWALK) {
-      fprintf(out, "bitstateWalk");
+      fprintf(out, "BWALK");
     } else if(CFG_ALGO_DELTA_DDD) {
-      fprintf(out, "deltaDDD");
+      fprintf(out, "DELTA-DDD");
     }
     fprintf(out, "</searchAlgorithm>\n");
+    fprintf(out,
+            "<partialOrder>%s</partialOrder>\n",
+            CFG_POR ? "on" : "off");
+    if(CFG_POR) {
+      fprintf(out,
+              "<partialOrderProviso>%s</partialOrderProviso>\n",
+              CFG_PROVISO ? "on" : "off");      
+    }
+    fprintf(out,
+            "<hashCompaction>%s</hashCompaction>\n",
+            CFG_HASH_COMPACTION ? "on" : "off");
+    fprintf(out,
+            "<stateCompression>%s</stateCompression>\n",
+            CFG_STATE_COMPRESSION ? "on" : "off");
+    if(CFG_DISTRIBUTED) {
+      fprintf(out,
+              "<distributedStateCompression>%s</distributedStateCompression>\n",
+              CFG_DISTRIBUTED_STATE_COMPRESSION ? "on" : "off");
+    }
+    fprintf(out,
+            "<randomSuccs>%s</randomSuccs>\n",
+            CFG_RANDOM_SUCCS ? "on" : "off");
     if(CFG_HASH_STORAGE || CFG_DELTA_DDD_STORAGE) {
       fprintf(out, "<hashTableSize>%d</hashTableSize>\n", CFG_HASH_SIZE);
     }
@@ -361,18 +356,6 @@ void finalise_context
 	      CFG_SHMEM_BUFFER_SIZE);
       fprintf(out, "<shmemHeapSize>%llu</shmemHeapSize>\n",
 	      comm_heap_size());
-    }
-    if(CFG_POR) {
-      fprintf(out, "<partialOrder/>\n");
-    }
-    if(CFG_HASH_COMPACTION) {
-      fprintf(out, "<hashCompaction/>\n");
-    }
-    if(CFG_RANDOM_SUCCS) {
-      fprintf(out, "<randomSuccs/>\n");
-    }
-    if(CFG_STATE_COMPRESSION || CFG_DISTRIBUTED_STATE_COMPRESSION) {
-      fprintf(out, "<stateCompression/>\n");
     }
     if(CFG_ALGO_DELTA_DDD) {
       fprintf(out, "<candidateSetSize>%d</candidateSetSize>\n",
@@ -406,6 +389,8 @@ void finalise_context
     }
     fprintf(out, "<otherStatistics>\n");
     context_stats_to_xml(STAT_TYPE_OTHERS, out);
+    compression_output_statistics(out);
+    dist_compression_output_statistics(out);
     fprintf(out, "</otherStatistics>\n");
     fprintf(out, "</statisticsReport>\n");
     if(CTX->term_state == TERM_FAILURE) {

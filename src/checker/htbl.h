@@ -123,6 +123,13 @@ void htbl_free
 
 
 /**
+ * @brief htbl_no_items
+ */
+uint64_t htbl_no_items
+(htbl_t tbl);
+
+
+/**
  * @brief htbl_contains
  */
 bool_t htbl_contains

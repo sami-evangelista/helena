@@ -27,26 +27,33 @@ void finalise_compression
 
 
 /**
- * @brief mstate_compress
+ * @brief compression_compress
  */
-void mstate_compress
+void compression_compress
 (mstate_t s,
  char * v,
  uint16_t * size);
 
 
 /**
- * @brief mstate_uncompress
+ * @brief compression_uncompress
  */
-void * mstate_uncompress
+void * compression_uncompress
 (char * v,
  heap_t heap);
 
 
 /**
- * @brief mstate_compressed_char_size
+ * @brief compression_char_size
  */
-uint16_t mstate_compressed_char_size
+uint16_t compression_char_size
 ();
+
+
+/**
+ * @brief compression_output_statistics
+ */
+void compression_output_statistics
+(FILE * f);
 
 #endif
