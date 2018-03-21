@@ -24,7 +24,7 @@ def mergeNode(nodeName, parentNodeName, refDoc, docs, doSum, doMax, doAvg):
     p = p[0]
 
     sumVal = None
-    minVal = None
+    maxVal = None
     nVal = 0
     l = refDoc.createElement("list")
     for doc in docs:
@@ -48,10 +48,10 @@ def mergeNode(nodeName, parentNodeName, refDoc, docs, doSum, doMax, doAvg):
                 rVal = int(val)
             except:
                 rVal = float(val)
-            if minVal is None:
-                minVal = rVal
-            elif rVal < minVal:
-                minVal = rVal
+            if maxVal is None:
+                maxVal = rVal
+            elif rVal > maxVal:
+                maxVal = rVal
     n = p.getElementsByTagName(nodeName)
     if nVal > 0:
         if len(n) > 0:
@@ -62,7 +62,7 @@ def mergeNode(nodeName, parentNodeName, refDoc, docs, doSum, doMax, doAvg):
             l.appendChild(item)
         if doMax:
             item = refDoc.createElement("max")
-            item.appendChild(doc.createTextNode(valToString(minVal)))
+            item.appendChild(doc.createTextNode(valToString(maxVal)))
             l.appendChild(item)
         if doAvg:
             item = refDoc.createElement("avg")

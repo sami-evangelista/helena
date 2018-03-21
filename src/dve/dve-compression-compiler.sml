@@ -156,14 +156,6 @@ in
   ; compileGetCompressFunc (hFile, cFile) l
   ; compileGetSizeFunc (hFile, cFile) l
   ; compileReconstruct (hFile, cFile) l
-(*
-  ; TextIO.output(hFile, "#define MODEL_NO_COMPONENTS " ^
-                         (Int.toString (List.length procNames)) ^ "\n")
-  ; List.app (compileCompressDefs (hFile, cFile) s comps) procNames
-  ; compileGetCompressFunc (hFile, cFile) s comps procNames
-  ; compileGetSizeFunc (hFile, cFile) s comps procNames
-  ; compileReconstruct (hFile, cFile) s comps procNames
-*)
 end
 
 end
