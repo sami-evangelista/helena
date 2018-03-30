@@ -36,7 +36,7 @@ worker_id_t bfs_thread_owner
 
 void bfs_init_queue
 () {
-  bool_t states_in_queue = CFG_HASH_COMPACTION;
+  const bool_t states_in_queue = CFG_HASH_COMPACTION;
 
   Q = bfs_queue_new(CFG_NO_WORKERS, CFG_BFS_QUEUE_BLOCK_SIZE,
                     states_in_queue);
@@ -94,8 +94,6 @@ void * bfs_worker
 (void * arg) {
   const worker_id_t w = (worker_id_t) (unsigned long int) arg;
   const bool_t states_in_queue = bfs_queue_states_stored(Q);
-  const bool_t por = CFG_POR;
-  const bool_t proviso = CFG_PROVISO;
   const bool_t with_trace = CFG_ACTION_CHECK_SAFETY && CFG_ALGO_BFS;
   const bool_t has_safe_attr = htbl_has_attr(H, ATTR_SAFE);
   state_t s, succ;
@@ -127,7 +125,7 @@ void * bfs_worker
 	  }
 	  dbfs_ctr = DBFS_CHECK_PERIOD;
 	}
-
+        
         /**
          * get the next state sent by thread x, get its successors and
          * a valid reduced set.  if the states are not stored in the
@@ -140,18 +138,17 @@ void * bfs_worker
         } else {
           s = htbl_get(H, item.id, heap);
         }
-        //state_print(s, stdout);
 
         /**
          * compute enabled events and apply POR
          */
-        if(!por) {
+        if(!CFG_POR) {
           en = state_events(s, heap);
         } else {
           en = state_events_reduced(s, &reduced, heap);
           if(reduced) {
             context_incr_stat(STAT_STATES_REDUCED, w, 1);
-          } else if(proviso && has_safe_attr) {
+          } else if(CFG_PROVISO && has_safe_attr) {
             htbl_set_attr(H, item.id, ATTR_SAFE, TRUE);
           }
         }
@@ -177,7 +174,7 @@ void * bfs_worker
           list_pick_first(en, &e);
           bfs_goto_succ();
           htbl_meta_data_init(mdata, succ);
-          
+
 	  /**
 	   * in DBFS we check if the successor state is ours.
 	   * otherwise we go back to s to get the next successor
@@ -213,6 +210,14 @@ void * bfs_worker
               htbl_set_attr(H, succ_item.id, ATTR_EVT, event_id(e));
             }
             context_incr_stat(STAT_STATES_STORED, w, 1);
+
+	    /**
+	     *  with DBFS algo we notify the id of the new state that
+	     *  can be used to perform as a root of a RWALK
+	     */
+	    if(CFG_ALGO_DBFS) {
+	      dbfs_comm_new_state_stored(succ_item.id);
+	    }
           } else {
 
             /**
@@ -220,7 +225,7 @@ void * bfs_worker
              * is reduced then the successor must be in the queue
              * (i.e., cyan for some worker) or safe
              */
-            if(por && proviso && reduced &&
+            if(CFG_POR && CFG_PROVISO && reduced &&
                !htbl_get_any_cyan(H, id_succ) &&
                (!has_safe_attr || !htbl_get_attr(H, id_succ, ATTR_SAFE))) {
               reduced = FALSE;
@@ -266,10 +271,7 @@ void bfs
 () {
   const bool_t with_trace = CFG_ACTION_CHECK_SAFETY && CFG_ALGO_BFS;
   state_t s = state_initial(SYSTEM_HEAP);
-  bool_t is_new;
-  htbl_id_t id;
-  worker_id_t w;
-  bool_t enqueue = TRUE;
+  bool_t is_new, enqueue = TRUE;
   bfs_queue_item_t item;
   hkey_t h;
   htbl_meta_data_t mdata;
@@ -291,17 +293,14 @@ void bfs
   if(enqueue) {
     htbl_meta_data_init(mdata, s);
     stbl_insert(H, mdata, is_new);
-    id = mdata.id;
-    h = mdata.h;
-    w = h % CFG_NO_WORKERS;
-    item.id = id;
+    item.id = mdata.id;
     item.s = s;
     if(with_trace) {
-      htbl_set_attr(H, id, ATTR_PRED, id);
-      htbl_set_attr(H, id, ATTR_EVT, 0);
+      htbl_set_attr(H, mdata.id, ATTR_PRED, mdata.id);
+      htbl_set_attr(H, mdata.id, ATTR_EVT, 0);
     }
-    bfs_queue_enqueue(Q, item, w, w);
-    context_incr_stat(STAT_STATES_STORED, w, 1);
+    bfs_queue_enqueue(Q, item, 0, 0);
+    context_incr_stat(STAT_STATES_STORED, 0, 1);
   }
   state_free(s);
 

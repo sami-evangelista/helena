@@ -55,7 +55,7 @@ GENERAL_OPTS = ("General options",
 SEARCH_OPTS = ("Search and storage options",
                [ "A", "t", "W", "R", "cs" ])
 DISTRIBUTED_SEARCH_OPTS = ("Distributed search options",
-                           [ "mf", "bs", "np", "DC" ])
+                           [ "mf", "bs", "np", "DC", "ecs" ])
 REDUCTION_OPTS = ("Reduction techniques",
                   [ "H", "P", "i", "C", "cb" ])
 LIMIT_OPTS = ("Limit options",
@@ -135,6 +135,13 @@ Activate/deactivate state compression based on distributed hash tables."""),
      """-d=SYMBOL-NAME   --define=SYMBOL-NAME
 
 Define preprocessor symbol SYMBOL-NAME in the net."""),
+    ###########################################################################
+    ("ecs", "exploration-cache-size", int, 0, None, None,
+     "explorationCacheSize",
+     """-ecs=SIZE        --exploration-cache-size=SIZE
+
+Set the size (in number of states) of the exploration cache used by algorithm
+DBFS.  0 = no cache is used."""),
     ###########################################################################
     ("g", "progress", None, None, None, None, None,
      """-g=LEVEL         --progress=LEVEL
@@ -497,6 +504,7 @@ class Config:
             ("DISTRIBUTED_STATE_COMPRESSION",
              self.distributedStateCompression),
             ("DYNAMIC_POR", self.dynamicPartialOrder),
+            ("EXPLORATION_CACHE_SIZE", self.explorationCacheSize),
             ("FILE_PATH", "\"" + os.path.realpath(self.inFile) + "\""),
             ("GRAPH_FILE", "\"graph.dat\""),
             ("HASH_COMPACTION", self.hashCompaction),
@@ -590,9 +598,10 @@ class Config:
                 else:
                     try:
                         print helpMessage(self.printHelp)
-                        exit(0)
                     except:
                         optOK = False
+                    if optOK:
+                        exit(0)
 
             err = None
             if not valOK:

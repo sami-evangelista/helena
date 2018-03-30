@@ -106,7 +106,7 @@ void comm_put
     context_incr_stat(STAT_SHMEM_COMMS, 0, 1);
   }
   while(size) {
-    if(size < COMM_CHUNK_SIZE) {
+    if(size <= COMM_CHUNK_SIZE) {
       shmem_putmem(COMM_HEAP + pos, src, size, pe);
       size = 0;
     } else {
@@ -133,7 +133,7 @@ void comm_get
     context_incr_stat(STAT_SHMEM_COMMS, 0, 1);
   }
   while(size) {
-    if(size < COMM_CHUNK_SIZE) {
+    if(size <= COMM_CHUNK_SIZE) {
       shmem_getmem(dst, COMM_HEAP + pos, size, pe);
       size = 0;
     } else {

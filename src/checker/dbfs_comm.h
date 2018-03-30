@@ -50,9 +50,16 @@ bool_t dbfs_comm_state_owned
 
 
 /**
- * @brief dbfs_comm_process_in_states
+ * @brief dbfs_comm_check_communications
  */
 bool_t dbfs_comm_check_communications
 ();
+
+
+/**
+ * @brief dbfs_comm_new_state_stored
+ */
+void dbfs_comm_new_state_stored
+(htbl_id_t id);
 
 #endif
