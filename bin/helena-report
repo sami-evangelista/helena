@@ -14,6 +14,8 @@ from textwrap import TextWrapper
 
 WIDTH = 80
 WRAPPER = TextWrapper(width = WIDTH)
+HELENA_DIR = os.path.join(os.getenv("HOME"), ".helena")
+MODELS_DIR = os.path.join(HELENA_DIR, "models")
 
 def exitWithError(errMsg):
     sys.stderr.write(str(errMsg) + "\n")
@@ -131,7 +133,6 @@ def printSearchReport(r):
         "candidateSetSize"           : ("Candidate set size", "states"),
         "hashTableSize"              : ("Hash table size", "states"),
         "shmemBufferSize"            : ("SHMEM buffer size", "bytes"),
-        "stateCompressionBits"       : ("State compression bits", "bits"),
         "workers"                    : ("Worker threads", None) }
     l = [ ("action", "Action performed", formatAction),
           ("host", "Host machine", None),
@@ -326,10 +327,10 @@ def printDoc(doc):
     printDashes(0)
 
 def findReportFile(m):
-    if not os.path.isdir(modelsDir):
+    if not os.path.isdir(MODELS_DIR):
         raise IOError("error: model directory does not exist")        
-    for lang in os.listdir(modelsDir):
-        langDir = os.path.join(modelsDir, lang)
+    for lang in os.listdir(MODELS_DIR):
+        langDir = os.path.join(MODELS_DIR, lang)
         for mod in os.listdir(langDir):
             if mod == m:
                 f = os.path.join(langDir, mod, "report.xml") 
@@ -345,8 +346,6 @@ def main():
         print "       helena-report report.xml [out-file]"
         exit(1)
     else:
-        helenaDir = os.path.join(os.getenv("HOME"), ".helena")
-        modelsDir = os.path.join(helenaDir, "models")
         model = sys.argv[1]
         if len(sys.argv) > 2:
             out = sys.argv[2]
