@@ -114,6 +114,10 @@ DBFS."""),
 
 Set the base number of bits used by state compression (option -C) to N."""),
     ###########################################################################
+    ("ccs", "compression-comp-sizes", str, "8-16", None, None,
+     "compressionCompSizes",
+     """-ccs=low-high    --compression-comp-sizes=low-high"""),
+    ###########################################################################
     ("cs", "candidate-set-size", int, 100000, None, None, "candidateSetSize",
      """-cs=N            --candidate-set-size=N
 
@@ -658,6 +662,8 @@ class Config:
     def outputModelOptions(self):
         opts = []
         opts.append("--capacity=" + str(self.capacity))
+        opts.append("--compression-comp-sizes=" +
+                    str(self.compressionCompSizes))
         if self.runTimeChecks:
             opts.append("--run-time-checks=1")
         else:

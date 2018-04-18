@@ -46,11 +46,8 @@ fun setOpts optsStr = let
                val high = List.nth (range, 1)
                val opt = COMPRESSION_MIN_MAX (low, high)
            in
-               print ("LOW = " ^ (Int.toString low) ^ "\n")
-             ; print ("HIGH = " ^ (Int.toString high) ^ "\n")
-             ; opts := opt :: (!opts)
-           end
-           (*handle Errors.InternalError => ()*)
+               opts := opt :: (!opts)
+           end handle Errors.InternalError => ()
       else ()
 in
     List.app handleOpt optsStr
