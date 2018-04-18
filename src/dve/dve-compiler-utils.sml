@@ -257,12 +257,12 @@ local
         fun getSyncEventsProcess proc = let
 	    fun map tr =
 	      case Trans.getSync tr
-	       of	NONE => NONE
-	              | SOME s =>
-		        if (Sync.getMode s) <> Sync.SYNC
-		        then NONE
-		        else SOME (Sync.getTyp s, Sync.getChan s,
-			           Process.getName proc, tr)
+	       of NONE => NONE
+	        | SOME s =>
+		  if (Sync.getMode s) <> Sync.SYNC
+		  then NONE
+		  else SOME (Sync.getTyp s, Sync.getChan s,
+			     Process.getName proc, tr)
         in
 	    List.mapPartial map (Process.getTrans proc)
         end

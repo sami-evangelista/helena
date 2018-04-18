@@ -16,10 +16,8 @@ end = struct
 
 open DveCompilerUtils
 
-val minCompSize = 10
-val maxCompSize = 16
-
 fun createCompressionItemList s comps procNames = let
+    val (minCompSize, maxCompSize) = DveCompilerOptions.getCompressionMinMax ()
     fun splitComponents (procName, (items, first, last)) = let
         val remaining = last - first
         val size = sizeofComps (getProcessComps procName comps)

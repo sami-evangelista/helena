@@ -83,11 +83,12 @@ fun compileStateType s = let
 	fun printVar (field, txt, Typ.BASIC_TYPE _) =
 	  "fprintf(out, \"   " ^ txt ^ " = %d\\n\", s->" ^ field ^ ");"
 	  | printVar (field, txt, Typ.ARRAY_TYPE (bt, n)) =
-	    String.concat
-	        (List.map (fn e => printVar
-                                       (field ^ "[" ^ (Int.toString e) ^ "]",
-					txt ^ "[" ^ (Int.toString e) ^ "]",
-					Typ.BASIC_TYPE bt))
+	    concatLines
+	        (List.map (fn e => (if e = 0 then "" else "   ") ^
+                                   (printVar
+                                        (field ^ "[" ^ (Int.toString e) ^ "]",
+					 txt ^ "[" ^ (Int.toString e) ^ "]",
+					 Typ.BASIC_TYPE bt)))
 		          (List.tabulate (n, fn x => x)))
         val result =
             case comp

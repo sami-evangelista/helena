@@ -271,7 +271,6 @@ type state = {
 fun getPos ({ pos, ... }: state)  = pos
 fun getName ({ name, ... }: state)  = name
 
-
 fun getState (l, name) = let
     fun isState s = (getName s = name)
 in
@@ -506,7 +505,6 @@ in
 			       else l) [t] prod)
 end
 
-
 fun accessedVars proc tr = let
     val procVars = List.map Var.getName (getVars proc)
     val accessed = Trans.accessedVars tr
@@ -519,17 +517,14 @@ in
     (Utils.mergeStringList loc, Utils.mergeStringList glob)
 end
 
-
 fun onlyAccessLocalVars proc tr =
   List.all (fn t => #2 (accessedVars proc t) = []) tr
-
 
 fun noProcessStateTest proc trans =
   List.all (fn t => Trans.foldExprs
 			(fn (e, b) => b andalso
 				      case e of Expr.PROCESS_STATE _ => false
 					      | _ => true) true t) trans
-
 
 fun channelAccessed (proc: process) trans = let
     val chans = List.foldl (fn (t, l) => (case Trans.channelUsed t of
@@ -540,7 +535,6 @@ fun channelAccessed (proc: process) trans = let
 in
     Utils.mergeStringList chans
 end
-
 
 fun usesChannel (proc: process) chan =
   List.exists (fn t => case Trans.channelUsed t of

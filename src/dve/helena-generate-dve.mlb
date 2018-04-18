@@ -7,6 +7,7 @@ in
    utils.sml
    dve-system.sml
    errors.sml
+   dve-compiler-options.sml
    dve-compiler-utils.sml
    dve-simplifier.sml
    dve-hash-function-compiler.sml

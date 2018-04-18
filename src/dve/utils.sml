@@ -24,7 +24,7 @@ fun zipPartial pred l = let
 	    fun map b = if pred (a, b) then SOME (a, b) else NONE
 	in
 	    (List.mapPartial map bl) @ zip (al, bl)
-	end
+      end
 in
     zip (l, l)
 end
@@ -38,17 +38,17 @@ fun fmt {init  : string,
 	 fmt   : 'a -> string option} list = let
     fun fmt' [] = NONE
       | fmt' (item :: list) = let
-	    val itemStr = fmt item
-	    val listStr = fmt' list
-	in
-	    case itemStr of
-		NONE     =>
-		listStr
-	      | SOME str =>
-		SOME (str ^
-		      (case listStr of NONE      => ""
-				     | SOME str' => sep ^ str'))
-	end
+	  val itemStr = fmt item
+	  val listStr = fmt' list
+      in
+	  case itemStr of
+	      NONE     =>
+	      listStr
+	    | SOME str =>
+	      SOME (str ^
+		    (case listStr of NONE      => ""
+				   | SOME str' => sep ^ str'))
+      end
     val fmtList = fmt' list
     val fmtList = case fmtList of NONE => "" | SOME str => str
 in
