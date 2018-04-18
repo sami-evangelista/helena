@@ -16,7 +16,7 @@
 
 #define bwalk_push() {                                   \
     if(hook) {                                           \
-      hook(now, hook_data);                              \
+      loop = loop && hook(now, hook_data);               \
     }                                                    \
     dfs_stack_push(stack, 0, now);                       \
     dfs_stack_compute_events(stack, now, FALSE);         \
@@ -25,32 +25,33 @@
     }                                                    \
   }
 
-#define bwalk_tbl_insert(is_new) {              \
-    const hkey_t h = state_hash(now) ^ rnd;     \
-    const uint32_t id = h & hash_size_m;        \
-    const uint32_t i = id >> 3;                 \
-    const uint8_t bit = 1 << (id & 7);          \
-    if(is_new = !(tbl[i] & bit)) {              \
-      tbl[i] |= bit;                            \
-    }                                           \
+#define bwalk_tbl_insert(is_new) {                                    \
+    const hkey_t h = state_hash(now) ^ rnd;                           \
+    const uint32_t id = h & hash_size_m;                              \
+    const uint32_t i = id >> 3;                                       \
+    const uint8_t bit = 1 << (id & 7);                                \
+    if(is_new = !(tbl[i] & bit)) {                                    \
+      tbl[i] |= bit;                                                  \
+    }                                                                 \
   }
 
 void bwalk_generic
 (worker_id_t w,
- uint32_t hash_log,
+ state_t s,
+ uint32_t hash_bits,
+ uint32_t iterations,
  bool_t update_stats,
- uint32_t max_time_ms,
  state_hook_t hook,
  void * hook_data) {
-  const uint32_t hash_size = 1 << (hash_log - 3);
-  const uint32_t hash_size_m = hash_size - 1;
+  const uint32_t hash_char_size = 1 << (hash_bits - 3);
+  const uint32_t hash_size_m = (1 << hash_bits) - 1;
   const uint32_t wid = context_global_worker_id(w);
 #if defined(MODEL_HAS_EVENT_UNDOABLE)
   const bool_t states_stored = FALSE;
 #else
   const bool_t states_stored = TRUE;
 #endif
-  char * tbl = mem_alloc0(SYSTEM_HEAP, hash_size); 
+  char * tbl = mem_alloc0(SYSTEM_HEAP, hash_char_size); 
   dfs_stack_t stack;
   uint64_t rnd;
   rseed_t rseed = random_seed(w);
@@ -58,18 +59,18 @@ void bwalk_generic
   bool_t is_new;
   event_t e;
   heap_t heap = local_heap_new();
-  clock_t start = clock();
-  bool_t time_ok = TRUE;
+  bool_t loop = TRUE;
+  uint32_t iter = 0;
 
-  while(context_keep_searching() && time_ok) {
+  while(context_keep_searching() && loop) {
 
     /**
      * initiate a random walk
      */
     stack = dfs_stack_new(wid, CFG_DFS_STACK_BLOCK_SIZE, TRUE, states_stored);
     heap_reset(heap);
-    memset(tbl, 0, hash_size);
-    now = state_initial(heap);
+    memset(tbl, 0, hash_char_size);
+    now = state_copy(s, heap);
     rnd = random_int(&rseed);
     if(update_stats) {
       context_set_stat(STAT_STATES_STORED, w, 0);
@@ -77,15 +78,11 @@ void bwalk_generic
     }
     bwalk_tbl_insert(is_new);
     bwalk_push();
-  
+    
     /**
      * random walk DFS
      */
-    while(dfs_stack_size(stack) && context_keep_searching() && time_ok) {
-      if(max_time_ms
-         && (1000 * (clock() - start) / CLOCKS_PER_SEC) >= max_time_ms) {
-        time_ok = FALSE;
-      }
+    while(dfs_stack_size(stack) && context_keep_searching() && loop) {
       if(heap_size(heap) >= 1000000) {
         copy = state_copy(now, SYSTEM_HEAP);
         heap_reset(heap);
@@ -113,6 +110,14 @@ void bwalk_generic
     }
     state_free(now);
     dfs_stack_free(stack);
+
+    /**
+     *  stop looping if we've performed enough iterations
+     */
+    iter ++;
+    if(iterations > 0 && iter == iterations) {
+      loop = FALSE;
+    }
   }
   free(tbl);
   heap_free(heap);
@@ -121,8 +126,11 @@ void bwalk_generic
 void * bwalk_worker
 (void * arg) {
   const worker_id_t w = (worker_id_t) (unsigned long int) arg;
+  state_t s;
 
-  bwalk_generic(w, CFG_HASH_SIZE, TRUE, 0, NULL, NULL);
+  s = state_initial(SYSTEM_HEAP);
+  bwalk_generic(w, s, CFG_HASH_SIZE_BITS, 0, TRUE, NULL, NULL);
+  state_free(s);
   return NULL;
 }
 

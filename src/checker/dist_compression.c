@@ -9,20 +9,13 @@
 #include "shmem.h"
 #endif
 
-#if defined(DIST_COMPRESSION_ENABLED) && defined(MODEL_STATE_SIZE)
-#define DIST_COMPRESSION_NO_COMPONENTS MODEL_NO_COMPONENTS
-#else
-#define DIST_COMPRESSION_NO_COMPONENTS MODEL_NO_COMPONENTS
-#endif
-
-
 #define DIST_COMPRESSION_EMPTY   0
 #define DIST_COMPRESSION_WRITING 1
 #define DIST_COMPRESSION_READY   2
 
 #define DIST_COMPRESSION_MAX_INSERT_TRIALS 1000
-#define DIST_COMPRESSION_TRAINING_RUN_HASH 24
-#define DIST_COMPRESSION_TRAINING_RUN_TIME 2
+#define DIST_COMPRESSION_TRAINING_RUNS     100
+#define DIST_COMPRESSION_TRAINING_RUN_HASH 13
 
 struct timespec dist_compression_sleep_time = { 0, 10000 }; /*  10 mus  */
 htbl_compress_func_t * dist_compression_comp_funcs;
@@ -36,14 +29,14 @@ char * dist_compression_tbl_full_msg =
 uint16_t dist_compression_compressed_char_size;
 
 #define dist_compression_slot_owner(slot, owner)        {       \
-    if((owner = slot / dist_compression_slots_per_pe) ==        \
+    if((owner = slot / dist_compression_slots_per_pe) >=        \
        dist_compression_pes) {                                  \
       owner = dist_compression_pes - 1;                         \
     }                                                           \
   }
 
 
-void dist_compression_training_run_state_hook
+bool_t dist_compression_training_run_state_hook
 (state_t s,
  void * hook_data) {
 #if defined(DIST_COMPRESSION_ENABLED)
@@ -55,13 +48,12 @@ void dist_compression_training_run_state_hook
   int status;
   const uint32_t mask = (1 << CFG_STATE_COMPRESSION_BITS) - 1;
 
-  return;
-  for(i = 0; i < DIST_COMPRESSION_NO_COMPONENTS; i ++) {
+  for(i = 0; i < MODEL_NO_COMPONENTS; i ++) {
     dist_compression_comp_funcs[i](s, buffer, &comp_size);
     h = string_hash(buffer, comp_size);
     slot = h & mask;
     item_size = sizeof(int) + dist_compression_comp_size[i];
-    dist_compression_slot_owner(slot, owner);
+    pos = dist_compression_tbls[i] + slot * item_size;
     if(owner == dist_compression_me) {
       pos = dist_compression_tbls[i] + slot * item_size;
       memcpy(&status, pos, sizeof(int));
@@ -73,6 +65,7 @@ void dist_compression_training_run_state_hook
     }
   }
 #endif
+  return TRUE;
 }
 
 
@@ -81,13 +74,15 @@ void dist_compression_training_run
 #if defined(DIST_COMPRESSION_ENABLED)
   uint32_t i, pe, item_size, slot;
   void * pos;
-  
+  state_t s = state_initial(SYSTEM_HEAP);
+
   return;
-  bwalk_generic(0, DIST_COMPRESSION_TRAINING_RUN_HASH, FALSE,
-                DIST_COMPRESSION_TRAINING_RUN_TIME * 1000,
+  bwalk_generic(0, s,
+                DIST_COMPRESSION_TRAINING_RUN_HASH,
+                DIST_COMPRESSION_TRAINING_RUNS, FALSE,
                 dist_compression_training_run_state_hook, NULL);
   shmem_barrier_all();
-  for(i = 0; i < DIST_COMPRESSION_NO_COMPONENTS; i ++) {
+  for(i = 0; i < MODEL_NO_COMPONENTS; i ++) {
     item_size = sizeof(int) + dist_compression_comp_size[i];
     for(pe = 0; pe < dist_compression_pes; pe ++) {
       if(pe != dist_compression_me) {
@@ -98,6 +93,7 @@ void dist_compression_training_run
     }
   }
   shmem_barrier_all();
+  state_free(s);
 #endif
 }
 
@@ -110,13 +106,13 @@ void init_dist_compression
     
   dist_compression_pes = comm_pes();
   dist_compression_comp_size =
-    mem_alloc(SYSTEM_HEAP, sizeof(size_t) * DIST_COMPRESSION_NO_COMPONENTS);
+    mem_alloc(SYSTEM_HEAP, sizeof(size_t) * MODEL_NO_COMPONENTS);
   dist_compression_tbls =
-    mem_alloc(SYSTEM_HEAP, sizeof(char *) * DIST_COMPRESSION_NO_COMPONENTS);
+    mem_alloc(SYSTEM_HEAP, sizeof(char *) * MODEL_NO_COMPONENTS);
   dist_compression_comp_funcs =
     mem_alloc(SYSTEM_HEAP,
-              sizeof(htbl_compress_func_t) * DIST_COMPRESSION_NO_COMPONENTS);
-  for(i = 0; i < DIST_COMPRESSION_NO_COMPONENTS; i ++) {
+              sizeof(htbl_compress_func_t) * MODEL_NO_COMPONENTS);
+  for(i = 0; i < MODEL_NO_COMPONENTS; i ++) {
     dist_compression_comp_size[i] = model_component_size(i);
     size =
       (1 << CFG_STATE_COMPRESSION_BITS) *
@@ -139,7 +135,7 @@ void finalise_dist_compression
 #if defined(DIST_COMPRESSION_ENABLED)
   int i;
 
-  for(i = 0; i < DIST_COMPRESSION_NO_COMPONENTS; i ++) {
+  for(i = 0; i < MODEL_NO_COMPONENTS; i ++) {
     shmem_free(dist_compression_tbls[i]);
   }
   free(dist_compression_tbls);
@@ -152,7 +148,7 @@ void finalise_dist_compression
 uint16_t dist_compression_char_size
 () {
 #if defined(DIST_COMPRESSION_ENABLED)
-  uint32_t bits = CFG_STATE_COMPRESSION_BITS * DIST_COMPRESSION_NO_COMPONENTS;
+  uint32_t bits = CFG_STATE_COMPRESSION_BITS * MODEL_NO_COMPONENTS;
   uint16_t result = bits / CHAR_BIT;
 
   if(bits % CHAR_BIT) {
@@ -195,7 +191,7 @@ void dist_compression_compress
   *size = dist_compression_compressed_char_size;
   memset(v, 0, *size);
   bit_stream_init(bits, v);
-  for(i = 0; i < DIST_COMPRESSION_NO_COMPONENTS; i ++) {
+  for(i = 0; i < MODEL_NO_COMPONENTS; i ++) {
     dist_compression_comp_funcs[i](s, buffer, &comp_size);
     h = string_hash(buffer, comp_size);
     slot = h & mask;
@@ -267,10 +263,10 @@ void * dist_compression_uncompress
   bit_stream_t bits;
   int status;
   uint32_t owner, i, slot, item_size;
-  void * pos, * data[DIST_COMPRESSION_NO_COMPONENTS];
+  void * pos, * data[MODEL_NO_COMPONENTS];
 
   bit_stream_init(bits, v);
-  for(i = 0; i < DIST_COMPRESSION_NO_COMPONENTS; i ++) {
+  for(i = 0; i < MODEL_NO_COMPONENTS; i ++) {
     item_size = sizeof(int) + dist_compression_comp_size[i];
     bit_stream_get(bits, slot, CFG_STATE_COMPRESSION_BITS);
     pos = dist_compression_tbls[i] + slot * item_size;
@@ -296,7 +292,7 @@ void dist_compression_output_statistics
 
   if(0 == dist_compression_me) {
     fprintf(f, "<compressionTemplates><list>");
-    for(i = 0; i < DIST_COMPRESSION_NO_COMPONENTS; i ++) {
+    for(i = 0; i < MODEL_NO_COMPONENTS; i ++) {
       tot = 0;
       for(j = 0, pos = dist_compression_tbls[i];
           j < 1 << CFG_STATE_COMPRESSION_BITS;

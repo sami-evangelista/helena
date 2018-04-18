@@ -4,8 +4,11 @@
 #include "stbl.h"
 #include "debug.h"
 #include "dist_compression.h"
+#include "bwalk.h"
 
 #if CFG_ALGO_BFS == 1 || CFG_ALGO_DBFS == 1
+
+#define DBFS_COMM_BWALK_HASH 10
 
 htbl_t H;
 bfs_queue_t Q;
@@ -16,6 +19,7 @@ int PES;
 int ME;
 uint32_t * REMOTE_POS;
 bool_t TERM_DETECTED = FALSE;
+uint32_t SINGLE_BUFFER_SIZE;
 
 typedef enum {
   DBFS_COMM_NO_TERM = 0,
@@ -23,23 +27,71 @@ typedef enum {
   DBFS_COMM_FORCE_TERM = 2,
 } dbfs_comm_term_t;
 
-
-#define POS_TERM \
-  0
-#define POS_TOKEN \
+#define POS_TERM                                \
+    0
+#define POS_TOKEN                               \
   (POS_TERM + sizeof(dbfs_comm_term_t))
-#define POS_TERM_DETECTION_ASKED			\
+#define POS_TERM_DETECTION_ASKED                \
   (POS_TOKEN + sizeof(bool_t))
-#define POS_LEN(pe) \
+#define POS_LEN(pe)                                                             \
   (POS_TERM_DETECTION_ASKED + sizeof(bool_t) + sizeof(uint32_t) * pe)
-#define POS_DATA \
+#define POS_DATA                                \
   (POS_LEN(PES))
+
+
+/**
+ *  cache
+ */
+#if CFG_EXPLORATION_CACHE_SIZE == 0
+
+#define DBFS_COMM_CACHE_CLEAR() {}
+#define DBFS_COMM_CACHE_INSERT(id) {}
+#define DBFS_COMM_CACHE_PICK(id, found) { found = FALSE; }
+
+#else
+
+#define DBFS_COMM_BWALK_HASH 10
+
+typedef struct {
+  htbl_id_t id[CFG_EXPLORATION_CACHE_SIZE];
+  uint32_t next, size;
+  rseed_t rnd;
+} dbfs_comm_cache_t;
+dbfs_comm_cache_t DBFS_COMM_CACHE;
+
+#define DBFS_COMM_CACHE_CLEAR() {				\
+    memset(&DBFS_COMM_CACHE, 0, sizeof(DBFS_COMM_CACHE));	\
+    DBFS_COMM_CACHE.rnd = random_seed(ME);			\
+  }
+#define DBFS_COMM_CACHE_INSERT(id) {                                    \
+    DBFS_COMM_CACHE.id[DBFS_COMM_CACHE.next] = id;                      \
+    DBFS_COMM_CACHE.next = (DBFS_COMM_CACHE.next + 1) %                 \
+      CFG_EXPLORATION_CACHE_SIZE;					\
+    if(DBFS_COMM_CACHE.size < CFG_EXPLORATION_CACHE_SIZE) {		\
+      DBFS_COMM_CACHE.size ++;                                          \
+    }                                                                   \
+  }
+#define DBFS_COMM_CACHE_PICK(id, found) {				\
+    if(found = (DBFS_COMM_CACHE.size > 0)) {				\
+      uint32_t pos = random_int(&DBFS_COMM_CACHE.rnd) %	DBFS_COMM_CACHE.size; \
+      id = DBFS_COMM_CACHE.id[pos];					\
+      DBFS_COMM_CACHE.id[pos] = DBFS_COMM_CACHE.id[DBFS_COMM_CACHE.size - 1]; \
+      DBFS_COMM_CACHE.size --;						\
+      DBFS_COMM_CACHE.next = DBFS_COMM_CACHE.size; 			\
+    }									\
+  }
+#endif
+
 
 void dbfs_comm_send_all_buffers
 ();
 
 bool_t dbfs_comm_process_in_states
 ();
+
+bool_t dbfs_comm_process_state_aux
+(htbl_meta_data_t * mdata,
+ bool_t send);
 
 uint16_t dbfs_comm_state_owner
 (hkey_t h) {
@@ -49,6 +101,47 @@ uint16_t dbfs_comm_state_owner
 bool_t dbfs_comm_state_owned
 (hkey_t h) {
   return dbfs_comm_state_owner(h) == ME;
+}
+
+void dbfs_comm_new_state_stored
+(htbl_id_t id) {
+  DBFS_COMM_CACHE_INSERT(id);
+}
+
+bool_t dbfs_comm_explore_cache_hook
+(state_t s,
+ void * data) {
+  htbl_meta_data_t mdata;
+  bfs_queue_item_t qitem;
+  bool_t is_new;
+  
+  htbl_meta_data_init(mdata, s);
+  if(dbfs_comm_process_state_aux(&mdata, FALSE)) {
+    stbl_insert(H, mdata, is_new);
+    if(is_new) {
+      htbl_set_worker_attr(H, mdata.id, ATTR_CYAN, 0, TRUE);
+      qitem.id = mdata.id;
+      qitem.s = s;
+      bfs_queue_enqueue(Q, qitem, 0, 0);
+      context_incr_stat(STAT_STATES_STORED, 0, 1);
+    }
+  }
+  return TRUE;
+}
+
+void dbfs_comm_explore_cache
+() {
+  htbl_id_t id;
+  bool_t found;
+  state_t s;
+
+  DBFS_COMM_CACHE_PICK(id, found);
+  if(found) {
+    s = htbl_get(H, id, SYSTEM_HEAP);
+    bwalk_generic(0, s, DBFS_COMM_BWALK_HASH, 1, FALSE,
+                  &dbfs_comm_explore_cache_hook, NULL);
+    state_free(s);
+  }
 }
 
 bool_t dbfs_comm_do_terminate
@@ -197,6 +290,10 @@ bool_t dbfs_comm_idle
     if(!bfs_queue_is_empty(Q)) {
       return FALSE;
     }
+    dbfs_comm_explore_cache();
+    if(!bfs_queue_is_empty(Q)) {
+      return FALSE;
+    }
     duration = 1000 * (clock() - start) / CLOCKS_PER_SEC;
     if(duration >= CFG_DBFS_CHECK_TERM_PERIOD_MS && 0 == ME) {
       dbfs_comm_send_token();
@@ -242,51 +339,63 @@ void dbfs_comm_send_all_buffers
   }
 }
 
-bool_t dbfs_comm_process_state
-(htbl_meta_data_t * mdata) {
+bool_t dbfs_comm_process_state_aux
+(htbl_meta_data_t * mdata,
+ bool_t send) {
   int pe;
   uint16_t size;
-
-  if(CFG_DISTRIBUTED_STATE_COMPRESSION) {
+  
+  if(!CFG_DISTRIBUTED_STATE_COMPRESSION) {
+    mdata->h = state_hash((state_t) mdata->item);
+  } else {
     state_dist_compress((state_t) mdata->item, mdata->v, &size);
     mdata->v_set = TRUE;
     mdata->v_size = size;
     mdata->h = string_hash(mdata->v, size);
-    mdata->h_set = TRUE;
-  } else {
-    mdata->h = state_hash((state_t) mdata->item);
-    mdata->h_set = TRUE;
   }
+  mdata->h_set = TRUE;
   pe = dbfs_comm_state_owner(mdata->h);
   
   /**
-   *  state is not mine => exit
+   *  state is mine => exit (state is processed in the bfs main
+   *  procedure)
    */
   if(ME == pe) {
     return TRUE;
   }
-  
-  if(!CFG_DISTRIBUTED_STATE_COMPRESSION) {
-    size = state_char_size((state_t) mdata->item);
-  }
-  if(LEN[pe] + sizeof(uint16_t) + sizeof(hkey_t) + size
-     > CFG_SHMEM_BUFFER_SIZE) {
-    dbfs_comm_send_buffer(pe);
-    if(TERM_DETECTED) {
-      return FALSE;
+
+  /**
+   *  otherwise put state in the send buffer.  first send the buffer
+   *  if it is full
+   */
+  if(send) {
+    if(!CFG_DISTRIBUTED_STATE_COMPRESSION) {
+      size = state_char_size((state_t) mdata->item);
     }
+    if(LEN[pe] + sizeof(uint16_t) + sizeof(hkey_t) + size >
+       SINGLE_BUFFER_SIZE) {
+      dbfs_comm_send_buffer(pe);
+      if(TERM_DETECTED) {
+	return FALSE;
+      }
+    }
+    memcpy(BUF[pe] + LEN[pe], &size, sizeof(uint16_t));
+    LEN[pe] += sizeof(uint16_t);
+    memcpy(BUF[pe] + LEN[pe], &(mdata->h), sizeof(hkey_t));
+    LEN[pe] += sizeof(hkey_t);
+    if(CFG_DISTRIBUTED_STATE_COMPRESSION) {
+      memcpy(BUF[pe] + LEN[pe], mdata->v, size);
+    } else {
+      state_serialise((state_t) mdata->item, BUF[pe] + LEN[pe], &size);
+    }
+    LEN[pe] += size;
   }
-  memcpy(BUF[pe] + LEN[pe], &size, sizeof(uint16_t));
-  LEN[pe] += sizeof(uint16_t);
-  memcpy(BUF[pe] + LEN[pe], &(mdata->h), sizeof(hkey_t));
-  LEN[pe] += sizeof(hkey_t);
-  if(CFG_DISTRIBUTED_STATE_COMPRESSION) {
-    memcpy(BUF[pe] + LEN[pe], mdata->v, size);
-  } else {
-    state_serialise((state_t) mdata->item, BUF[pe] + LEN[pe], &size);
-  }
-  LEN[pe] += size;
   return FALSE;
+}
+
+bool_t dbfs_comm_process_state
+(htbl_meta_data_t * mdata) {
+  return dbfs_comm_process_state_aux(mdata, TRUE);
 }
 
 void dbfs_comm_receive_buffer
@@ -295,7 +404,7 @@ void dbfs_comm_receive_buffer
  int pos) {
   uint32_t stored = 0;
   bool_t is_new;
-  char buffer[CFG_SHMEM_BUFFER_SIZE];
+  char buffer[SINGLE_BUFFER_SIZE];
   htbl_id_t sid;
   htbl_meta_data_t mdata;
   bfs_queue_item_t item;
@@ -348,7 +457,7 @@ bool_t dbfs_comm_process_in_states
         dbfs_comm_receive_buffer(pe, len, pos);
         result = TRUE;
       }
-      pos += CFG_SHMEM_BUFFER_SIZE;
+      pos += SINGLE_BUFFER_SIZE;
     }
   }
   return result;
@@ -365,7 +474,8 @@ void dbfs_comm_start
   debug("dbfs_comm starting\n");
   PES = comm_pes();
   ME = comm_me();
-  hs = POS_DATA + CFG_SHMEM_BUFFER_SIZE * (PES - 1);
+  SINGLE_BUFFER_SIZE = CFG_SHMEM_BUFFER_SIZE / (PES - 1);
+  hs = POS_DATA + SINGLE_BUFFER_SIZE * (PES - 1);
   comm_malloc(hs);
   comm_put(POS_TERM, &term, sizeof(dbfs_comm_term_t), ME);
   Q = q;
@@ -379,14 +489,15 @@ void dbfs_comm_start
     if(ME == pe) {
       REMOTE_POS[pe] = 0;
     } else {
-      REMOTE_POS[pe] = POS_DATA + ME * CFG_SHMEM_BUFFER_SIZE;
+      REMOTE_POS[pe] = POS_DATA + ME * SINGLE_BUFFER_SIZE;
       if(ME > pe) {
-	REMOTE_POS[pe] -= CFG_SHMEM_BUFFER_SIZE;
+	REMOTE_POS[pe] -= SINGLE_BUFFER_SIZE;
       }
-      BUF[pe] = mem_alloc0(SYSTEM_HEAP, CFG_SHMEM_BUFFER_SIZE);
+      BUF[pe] = mem_alloc0(SYSTEM_HEAP, SINGLE_BUFFER_SIZE);
     }
   }
   CW_HEAP = local_heap_new();
+  DBFS_COMM_CACHE_CLEAR();
   comm_barrier();
   dist_compression_training_run();
   debug("dbfs_comm started\n");

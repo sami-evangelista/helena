@@ -6,7 +6,7 @@
 #include "comm.h"
 #include "papi_stats.h"
 
-#define NO_STATS 14
+#define NO_STATS 13
 
 typedef enum {
   STAT_TYPE_TIME,
@@ -242,6 +242,13 @@ void finalise_context
   size_t n = 0;
   int i;
 
+  /**
+   *  context already finalised
+   */
+  if(!CTX) {
+    return;
+  }
+
   if(!CFG_ACTION_SIMULATE) {
     gettimeofday(&CTX->end_time, NULL);
     context_set_stat(STAT_TIME_SEARCH, 0,
@@ -354,12 +361,14 @@ void finalise_context
     if(CFG_DISTRIBUTED) {
       fprintf(out, "<shmemBufferSize>%d</shmemBufferSize>\n",
 	      CFG_SHMEM_BUFFER_SIZE);
-      fprintf(out, "<shmemHeapSize>%llu</shmemHeapSize>\n",
-	      comm_heap_size());
     }
     if(CFG_ALGO_DELTA_DDD) {
       fprintf(out, "<candidateSetSize>%d</candidateSetSize>\n",
 	      CFG_DELTA_DDD_CAND_SET_SIZE);
+    }
+    if(CFG_DISTRIBUTED_STATE_COMPRESSION || CFG_STATE_COMPRESSION) {
+      fprintf(out, "<stateCompressionBits>%d</stateCompressionBits>\n",
+              CFG_STATE_COMPRESSION_BITS);
     }
     fprintf(out, "</searchOptions>\n");
     fprintf(out, "</searchReport>\n");
@@ -455,6 +464,7 @@ void finalise_context
     free(CTX->error_msg);
   }
   free(CTX);
+  CTX = NULL;
 }
 
 void context_interruption_handler

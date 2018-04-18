@@ -17,7 +17,7 @@
 #include "common.h"
 #include "state.h"
 
-typedef void(* state_hook_t)(state_t, void *);
+typedef bool_t (* state_hook_t) (state_t, void *);
 
 
 /**
@@ -32,9 +32,10 @@ void bwalk
  */
 void bwalk_generic
 (worker_id_t w,
- uint32_t hash_log,
+ state_t s,
+ uint32_t hash_bits,
+ uint32_t iterations,
  bool_t update_stats,
- uint32_t max_time_ms,
  state_hook_t hook,
  void * hook_data);
 
