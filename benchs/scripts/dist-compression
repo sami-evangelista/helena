@@ -1,38 +1,36 @@
 #!/bin/bash
 
 [ -z "$OAR_NODEFILE" ] && echo "not in an OAR job" && exit 1
+[ -z "$1" ] && echo "missing \#1 = comp. size range" && exit 1
 
-MODELS="
-collision.5;10
-peterson.5.large.10;20
-firewire_tree.6;10
-firewire_tree.7;10
-firewire_tree.8;10
-leader_election.6;12
-leader_election.7;12"
+range=$1
 
-SINGLE_BUFFER_SIZES="
-16000
-64000
-256000
-1024000"
+C5="collision.5;12;27;27"
+FT6="firewire_tree.6;8;26;26"
+FT7="firewire_tree.7;8;26;26"
+LE6="leader_election.6;12;26;26"
+LE7="leader_election.7;12;26;26"
+L9="lifts.9;16;26;26"
+S9="synapse.9;18;28;27"
 
-NODES="64 56 48 40 32 24 16 12 8 4"
+MODELS="$C5 $FT6 $FT7 $LE6 $LE7 $L9 $S9"
+
+SINGLE_BUFFER_SIZES="64000" # 128000" # 256000"
+
+NODES=$(seq 32 -4 8)
 
 PROCS_PER_NODE="4 2 1"
 PROCS_PER_NODE="4"
 
 REPETITION=2
 
-HASH_SIZE=27
-
 COMP_MODES="C DC"
 
 mf=machinefile-$OAR_JOBID
-helena="helena -g=no-report -A=DBFS -N=EXPLORE -mf=$mf"
-outDir=out/dist-compression
+helena="helena -g=no-report -A=DBFS -N=EXPLORE -mf=$mf -ccs=$range"
+outDir=out/dist-compression/$range
 
-mkdir $outDir &> /dev/null
+mkdir -p $outDir &> /dev/null
 for n in $NODES
 do
     for p in $PROCS_PER_NODE
@@ -40,18 +38,12 @@ do
 	sort -u $OAR_NODEFILE | head -$n > $mf
 	[ $(cat $mf | wc -l) -lt $n ] && \
 	    echo "not enough nodes for n=$n" && continue
-	t=$HASH_SIZE
-	q=$p
-	while [ $q -gt 1 ]
+	for mcbt in $MODELS
 	do
-	    t=$((t - 1))
-	    q=$((q / 2))
-	done
-	for mcb in $MODELS
-	do
-	    m=$(echo $mcb | cut -d";" -f1)
-	    cb=$(echo $mcb | cut -d";" -f2)
-	    baseCmd="$helena -np=$p -t=$t -cb=$cb"
+	    m=$(echo $mcbt | cut -d";" -f1)
+	    cb=$(echo $mcbt | cut -d";" -f2)
+            tc=$(echo $mcbt | cut -d";" -f3)
+            tnc=$(echo $mcbt | cut -d";" -f4)
 	    dve="../examples/beem/$m.dve"
 	    for b in $SINGLE_BUFFER_SIZES
 	    do
@@ -59,17 +51,35 @@ do
 		[ $bs -gt 100000000 ] && continue
 		for c in $COMP_MODES
 		do
-		    dir=$outDir/$m/$n/$p/$c/$b
+                    if [ "$c" = "NC" ]
+                    then
+                        t=$tnc
+                        dir=$outDir/$m/$n/$p/NC/$b
+                        copt=""
+                    else
+                        t=$tc
+                        copt="-$c"
+                    fi
+                    q=$p
+                    while [ $q -gt 1 ]
+                    do
+                        t=$((t - 1))
+                        q=$((q / 2))
+                    done
+                    baseCmd="$helena -np=$p -t=$t -cb=$cb"
+                    dir=$outDir/$m/$n/$p/$c/$b
                     mkdir -p $dir &> /dev/null
 		    for r in $(seq -w 1 $REPETITION)
 		    do
 			xml=$dir/$r.xml
                         out=$dir/$r.out
-			[ -e $xml ] && continue
-			echo "***** $m, $n nodes, $p procs, b=$b, m=$c *****"
-			cmd="$baseCmd -$c -o=$xml -bs=$bs $dve"
-			echo $cmd
-			eval $cmd | tee $out
+                        while [ ! -e $xml ]
+                        do
+                            echo "***** $m, $n nodes, $p procs, b=$b, m=$c *****"
+			    cmd="$baseCmd $copt -o=$xml -bs=$bs $dve"
+			    echo $cmd
+			    eval $cmd | tee $out
+                        done
 		    done
 		done
 	    done

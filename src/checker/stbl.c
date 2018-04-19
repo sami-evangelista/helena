@@ -87,7 +87,8 @@ htbl_t stbl_default_new
   uncompress_func = (htbl_uncompress_func_t) state_unserialise;
 #endif
   return htbl_new(no_workers > 1, hsize, no_workers, type, data_size,
-                  attrs_available, compress_func, uncompress_func);
+                  attrs_available, HTBL_DOUBLE_HASHING, compress_func,
+                  uncompress_func);
 }
 
 list_t stbl_get_trace

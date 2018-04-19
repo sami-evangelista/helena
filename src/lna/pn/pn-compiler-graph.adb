@@ -105,7 +105,7 @@ package body Pn.Compiler.Graph is
       Plc(L, 1, "(*data)->stack = mem_alloc (SYSTEM_HEAP, " &
 	    "sizeof (mevent_t) * no_states);");
       Pc(L, 1, "(*data)->tbl = htbl_new");
-      Plc(L, "(TRUE, 26, 1, HTBL_FULL_DYNAMIC, 0, 0,");
+      Plc(L, "(TRUE, 26, 1, HTBL_FULL_DYNAMIC, 0, 0, HTBL_LINEAR_PROBING, ");
       Plc(L, 1, "(htbl_compress_func_t) mstate_serialise,");
       Plc(L, 1, "(htbl_uncompress_func_t) mstate_unserialise);");
       Plc(L, 1, "mstate_init ((*data)->all, SYSTEM_HEAP);");

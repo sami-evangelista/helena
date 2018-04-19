@@ -28,19 +28,19 @@ typedef enum {
 } dbfs_comm_term_t;
 
 #define POS_TERM                                \
-    0
+  0
 #define POS_TOKEN                               \
   (POS_TERM + sizeof(dbfs_comm_term_t))
 #define POS_TERM_DETECTION_ASKED                \
   (POS_TOKEN + sizeof(bool_t))
-#define POS_LEN(pe)                                                             \
+#define POS_LEN(pe)                                                     \
   (POS_TERM_DETECTION_ASKED + sizeof(bool_t) + sizeof(uint32_t) * pe)
 #define POS_DATA                                \
   (POS_LEN(PES))
 
 
 /**
- *  cache
+ *  exploration cache
  */
 #if CFG_EXPLORATION_CACHE_SIZE == 0
 
@@ -277,6 +277,7 @@ bool_t dbfs_comm_idle
     return TRUE;
   }
   if(!context_keep_searching()) {
+    assert(0);
     dbfs_comm_ask_for_term_detection();
     dbfs_comm_check_termination(TRUE);
     return TRUE;
@@ -313,6 +314,7 @@ void dbfs_comm_send_buffer
   do {
     comm_get(&len, POS_LEN(ME), sizeof(uint32_t), pe);
     if(len > 0) {
+      dbfs_comm_explore_cache();
       dbfs_comm_check_communications_aux(FALSE);
       if(TERM_DETECTED) {
 	return;
@@ -483,8 +485,8 @@ void dbfs_comm_start
   LEN = mem_alloc0(SYSTEM_HEAP, sizeof(uint32_t) * PES);
   BUF = mem_alloc0(SYSTEM_HEAP, sizeof(char *) * PES);
   REMOTE_POS = mem_alloc0(SYSTEM_HEAP, sizeof(uint32_t) * PES);
+  len = 0;
   for(pe = 0; pe < PES; pe ++) {
-    len = 0;
     comm_put(POS_LEN(pe), &len, sizeof(uint32_t), ME);
     if(ME == pe) {
       REMOTE_POS[pe] = 0;

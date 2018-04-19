@@ -26,6 +26,16 @@
 
 
 /**
+ * @typedef htbl_col_resol_t
+ * @brief hash table collision resolution mechanism
+ */
+typedef enum {
+  HTBL_LINEAR_PROBING,
+  HTBL_DOUBLE_HASHING
+} htbl_col_resol_t;
+
+
+/**
  * @typedef htbl_type_t
  * @brief hash table type
  */
@@ -110,7 +120,8 @@ htbl_t htbl_new
  uint16_t no_workers,
  htbl_type_t type,
  htbl_data_size_t data_size,
- uint32_t attrs,
+ uint32_t attrs_available,
+ htbl_col_resol_t col_resol,
  htbl_compress_func_t compress_func,
  htbl_uncompress_func_t uncompress_func);
 

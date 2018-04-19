@@ -14,15 +14,15 @@
   }
 #endif
 
-#define bwalk_push() {                                   \
-    if(hook) {                                           \
-      loop = loop && hook(now, hook_data);               \
-    }                                                    \
-    dfs_stack_push(stack, 0, now);                       \
-    dfs_stack_compute_events(stack, now, FALSE);         \
-    if(update_stats) {                                   \
-      context_incr_stat(STAT_STATES_STORED, w, 1);       \
-    }                                                    \
+#define bwalk_push() {                                    \
+    if(hook) {                                            \
+      loop = loop && hook(now, hook_data);                \
+    }                                                     \
+    dfs_stack_push(stack, 0, now);                        \
+    dfs_stack_compute_events(stack, now, FALSE);          \
+    if(update_stats) {                                    \
+      context_incr_stat(STAT_STATES_STORED, w, 1);        \
+    }                                                     \
   }
 
 #define bwalk_tbl_insert(is_new) {                                    \

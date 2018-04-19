@@ -11,7 +11,7 @@
 #define BUCKET_READY  2
 #define BUCKET_UPDATE 3
 
-#define HTBL_INSERT_MAX_TRIALS 10000
+#define HTBL_INSERT_MAX_TRIALS 10000000
 #define HTBL_CACHE_LINE_SIZE   10  /* should be hardware independent */
 
 const uint16_t ATTR_WIDTH[] = {
@@ -59,6 +59,7 @@ struct struct_htbl_t {
   uint16_t no_workers;
   heap_t heap;
   char * data;
+  htbl_col_resol_t col_resol;
   htbl_compress_func_t compress_func;
   htbl_uncompress_func_t uncompress_func;
 };
@@ -113,8 +114,9 @@ htbl_t htbl_new
  uint8_t hash_bits,
  uint16_t no_workers,
  htbl_type_t type,
- uint16_t data_size,
+ htbl_data_size_t data_size,
  uint32_t attrs_available,
+ htbl_col_resol_t col_resol,
  htbl_compress_func_t compress_func,
  htbl_uncompress_func_t uncompress_func) {
   const heap_t heap = SYSTEM_HEAP;
@@ -127,6 +129,7 @@ htbl_t htbl_new
   result->compress_func = compress_func;
   result->uncompress_func = uncompress_func;
   result->attrs_available = attrs_available;
+  result->col_resol = col_resol;
   for(i = 0; i < NO_ATTRS; i ++) {
     if(htbl_has_attr(result, i)) {
       width = ATTR_WIDTH[i];
@@ -302,22 +305,34 @@ htbl_insert_code_t htbl_insert
      * give up if HTBL_INSERT_MAX_TRIALS buckets have been checked
      */
     if(!(-- trials)) {
+      printf("ITEMS == %d\n", htbl_no_items);
       return HTBL_INSERT_FULL;
     }
 
-    /**
-     * move to the next item of the table if we're still in the cache
-     * line or recompute a new hash value if we've traversed the whole
-     * cache line
-     */
-    if(still --) {
+    
+    switch(tbl->col_resol) {
+    case HTBL_LINEAR_PROBING:
       i = (i + 1) & tbl->hash_size_m;
       pos = i ? (pos + tbl->item_size) : HTBL_POS_ITEM(tbl, 0);
-    } else {
-      still = HTBL_CACHE_LINE_SIZE;
-      i = (string_hash_init(mdata->v, mdata->v_size, ++ num))
-        & tbl->hash_size_m;
-      pos = HTBL_POS_ITEM(tbl, i);
+      break;
+    case HTBL_DOUBLE_HASHING:
+      /**
+       * move to the next item of the table if we're still in the cache
+       * line or recompute a new hash value if we've traversed the whole
+       * cache line
+       */
+      if(still --) {
+        i = (i + 1) & tbl->hash_size_m;
+        pos = i ? (pos + tbl->item_size) : HTBL_POS_ITEM(tbl, 0);
+      } else {
+        still = HTBL_CACHE_LINE_SIZE;
+        i = (string_hash_init(mdata->v, mdata->v_size, ++ num))
+          & tbl->hash_size_m;
+        pos = HTBL_POS_ITEM(tbl, i);
+      }
+      break;
+    default:
+      assert(FALSE);
     }
   }
 }

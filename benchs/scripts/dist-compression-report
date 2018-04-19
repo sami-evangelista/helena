@@ -1,11 +1,17 @@
 #!/bin/bash
 
+BUFFER_SIZES="64000" # 128000 256000"
+
 out=dist-compression.out
+
+progressFiles="
+out/dist-compression/lifts.9/16/4
+out/dist-compression/firewire_tree.7/32/4"
 
 plot () {
     chmod +x p
     ./p
-    #rm p
+    rm p
 }
 
 calc () {
@@ -23,13 +29,26 @@ printAvgAndDev () {
         dev=$(calc "$dev + ($val - $avg) ^ 2")
     done
     dev=$(calc "sqrt($dev / $n)")
-    echo $avg";"$dev
+    echo $n";"$avg";"$dev
 }
 
+setTicsAndPlot () {
+    echo -n "set xtics (" >> p
+    first=1
+    grep -v e tp | sort -n | cut -d$'\t' -f1 | sort -un | while read tic
+    do
+        [ $first = 0 ] && echo -n ","
+        first=0
+        echo -n $tic
+    done >> p
+    echo ")" >> p
+    cat tp >> p
+    rm tp
+    plot
+}
 
 if [ "$1" = 1 ]
 then
-    #  produce a first output file with the execution time of all runs
     echo "Producing output file ..."
     find out/dist-compression -name *.xml | while read xml
     do
@@ -47,9 +66,6 @@ then
         echo "$model;$((n * p));$n;$p;$c;$bs;$t"
     done | sort > $out
 
-
-    #  compute averages and standard deviations and produce the final
-    #  output file
     echo "Compute averages and standard deviations ..."
     prev=""
     vals=""
@@ -78,75 +94,97 @@ fi
 
 models=$(cut -d';' -f1 $out | sort -u)
 
-#  first plots : one file for each model
-echo "Produce per-model plots ..."
-for p in 4
+[ "$2" = 1 ] && echo "Produce execution time plots ..." && for p in 4
 do
-    for bs in 16000 64000 256000 1024000
+    for bs in $BUFFER_SIZES
     do
         for m in $models
         do
             echo "#!/usr/bin/gnuplot" > p
             echo "set terminal pdf" >> p
-            echo "set output 'dc-$p-$bs-$m.pdf'" >> p
+            echo "set output 'dc-$m-$bs-time.pdf'" >> p
             echo "set yrange [0:]" >> p
-            echo -n "plot '-' using 1:2 with lines title \"Compression\"," >> p
-            echo -n "'-' using 1:2:3 with errorbars lt 1 title \"\"," >> p
-            echo -n "'-' using 1:2 with lines title \"Distributed Compression\"," >> p
-            echo "'-' using 1:2:3 with errorbars lt 1 title \"\"" >> p
+            echo -n "plot '-' using 1:2 with lines title \"Compression\"," > tp
+            echo -n "'-' using 1:2:3 with errorbars lt 1 title \"\"," >> tp
+            echo -n "'-' using 1:2 with lines title \"Distributed Compression\"," >> tp
+            echo "'-' using 1:2:3 with errorbars lt 1 title \"\"" >> tp
             for c in C DC
             do
                 for i in 1 2
                 do
                     awk -F';' \
-                        "\$6 == $bs && \$4 == $p && \$5 == \"$c\" && \$1 == \"$m\" {print \$2\"\\t\"\$7\"\\t\"\$8}" $out | \
-                        sort -n >> p
-                    echo e >> p
+                        "\$6 == $bs && \$4 == $p && \$5 == \"$c\" && \$1 == \"$m\" {print \$2\"\\t\"\$8\"\\t\"\$9}" $out | \
+                        sort -n >> tp
+                    echo e >> tp
                 done
             done
-            plot
+            setTicsAndPlot
         done
     done
 done
 
-
-#  second plots : a single plot with the comparison of both methods on
-#  all models
-echo "Produce summary plots ..."
-for p in 4
+[ "$3" = 1 ] && echo "Produce state exploration plots ..." && for pf in $progressFiles
 do
-    for bs in 16000 64000 256000 1024000
+    tmp=${pf##out/dist-compression/}
+    m=${tmp%%/*}
+    tmp=${tmp#*/}
+    n=${tmp%%/*}
+    tmp=${tmp#*/}
+    p=${tmp%%/*}
+    for bs in $BUFFER_SIZES
     do
         echo "#!/usr/bin/gnuplot" > p
         echo "set terminal pdf" >> p
-        echo "set output 'dc-$p-$bs-all.pdf'" >> p
-        echo "set yrange [0:2]" >> p
-        echo -n "plot 1 with dots notitle" >> p
-        for m in $models
+        echo "set output 'dc-$m-$bs-expl.pdf'" >> p
+        echo -n "plot '-' using 1:2 with lines title \"Compression\"," >> p
+        echo "'-' using 1:2 with lines title \"Distributed Compression\"" >> p
+        ok=1
+        for c in C DC
         do
-            echo -n ", '-' with lines title '"${m//_/\\_}"'" >> p
-        done
-        echo >> p
-        for m in $models
-        do
-            awk -F';' \
-                "\$6 == $bs && \$4 == $p && \$5 == \"C\" && \$1 == \"$m\" {print \$2,\$7}" $out | \
-                while read procs refTime
-                do
-                    time=$(awk -F';' \
-                               "\$6 == $bs && \$4 == $p && \$5 == \"DC\" && \$1 == \"$m\" && \$2 == $procs {print \$7}" $out)
-                    echo $procs $(calc "$time / $refTime") >> p
-                done
+            [ ! -d $pf/$c/$bs ] && ok=0 && continue
+            f=$(find $pf/$c/$bs -name \*.out | head -1)
+            t=$(awk -F"Time: " '{print $2}' $f | cut -d"." -f1 | sort -nu | tail -1)
+            for sec in $(seq 1 $t)
+            do
+                grep "Time: $sec\." $f | awk -F"newly processed: " '{print $2}' | cut -d"," -f1 \
+                    | awk "BEGIN {sum = 0} ; {sum += \$1} ; END {print $sec\"\\t\"sum}"
+            done >> p
             echo e >> p
         done
-        plot
+        [ $ok = 1 ] && plot
     done
 done
 
+[ "$4" = 1 ] && echo "Produce summary plots ..." && for p in 4
+do
+    for bs in $BUFFER_SIZES
+    do
+        echo "#!/usr/bin/gnuplot" > p
+        echo "set terminal pdf" >> p
+        echo "set output 'dc-all-$bs-time.pdf'" >> p
+        echo "set yrange [0:2]" >> p
+        echo -n "plot 1 with dots notitle" > tp
+        for m in $models
+        do
+            echo -n ", '-' with lines title '"${m//_/\\_}"'" >> tp
+        done
+        echo >> tp
+        for m in $models
+        do
+            awk -F';' \
+                "\$6 == $bs && \$4 == $p && \$5 == \"C\" && \$1 == \"$m\" {print \$2,\$8}" $out | \
+                while read procs refTime
+                do
+                    time=$(awk -F';' \
+                               "\$6 == $bs && \$4 == $p && \$5 == \"DC\" && \$1 == \"$m\" && \$2 == $procs {print \$8}" $out)
+                    echo -e $procs'\t'$(calc "$time / $refTime")
+                done | sort -n >> tp
+            echo e >> tp
+        done
+        setTicsAndPlot
+    done
+done
 
-#  produce archive
-echo "Produce archive ..."
-tar czf dc.tgz dc-*pdf
-rm dc-*pdf
+[ "$5" = 1 ] && echo "Produce archive ..." && tar czf dc.tgz dc-*pdf && rm dc-*pdf
 
 exit 0

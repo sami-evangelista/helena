@@ -37,6 +37,7 @@ void init_compression
     }
     compression_htbls[i] =
       htbl_new(TRUE, CFG_STATE_COMPRESSION_BITS, 2, t, size, 0,
+               HTBL_LINEAR_PROBING,
                model_component_compress_func(i),
                compression_get_compressed_comp);
   }
@@ -88,6 +89,7 @@ void compression_compress
   for(i = 0; i < MODEL_NO_COMPONENTS; i ++) {
     htbl_meta_data_init(mdata, s);
     if(HTBL_INSERT_FULL == htbl_insert(compression_htbls[i], &mdata)) {
+      assert(0);
       context_error(compression_tbl_full_msg);
     } else {
       bit_stream_set(bits, mdata.id, CFG_STATE_COMPRESSION_BITS);
