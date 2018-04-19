@@ -63,4 +63,11 @@ uint16_t dist_compression_char_size
 void dist_compression_training_run
 ();
 
+
+/**
+ *  @brief dist_compression_process_serialised_component
+ */
+void dist_compression_process_serialised_component
+(char * data);
+
 #endif

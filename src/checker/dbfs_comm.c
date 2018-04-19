@@ -374,16 +374,20 @@ bool_t dbfs_comm_process_state_aux
     if(!CFG_DISTRIBUTED_STATE_COMPRESSION) {
       size = state_char_size((state_t) mdata->item);
     }
-    if(LEN[pe] + sizeof(uint16_t) + sizeof(hkey_t) + size >
+    if(1 + LEN[pe] + sizeof(uint16_t) + sizeof(hkey_t) + size >
        SINGLE_BUFFER_SIZE) {
       dbfs_comm_send_buffer(pe);
       if(TERM_DETECTED) {
 	return FALSE;
       }
     }
-    memcpy(BUF[pe] + LEN[pe], &size, sizeof(uint16_t));
+    * ((char *) (BUF[pe] + LEN[pe])) = DBFS_COMM_STATE;
+    LEN[pe] += 1;
+    * ((uint16_t *) (BUF[pe] + LEN[pe])) = size;
+    //memcpy(BUF[pe] + LEN[pe], &size, sizeof(uint16_t));
     LEN[pe] += sizeof(uint16_t);
-    memcpy(BUF[pe] + LEN[pe], &(mdata->h), sizeof(hkey_t));
+    * ((hkey_t *) (BUF[pe] + LEN[pe])) = mdata->h;
+    //memcpy(BUF[pe] + LEN[pe], &(mdata->h), sizeof(hkey_t));
     LEN[pe] += sizeof(hkey_t);
     if(CFG_DISTRIBUTED_STATE_COMPRESSION) {
       memcpy(BUF[pe] + LEN[pe], mdata->v, size);
@@ -400,6 +404,20 @@ bool_t dbfs_comm_process_state
   return dbfs_comm_process_state_aux(mdata, TRUE);
 }
 
+void dbfs_comm_put_in_buffer
+(int pe,
+ char * buffer,
+ int len) {
+  if(LEN[pe] + len > SINGLE_BUFFER_SIZE) {
+    dbfs_comm_send_buffer(pe);
+    if(TERM_DETECTED) {
+      return;
+    }
+  }
+  memcpy(BUF[pe] + LEN[pe], buffer, len);
+  LEN[pe] += len;
+}
+
 void dbfs_comm_receive_buffer
 (int pe,
  uint32_t len,
@@ -412,6 +430,7 @@ void dbfs_comm_receive_buffer
   bfs_queue_item_t item;
   char * b, * b_end;
   uint16_t size;
+  char t;
   
   debug("receives %d bytes from %d\n", len, pe);
   comm_get(buffer, pos, len, ME);
@@ -420,26 +439,41 @@ void dbfs_comm_receive_buffer
   len = 0;
   comm_put(POS_LEN(pe), &len, sizeof(uint32_t), ME);
   while(b != b_end) {
-    htbl_meta_data_init(mdata, NULL);
-    memcpy(&size, b, sizeof(uint16_t));
+    t = * ((char *) b);
+    b ++;
+    //memcpy(&size, b, sizeof(uint16_t));
+    size = * ((uint16_t *) b);
     b += sizeof(uint16_t);
-    memcpy(&(mdata.h), b, sizeof(hkey_t));
-    mdata.h_set = TRUE;
-    b += sizeof(hkey_t);
-    if(CFG_DISTRIBUTED_STATE_COMPRESSION) {
-      memcpy(&mdata.v, b, size);
-      mdata.v_set = TRUE;
-      mdata.v_size = size;
-    } else {
-      heap_reset(CW_HEAP);
-      mdata.item = state_unserialise(b, CW_HEAP);
-    }
-    b += size;
-    stbl_insert(H, mdata, is_new);
-    if(is_new) {
-      stored ++;
-      item.id = mdata.id;
-      bfs_queue_enqueue(Q, item, 0, 0);
+    switch(t) {
+    case DBFS_COMM_STATE:
+      htbl_meta_data_init(mdata, NULL);
+      //memcpy(&(mdata.h), b, sizeof(hkey_t));
+      mdata.h = * ((hkey_t *) b);
+      mdata.h_set = TRUE;
+      b += sizeof(hkey_t);
+      if(CFG_DISTRIBUTED_STATE_COMPRESSION) {
+        memcpy(&mdata.v, b, size);
+        mdata.v_set = TRUE;
+        mdata.v_size = size;
+      } else {
+        heap_reset(CW_HEAP);
+        mdata.item = state_unserialise(b, CW_HEAP);
+      }
+      b += size;
+      stbl_insert(H, mdata, is_new);
+      if(is_new) {
+        stored ++;
+        item.id = mdata.id;
+        bfs_queue_enqueue(Q, item, 0, 0);
+      }
+      break;
+    case DBFS_COMM_COMP_DATA:
+      dist_compression_process_serialised_component(b);
+      b += size;
+      break;
+    default:
+      printf("unknown element type: %d\n", t);
+      assert(0);
     }
   }
   context_incr_stat(STAT_STATES_STORED, 0, stored);

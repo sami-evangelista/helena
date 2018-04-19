@@ -13,6 +13,10 @@
 #include "htbl.h"
 
 
+#define DBFS_COMM_STATE     0
+#define DBFS_COMM_COMP_DATA 1
+
+
 /**
  * @brief dbfs_comm_start
  */
@@ -61,5 +65,14 @@ bool_t dbfs_comm_check_communications
  */
 void dbfs_comm_new_state_stored
 (htbl_id_t id);
+
+
+/**
+ * @brief dbfs_comm_put_in_buffer
+ */
+void dbfs_comm_put_in_buffer
+(int pe,
+ char * buffer,
+ int len);
 
 #endif

@@ -3,6 +3,7 @@
 #include "comm.h"
 #include "context.h"
 #include "bwalk.h"
+#include "dbfs_comm.h"
 
 #if CFG_DISTRIBUTED_STATE_COMPRESSION && defined(MODEL_HAS_STATE_COMPRESSION)
 #define DIST_COMPRESSION_ENABLED
@@ -277,16 +278,18 @@ void dist_compression_compress
  uint16_t * size) {
 #if defined(DIST_COMPRESSION_ENABLED)
   uint16_t comp_size;
-  char buffer[65536];
+  char buffer[65536], sbuffer[65536];
   hkey_t h;
   uint32_t i, owner, slot, item_size;
   void * pos;
+  char * b;
   int status;
   bool_t loop;
   const uint32_t mask = (1 << CFG_STATE_COMPRESSION_BITS) - 1;
   bit_stream_t bits;
   uint32_t trials;
   bool_t remote;
+  int pe;
   
   *size = dist_compression_compressed_char_size;
   memset(v, 0, *size);
@@ -315,6 +318,29 @@ void dist_compression_compress
           if(owner != dist_compression_me) {
             memcpy(pos, buffer, item_size);
             context_incr_stat(STAT_SHMEM_COMMS, 0, 1);
+          }
+          
+          /*
+           *  broadcast the new item to all PEs
+           */
+          break;
+          b = sbuffer;
+          * ((char *) b) = DBFS_COMM_COMP_DATA;
+          b += 1;
+          * ((uint16_t *) (b)) = (uint16_t) (sizeof(uint16_t) +
+                                             sizeof(uint32_t) + comp_size);
+          b += sizeof(uint16_t);
+          * ((uint16_t *) (b)) = (uint16_t) i;
+          b += sizeof(uint16_t);
+          * ((uint32_t *) (b)) = (uint32_t) slot;
+          b += sizeof(uint32_t);
+          memcpy(b, buffer, comp_size);
+          //printf("NEW %d at %d (%p) : ", i, slot, pos);for(int j= 0; j < comp_size; j ++) {printf("|%d", b[j]);} printf("|\n");
+          b += comp_size;
+          for(pe = 0; pe < dist_compression_pes; pe ++) {
+            if(pe != dist_compression_me && pe != owner) {
+              dbfs_comm_put_in_buffer(pe, sbuffer, b - sbuffer);
+            }
           }
           loop = FALSE;
         }
@@ -351,6 +377,34 @@ void dist_compression_compress
       }
     }
     bit_stream_set(bits, slot, CFG_STATE_COMPRESSION_BITS);
+  }
+#endif
+}
+
+
+void dist_compression_process_serialised_component
+(char * data) {
+#if defined(DIST_COMPRESSION_ENABLED)
+  uint16_t comp;
+  uint32_t slot, comp_size;
+  char buffer[65536];
+  void * pos;
+  int status;
+
+  comp = * ((uint16_t *) (data));
+  assert(comp < MODEL_NO_COMPONENTS);
+  data += sizeof(uint16_t);
+  comp_size = dist_compression_comp_size[comp];
+  slot = * ((uint32_t *) (data));
+  data += sizeof(uint32_t);
+  assert(slot < (1 << CFG_STATE_COMPRESSION_BITS));
+  pos = dist_compression_tbls[comp] + slot * (sizeof(int) + comp_size);
+  //printf("GET %d at %d (%p) : ", comp, slot, pos); for(int j = 0; j < comp_size; j ++) {printf("|%d", data[j]);} printf("|\n");
+  memcpy(&status, pos + comp_size, sizeof(int));
+  if(status != DIST_COMPRESSION_READY) {
+    memcpy(pos, data, comp_size);
+    status = DIST_COMPRESSION_READY;
+    memcpy(pos + comp_size, &status, sizeof(int));
   }
 #endif
 }
