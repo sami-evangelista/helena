@@ -1,12 +1,12 @@
 #!/bin/bash
 
-BUFFER_SIZES="64000" # 128000 256000"
-
-out=dist-compression.out
-
+P="4"
+BS="64000"
+OUT=dist-compression.out
+OUTDIR=out/dist-compression
 progressFiles="
-out/dist-compression/lifts.9/16/4
-out/dist-compression/firewire_tree.7/32/4"
+$OUTDIR/lifts.9/16-32/32/4
+$OUTDIR/firewire_tree.7/20-40/32/4"
 
 plot () {
     chmod +x p
@@ -16,6 +16,14 @@ plot () {
 
 calc () {
     echo "scale = 2; $*" | bc
+}
+
+format () {
+    echo "print \"{:,}\".format($1)" | python
+}
+
+getModels () {
+    cut -d';' -f1-2 $OUT | sort -u
 }
 
 printAvgAndDev () {
@@ -47,24 +55,24 @@ setTicsAndPlot () {
     plot
 }
 
-if [ "$1" = 1 ]
-then
-    echo "Producing output file ..."
-    find out/dist-compression -name *.xml | while read xml
+mkOutputFile () {
+    find $OUTDIR -name *.xml | while read xml
     do
-        tmp=${xml##out/dist-compression/}
+        tmp=${xml##$OUTDIR/}
         model=${tmp%%/*}
+        tmp=${tmp#*/}
+        r=${tmp%%/*}
         tmp=${tmp#*/}
         n=${tmp%%/*}
         tmp=${tmp#*/}
         p=${tmp%%/*}
         tmp=${tmp#*/}
-        c=${tmp%%/*}
-        tmp=${tmp#*/}
         bs=${tmp%%/*}
+        tmp=${tmp#*/}
+        c=${tmp%%/*}
         t=$(scripts/get-stat $xml searchTime | cut -d"," -f1)
-        echo "$model;$((n * p));$n;$p;$c;$bs;$t"
-    done | sort > $out
+        echo "$model;$r;$((n * p));$n;$p;$bs;$c;$t"
+    done | sort > $OUT
 
     echo "Compute averages and standard deviations ..."
     prev=""
@@ -72,8 +80,8 @@ then
     n=0
     while read l
     do
-        id=$(echo $l | cut -f1-6 -d";")
-        t=$(echo $l | cut -f7 -d";")
+        id=$(echo $l | cut -f1-7 -d";")
+        t=$(echo $l | cut -f8 -d";")
         if [ "$prev" = "$id" ]
         then
             vals=$vals" "$t
@@ -87,104 +95,182 @@ then
             vals="$t"
         fi
         prev=$id
-    done < $out > $out.tmp
-    echo $prev";"$(printAvgAndDev $vals) >> $out.tmp
-    mv $out.tmp $out
-fi
+    done < $OUT > $OUT.tmp
+    echo $prev";"$(printAvgAndDev $vals) >> $OUT.tmp
+    mv $OUT.tmp $OUT
+}
 
-models=$(cut -d';' -f1 $out | sort -u)
-
-[ "$2" = 1 ] && echo "Produce execution time plots ..." && for p in 4
-do
-    for bs in $BUFFER_SIZES
+mkTimePlots () {
+    for p in $P
     do
-        for m in $models
+        for bs in $BS
+        do
+            for mr in $(getModels)
+            do
+                m=$(echo $mr | cut -d';' -f1)
+                r=$(echo $mr | cut -d';' -f2)
+                echo "#!/usr/bin/gnuplot" > p
+                echo "set terminal pdf" >> p
+                echo "set output 'dc-$m-$bs-time.pdf'" >> p
+                echo "set yrange [0:]" >> p
+                echo -n "plot '-' using 1:2 with lines title \"Compression\"," > tp
+                echo -n "'-' using 1:2:3 with errorbars lt 1 title \"\"," >> tp
+                echo -n "'-' using 1:2 with lines title \"Distributed Compression\"," >> tp
+                echo "'-' using 1:2:3 with errorbars lt 1 title \"\"" >> tp
+                for c in C DC
+                do
+                    awk -F';' "\$1==\"$m\" && \$2==\"$r\" && \$5==$p && \$6==$bs && \$7==\"$c\" {print \$3\"\\t\"\$9\"\\t\"\$10}" $OUT | \
+                        sort -n > tp.tmp
+                    for i in 1 2
+                    do
+                        cat tp.tmp >> tp
+                        echo e >> tp
+                done
+                    rm tp.tmp
+                done
+                setTicsAndPlot
+            done
+        done
+    done
+}
+
+mkExplorationPlots () {
+    for pf in $progressFiles
+    do
+        tmp=${pf##$OUTDIR/}
+        m=${tmp%%/*}
+        tmp=${tmp#*/}
+        r=${tmp%%/*}
+        tmp=${tmp#*/}
+        n=${tmp%%/*}
+        tmp=${tmp#*/}
+        p=${tmp%%/*}
+        for bs in $BS
         do
             echo "#!/usr/bin/gnuplot" > p
             echo "set terminal pdf" >> p
-            echo "set output 'dc-$m-$bs-time.pdf'" >> p
-            echo "set yrange [0:]" >> p
-            echo -n "plot '-' using 1:2 with lines title \"Compression\"," > tp
-            echo -n "'-' using 1:2:3 with errorbars lt 1 title \"\"," >> tp
-            echo -n "'-' using 1:2 with lines title \"Distributed Compression\"," >> tp
-            echo "'-' using 1:2:3 with errorbars lt 1 title \"\"" >> tp
+            echo "set output 'dc-$m-$bs-expl.pdf'" >> p
+            echo -n "plot '-' using 1:2 with lines title \"Compression\"," >> p
+            echo "'-' using 1:2 with lines title \"Distributed Compression\"" >> p
+            ok=1
             for c in C DC
             do
-                for i in 1 2
+                [ ! -d $pf/$bs/$c ] && ok=0 && continue
+                f=$(find $pf/$bs/$c -name \*.out | head -1)
+                t=$(awk -F"Time: " '{print $2}' $f | cut -d"." -f1 | sort -nu | tail -1)
+                for sec in $(seq 1 $t)
                 do
-                    awk -F';' \
-                        "\$6 == $bs && \$4 == $p && \$5 == \"$c\" && \$1 == \"$m\" {print \$2\"\\t\"\$8\"\\t\"\$9}" $out | \
-                        sort -n >> tp
-                    echo e >> tp
-                done
+                    grep "Time: $sec\." $f | awk -F"newly processed: " '{print $2}' | cut -d"," -f1 \
+                        | awk "BEGIN {sum = 0} ; {sum += \$1} ; END {print $sec\"\\t\"sum}"
+                done >> p
+                echo e >> p
+            done
+            [ $ok = 1 ] && plot
+        done
+    done
+}
+
+mkSummaryPlots () {
+    for p in $P
+    do
+        for bs in $BS
+        do
+            echo "#!/usr/bin/gnuplot" > p
+            echo "set terminal pdf" >> p
+            echo "set output 'dc-all-$bs-time.pdf'" >> p
+            echo "set yrange [0:2]" >> p
+            echo -n "plot 1 with dots notitle" > tp
+            for mr in $(getModels)
+            do
+                m=$(echo $mr | cut -d';' -f1)
+                r=$(echo $mr | cut -d';' -f2)
+                echo -n ", '-' with lines title '"${m//_/\\_}"'" >> tp
+            done
+            echo >> tp
+            for mr in $(getModels)
+            do
+                m=$(echo $mr | cut -d';' -f1)
+                r=$(echo $mr | cut -d';' -f2)
+                awk -F';' "\$1==\"$m\" && \$2==\"$r\" && \$5 == $p && \$6==$bs && \$7 == \"C\" {print \$3,\$9}" $OUT | \
+                    while read procs refTime
+                    do
+                        time=$(awk -F';' "\$1==\"$m\" && \$2==\"$r\" && \$3 == $procs && \$5 == $p && \$6==$bs && \$7 == \"DC\" {print \$9}" $OUT)
+                        [ -z "$time" ] && time=$refTime
+                        echo -e $procs'\t'$(calc "$time / $refTime")
+                    done | sort -n >> tp
+                echo e >> tp
             done
             setTicsAndPlot
         done
     done
-done
+}
 
-[ "$3" = 1 ] && echo "Produce state exploration plots ..." && for pf in $progressFiles
-do
-    tmp=${pf##out/dist-compression/}
-    m=${tmp%%/*}
-    tmp=${tmp#*/}
-    n=${tmp%%/*}
-    tmp=${tmp#*/}
-    p=${tmp%%/*}
-    for bs in $BUFFER_SIZES
+mkLatexTable () {
+    (#echo '\documentclass{article}'
+     #echo '\begin{document}'
+     echo '{\setlength{\tabcolsep}{2pt}'
+     echo '\begin{tabular}{|c|r|r|r|r|r|}'
+     echo '\hline'
+     echo '\multicolumn{1}{|c}{Model}'
+     echo '&\multicolumn{1}{|c}{State vector}'
+     echo '&\multicolumn{1}{|c}{Compressed}'
+     echo '&\multicolumn{1}{|c}{Components}'
+     echo '&\multicolumn{1}{|c|}{States}'
+     echo '&\multicolumn{1}{|c|}{Transitions}\\'
+     echo '&&\multicolumn{1}{c|}{state vector}&&&\\'
+     echo '\hline'
+     for mr in $(getModels)
+     do
+         m=$(echo $mr | cut -d';' -f1)
+         r=$(echo $mr | cut -d';' -f2)
+         xml=$(find $OUTDIR/$m/$r/*/*/*/DC -name 1.xml | head -1)
+         s=$(scripts/get-stat $xml statesStored | tr ',' '+' | bc)
+         t=$(scripts/get-stat $xml arcs | tr ',' '+' | bc)
+         c=$(scripts/get-stat $xml compressionTemplates | tr ',' '+' | bc)
+         ss=$(scripts/get-stat $xml stateSize)
+         css=$(scripts/get-stat $xml compressedStateSize)
+         echo -n ${m/_/\\_}
+         echo -n " & $ss bytes"
+         echo -n " & $css bytes"
+         echo -n " & $(format $c)"
+         echo -n " & $(format $s)"
+         echo -n " & $(format $t)"
+         echo '\\'
+     done
+     echo '\hline'
+     echo '\end{tabular}}'
+     #echo '\end{document}'
+     echo) > dc-models.tex
+}
+
+mkArchive () {
+    (tar czf dc.tgz dc-*pdf dc-models.tex
+     rm dc-*pdf dc-models.tex) &> /dev/null
+}
+
+checkResults () {
+    find $OUTDIR -name *.xml | while read xml
     do
-        echo "#!/usr/bin/gnuplot" > p
-        echo "set terminal pdf" >> p
-        echo "set output 'dc-$m-$bs-expl.pdf'" >> p
-        echo -n "plot '-' using 1:2 with lines title \"Compression\"," >> p
-        echo "'-' using 1:2 with lines title \"Distributed Compression\"" >> p
-        ok=1
-        for c in C DC
-        do
-            [ ! -d $pf/$c/$bs ] && ok=0 && continue
-            f=$(find $pf/$c/$bs -name \*.out | head -1)
-            t=$(awk -F"Time: " '{print $2}' $f | cut -d"." -f1 | sort -nu | tail -1)
-            for sec in $(seq 1 $t)
-            do
-                grep "Time: $sec\." $f | awk -F"newly processed: " '{print $2}' | cut -d"," -f1 \
-                    | awk "BEGIN {sum = 0} ; {sum += \$1} ; END {print $sec\"\\t\"sum}"
-            done >> p
-            echo e >> p
-        done
-        [ $ok = 1 ] && plot
+        m=${xml#out/dist-compression/}
+        m=${m%%/*}
+        ref=$(grep $m stats-dve.txt | awk '{print $2,$3}')
+        sref=$(echo $ref | cut -d' ' -f1)
+        tref=$(echo $ref | cut -d' ' -f2)
+        sres=$(scripts/get-stat $xml statesStored | tr "," "+" | bc)
+        tres=$(scripts/get-stat $xml arcs | tr "," "+" | bc)
+        if [ $sres != $sref -o $tres != $tref ]
+        then
+            echo $xml: wrong results
+        fi
     done
-done
+}
 
-[ "$4" = 1 ] && echo "Produce summary plots ..." && for p in 4
-do
-    for bs in $BUFFER_SIZES
-    do
-        echo "#!/usr/bin/gnuplot" > p
-        echo "set terminal pdf" >> p
-        echo "set output 'dc-all-$bs-time.pdf'" >> p
-        echo "set yrange [0:2]" >> p
-        echo -n "plot 1 with dots notitle" > tp
-        for m in $models
-        do
-            echo -n ", '-' with lines title '"${m//_/\\_}"'" >> tp
-        done
-        echo >> tp
-        for m in $models
-        do
-            awk -F';' \
-                "\$6 == $bs && \$4 == $p && \$5 == \"C\" && \$1 == \"$m\" {print \$2,\$8}" $out | \
-                while read procs refTime
-                do
-                    time=$(awk -F';' \
-                               "\$6 == $bs && \$4 == $p && \$5 == \"DC\" && \$1 == \"$m\" && \$2 == $procs {print \$8}" $out)
-                    echo -e $procs'\t'$(calc "$time / $refTime")
-                done | sort -n >> tp
-            echo e >> tp
-        done
-        setTicsAndPlot
-    done
-done
-
-[ "$5" = 1 ] && echo "Produce archive ..." && tar czf dc.tgz dc-*pdf && rm dc-*pdf
+[ "$1" = 1 ] && echo "Produce output file ..." && mkOutputFile
+[ "$2" = 1 ] && echo "Check results ..." && checkResults
+[ "$3" = 1 ] && echo "Produce execution time plots ..." && mkTimePlots
+[ "$4" = 1 ] && echo "Produce state exploration plots ..." && mkExplorationPlots
+[ "$5" = 1 ] && echo "Produce summary plots ..." && mkSummaryPlots
+[ "$6" = 1 ] && echo "Produce latex table ..." && mkLatexTable
+[ "$7" = 1 ] && echo "Produce archive ..." && mkArchive
 
 exit 0
