@@ -1,7 +1,6 @@
 #include "workers.h"
 #include "context.h"
-
-#define WORKERS_DEBUG_XXX
+#include "debug.h"
 
 void launch_and_wait_workers
 (worker_func_t f) {
@@ -12,14 +11,10 @@ void launch_and_wait_workers
   
   for(w = 0; w < no_workers; w ++) {
     pthread_create(&(workers[w]), NULL, f, (void *) (long) w);
-#if defined(WORKERS_DEBUG)
-    printf("[%d] worker %d launched\n", context_proc_id(), w);
-#endif
+    debug("[%d] worker %d launched\n", context_proc_id(), w);
   }
   for(w = 0; w < no_workers; w ++) {
     pthread_join(workers[w], &dummy);
-#if defined(WORKERS_DEBUG)
-    printf("[%d] worker %d has terminated\n", context_proc_id(), w);
-#endif
+    debug("[%d] worker %d has terminated\n", context_proc_id(), w);
   }
 }

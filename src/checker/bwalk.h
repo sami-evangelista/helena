@@ -19,6 +19,7 @@
 
 typedef bool_t (* state_hook_t) (state_t, void *);
 
+typedef struct struct_bwalk_data_t * bwalk_data_t;
 
 /**
  * @brief Launch the bitstate walk algorithm.
@@ -28,12 +29,26 @@ void bwalk
 
 
 /**
+ * @brief bwalk_data_init
+ */
+bwalk_data_t bwalk_data_init
+(uint32_t hash_bits);
+
+
+/**
+ * @brief bwalk_data_init
+ */
+void bwalk_data_free
+(bwalk_data_t data);
+
+
+/**
  * @brief bwalk_generic
  */
 void bwalk_generic
 (worker_id_t w,
  state_t s,
- uint32_t hash_bits,
+ bwalk_data_t data,
  uint32_t iterations,
  bool_t update_stats,
  state_hook_t hook,

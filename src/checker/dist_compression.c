@@ -167,6 +167,7 @@ void dist_compression_training_run
   state_t s;
 
   return;
+  /*
   if(0 == dist_compression_me) {
     s = state_initial(SYSTEM_HEAP);
     bwalk_generic(0, s,
@@ -178,6 +179,7 @@ void dist_compression_training_run
   shmem_barrier_all();
   dist_compression_merge_training_run_results();
   shmem_barrier_all();
+  */
 #endif
 }
 
@@ -323,7 +325,6 @@ void dist_compression_compress
           /*
            *  broadcast the new item to all PEs
            */
-          break;
           b = sbuffer;
           * ((char *) b) = DBFS_COMM_COMP_DATA;
           b += 1;
@@ -335,13 +336,15 @@ void dist_compression_compress
           * ((uint32_t *) (b)) = (uint32_t) slot;
           b += sizeof(uint32_t);
           memcpy(b, buffer, comp_size);
-          //printf("NEW %d at %d (%p) : ", i, slot, pos);for(int j= 0; j < comp_size; j ++) {printf("|%d", b[j]);} printf("|\n");
           b += comp_size;
+          dbfs_comm_put_in_comp_buffer(sbuffer, b - sbuffer);
+          /*
           for(pe = 0; pe < dist_compression_pes; pe ++) {
             if(pe != dist_compression_me && pe != owner) {
               dbfs_comm_put_in_buffer(pe, sbuffer, b - sbuffer);
             }
           }
+          */
           loop = FALSE;
         }
       }
@@ -392,14 +395,11 @@ void dist_compression_process_serialised_component
   int status;
 
   comp = * ((uint16_t *) (data));
-  assert(comp < MODEL_NO_COMPONENTS);
   data += sizeof(uint16_t);
   comp_size = dist_compression_comp_size[comp];
   slot = * ((uint32_t *) (data));
   data += sizeof(uint32_t);
-  assert(slot < (1 << CFG_STATE_COMPRESSION_BITS));
   pos = dist_compression_tbls[comp] + slot * (sizeof(int) + comp_size);
-  //printf("GET %d at %d (%p) : ", comp, slot, pos); for(int j = 0; j < comp_size; j ++) {printf("|%d", data[j]);} printf("|\n");
   memcpy(&status, pos + comp_size, sizeof(int));
   if(status != DIST_COMPRESSION_READY) {
     memcpy(pos, data, comp_size);

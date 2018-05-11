@@ -17,7 +17,6 @@ void bfs() { assert(0); }
 
 #else
 
-uint32_t DBFS_CHECK_PERIOD = 10000;
 htbl_t H = NULL;
 bfs_queue_t Q = NULL;
 pthread_barrier_t BFS_BARRIER;
@@ -106,7 +105,7 @@ void * bfs_worker
   event_t e;
   bool_t is_new, reduced;
   hkey_t h;
-  unsigned int dbfs_ctr = DBFS_CHECK_PERIOD;
+  unsigned int dbfs_ctr = CFG_DBFS_CHECK_COMM_PERIOD;
   htbl_meta_data_t mdata;
   bool_t mine;
   
@@ -116,14 +115,14 @@ void * bfs_worker
 
 	/**
 	 * in DBFS we check incomming messages every
-	 * DBFS_CHECK_PERIOD^th state processed
+	 * CFG_DBFS_CHECK_COMM_PERIOD^th state processed
 	 */
 	if(CFG_ALGO_DBFS && (0 == (-- dbfs_ctr))) {
 	  dbfs_comm_check_communications();
 	  if(!context_keep_searching()) {
 	    goto check_termination;
 	  }
-	  dbfs_ctr = DBFS_CHECK_PERIOD;
+	  dbfs_ctr = CFG_DBFS_CHECK_COMM_PERIOD;
 	}
         
         /**

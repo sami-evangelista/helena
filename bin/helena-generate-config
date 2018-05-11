@@ -402,6 +402,8 @@ class Config:
         self.rwalkMaxDepth = 10 ** 3
         self.maxTraceLength = 10 ** 3
         self.dbfsCheckTermPeriodMS = 100
+        self.dbfsCheckCommPeriod = 10 ** 4
+        self.dfsMaxHeapSize = 10 ** 5
         self.debug = False
         for o in OPTS:
             default = optDefaultValue(o)
@@ -500,10 +502,12 @@ class Config:
             ("BFS_QUEUE_BLOCK_SIZE", self.bfsQueueBlockSize),
             ("DATE", "\"" + now.strftime("%B, %d, %Y at %H:%M:%S") + "\""),
             ("DBFS_CHECK_TERM_PERIOD_MS", self.dbfsCheckTermPeriodMS),
+            ("DBFS_CHECK_COMM_PERIOD", self.dbfsCheckCommPeriod),
             ("DEBUG", self.debug),
             ("DELTA_DDD_CAND_SET_SIZE", self.candidateSetSize),
             ("DELTA_DDD_STORAGE", self.algo == DELTA_DDD),
             ("DFS_STACK_BLOCK_SIZE", self.dfsStackBlockSize),
+            ("DFS_MAX_HEAP_SIZE", self.dfsMaxHeapSize),
             ("DISTRIBUTED", distributed),
             ("DISTRIBUTED_STATE_COMPRESSION",
              self.distributedStateCompression),

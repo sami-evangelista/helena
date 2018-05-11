@@ -68,11 +68,10 @@ void dbfs_comm_new_state_stored
 
 
 /**
- * @brief dbfs_comm_put_in_buffer
+ * @brief dbfs_comm_put_in_comp_buffer
  */
-void dbfs_comm_put_in_buffer
-(int pe,
- char * buffer,
+void dbfs_comm_put_in_comp_buffer
+(char * buffer,
  int len);
 
 #endif

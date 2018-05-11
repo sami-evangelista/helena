@@ -1,25 +1,24 @@
 #!/bin/bash
 
 [ -z "$OAR_NODEFILE" ] && echo "not in an OAR job" && exit 1
-[ -z "$1" ] && echo "missing \#1 = comp. size range" && exit 1
 
-range=$1
+C5="collision.5;16-32;12;27;27"
+FT6="firewire_tree.6;20-40;12;26;26"
+FT7="firewire_tree.7;20-40;12;26;26"
+FT7_2="firewire_tree.7;40-80;14;26;26"
+LE6="leader_election.6;20-40;16;26;26"
+LE7="leader_election.7;20-40;16;26;26"
+LE7_2="leader_election.7;30-60;21;26;26"
+L9="lifts.9;16-32;20;27;27"
+BRP9="brp.8;1-1000;22;27;27"
+S9="synapse.9;12-24;18;28;27"
 
-C5="collision.5;12;27;27"
-FT6="firewire_tree.6;8;26;26"
-FT7="firewire_tree.7;8;26;26"
-LE6="leader_election.6;12;26;26"
-LE7="leader_election.7;12;26;26"
-L9="lifts.9;16;26;26"
-S9="synapse.9;18;28;27"
+MODELS="$C5 $FT6 $FT7 $FT7_2 $LE6 $LE7 $LE7_2 $L9 $BRP9 $S9"
 
-MODELS="$C5 $FT6 $FT7 $LE6 $LE7 $L9 $S9"
+SINGLE_BUFFER_SIZES="64000"
 
-SINGLE_BUFFER_SIZES="64000" # 128000" # 256000"
+NODES=$(seq 64 -4 8)
 
-NODES=$(seq 32 -4 8)
-
-PROCS_PER_NODE="4 2 1"
 PROCS_PER_NODE="4"
 
 REPETITION=2
@@ -27,10 +26,11 @@ REPETITION=2
 COMP_MODES="C DC"
 
 mf=machinefile-$OAR_JOBID
-helena="helena -g=no-report -A=DBFS -N=EXPLORE -mf=$mf -ccs=$range"
-outDir=out/dist-compression/$range
+helena="helena -g=no-report -A=DBFS -N=EXPLORE -mf=$mf"
+outDir=out/dist-compression
 
 mkdir -p $outDir &> /dev/null
+
 for n in $NODES
 do
     for p in $PROCS_PER_NODE
@@ -38,12 +38,13 @@ do
 	sort -u $OAR_NODEFILE | head -$n > $mf
 	[ $(cat $mf | wc -l) -lt $n ] && \
 	    echo "not enough nodes for n=$n" && continue
-	for mcbt in $MODELS
+	for mrcbt in $MODELS
 	do
-	    m=$(echo $mcbt | cut -d";" -f1)
-	    cb=$(echo $mcbt | cut -d";" -f2)
-            tc=$(echo $mcbt | cut -d";" -f3)
-            tnc=$(echo $mcbt | cut -d";" -f4)
+	    m=$(echo $mrcbt | cut -d";" -f1)
+            r=$(echo $mrcbt | cut -d";" -f2)
+	    cb=$(echo $mrcbt | cut -d";" -f3)
+            tc=$(echo $mrcbt | cut -d";" -f4)
+            tnc=$(echo $mrcbt | cut -d";" -f5)
 	    dve="../examples/beem/$m.dve"
 	    for b in $SINGLE_BUFFER_SIZES
 	    do
@@ -54,7 +55,6 @@ do
                     if [ "$c" = "NC" ]
                     then
                         t=$tnc
-                        dir=$outDir/$m/$n/$p/NC/$b
                         copt=""
                     else
                         t=$tc
@@ -66,13 +66,13 @@ do
                         t=$((t - 1))
                         q=$((q / 2))
                     done
-                    baseCmd="$helena -np=$p -t=$t -cb=$cb"
-                    dir=$outDir/$m/$n/$p/$c/$b
+                    baseCmd="$helena -np=$p -t=$t -cb=$cb -ccs=$r"
+                    dir=$outDir/$m/$r/$n/$p/$b/$c
                     mkdir -p $dir &> /dev/null
-		    for r in $(seq -w 1 $REPETITION)
+		    for i in $(seq -w 1 $REPETITION)
 		    do
-			xml=$dir/$r.xml
-                        out=$dir/$r.out
+			xml=$dir/$i.xml
+                        out=$dir/$i.out
                         while [ ! -e $xml ]
                         do
                             echo "***** $m, $n nodes, $p procs, b=$b, m=$c *****"

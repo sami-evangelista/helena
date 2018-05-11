@@ -4,13 +4,50 @@
 #include "dfs_stack.h"
 #include "workers.h"
 
+
+struct struct_bwalk_data_t {
+  uint32_t hash_bits;
+  uint32_t hash_char_size;
+  dfs_stack_t stack;
+  char * tbl;
+  heap_t heap;
+};
+
+bwalk_data_t bwalk_data_init
+(uint32_t hash_bits) {
+  bwalk_data_t result;
+#if defined(MODEL_HAS_EVENT_UNDOABLE)
+  const bool_t states_stored = FALSE;
+#else
+  const bool_t states_stored = TRUE;
+#endif
+
+  result = mem_alloc(SYSTEM_HEAP, sizeof(struct struct_bwalk_data_t));
+  result->hash_bits = hash_bits;
+  result->hash_char_size = 1 << (hash_bits - 3); 
+  result->tbl = mem_alloc0(SYSTEM_HEAP, result->hash_char_size);
+  result->stack = dfs_stack_new(0, CFG_DFS_STACK_BLOCK_SIZE,
+                                TRUE, states_stored);
+  result->heap = local_heap_new();
+  return result;
+}
+
+
+void bwalk_data_free
+(bwalk_data_t data) {
+  free(data->tbl);
+  dfs_stack_free(data->stack);
+  heap_free(data->heap);
+  free(data);
+}
+
 #if defined(MODEL_HAS_EVENT_UNDOABLE)
 #define bwalk_recover_state() {                 \
-    dfs_stack_event_undo(stack, now);		\
+    dfs_stack_event_undo(stack, now);     \
   }
 #else
-#define bwalk_recover_state() {                 \
-    now = dfs_stack_top_state(stack, heap);     \
+#define bwalk_recover_state() {                         \
+    now = dfs_stack_top_state(stack, heap); \
   }
 #endif
 
@@ -18,8 +55,8 @@
     if(hook) {                                            \
       loop = loop && hook(now, hook_data);                \
     }                                                     \
-    dfs_stack_push(stack, 0, now);                        \
-    dfs_stack_compute_events(stack, now, FALSE);          \
+    dfs_stack_push(stack, 0, now);                  \
+    dfs_stack_compute_events(stack, now, FALSE);    \
     if(update_stats) {                                    \
       context_incr_stat(STAT_STATES_STORED, w, 1);        \
     }                                                     \
@@ -38,27 +75,21 @@
 void bwalk_generic
 (worker_id_t w,
  state_t s,
- uint32_t hash_bits,
+ bwalk_data_t data,
  uint32_t iterations,
  bool_t update_stats,
  state_hook_t hook,
  void * hook_data) {
-  const uint32_t hash_char_size = 1 << (hash_bits - 3);
-  const uint32_t hash_size_m = (1 << hash_bits) - 1;
+  char * tbl = data->tbl;
+  const dfs_stack_t stack = data->stack;
+  const heap_t heap = data->heap;
+  const uint32_t hash_size_m = (1 << data->hash_bits) - 1;
   const uint32_t wid = context_global_worker_id(w);
-#if defined(MODEL_HAS_EVENT_UNDOABLE)
-  const bool_t states_stored = FALSE;
-#else
-  const bool_t states_stored = TRUE;
-#endif
-  char * tbl = mem_alloc0(SYSTEM_HEAP, hash_char_size); 
-  dfs_stack_t stack;
-  uint64_t rnd;
+uint64_t rnd;
   rseed_t rseed = random_seed(w);
   state_t now, copy;
   bool_t is_new;
   event_t e;
-  heap_t heap = local_heap_new();
   bool_t loop = TRUE;
   uint32_t iter = 0;
 
@@ -67,9 +98,9 @@ void bwalk_generic
     /**
      * initiate a random walk
      */
-    stack = dfs_stack_new(wid, CFG_DFS_STACK_BLOCK_SIZE, TRUE, states_stored);
+    dfs_stack_reset(stack);
     heap_reset(heap);
-    memset(tbl, 0, hash_char_size);
+    memset(tbl, 0, data->hash_char_size);
     now = state_copy(s, heap);
     rnd = random_int(&rseed);
     if(update_stats) {
@@ -109,7 +140,6 @@ void bwalk_generic
       }
     }
     state_free(now);
-    dfs_stack_free(stack);
 
     /**
      *  stop looping if we've performed enough iterations
@@ -119,18 +149,19 @@ void bwalk_generic
       loop = FALSE;
     }
   }
-  free(tbl);
-  heap_free(heap);
 }
 
 void * bwalk_worker
 (void * arg) {
+  bwalk_data_t data;
   const worker_id_t w = (worker_id_t) (unsigned long int) arg;
   state_t s;
 
+  data = bwalk_data_init(CFG_HASH_SIZE_BITS);
   s = state_initial(SYSTEM_HEAP);
-  bwalk_generic(w, s, CFG_HASH_SIZE_BITS, 0, TRUE, NULL, NULL);
+  bwalk_generic(w, s, data, 0, TRUE, NULL, NULL);
   state_free(s);
+  bwalk_data_free(data);
   return NULL;
 }
 

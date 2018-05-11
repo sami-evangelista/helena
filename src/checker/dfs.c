@@ -14,8 +14,6 @@ void dfs() { assert(0); }
 
 #else
 
-#define DFS_MAX_HEAP_SIZE 100000
-
 const struct timespec DFS_WAIT_RED_SLEEP_TIME = { 0, 10 };
 
 typedef struct {
@@ -132,9 +130,9 @@ void * dfs_worker
 
     /*
      * reinitialise the heap if its current size exceeds
-     * DFS_MAX_HEAP_SIZE
+     * CFG_DFS_MAX_HEAP_SIZE
      */
-    if(heap_size(heap) >= DFS_MAX_HEAP_SIZE) {
+    if(heap_size(heap) >= CFG_DFS_MAX_HEAP_SIZE) {
       copy = state_copy(now, SYSTEM_HEAP);
       heap_reset(heap);
       now = state_copy(copy, heap);

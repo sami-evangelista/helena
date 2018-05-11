@@ -32,6 +32,7 @@ struct struct_dfs_stack_t {
   uint32_t block_size;
   bool_t shuffle;
   bool_t states_stored;
+  char dir[12];
   rseed_t seed;  
 };
 
@@ -76,6 +77,8 @@ dfs_stack_t dfs_stack_new
     result->heaps[i] = local_heap_new();
     result->blocks[i] = dfs_stack_block_new(result->block_size);
   }
+  strcpy(result->dir, "STACK-XXXXXX");
+  mkdtemp(result->dir);
   return result;
 }
 
@@ -86,7 +89,7 @@ void dfs_stack_free
 
   if(stack) {
     for(i = 0; i < stack->files; i ++) {
-      sprintf(buffer, "STACK-%d-%d", stack->id, i);
+      sprintf(buffer, "%s/%d", stack->dir, i);
       unlink(buffer);
     }
     for(i = 0; i < DFS_STACK_BLOCKS; i ++) {
@@ -98,6 +101,19 @@ void dfs_stack_free
       }
     }
     free(stack);
+  }
+}
+
+void dfs_stack_reset
+(dfs_stack_t stack) {
+  int i;
+  
+  stack->top = - 1;
+  stack->size = 0;
+  stack->current = 0;
+  stack->files = 0;
+  for(i = 0; i < DFS_STACK_BLOCKS; i ++) {
+    heap_reset(stack->heaps[i]);
   }
 }
 
@@ -120,7 +136,7 @@ void dfs_stack_write
   dfs_stack_block_t block = stack->blocks[0];
   dfs_stack_item_t item;
 
-  sprintf(buffer, "STACK-%d-%d", stack->id, stack->files);
+  sprintf(buffer, "%s/%d", stack->dir, stack->files);
   f = fopen(buffer, "w");
   for(i = 0; i < stack->block_size; i ++) {
     item = block->items[i];
@@ -165,7 +181,7 @@ void dfs_stack_read
   heap_t h = stack->heaps[0];
 
   stack->files --;
-  sprintf(name, "STACK-%d-%d", stack->id, stack->files);
+  sprintf(name, "%s/%d", stack->dir, stack->files);
   f = fopen(name, "r");
   heap_reset(h);
   for(i = 0; i < stack->block_size; i ++) {

@@ -55,6 +55,13 @@ void dfs_stack_free
 
 
 /**
+ * @brief Reset a DFS stack.
+ */
+void dfs_stack_reset
+(dfs_stack_t stack);
+
+
+/**
  * @brief Return the number of states in the stack.
  */
 unsigned int dfs_stack_size
