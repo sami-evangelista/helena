@@ -49,7 +49,7 @@ typedef enum {
 
 #define DBFS_COMM_BWALK_HASH 10
 
-#if CFG_EXPLORATION_CACHE_SIZE == 0
+#if CFG_DBFS_EXPLORATION_CACHE_SIZE == 0
 
 #define DBFS_COMM_CACHE_CLEAR() {}
 #define DBFS_COMM_CACHE_INSERT(id) {}
@@ -58,7 +58,7 @@ typedef enum {
 #else
 
 typedef struct {
-  htbl_id_t id[CFG_EXPLORATION_CACHE_SIZE];
+  htbl_id_t id[CFG_DBFS_EXPLORATION_CACHE_SIZE];
   uint32_t next, size;
   rseed_t rnd;
 } dbfs_comm_cache_t;
@@ -71,8 +71,8 @@ dbfs_comm_cache_t DBFS_COMM_CACHE;
 #define DBFS_COMM_CACHE_INSERT(id) {                                    \
     DBFS_COMM_CACHE.id[DBFS_COMM_CACHE.next] = id;                      \
     DBFS_COMM_CACHE.next = (DBFS_COMM_CACHE.next + 1) %                 \
-      CFG_EXPLORATION_CACHE_SIZE;					\
-    if(DBFS_COMM_CACHE.size < CFG_EXPLORATION_CACHE_SIZE) {		\
+      CFG_DBFS_EXPLORATION_CACHE_SIZE;					\
+    if(DBFS_COMM_CACHE.size < CFG_DBFS_EXPLORATION_CACHE_SIZE) {	\
       DBFS_COMM_CACHE.size ++;                                          \
     }                                                                   \
   }
@@ -289,7 +289,7 @@ bool_t dbfs_comm_idle
     return TRUE;
   }
   if(!context_keep_searching()) {
-    assert(0);
+    printf("%s\n", context_error_msg());
     dbfs_comm_ask_for_term_detection();
     dbfs_comm_check_termination(TRUE);
     return TRUE;
@@ -415,10 +415,8 @@ bool_t dbfs_comm_process_state_aux
     * ((char *) (BUF[pe] + LEN[pe])) = DBFS_COMM_STATE;
     LEN[pe] += 1;
     * ((uint16_t *) (BUF[pe] + LEN[pe])) = size;
-    //memcpy(BUF[pe] + LEN[pe], &size, sizeof(uint16_t));
     LEN[pe] += sizeof(uint16_t);
     * ((hkey_t *) (BUF[pe] + LEN[pe])) = mdata->h;
-    //memcpy(BUF[pe] + LEN[pe], &(mdata->h), sizeof(hkey_t));
     LEN[pe] += sizeof(hkey_t);
     if(CFG_DISTRIBUTED_STATE_COMPRESSION) {
       memcpy(BUF[pe] + LEN[pe], mdata->v, size);
@@ -467,7 +465,6 @@ void dbfs_comm_receive_buffer
   uint16_t size;
   char t;
   
-  debug("receives %d bytes from %d\n", len, pe);
   comm_get(buffer, pos, len, ME);
   b = buffer;
   b_end = b + len;
@@ -476,13 +473,11 @@ void dbfs_comm_receive_buffer
   while(b != b_end) {
     t = * ((char *) b);
     b ++;
-    //memcpy(&size, b, sizeof(uint16_t));
     size = * ((uint16_t *) b);
     b += sizeof(uint16_t);
     switch(t) {
     case DBFS_COMM_STATE:
       htbl_meta_data_init(mdata, NULL);
-      //memcpy(&(mdata.h), b, sizeof(hkey_t));
       mdata.h = * ((hkey_t *) b);
       mdata.h_set = TRUE;
       b += sizeof(hkey_t);
@@ -513,7 +508,6 @@ void dbfs_comm_receive_buffer
     }
   }
   context_incr_stat(STAT_STATES_STORED, 0, stored);
-  debug("stored %d states received from %d\n", stored, pe);
 }
 
 bool_t dbfs_comm_process_in_states
@@ -543,7 +537,6 @@ void dbfs_comm_start
   dbfs_comm_term_t term = DBFS_COMM_NO_TERM;
   size_t hs;
 
-  debug("dbfs_comm starting\n");
   PES = comm_pes();
   ME = comm_me();
   SINGLE_BUFFER_SIZE = CFG_SHMEM_BUFFER_SIZE / (PES - 1);
@@ -577,15 +570,12 @@ void dbfs_comm_start
   CW_HEAP = local_heap_new();
   DBFS_COMM_CACHE_CLEAR();
   comm_barrier();
-  dist_compression_training_run();
-  debug("dbfs_comm started\n");
 }
 
 void dbfs_comm_end
 () {
   int pe;
 
-  debug("dbfs_comm terminating\n");
   for(pe = 0; pe < PES; pe ++) {
     if(pe != ME) {
       mem_free(SYSTEM_HEAP, BUF[pe]);
@@ -598,7 +588,6 @@ void dbfs_comm_end
   mem_free(SYSTEM_HEAP, REMOTE_POS);
   bwalk_data_free(EXPL_CACHE_DATA);
   heap_free(CW_HEAP);
-  debug("dbfs_comm terminated\n");
 }
 
 #endif

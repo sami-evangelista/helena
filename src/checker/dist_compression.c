@@ -15,8 +15,6 @@
 #define DIST_COMPRESSION_READY   2
 
 #define DIST_COMPRESSION_MAX_INSERT_TRIALS 100000
-#define DIST_COMPRESSION_TRAINING_RUNS     1
-#define DIST_COMPRESSION_TRAINING_RUN_HASH 20
 #define DIST_COMPRESSION_BLOCK_SIZE        65000
 
 struct timespec dist_compression_sleep_time = { 0, 10000 }; /*  10 mus  */
@@ -38,150 +36,9 @@ uint16_t dist_compression_compressed_char_size;
     }                                                           \
   }
 
-#define CHUNK_SIZE 65000
-
-void dist_compression_putmem
-(void * target,
- void * source,
- int size,
- int pe) {
-#if defined(DIST_COMPRESSION_ENABLED)
-  while(size) {
-    if(size <= CHUNK_SIZE) {
-      shmem_putmem(target, source, size, pe);
-      size = 0;
-    } else {
-      shmem_putmem(target, source, CHUNK_SIZE, pe);
-      size -= CHUNK_SIZE;
-      target += CHUNK_SIZE;
-      source += CHUNK_SIZE;
-    }
-  }
-#endif
-}
-
-void dist_compression_getmem
-(void * target,
- void * source,
- int size,
- int pe) {
-#if defined(DIST_COMPRESSION_ENABLED)
-  while(size) {
-    if(size <= CHUNK_SIZE) {
-      shmem_getmem(target, source, size, pe);
-      size = 0;
-    } else {
-      shmem_getmem(target, source, CHUNK_SIZE, pe);
-      size -= CHUNK_SIZE;
-      target += CHUNK_SIZE;
-      source += CHUNK_SIZE;
-    }
-  }
-#endif
-}
-
-uint32_t NN = 0;
-
 #define dist_compression_table_size(i)                  \
   (1 << CFG_STATE_COMPRESSION_BITS) *                   \
   (dist_compression_comp_size[i] + sizeof(int));
-
-bool_t dist_compression_training_run_state_hook
-(state_t s,
- void * hook_data) {
-#if defined(DIST_COMPRESSION_ENABLED)
-  uint16_t comp_size;
-  char buffer[65536];
-  hkey_t h;
-  uint32_t i, owner, slot, item_size;
-  void * pos;
-  int status;
-  const uint32_t mask = (1 << CFG_STATE_COMPRESSION_BITS) - 1;
-
-  for(i = 0; i < MODEL_NO_COMPONENTS; i ++) {
-    dist_compression_comp_funcs[i](s, buffer, &comp_size);
-    h = string_hash(buffer, comp_size);
-    slot = h & mask;
-    dist_compression_slot_owner(slot, owner);
-    comp_size = dist_compression_comp_size[i];
-    pos = dist_compression_tbls[i] + slot * (comp_size + sizeof(int));
-    memcpy(&status, pos + comp_size, sizeof(int));
-    if(status == DIST_COMPRESSION_EMPTY) {
-      status = DIST_COMPRESSION_READY;
-      memcpy(pos + comp_size, &status, sizeof(int));
-      memcpy(pos, buffer, comp_size);
-      NN ++;
-    }
-  }
-#endif
-  return TRUE;
-}
-
-
-void dist_compression_merge_training_run_results
-() {
-#if defined(DIST_COMPRESSION_ENABLED)
-  uint32_t n, i, pe, comp_size, shift, tbl_size;
-  void * pos;
-  const uint32_t no_items = 1 << CFG_STATE_COMPRESSION_BITS;
-  int status;
-  char * buffer;
-  /*
-  for(pe = 1; pe < dist_compression_pes; pe ++) {
-    if(pe == dist_compression_me) {
-      for(i = 0; i < MODEL_NO_COMPONENTS; i ++) {
-        tbl_size = dist_compression_table_size(i);
-        buffer = mem_alloc(SYSTEM_HEAP, tbl_size);
-        pos = dist_compression_tbls[i];
-        comp_size = dist_compression_comp_size[i];
-        dist_compression_getmem(buffer, pos, tbl_size, 0);
-        for(n = 0, shift = 0;
-            n < no_items;
-            n ++, shift += comp_size + sizeof(int)) {
-          memcpy(&status, buffer + shift + comp_size, sizeof(int));
-          if(status == DIST_COMPRESSION_READY) {
-            memcpy(pos + shift, buffer + shift, comp_size + sizeof(int));
-          }
-        }
-        dist_compression_putmem(pos, buffer, tbl_size, 0);
-        mem_free(SYSTEM_HEAP, buffer);
-      }
-    }
-    shmem_barrier_all();
-  }
-  */
-  if(0 != dist_compression_me) {
-    for(i = 0; i < MODEL_NO_COMPONENTS; i ++) {
-      tbl_size = dist_compression_table_size(i);
-      pos = dist_compression_tbls[i];
-      dist_compression_getmem(pos, pos, tbl_size, 0);
-    }
-  }
-#endif
-}
-
-
-void dist_compression_training_run
-() {
-#if defined(DIST_COMPRESSION_ENABLED)
-  state_t s;
-
-  return;
-  /*
-  if(0 == dist_compression_me) {
-    s = state_initial(SYSTEM_HEAP);
-    bwalk_generic(0, s,
-                  DIST_COMPRESSION_TRAINING_RUN_HASH,
-                  DIST_COMPRESSION_TRAINING_RUNS, FALSE,
-                  dist_compression_training_run_state_hook, NULL);
-    state_free(s);
-  }
-  shmem_barrier_all();
-  dist_compression_merge_training_run_results();
-  shmem_barrier_all();
-  */
-#endif
-}
 
 
 void init_dist_compression
@@ -338,13 +195,6 @@ void dist_compression_compress
           memcpy(b, buffer, comp_size);
           b += comp_size;
           dbfs_comm_put_in_comp_buffer(sbuffer, b - sbuffer);
-          /*
-          for(pe = 0; pe < dist_compression_pes; pe ++) {
-            if(pe != dist_compression_me && pe != owner) {
-              dbfs_comm_put_in_buffer(pe, sbuffer, b - sbuffer);
-            }
-          }
-          */
           loop = FALSE;
         }
       }

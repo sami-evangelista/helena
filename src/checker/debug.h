@@ -9,6 +9,7 @@
 #define LIB_DEBUG
 
 #include "config.h"
+#include "comm.h"
 
 #if CFG_DEBUG == 1
 #define debug(...)   {					\

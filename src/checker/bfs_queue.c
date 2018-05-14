@@ -174,10 +174,10 @@ bool_t bfs_queue_is_empty
 
 void bfs_queue_slot_take_lock
 (bfs_queue_slot_t slot) {
-  const struct timespec t = { 0, 10 };
+  const struct timespec t = { 0, 10000 }; 
   
   while(!CAS(&slot->lock, LOCK_FREE, LOCK_TAKEN)) {
-    context_sleep(t);
+    nanosleep(&t, NULL);
   }
 }
 
@@ -200,8 +200,7 @@ void bfs_queue_enqueue
     slot->first = slot->last;
     slot->first->next = NULL;
     slot->first->prev = NULL;
-  }
-  else if(q->slot_size == slot->last_index) {
+  } else if(q->slot_size == slot->last_index) {
     bfs_queue_slot_take_lock(slot);
     if(!slot->first) {
       bfs_queue_slot_release_lock(slot);

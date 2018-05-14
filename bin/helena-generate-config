@@ -55,7 +55,7 @@ GENERAL_OPTS = ("General options",
 SEARCH_OPTS = ("Search and storage options",
                [ "A", "t", "W", "R", "cs" ])
 DISTRIBUTED_SEARCH_OPTS = ("Distributed search options",
-                           [ "mf", "bs", "np", "DC", "ecs" ])
+                           [ "mf", "bs", "np", "DC" ])
 REDUCTION_OPTS = ("Reduction techniques",
                   [ "H", "P", "i", "C", "cb" ])
 LIMIT_OPTS = ("Limit options",
@@ -118,6 +118,8 @@ Set the base number of bits used by state compression (option -C) to N."""),
      "compressionCompSizes",
      """-ccs=low-high    --compression-comp-sizes=low-high"""),
     ###########################################################################
+    ("cp", "config-parameter", list, [], None, None, "configParameters", None),
+    ###########################################################################
     ("cs", "candidate-set-size", int, 100000, None, None, "candidateSetSize",
      """-cs=N            --candidate-set-size=N
 
@@ -139,13 +141,6 @@ Activate/deactivate state compression based on distributed hash tables."""),
      """-d=SYMBOL-NAME   --define=SYMBOL-NAME
 
 Define preprocessor symbol SYMBOL-NAME in the net."""),
-    ###########################################################################
-    ("ecs", "exploration-cache-size", int, 0, None, None,
-     "explorationCacheSize",
-     """-ecs=SIZE        --exploration-cache-size=SIZE
-
-Set the size (in number of states) of the exploration cache used by algorithm
-DBFS.  0 = no cache is used."""),
     ###########################################################################
     ("g", "progress", None, None, None, None, None,
      """-g=LEVEL         --progress=LEVEL
@@ -371,6 +366,8 @@ helena [options] my-net.lna
 def printVersion():
     print "helena " + VERSION + " --- " + DATE
 
+def warning(warn):
+    print >> sys.stderr, "warning: " + warn    
 
 def exitWithError(err):
     print >> sys.stderr, "error: " + err
@@ -389,22 +386,29 @@ def parseArgument(arg):
 
 class Config:
 
+    configParameters = {
+        "bfsQueueBlockSize": 10 ** 4,
+        "dbfsCheckCommPeriod": 10 ** 4,
+        "dbfsCheckTermPeriodMS": 100,
+        "dbfsExplorationCacheSize": 10 ** 3,
+        "debug": 0,
+        "dfsMaxHeapSize": 10 ** 5,
+        "dfsStackBlockSize": 10 ** 4,
+        "dynamicPartialOrder": 0,
+        "maxTraceLength": 10 ** 3,
+        "rwalkMaxDepth": 10 ** 3
+    }
+
     def __init__(self):
         self.language = None
         self.directory = None
         self.inFile = None
         self.inFileExt = None
         self.propType = None
-        self.dynamicPartialOrder = False
         self.propositions = []
-        self.bfsQueueBlockSize = 10 ** 4
-        self.dfsStackBlockSize = 10 ** 4
-        self.rwalkMaxDepth = 10 ** 3
-        self.maxTraceLength = 10 ** 3
-        self.dbfsCheckTermPeriodMS = 100
-        self.dbfsCheckCommPeriod = 10 ** 4
-        self.dfsMaxHeapSize = 10 ** 5
-        self.debug = False
+        self.configParameters = []
+        for p in Config.configParameters:
+            setattr(self, p, Config.configParameters[p])            
         for o in OPTS:
             default = optDefaultValue(o)
             attr = optConfigAttr(o)
@@ -420,39 +424,91 @@ class Config:
         self.action = self.action.upper()
         self.algo = self.algo.upper()
         self.traceType = self.traceType.upper()
+        for p in self.configParameters:
+            l = p.split("=")
+            if len(l) != 2:
+                warning("could not parse parameter initialisation: " + p)
+            else:
+                p = l[0]
+                v = l[1]
+                if p not in Config.configParameters:
+                    warning("unknown parameter: " + p)
+                else:
+                    try:
+                        setattr(self, l[0], int(l[1]))
+                    except:
+                        warning("invalid value for parameter " + p + ": " + v)
 
     #  correct inconsistencies in received arguments
     def correct(self):
-        if self.algo == DBFS and self.action == CHECK and self.propType == LTL:
-            self.action = EXPLORE
-        if self.action == BUILD_GRAPH:
-            self.algo = DELTA_DDD
-            self.prop = ""
-            self.workers = 1
-        elif self.action == CHECK and self.propType == LTL:
-            self.algo = DFS
-            if self.traceType == STATE:
-                self.traceType = EVENTS
-        elif self.action == SIMULATE:
-            self.runTimeChecks = True
-        if self.algo == DBFS:
-            self.traceType = STATE
-            self.workers = 1
-        self.hashCompaction = self.hashCompaction and self.algo not in [
-            BWALK, RWALK, DELTA_DDD, DBFS ]
-        self.partialOrder = self.partialOrder and self.algo not in [
-            BWALK, RWALK, DELTA_DDD, DBFS ]
-        self.stateCompression = self.stateCompression and self.algo not in [
-            BWALK, RWALK, DELTA_DDD ] and not self.hashCompaction
-        self.randomSuccs = self.randomSuccs and self.algo in [
-            BWALK, DFS ]
-        self.distributedStateCompression = self.distributedStateCompression \
-            and self.algo in [ DBFS ] and not self.hashCompaction \
-            and self.language == DVE
-        self.stateCompression = self.stateCompression and self.algo not in [
-            BWALK, RWALK, DELTA_DDD ] and not self.hashCompaction \
-            and not self.distributedStateCompression
-
+        def c(attr, cond, value, warn):
+            if cond and getattr(self, attr) != value:
+                warning(warn + " (=> " + attr + " set to " + str(value) + ")")
+                setattr(self, attr, value)
+        if self.action == SIMULATE:
+            c("runTimeChecks",
+              self.action == SIMULATE, True,
+              "run time checks forced for action " + SIMULATE)
+            return
+        c("algo",
+          self.action == BUILD_GRAPH, DELTA_DDD,
+          "action " + BUILD_GRAPH + " requires algorithm " + DELTA_DDD)
+        c("workers",
+          self.action == BUILD_GRAPH, 1,
+          "action " + BUILD_GRAPH + " does not support several workers")
+        c("prop",
+          self.action == BUILD_GRAPH, None,
+          "no property can be checked with action " + BUILD_GRAPH)
+        c("algo",
+          self.action == CHECK and self.propType == LTL, DFS,
+          "LTL verification requires algorithm " + DFS)
+        c("traceType",
+          self.action == CHECK and self.propType == LTL
+          and self.traceType == STATE, FULL,
+          "trace type " + STATE + " conflicts with with LTL verification")
+        c("traceType",
+          self.algo == DBFS and self.action == CHECK, STATE,
+          "trace type " + STATE + " required for algorithm " + DBFS)
+        c("workers",
+          self.algo == DBFS, 1,
+          "algorithm " + DBFS + " does not support several workers")
+        c("hashCompaction",
+          self.algo in [ BWALK, RWALK, DELTA_DDD, DBFS ], False,
+          "hash compaction conflicts with algorithm " + self.algo)
+        c("partialOrder",
+          self.algo in [ BWALK, RWALK, DELTA_DDD, DBFS ], False,
+          "partial order reduction conflicts with algorithm " + self.algo)
+        c("partialOrder",
+          self.language not in [ LNA ], False,
+          "partial order reduction not supported for " +
+          self.language + " models")
+        c("distributedStateCompression",
+          self.language not in [ DVE ], False,
+          "distributed state compression not supported for " +
+          self.language + " models")
+        c("stateCompression",
+          self.algo in [ BWALK, RWALK, DELTA_DDD ], False,
+          "state compression conflicts with algorithm " + self.algo)
+        c("stateCompression",
+          self.hashCompaction, False,
+          "state compression conflicts with hash compaction")
+        c("randomSuccs",
+          self.algo not in [ BWALK, DFS ], False,
+          "random successor selection conflicts with algorithm " + self.algo)
+        c("distributedStateCompression",
+          self.algo not in [ DBFS ], False,
+          "distributed state compression requires algorithm " + DBFS)
+        c("distributedStateCompression",
+          self.stateCompression, False,
+          "distributed state compression conflicts with state compression")
+        c("distributedStateCompression",
+          self.hashCompaction, False,
+          "distributed state compression conflicts with hash compaction")
+        c("distributedStateCompression",
+          self.language not in [ DVE ], False,
+          "distributed state compression not supported for " +
+          self.language + " models")
+        
     def openFile(self, name, mode):
         if self.directory is None:
             return open(name, mode)
@@ -512,7 +568,7 @@ class Config:
             ("DISTRIBUTED_STATE_COMPRESSION",
              self.distributedStateCompression),
             ("DYNAMIC_POR", self.dynamicPartialOrder),
-            ("EXPLORATION_CACHE_SIZE", self.explorationCacheSize),
+            ("DBFS_EXPLORATION_CACHE_SIZE", self.dbfsExplorationCacheSize),
             ("FILE_PATH", "\"" + os.path.realpath(self.inFile) + "\""),
             ("GRAPH_FILE", "\"graph.dat\""),
             ("HASH_COMPACTION", self.hashCompaction),
