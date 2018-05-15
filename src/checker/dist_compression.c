@@ -179,22 +179,19 @@ void dist_compression_compress
             context_incr_stat(STAT_SHMEM_COMMS, 0, 1);
           }
           
-          /*
+          /**
            *  broadcast the new item to all PEs
            */
           b = sbuffer;
-          * ((char *) b) = DBFS_COMM_COMP_DATA;
-          b += 1;
+          * ((char *) b) = DBFS_COMM_COMP_DATA; b += 1;
           * ((uint16_t *) (b)) = (uint16_t) (sizeof(uint16_t) +
                                              sizeof(uint32_t) + comp_size);
           b += sizeof(uint16_t);
-          * ((uint16_t *) (b)) = (uint16_t) i;
-          b += sizeof(uint16_t);
-          * ((uint32_t *) (b)) = (uint32_t) slot;
-          b += sizeof(uint32_t);
-          memcpy(b, buffer, comp_size);
-          b += comp_size;
+          * ((uint16_t *) (b)) = (uint16_t) i; b += sizeof(uint16_t);
+          * ((uint32_t *) (b)) = (uint32_t) slot; b += sizeof(uint32_t);
+          memcpy(b, buffer, comp_size); b += comp_size;
           dbfs_comm_put_in_comp_buffer(sbuffer, b - sbuffer);
+
           loop = FALSE;
         }
       }

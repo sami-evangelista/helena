@@ -32,7 +32,7 @@ struct struct_dfs_stack_t {
   uint32_t block_size;
   bool_t shuffle;
   bool_t states_stored;
-  char dir[12];
+  char dir[16];
   rseed_t seed;  
 };
 
@@ -77,6 +77,7 @@ dfs_stack_t dfs_stack_new
     result->heaps[i] = local_heap_new();
     result->blocks[i] = dfs_stack_block_new(result->block_size);
   }
+  memset(result->dir, 0, sizeof(result->dir));
   strcpy(result->dir, "STACK-XXXXXX");
   mkdtemp(result->dir);
   return result;
