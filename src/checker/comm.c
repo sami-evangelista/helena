@@ -73,13 +73,7 @@ void comm_barrier
 #if CFG_DISTRIBUTED == 0
   assert(0);
 #else
-  lna_timer_t t;
-
-  lna_timer_init(&t);
-  lna_timer_start(&t);
   shmem_barrier_all();
-  lna_timer_stop(&t);
-  context_incr_stat(STAT_TIME_BARRIER, 0, (double) lna_timer_value(t));
 #endif
 }
 

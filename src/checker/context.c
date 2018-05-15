@@ -6,7 +6,7 @@
 #include "comm.h"
 #include "papi_stats.h"
 
-#define NO_STATS 13
+#define NO_STATS 12
 
 typedef enum {
   STAT_TYPE_TIME,
@@ -175,7 +175,6 @@ char * context_stat_xml_name
   case STAT_AVG_CPU_USAGE:      return "avgCPUUsage";
   case STAT_TIME_SEARCH:        return "searchTime";
   case STAT_TIME_COMP:          return "compilationTime";
-  case STAT_TIME_BARRIER:       return "barrierTime";
   case STAT_BWALK_ITERATIONS:   return "bwalkIterations";
   default:
     assert(FALSE);
@@ -197,7 +196,6 @@ stat_type_t context_stat_type
   case STAT_BWALK_ITERATIONS:   return STAT_TYPE_OTHERS;
   case STAT_TIME_SEARCH:        return STAT_TYPE_TIME;
   case STAT_TIME_COMP:          return STAT_TYPE_TIME;
-  case STAT_TIME_BARRIER:       return STAT_TYPE_TIME;
   default:
     assert(FALSE);
   }
@@ -606,12 +604,7 @@ float context_cpu_usage
 
 void context_barrier_wait
 (pthread_barrier_t * b) {
-  lna_timer_t t;
-  
-  lna_timer_init(&t);
-  lna_timer_start(&t);
   pthread_barrier_wait(b);
-  lna_timer_stop(&t);
 }
 
 void context_sleep
