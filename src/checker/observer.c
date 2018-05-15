@@ -59,9 +59,6 @@ void * observer_worker
     context_set_stat(STAT_AVG_CPU_USAGE, 0, cpu_avg);
   }
   if(CFG_WITH_OBSERVER) {
-    if(context_error_msg()) {
-      printf("ERROR = %s\n", context_error_msg());
-    }
     printf("%sdone.\n", pref);
   }
   return NULL;

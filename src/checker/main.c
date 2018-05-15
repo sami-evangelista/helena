@@ -26,10 +26,8 @@ int main
   init_heap();
   init_bit_stream();
   init_model();
-  if(CFG_DISTRIBUTED) {
-    init_comm();
-    init_dist_compression();
-  }
+  init_comm();
+  init_dist_compression();
   if(CFG_WITH_PAPI) {
     init_papi_stats();
   }
@@ -87,10 +85,8 @@ int main
     if(CFG_WITH_PAPI) {
       finalise_papi_stats();
     }
-    if(CFG_DISTRIBUTED) {
-      finalise_dist_compression();
-      finalise_comm();
-    }
+    finalise_dist_compression();
+    finalise_comm();
     finalise_compression();
     finalise_model();
   }

@@ -18,9 +18,7 @@ int COMM_PES;
 
 void init_comm
 () {
-#if CFG_DISTRIBUTED == 0
-  assert(0);
-#else
+#if CFG_DISTRIBUTED == 1
   debug("init_comm started\n");
   shmem_init();
   COMM_ME = shmem_my_pe();
@@ -31,9 +29,7 @@ void init_comm
 
 void finalise_comm
 () {
-#if CFG_DISTRIBUTED == 0
-  assert(0);
-#else
+#if CFG_DISTRIBUTED == 1
   debug("finalise_comm_comm started\n");
   shmem_free(COMM_HEAP);
   shmem_finalize();
@@ -72,11 +68,6 @@ void * comm_malloc
 #endif
 }
 
-size_t comm_heap_size
-() {
-  return COMM_HEAP_SIZE;
-}
-
 void comm_barrier
 () {
 #if CFG_DISTRIBUTED == 0
@@ -96,8 +87,7 @@ void comm_put
 (uint32_t pos,
  void * src,
  int size,
- int pe) {
-  
+ int pe) {  
 #if CFG_DISTRIBUTED == 0
   assert(0);
 #else
@@ -145,25 +135,4 @@ void comm_get
   }
   debug("get done\n");
 #endif
-}
-
-int comm_int_cswap
-(uint32_t pos,
- int cond,
- int value,
- int pe) {
-#if CFG_DISTRIBUTED == 0
-  assert(0);
-#else
-  int result;
-  
-  debug("swap %d to %d at %d from %d\n", cond, value, pos, pe);
-  result = shmem_int_cswap((int *) (COMM_HEAP + pos), cond, value, pe);
-  debug("swap done\n");
-  return result;
-#endif
-}
-
-void * comm_heap() {
-  return COMM_HEAP;
 }

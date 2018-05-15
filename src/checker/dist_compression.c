@@ -14,7 +14,7 @@
 #define DIST_COMPRESSION_WRITING 1
 #define DIST_COMPRESSION_READY   2
 
-#define DIST_COMPRESSION_MAX_INSERT_TRIALS 100000
+#define DIST_COMPRESSION_MAX_INSERT_TRIALS 10000
 #define DIST_COMPRESSION_BLOCK_SIZE        65000
 
 struct timespec dist_compression_sleep_time = { 0, 10000 }; /*  10 mus  */
@@ -113,9 +113,8 @@ uint16_t dist_compression_char_size
   return MODEL_STATE_SIZE;
 #else
   return 0;
-#endif  
 #endif
-  assert(0);
+#endif
 }
 
 
@@ -187,8 +186,10 @@ void dist_compression_compress
           * ((uint16_t *) (b)) = (uint16_t) (sizeof(uint16_t) +
                                              sizeof(uint32_t) + comp_size);
           b += sizeof(uint16_t);
-          * ((uint16_t *) (b)) = (uint16_t) i; b += sizeof(uint16_t);
-          * ((uint32_t *) (b)) = (uint32_t) slot; b += sizeof(uint32_t);
+          * ((uint16_t *) (b)) = (uint16_t) i;
+          b += sizeof(uint16_t);
+          * ((uint32_t *) (b)) = (uint32_t) slot;
+          b += sizeof(uint32_t);
           memcpy(b, buffer, comp_size); b += comp_size;
           dbfs_comm_put_in_comp_buffer(sbuffer, b - sbuffer);
 
@@ -220,7 +221,6 @@ void dist_compression_compress
           pos = dist_compression_tbls[i];
         }
         if(!(-- trials)) {
-          assert(0);
           context_error(dist_compression_tbl_full_msg);
           return;
         }
@@ -228,7 +228,9 @@ void dist_compression_compress
     }
     bit_stream_set(bits, slot, CFG_STATE_COMPRESSION_BITS);
   }
+  return;
 #endif
+  assert(0);
 }
 
 

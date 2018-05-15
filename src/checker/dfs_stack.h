@@ -33,7 +33,6 @@ typedef struct struct_dfs_stack_t * dfs_stack_t;
 
 /**
  * @brief DFS stack constructor.
- * @param id - unique id of the stack
  * @param block_size - size in states of an in memory block of states
  * @param shuffle - TRUE if enabled events of a stack state are randomly
  *        shuffled (e.g., for MC-NDFS)
@@ -41,8 +40,7 @@ typedef struct struct_dfs_stack_t * dfs_stack_t;
  *        not just the state ids)
  */
 dfs_stack_t dfs_stack_new
-(int id,
- uint32_t block_size,
+(uint32_t block_size,
  bool_t shuffle,
  bool_t states_stored);
 

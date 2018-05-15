@@ -24,7 +24,6 @@ typedef struct_dfs_stack_block_t * dfs_stack_block_t;
 struct struct_dfs_stack_t {
   dfs_stack_block_t blocks[DFS_STACK_BLOCKS];
   heap_t heaps[DFS_STACK_BLOCKS];
-  int32_t id;
   uint8_t current;
   int32_t top;
   uint32_t size;
@@ -56,15 +55,13 @@ void dfs_stack_block_free
 }
 
 dfs_stack_t dfs_stack_new
-(int id,
- uint32_t block_size,
+(uint32_t block_size,
  bool_t shuffle,
  bool_t states_stored) {
   dfs_stack_t result;
   int i;
 
   result = mem_alloc(SYSTEM_HEAP, sizeof(struct_dfs_stack_t));
-  result->id = id;
   result->block_size = block_size;
   result->shuffle = shuffle;
   result->states_stored = states_stored;
@@ -72,7 +69,7 @@ dfs_stack_t dfs_stack_new
   result->size = 0;
   result->current = 0;
   result->files = 0;
-  result->seed = random_seed(id);
+  result->seed = random_seed(0);
   for(i = 0; i < DFS_STACK_BLOCKS; i ++) {
     result->heaps[i] = local_heap_new();
     result->blocks[i] = dfs_stack_block_new(result->block_size);

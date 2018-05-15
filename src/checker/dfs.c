@@ -80,7 +80,6 @@ htbl_t H = NULL;
 void * dfs_worker
 (void * arg) {
   const worker_id_t w = (worker_id_t) (unsigned long int) arg;
-  const uint32_t wid = context_global_worker_id(w);
   const bool_t check_ltl = CFG_ACTION_CHECK_LTL;
   const bool_t check_safety = CFG_ACTION_CHECK_SAFETY;
   const bool_t por = CFG_POR;
@@ -99,7 +98,7 @@ void * dfs_worker
   uint32_t i;
   heap_t heap = local_heap_new();
   state_t copy, now = state_initial(heap);
-  dfs_stack_t stack = dfs_stack_new(wid, CFG_DFS_STACK_BLOCK_SIZE,
+  dfs_stack_t stack = dfs_stack_new(CFG_DFS_STACK_BLOCK_SIZE,
                                     shuffle, states_stored);
   htbl_id_t id, id_seed, id_succ, id_popped;
   bool_t push, blue = TRUE, is_new, state_popped = FALSE, on_stack;

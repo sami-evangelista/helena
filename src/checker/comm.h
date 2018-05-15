@@ -47,13 +47,6 @@ int comm_pes
 
 
 /**
- * @brief comm_heap_size
- */
-size_t comm_heap_size
-();
-
-
-/**
  * @brief comm_barrier
  */
 void comm_barrier
@@ -78,22 +71,5 @@ void comm_get
  uint32_t pos, 
  int size,
  int pe);
-
-
-/**
- * @brief comm_int_cswap
- */
-int comm_int_cswap
-(uint32_t pos,
- int cond,
- int value,
- int pe);
-
-
-/**
- * @brief comm_heap
- */
-void * comm_heap
-();
 
 #endif

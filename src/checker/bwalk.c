@@ -26,8 +26,7 @@ bwalk_data_t bwalk_data_init
   result->hash_bits = hash_bits;
   result->hash_char_size = 1 << (hash_bits - 3); 
   result->tbl = mem_alloc0(SYSTEM_HEAP, result->hash_char_size);
-  result->stack = dfs_stack_new(0, CFG_DFS_STACK_BLOCK_SIZE,
-                                TRUE, states_stored);
+  result->stack = dfs_stack_new(CFG_DFS_STACK_BLOCK_SIZE, TRUE, states_stored);
   result->heap = local_heap_new();
   return result;
 }
@@ -84,9 +83,8 @@ void bwalk_generic
   const dfs_stack_t stack = data->stack;
   const heap_t heap = data->heap;
   const uint32_t hash_size_m = (1 << data->hash_bits) - 1;
-  const uint32_t wid = context_global_worker_id(w);
-uint64_t rnd;
-  rseed_t rseed = random_seed(w);
+  uint64_t rnd;
+  rseed_t rseed = random_seed(0);
   state_t now, copy;
   bool_t is_new;
   event_t e;

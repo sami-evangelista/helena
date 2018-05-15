@@ -11,7 +11,7 @@
 #define BUCKET_READY  2
 #define BUCKET_UPDATE 3
 
-#define HTBL_INSERT_MAX_TRIALS 10000000
+#define HTBL_INSERT_MAX_TRIALS 10000
 #define HTBL_CACHE_LINE_SIZE   10  /* should be hardware independent */
 
 const uint16_t ATTR_WIDTH[] = {
@@ -216,7 +216,7 @@ bool_t htbl_contains
   assert(0); /* not implemented */
 }
 
-#define htbl_cas(tbl, ptr, old, new)                            \
+#define HTBL_CAS(tbl, ptr, old, new)                            \
   ((tbl->no_workers > 1) ?                                      \
    (CAS(ptr, old, new))                                         \
    : (*ptr == old) ? ((*ptr = new) || TRUE) : FALSE)
@@ -228,7 +228,7 @@ htbl_insert_code_t htbl_insert
   uint32_t trials = HTBL_INSERT_MAX_TRIALS;
   uint32_t still = HTBL_CACHE_LINE_SIZE, num = 0;
   bool_t found;
-  hkey_t h_other;
+  hkey_t h, h_other;
   char * sv, * pos;
   
   /**
@@ -250,7 +250,7 @@ htbl_insert_code_t htbl_insert
     /**
      * we found a bucket where to insert the data => claim it
      */
-    if(htbl_cas(tbl, HTBL_POS_STATUS(tbl, pos), BUCKET_EMPTY, BUCKET_WRITE)) {
+    if(HTBL_CAS(tbl, HTBL_POS_STATUS(tbl, pos), BUCKET_EMPTY, BUCKET_WRITE)) {
 
       /**
        * data insertion
@@ -305,7 +305,6 @@ htbl_insert_code_t htbl_insert
      * give up if HTBL_INSERT_MAX_TRIALS buckets have been checked
      */
     if(!(-- trials)) {
-      printf("ITEMS == %d\n", htbl_no_items);
       return HTBL_INSERT_FULL;
     }
 
@@ -326,8 +325,8 @@ htbl_insert_code_t htbl_insert
         pos = i ? (pos + tbl->item_size) : HTBL_POS_ITEM(tbl, 0);
       } else {
         still = HTBL_CACHE_LINE_SIZE;
-        i = (string_hash_init(mdata->v, mdata->v_size, ++ num))
-          & tbl->hash_size_m;
+        h = mdata->h + (++ num);
+        i = random_int(&h) & tbl->hash_size_m;
         pos = HTBL_POS_ITEM(tbl, i);
       }
       break;

@@ -594,11 +594,6 @@ char * context_error_msg
   return CTX->error_msg;
 }
 
-uint32_t context_global_worker_id
-(worker_id_t w) {
-  return context_proc_id() * CTX->no_workers + w;
-}
-
 uint32_t context_proc_id
 () {
   return comm_me();

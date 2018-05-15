@@ -134,9 +134,6 @@ FILE * context_graph_file
 void context_close_graph_file
 ();
 
-uint32_t context_global_worker_id
-(worker_id_t w);
-
 uint32_t context_proc_id
 ();
 

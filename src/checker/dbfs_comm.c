@@ -46,10 +46,9 @@ typedef enum {
 /**
  *  exploration cache
  */
+#define DBFS_COMM_BWALK_HASH 8
 
-#define DBFS_COMM_BWALK_HASH 10
-
-#if CFG_DBFS_EXPLORATION_CACHE_SIZE == 0
+#if CFG_DISTRIBUTED_STATE_COMPRESSION || CFG_DBFS_EXPLORATION_CACHE_SIZE == 0
 
 #define DBFS_COMM_CACHE_CLEAR() {}
 #define DBFS_COMM_CACHE_INSERT(id) {}
@@ -86,6 +85,9 @@ dbfs_comm_cache_t DBFS_COMM_CACHE;
     }									\
   }
 #endif
+
+#define DBFS_COMM_BUFFER_OVERFLOW(pe, added)    \
+  (LEN[pe] + LASTC - FIRSTC[pe] + added > SINGLE_BUFFER_SIZE)
 
 
 void dbfs_comm_send_all_buffers
@@ -156,23 +158,6 @@ void dbfs_comm_explore_cache
   state_free(s);
 }
 
-bool_t dbfs_comm_do_terminate
-() {
-  int pe;
-  dbfs_comm_term_t rterm;
-  bool_t result = TRUE;
-  
-  for(pe = 0; pe < PES; pe ++) {
-    comm_get(&rterm, POS_TERM, sizeof(dbfs_comm_term_t), pe);
-    if(DBFS_COMM_NO_TERM == rterm) {
-      result = FALSE;
-    } else if(DBFS_COMM_FORCE_TERM == rterm) {
-      return TRUE;
-    }
-  }
-  return result;
-}
-
 void dbfs_comm_ask_for_term_detection
 () {
   int pe;
@@ -227,13 +212,26 @@ bool_t dbfs_comm_token_received
 
 void dbfs_comm_check_termination
 (bool_t idle) {
-  dbfs_comm_term_t term;
+  dbfs_comm_term_t term, rterm;
+  int pe;
+  bool_t all_term, force_term;
 
+  /**
+   * termination already detected => nothing to do
+   */
   if(TERM_DETECTED) {
     return;
   }
+
+  /**
+   * wait for all PEs to be here and process incoming states
+   */
   comm_barrier();
   dbfs_comm_process_in_states();
+
+  /**
+   * publish local termination result
+   */
   if(!context_keep_searching()) {
     term = DBFS_COMM_FORCE_TERM;
   } else if(idle && bfs_queue_is_empty(Q)) {
@@ -243,11 +241,44 @@ void dbfs_comm_check_termination
   }
   dbfs_comm_unset_term_detection_asked();
   dbfs_comm_set_term_state(term);
+
+  /**
+   * wait for all PEs to publish their result
+   */
   comm_barrier();
-  if(dbfs_comm_do_terminate()) {
+
+  /**
+   * termination is detected if all PEs have terminated normally
+   * (i.e., local termination state == DBFS_COMM_TERM) or if a single
+   * PE has terminated earlier (i.e., local termination state ==
+   * DBFS_COMM_FORCE_TERM)
+   */
+  all_term = TRUE;
+  force_term = FALSE;
+  for(pe = 0; pe < PES; pe ++) {
+    comm_get(&rterm, POS_TERM, sizeof(dbfs_comm_term_t), pe);
+    if(DBFS_COMM_NO_TERM == rterm) {
+      all_term = FALSE;
+    } else if(DBFS_COMM_FORCE_TERM == rterm) {
+      force_term = TRUE;
+      break;
+    }
+  }
+
+  /**
+   * process result by updating the context
+   */
+  if(all_term || force_term) {
     TERM_DETECTED = TRUE;
     context_stop_search();
+    if(force_term && term != DBFS_COMM_FORCE_TERM) {
+      context_set_termination_state(TERM_INTERRUPTION);
+    }
   }
+
+  /**
+   *  this last barrier is perhaps not useful
+   */
   comm_barrier();
 }
 
@@ -289,7 +320,6 @@ bool_t dbfs_comm_idle
     return TRUE;
   }
   if(!context_keep_searching()) {
-    printf("%s\n", context_error_msg());
     dbfs_comm_ask_for_term_detection();
     dbfs_comm_check_termination(TRUE);
     return TRUE;
@@ -398,15 +428,15 @@ bool_t dbfs_comm_process_state_aux
 
   /**
    *  otherwise put state in the send buffer.  first send the buffer
-   *  if it is full
+   *  if putting the new state in the buffer would cause it to
+   *  overflow
    */
   if(send) {
     if(!CFG_DISTRIBUTED_STATE_COMPRESSION) {
       size = state_char_size((state_t) mdata->item);
     }
-    if(LEN[pe] + LASTC - FIRSTC[pe] + 1 +
-       sizeof(uint16_t) + sizeof(hkey_t) + size >
-       SINGLE_BUFFER_SIZE) {
+    if(DBFS_COMM_BUFFER_OVERFLOW(pe, 1 + sizeof(uint16_t) +
+                                 sizeof(hkey_t) + size)) {
       dbfs_comm_send_buffer(pe);
       if(TERM_DETECTED) {
 	return FALSE;
@@ -438,15 +468,26 @@ void dbfs_comm_put_in_comp_buffer
  int len) {
   int pe;
 
+  /**
+   * send all output buffers that would overflow if adding the buffer
+   */
   for(pe = 0; pe < PES; pe ++) {
-    if(pe != ME && (LEN[pe] + LASTC - FIRSTC[pe] + len > SINGLE_BUFFER_SIZE)) {
+    if(pe != ME && DBFS_COMM_BUFFER_OVERFLOW(pe, len)) {
       dbfs_comm_send_buffer(pe);
     }
   }
+
+  /**
+   * reallocate the compression buffer if necessary
+   */
   if(LASTC + len > SIZEC) {
     SIZEC <<= 1;
     BUFC = realloc(BUFC, SIZEC);
   }
+
+  /**
+   * and copy the buffer in the compression buffer
+   */
   memcpy(BUFC + LASTC, buffer, len);
   LASTC += len;
 }
