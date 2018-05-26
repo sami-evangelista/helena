@@ -1,6 +1,6 @@
 /**
- * @file comm_shmem.h
- * @brief Various stuffs for communications.
+ * @file comm.h
+ * @brief Various stuffs for SHMEM communications.
  * @date 12 sep 2017
  * @author Sami Evangelista
  */

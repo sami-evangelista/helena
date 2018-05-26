@@ -87,8 +87,6 @@ bool_t error_reported;
 /*  alternating bit to know which states to expand  */
 uint8_t RECONS_ID;
 
-#define MAX_LOCAL_HEAP_SIZE 100000
-
 #define DELTA_DDD_CAND_NEW  1
 #define DELTA_DDD_CAND_DEL  2
 #define DELTA_DDD_CAND_NONE 3
@@ -97,7 +95,7 @@ uint8_t RECONS_ID;
 
 #if defined(MODEL_HAS_EVENT_UNDOABLE)
 #define DELTA_DDD_VISIT_PRE_HEAP_PROCESS() {            \
-    if(heap_size(heap) > MAX_LOCAL_HEAP_SIZE) {         \
+    if(heap_size(heap) > CFG_MAX_LOCAL_HEAP_SIZE) {     \
       state_t copy = state_copy(s, SYSTEM_HEAP);        \
       heap_reset(heap);                                 \
       s = state_copy(copy, heap);                       \

@@ -9,8 +9,6 @@
 #include "debug.h"
 #endif
 
-#define COMM_CHUNK_SIZE 65000
-
 size_t COMM_HEAP_SIZE;
 void * COMM_HEAP;
 int COMM_ME;
@@ -90,14 +88,14 @@ void comm_put
     context_incr_stat(STAT_SHMEM_COMMS, 0, 1);
   }
   while(size) {
-    if(size <= COMM_CHUNK_SIZE) {
+    if(size <= CFG_COMM_BLOCK_SIZE) {
       shmem_putmem(COMM_HEAP + pos, src, size, pe);
       size = 0;
     } else {
-      shmem_putmem(COMM_HEAP + pos, src, COMM_CHUNK_SIZE, pe);
-      size -= COMM_CHUNK_SIZE;
-      pos += COMM_CHUNK_SIZE;
-      src += COMM_CHUNK_SIZE;
+      shmem_putmem(COMM_HEAP + pos, src, CFG_COMM_BLOCK_SIZE, pe);
+      size -= CFG_COMM_BLOCK_SIZE;
+      pos += CFG_COMM_BLOCK_SIZE;
+      src += CFG_COMM_BLOCK_SIZE;
     }
   }
   debug("put done\n");
@@ -117,14 +115,14 @@ void comm_get
     context_incr_stat(STAT_SHMEM_COMMS, 0, 1);
   }
   while(size) {
-    if(size <= COMM_CHUNK_SIZE) {
+    if(size <= CFG_COMM_BLOCK_SIZE) {
       shmem_getmem(dst, COMM_HEAP + pos, size, pe);
       size = 0;
     } else {
-      shmem_getmem(dst, COMM_HEAP + pos, COMM_CHUNK_SIZE, pe);
-      size -= COMM_CHUNK_SIZE;
-      pos += COMM_CHUNK_SIZE;
-      dst += COMM_CHUNK_SIZE;
+      shmem_getmem(dst, COMM_HEAP + pos, CFG_COMM_BLOCK_SIZE, pe);
+      size -= CFG_COMM_BLOCK_SIZE;
+      pos += CFG_COMM_BLOCK_SIZE;
+      dst += CFG_COMM_BLOCK_SIZE;
     }
   }
   debug("get done\n");

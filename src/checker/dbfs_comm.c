@@ -47,9 +47,7 @@ typedef enum {
 /**
  *  exploration cache
  */
-#define DBFS_COMM_BWALK_HASH 8
-
-#if CFG_DBFS_EXPLORATION_CACHE_SIZE == 0
+#if CFG_DISTRIBUTED_STATE_COMPRESSION || CFG_DBFS_EXPLORATION_CACHE_SIZE == 0
 
 #define DBFS_COMM_CACHE_CLEAR() {}
 #define DBFS_COMM_CACHE_INSERT(id) {}
@@ -600,7 +598,7 @@ void dbfs_comm_start
   FIRSTC = mem_alloc0(SYSTEM_HEAP, sizeof(uint32_t) * PES);
   LASTC = 0;
   BUFC = mem_alloc0(SYSTEM_HEAP, SINGLE_BUFFER_SIZE);
-  EXPL_CACHE_DATA = bwalk_data_init(DBFS_COMM_BWALK_HASH);
+  EXPL_CACHE_DATA = bwalk_data_init(CFG_DBFS_BWALK_HASH);
   len = 0;
   for(pe = 0; pe < PES; pe ++) {
     comm_put(POS_LEN(pe), &len, sizeof(uint32_t), ME);

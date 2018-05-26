@@ -15,7 +15,6 @@
 #define DIST_COMPRESSION_READY   2
 
 #define DIST_COMPRESSION_MAX_INSERT_TRIALS 10000
-#define DIST_COMPRESSION_BLOCK_SIZE        65000
 
 struct timespec dist_compression_sleep_time = { 0, 10000 }; /*  10 mus  */
 htbl_compress_func_t * dist_compression_comp_funcs;
@@ -119,7 +118,7 @@ uint16_t dist_compression_char_size
 
 
 #define DIST_COMPRESSION_UPDATE() {                                     \
-    uint32_t no = DIST_COMPRESSION_BLOCK_SIZE / item_size;              \
+    uint32_t no = CFG_DIST_COMPRESSION_BLOCK_SIZE / item_size;          \
     if(0 == no) {                                                       \
       no = 1;                                                           \
     }                                                                   \
