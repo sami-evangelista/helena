@@ -63,7 +63,7 @@ LIMIT_OPTS = ("Limit options",
 MODEL_OPTS = ("Model options",
               [ "d", "a", "r", "L", "m" ])
 OUTPUT_OPTS = ("Output options",
-               [ "o", "tr" ])
+               [ "o", "hf", "tr" ])
 OPTION_TYPES = [
     GENERAL_OPTS,
     SEARCH_OPTS,
@@ -164,6 +164,14 @@ report that no error has been found whereas one could exist."""),
 Prints help and exit.  If an option is provided, a specific help
 message for this option is printed.  If opt=FULL a detailed help for
 all options is printed."""),
+    ###########################################################################
+    ("hf", "history-file", None, None, None, None, None,
+     """-hf=FILE         --history-file=FILE
+
+Produces a history file containing data on states stored, processed, ...,
+during the execution.  Output is in CSV format.  If a distributed algorithm is
+used, one file per processed will be created and FILE must contain a '%d' that
+is replaced by the id of the process (starting from 0)."""),
     ###########################################################################
     ("i", "proviso", int, 0, 1, [0, 1], "proviso",
      """-i[={0|1}]       --proviso[={0|1}]}
@@ -543,6 +551,10 @@ class Config:
             self.proviso = self.propType is not None and \
                            self.propType != DEADLOCK
         distributed = self.algo in [ DBFS ]
+        if distributed:
+            histFile = "\"history-%d.csv\""
+        else:
+            histFile = "\"history.csv\""
         params = [
             ("ACTION_BUILD_GRAPH", self.action == BUILD_GRAPH),
             ("ACTION_CHECK_LTL", self.action == CHECK and \
@@ -584,6 +596,7 @@ class Config:
             ("HASH_SIZE_M", pow(2, self.hashSize) - 1),
             ("HASH_SIZE", pow(2, self.hashSize)),
             ("HASH_STORAGE", self.algo not in [ DELTA_DDD, RWALK ]),
+            ("HISTORY_FILE", histFile),
             ("LANGUAGE", "\"" + languageLong + "\""),
             ("LANGUAGE_DVE", self.language == DVE),
             ("LANGUAGE_LNA", self.language == LNA),

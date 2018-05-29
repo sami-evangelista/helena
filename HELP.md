@@ -250,6 +250,13 @@ An XML report file is created by Helena once the search terminated.
 It contains some informations such as the result of the search, or
 some statistics.
 
+### -hf=FILE         --history-file=FILE
+
+Produces a history file containing data on states stored, processed, ...,
+during the execution.  Output is in CSV format.  If a distributed algorithm is
+used, one file per processed will be created and FILE must contain a '%d' that
+is replaced by the id of the process (starting from 0).
+
 ### -tr=TYPE         --trace-type=TYPE
 
 Specify the type of trace (i.e., counter-example) displayed.  TYPE

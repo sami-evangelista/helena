@@ -31,6 +31,9 @@ reportsMerger=helena-merge-reports
 xmlReportFile=report.xml
 xmlReportTmpFile=report.xml.tmp
 xmlGraphReportFile=rg-report.xml
+historyFile=history*.csv
+sequentialHistoryFile=history.csv
+distributedHistoryFile=history-%d.csv
 graphFile=graph.dat
 version=2.3
 versionFile=VERSION
@@ -38,7 +41,7 @@ RUN=./helena-checker
 
 commonFiles="bit_stream"
 checkerSrcFiles="bfs bfs_queue bit_stream buchi bwalk common comm
-compression context darray ddfs_comm dbfs_comm delta_ddd dfs dfs_stack
+compression context darray dbfs_comm delta_ddd dfs dfs_stack
 dist_compression errors event fifo graph heap harray htbl list observer
 papi_stats por_analysis prop reduction rwalk state stbl simulator
 workers"
@@ -258,12 +261,11 @@ launchChecker () {
         $reportsMerger report-*.xml
         rm report-*.xml
     fi
-    for f in $xmlReportFile $xmlGraphReportFile $graphFile
+    rm -rf STACK-*
+    for f in $xmlReportFile $xmlGraphReportFile $graphFile $historyFile
     do
-        if [ -e $f ]
-        then
-	    mv $f ..
-        fi
+        [ ! -e $f ] && continue
+	mv $f ..
     done
     popd &> /dev/null
 }
@@ -350,10 +352,12 @@ do
             MPIRUN=$MPIRUN" -npernode "${arg:$idx}
             ;;
 	-mf=*|--machine-file=*)
-	    idx=$(expr index $arg =)
 	    machineFile=${arg:$idx}
             [ ! -e "$machineFile" ] && \
                 error "machine file '$machineFile' could not be found"
+            ;;
+        -hf=*|--history-file=*)
+            userHistoryFile=${arg:$idx}
             ;;
     esac
 done
@@ -432,9 +436,9 @@ fi
 #  model
 if [ -d $(getModelDir) -a -d $(getModelDir)/src ]
 then
-    for ext in xml dat
+    for ext in xml dat csv
     do
-        echo rm $(getModelDir)/*.$ext &> /dev/null
+        rm $(getModelDir)/*.$ext &> /dev/null
     done
     updateModelDir $(getModelDir)
 else
@@ -500,15 +504,31 @@ ccTime=$(echo "scale=2;$endSec-$startSec+($endNan-$startNan)/1000000000" | bc)
 launchChecker
 
 #####
-#  reporting
+#  history file(s) creation (option -hf)
+if [ ! -z "$userHistoryFile" ]
+then
+    if [ $distributed -eq 0 ]
+    then
+        cp $(getModelDir)/$sequentialHistoryFile $userHistoryFile
+    else
+        for i in $(seq 0 100000)
+        do
+            input=$(printf "$distributedHistoryFile" $i)
+            output=$(printf "$userHistoryFile" $i)
+            [ ! -e $(getModelDir)/$input ] && break
+            cp $(getModelDir)/$input $output
+        done
+    fi
+fi
+
+#####
+#  report printing and creation (option -o)
 if [ -e $(getModelDir)/$xmlReportFile ]
 then
-    if [ ! -z "$reportFile" ]
-    then
-	cp $(getModelDir)/$xmlReportFile $reportFile
-    fi
+    [ -z "$reportFile" ] && cp $(getModelDir)/$xmlReportFile $reportFile
     [ $progressLevel -lt 4 ] && exit 0
     checkExecutable $reporter
     $reporter $(getModelDir)/$xmlReportFile
 fi
+
 exit 0
