@@ -47,7 +47,7 @@ typedef enum {
 /**
  *  exploration cache
  */
-#if CFG_DISTRIBUTED_STATE_COMPRESSION || CFG_DBFS_EXPLORATION_CACHE_SIZE == 0
+#if CFG_DBFS_EXPLORATION_CACHE_SIZE == 0
 
 #define DBFS_COMM_CACHE_CLEAR() {}
 #define DBFS_COMM_CACHE_INSERT(id) {}
@@ -560,13 +560,14 @@ bool_t dbfs_comm_process_in_states
 () {
   int pe;
   bool_t result = FALSE;
-  uint32_t pos = POS_DATA, len;
+  uint32_t pos = POS_DATA;
+  uint32_t len[PES];
 
+  comm_get(len, POS_LEN(0), sizeof(uint32_t) * PES, ME);
   for(pe = 0; pe < PES; pe ++) {
     if(pe != ME) {
-      comm_get(&len, POS_LEN(pe), sizeof(uint32_t), ME);
-      if(len > 0) {
-        dbfs_comm_receive_buffer(pe, len, pos);
+      if(len[pe] > 0) {
+        dbfs_comm_receive_buffer(pe, len[pe], pos);
         result = TRUE;
       }
       pos += SINGLE_BUFFER_SIZE;

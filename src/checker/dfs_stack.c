@@ -90,6 +90,7 @@ void dfs_stack_free
       sprintf(buffer, "%s/%d", stack->dir, i);
       unlink(buffer);
     }
+    rmdir(stack->dir);
     for(i = 0; i < DFS_STACK_BLOCKS; i ++) {
       if(stack->blocks[i]) {
 	dfs_stack_block_free(stack->blocks[i]);
