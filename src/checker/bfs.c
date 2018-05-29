@@ -108,7 +108,7 @@ void * bfs_worker
   unsigned int dbfs_ctr = CFG_DBFS_CHECK_COMM_PERIOD;
   htbl_meta_data_t mdata;
   bool_t mine;
-  
+
   do {
     for(x = 0; x < bfs_queue_no_workers(Q) && context_keep_searching(); x ++) {
       while(!bfs_queue_slot_is_empty(Q, x, w) && context_keep_searching()) {
@@ -118,13 +118,13 @@ void * bfs_worker
 	 * CFG_DBFS_CHECK_COMM_PERIOD^th state processed
 	 */
 	if(CFG_ALGO_DBFS && (0 == (-- dbfs_ctr))) {
-	  dbfs_comm_check_communications();
-	  if(!context_keep_searching()) {
-	    goto check_termination;
-	  }
-	  dbfs_ctr = CFG_DBFS_CHECK_COMM_PERIOD;
-	}
-        
+          dbfs_comm_check_communications();
+          if(!context_keep_searching()) {
+            goto check_termination;
+          }
+          dbfs_ctr = CFG_DBFS_CHECK_COMM_PERIOD;
+        }
+
         /**
          * get the next state sent by thread x, get its successors and
          * a valid reduced set.  if the states are not stored in the

@@ -24,6 +24,7 @@ uint32_t LASTC;
 uint32_t SIZEC;
 bwalk_data_t EXPL_CACHE_DATA;
 bool_t BWALK_INITIAL_DONE = FALSE;
+bool_t IN_CACHE_EXPLORATION = FALSE;
 
 typedef enum {
   DBFS_COMM_NO_TERM = 0,
@@ -46,7 +47,7 @@ typedef enum {
 /**
  *  exploration cache
  */
-#if CFG_DISTRIBUTED_STATE_COMPRESSION || CFG_DBFS_EXPLORATION_CACHE_SIZE == 0
+#if CFG_DBFS_EXPLORATION_CACHE_SIZE == 0
 
 #define DBFS_COMM_CACHE_CLEAR() {}
 #define DBFS_COMM_CACHE_INSERT(id) {}
@@ -151,8 +152,10 @@ void dbfs_comm_explore_cache
   } else {
     return;
   }
+  IN_CACHE_EXPLORATION = TRUE;
   bwalk_generic(0, s, EXPL_CACHE_DATA, 1, FALSE,
                 &dbfs_comm_explore_cache_hook, NULL);
+  IN_CACHE_EXPLORATION = FALSE;
   state_free(s);
 }
 
@@ -466,6 +469,10 @@ void dbfs_comm_put_in_comp_buffer
  int len) {
   int pe;
 
+  if(IN_CACHE_EXPLORATION) {
+    return;
+  }
+  
   /**
    * send all output buffers that would overflow if adding the buffer
    */
@@ -553,13 +560,14 @@ bool_t dbfs_comm_process_in_states
 () {
   int pe;
   bool_t result = FALSE;
-  uint32_t pos = POS_DATA, len;
+  uint32_t pos = POS_DATA;
+  uint32_t len[PES];
 
+  comm_get(len, POS_LEN(0), sizeof(uint32_t) * PES, ME);
   for(pe = 0; pe < PES; pe ++) {
     if(pe != ME) {
-      comm_get(&len, POS_LEN(pe), sizeof(uint32_t), ME);
-      if(len > 0) {
-        dbfs_comm_receive_buffer(pe, len, pos);
+      if(len[pe] > 0) {
+        dbfs_comm_receive_buffer(pe, len[pe], pos);
         result = TRUE;
       }
       pos += SINGLE_BUFFER_SIZE;
