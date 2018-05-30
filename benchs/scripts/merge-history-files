@@ -1,0 +1,39 @@
+#!/bin/bash
+
+[ -z "$1" ] && usage && exit 1
+
+inputFiles=$*
+for file in $inputFiles
+do
+    [ ! -e $file ] && echo "error: file $file does not exist" && exit 1
+done
+
+for i in $(seq 1 100000)
+do
+    found=0
+    for file in $inputFiles
+    do
+        l=$(grep "^$i\." $file)
+        [ -z "$l" ] && continue
+        found=1
+        cols=$(echo $l | awk -F';' '{print NF}')
+        for col in $(seq 2 $cols)
+        do
+            [ -z "$(eval echo \$data_$col)" ] && eval "data_$col=0"
+            eval "data_$col=\$(echo $(echo $l | cut -d';' -f$col) + \$data_$col | bc)"
+            
+        done
+    done
+    [ $found = 0 ] && break
+    echo -n $i
+    for col in $(seq 2 10000)
+    do
+        [ -z "$(eval echo \$data_$col)" ] && break
+        eval "echo -n \";\$data_$col\""
+        eval unset data_$col
+    done
+    echo
+    [ ! $found -eq 1 ] && break
+done
+
+exit 0
