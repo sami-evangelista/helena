@@ -7,7 +7,6 @@ bin/helena-generate-interface
 bin/helena-generate-lna
 bin/helena-generate-property
 bin/helena-ltl2ba
-examples/beem
 releases
 src/lna/obj
 src/checker/latex
