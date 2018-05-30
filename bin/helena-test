@@ -70,8 +70,9 @@ lnaSafetyOptions = safetyOptions + [ porOptions ]
 requires = [
     ("-H=1", [["-A=dfs"], ["-A=bfs"]]),
     ("-P=1", [["-A=dfs"], ["-A=bfs"]]),
-    ("-R=1", [["-A=dfs", "-W=1"]]),
-    ("-N=build-graph", [["-A=delta-ddd"]])
+    ("-R=1", [["-A=dfs", "-W=4"]]),
+    ("-N=build-graph", [["-A=delta-ddd", "-W=1"]]),
+    ("-C=1", [["-A=dfs"], ["-A=bfs"]])
 ]
 conflicts = [
     ("-H=1", "-C=1")
@@ -125,7 +126,7 @@ for f in lnaModels:
                     opts = lnaSafetyOptions
                 else:
                     opts = []
-                opts = opts + [ ["-N=check-" + prop], [f]]
+                opts = opts + [ ["-N=check" ], ["-p=" + prop], [f]]
                 t = test_gen.Test(baseCmd,
                                   options = opts,
                                   requires = requires,
