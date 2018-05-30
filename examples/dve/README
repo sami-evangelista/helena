@@ -1,0 +1,4 @@
+This directory contains DVE models from the BEEM database (see BEEM:
+Benchmarks for Explicit Model Checkers.  Radek Pelanek, SPIN 2007.)
+Some other models are not from the database but have been generated
+from mdve parametric models.

@@ -1,0 +1,39 @@
+default(N, 4)
+default(ERROR, 0)
+
+forloop(x,0,decr(N), `channel start_`'x, finished_`'x, next_`'x;
+')
+
+define(customer,`process customer_$1 {
+state finished, running, q_error;
+init finished;
+trans
+ finished -> running { sync start_$1?; },
+ running -> finished { sync finished_$1!; },
+ running -> q_error { sync start_$1?; };
+}
+')
+
+define(scheduler,`process scheduler_$1 { // arguments 1: my num, 2: next num, 3: my init
+byte done = 0, ready = 0;
+state init_state, to_start, started, wait;
+init $3;
+trans
+ init_state -> to_start { sync next_$1?; },
+ to_start -> started { sync start_$1!; },
+ started -> wait { sync next_$2!; effect done = 0, ready = 0; },
+ wait -> wait { guard done == 0; sync finished_$1?; effect done = 1; },
+ wait -> wait { guard ready == 0; sync next_$1?; effect ready = 1; },
+ wait -> to_start { guard ready == 1 ifelse(ERROR,0, `&& done == 1', `'); };
+}
+')
+
+customer(0)
+scheduler(0,1,to_start)
+
+forloop(x,1,decr(N), `
+customer(x)
+scheduler(x, eval((x+1)%N) ,init_state)')
+
+system async;
+

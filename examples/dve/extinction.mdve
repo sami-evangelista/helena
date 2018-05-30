@@ -1,0 +1,100 @@
+
+default(TOPOLOGY,1)
+default(K,2)
+
+define(UNDEF,255)
+define(TR,10)
+define(TOK,0)
+define(LDR,1)
+define(triple,`(($3)+($2)*TR+($1*TR*TR))')
+define(third, `(($1)%TR)')
+define(second, `((($1)%(TR*TR))/TR)')
+define(first, `(($1)/(TR*TR))')
+
+ifelse(TOPOLOGY,1, `
+// line with 3 nodes
+define(N,3)
+define(NC_0,1) define(N_0_0,1)
+define(NC_1,2) define(N_1_0,0) define(N_1_1,2)
+define(NC_2,1) define(N_2_0,1)
+',TOPOLOGY,2, `
+// line with 4 nodes, different numbering
+define(N,4)
+define(NC_2,1) define(N_2_0,0)
+define(NC_0,2) define(N_0_0,2) define(N_0_1,3)
+define(NC_3,2) define(N_3_0,0) define(N_3_1,1)
+define(NC_1,1) define(N_1_0,3)
+',  TOPOLOGY,3, `
+define(N,4)
+define(NC_0,2) define(N_0_0,1) define(N_0_1,2)
+define(NC_1,2) define(N_1_0,0) define(N_1_1,2)
+define(NC_2,3) define(N_2_0,1) define(N_2_1,0) define(N_2_2,3)
+define(NC_3,1) define(N_3_0,2)
+',`')
+
+forloop(x,0,decr(N), `buffer_channel(ch_`'x,K)
+')
+
+byte leaders_num=0;
+
+define(node, `process Node_$1 {
+byte caw = $1, rec = 0, father=UNDEF, lrec=0, win=UNDEF, j=0, m;
+state start, wait, got_msg, ldr_msg, ldr_to_all, l2, tok_msg, reinicialize, same, all, become_leader, leader, lost;
+init start;
+trans
+
+ forloop(x,0,decr(NC_$1), `
+	start -> start { guard j==x;
+			 sync indir(ch_`'indir(N_$1_`'x)`'!)triple(TOK,$1, $1); effect j = j+1; },
+')
+
+ start -> wait { guard j==NC_$1; },
+
+ wait -> got_msg { sync indir(ch_`'$1?)m; },
+ got_msg -> ldr_msg { guard first(m) == LDR; },
+ got_msg -> tok_msg { guard first(m) == TOK; },
+
+ tok_msg -> reinicialize { guard second(m) < caw; effect caw = second(m), rec = 0, father= third(m), j=0; },
+
+ forloop(x,0,decr(NC_$1), `
+	reinicialize -> reinicialize { guard j==x;// && j != father;
+		sync indir(ch_`'indir(N_$1_`'x)`'!)triple(TOK,caw, $1); effect j = j+1; },
+')
+// forloop(x,0,decr(NC_$1), ` reinicialize -> reinicialize {guard x == j && indir(N_$1_`'x) == father; effect j=j+1;},
+//')
+ reinicialize -> wait { guard j == NC_$1; },
+
+ tok_msg -> same { guard second(m) == caw; effect rec = rec + 1; },
+ same -> wait { guard rec < NC_$1; },
+ same -> all { guard rec == NC_$1; },
+
+ tok_msg -> wait { guard second(m) > caw; },
+
+ forloop(x,0,decr(N), `all -> wait { guard caw != $1 && father==x; sync indir(ch_`'x`'!)triple(TOK,caw,$1); },
+')
+ all -> become_leader { guard caw == $1; effect j = 0; },
+
+ forloop(x,0,decr(NC_$1), `
+	become_leader -> become_leader { guard j==x;
+		sync indir(ch_`'indir(N_$1_`'x)`'!)triple(LDR,$1, $1); effect j = j+1; },
+')
+ become_leader -> wait { guard j == NC_$1; },
+
+ ldr_msg -> ldr_to_all { guard lrec == 0; effect j = 0; },
+ forloop(x,0,decr(NC_$1), `
+	ldr_to_all -> ldr_to_all { guard j==x;
+		sync indir(ch_`'indir(N_$1_`'x)`'!)triple(LDR,second(m), $1); effect j = j+1; },
+')
+ ldr_to_all -> l2 { guard j==NC_$1;},
+ ldr_msg -> l2 { guard lrec >0; },
+ l2 -> wait { effect lrec = lrec+1, win = second(m); },
+
+ wait -> leader { guard lrec == NC_$1 && win ==$1; effect leaders_num = leaders_num+1; },
+ wait -> lost { guard lrec == NC_$1 && win !=$1; };
+
+}
+')
+
+forloop(id,0,decr(N), `node(id)')
+
+system async;

@@ -1,0 +1,33 @@
+
+default(COLS,3)
+default(ROWS,3)
+
+define(pair, `($2)*COLS+$1')
+
+byte a[eval(COLS*ROWS)] = {
+myloop(j,0,decr(ROWS),
+ `myloop(i,0,decr(COLS),`eval(pair(i,j))',`,')',`,
+') };
+byte x=0,y=0;
+
+process P {
+state q;
+init q;
+trans
+ q -> q { guard x>0; effect a[pair(x,y)] = a[pair(x-1,y)], a[pair(x-1,y)]=0, x=x-1;},
+ q -> q { guard x<COLS-1; effect a[pair(x,y)] = a[pair(x+1,y)], a[pair(x+1,y)]=0, x=x+1;},
+ q -> q { guard y>0; effect a[pair(x,y)] = a[pair(x,y-1)], a[pair(x,y-1)]=0, y=y-1;},
+ q -> q { guard y<ROWS-1; effect a[pair(x,y)] = a[pair(x,y+1)], a[pair(x,y+1)]=0, y=y+1;};
+}
+
+process Check {
+state not_done, done;
+init not_done;
+trans
+ not_done -> done { guard
+myloop(j,0,decr(ROWS),
+ `myloop(i,0,decr(COLS),`a[eval(pair(i,j))] == eval(COLS*ROWS-j*COLS-i-1)',` and ')',` and
+'); };
+}
+
+system async;

@@ -1,0 +1,56 @@
+
+//lamport non-atomic
+
+default(N,3)
+default(ERROR,0)
+
+forloop(x,0, decr(N), `channel read_`'x, write_`'x, done_`'x;
+')
+
+define(nvar, `process NonatomicVar_$1 {
+bool x, v;
+state q, r;
+init q;
+trans
+ q -> q { sync read_$1!x; },
+ q -> r { sync write_$1?v; },
+ r -> q { sync done_$1!; effect x = v; },
+ r -> r { sync read_$1!0; }, // anything can be read 
+ r -> r { sync read_$1!1; };
+}
+')
+
+define(P, `process P_$1 {
+byte i,v;
+state NCS, w1, p3, p8, p4, p5, p6, p61, w2, p9, CS, w3;
+init NCS;
+trans
+ NCS -> w1 { sync write_$1!1; },
+ w1 -> p3 { sync done_$1?; effect i = 0; },
+ p3 -> p8 { guard i == $1; effect i = $1 + 1; },
+forloop(x,0,decr(N), ` p3 -> p4 { guard i==x; sync read_`'x`'?v; },
+')
+ p4 -> p3 { guard v == 0; effect i = i +1; },
+ p4 -> p5 { guard v == 1; },
+ p5 -> p6 { guard v == 1; },
+ p5 -> NCS { guard v == 0; }, 
+ p6 -> w2 { sync write_$1!ifelse(ERROR,1,`1',`0'); },
+ w2 -> p61 { sync done_$1?; },
+forloop(x,0,decr(N), ` p61 -> p5 { guard i==x; sync read_`'x`'?v; },
+')
+
+forloop(x,0,decr(N), ` p8 -> p9 { guard i==x; sync read_`'x`'?v; },
+')
+forloop(x,0,decr(N), ` p9 -> p9 { guard v==1 && i==x; sync read_`'x`'?v; },
+')
+ p9 -> p8 { guard v == 0 ifelse(ERROR,2,`or i > $1',`'); effect i = i+1; },
+ p8 -> CS { guard i == N;},
+ CS -> w3 { sync write_$1!0;},
+ w3 -> NCS { sync done_$1?; };
+}
+')
+
+forloop(pom,0,decr(N), `nvar(pom)')
+forloop(pom,0,decr(N), `P(pom)')
+
+system async;

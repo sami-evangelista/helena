@@ -1,0 +1,62 @@
+
+byte req[4];
+int t,p;
+byte v;
+
+process cabin
+{
+  state idle,mov,open;
+  init idle;
+  trans
+	idle -> mov  {guard v>0;},
+	mov -> open  {guard t==p;},
+	mov -> mov   {guard t<p; effect p=p-1;},
+	mov -> mov   {guard t>p; effect p=p+1;},
+	open -> idle {effect req[p]=0,v=0;}
+  ;
+}
+
+process environment 
+{
+  state read;
+  init read;
+  trans
+	read -> read {guard req[0]==0; effect req[0]=1;} ,
+	read -> read {guard req[1]==0; effect req[1]=1;} ,
+	read -> read {guard req[2]==0; effect req[2]=1;} ,
+	read -> read {guard req[3]==0; effect req[3]=1;} 
+  ;
+}
+
+process controller
+{
+  byte ldir;
+  state wait,work,done;
+  init wait;
+  trans
+    wait -> work {guard v==0; effect t=t+(2*ldir)-1;},
+    work -> wait {guard t<0 || t==4; effect ldir=1-ldir;},
+    work -> done {guard t>=0 && t<4 && req[t]==1;},
+    work -> work {guard t>=0 && t<4 && req[t]==0; effect t=t+(2*ldir)-1;},
+    done -> wait {effect v=1;}
+  ;
+}
+
+process LTL_property {
+state q1, q2, q3, q4;
+init q1;
+accept q2, q3, q4;
+trans
+q1 -> q1 {},
+q1 -> q2 { guard (req[0]==1) && not (p==1); },
+q1 -> q2 { guard (req[0]==1) && not (cabin.open); },
+q1 -> q3 { guard (req[0]==1) && (p==1) && not (cabin.open); },
+q2 -> q2 { guard not (p==1); },
+q2 -> q2 { guard not (cabin.open); },
+q2 -> q3 { guard not (cabin.open) && (p==1); },
+q3 -> q3 { guard not (cabin.open); },
+q3 -> q4 { guard not (p==1); },
+q4 -> q4 {};
+}
+
+system async property LTL_property;

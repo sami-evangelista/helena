@@ -1,0 +1,47 @@
+
+default(N,3)
+default(RELIABLE,2) //  0 = unreliable, 1 = reliable
+default(CR,0)
+default(PRECEDENCE,0)
+
+define(ALPHA,0)
+define(BETA,1)
+define(GAMMA,2)
+define(TOKEN,255)
+
+forloop(x,0,decr(N),
+ `ifelse(RELIABLE,0, `loosy_channel(link_`'x)', ` async_channel(link_`'x)')')
+
+// value send through token channel is redundant...
+
+
+define(node, `process P_$1 {
+// $1 my id, $2 next id, $3 my val
+byte status=ALPHA;
+byte v;
+ifelse(PRECEDENCE,1,`bool sended=0;',`')
+state wait, CS, got_msg;
+init ifelse($1,0, `CS', `wait'); // node 0 is in CS, others are not
+trans
+ wait -> got_msg {sync link_$1_out?v; },
+
+ got_msg -> CS { guard v == TOKEN;   },
+ CS -> wait { sync link_$2_in!TOKEN; effect status = ALPHA; },
+
+ // nondeterministic timeout:
+ wait -> wait { guard status == ALPHA ifelse(PRECEDENCE,1,`&& sended == 0',`'); sync link_$2_in!$3; effect status = BETA ifelse(PRECEDENCE,1,`,sended = 1',`'); },
+
+ got_msg -> wait { guard v!=TOKEN && v > $3; ifelse(CR,0,`sync link_$2_in!v;',`') },
+ got_msg -> wait { guard v!=TOKEN && status == BETA && v < $3; sync link_$2_in!v; effect status = GAMMA; },
+ got_msg -> wait { guard v!=TOKEN && status == ALPHA && v < $3; sync link_$2_in!v;  },
+ got_msg -> wait { guard v!=TOKEN && v == $3 && status != BETA; effect status = ALPHA ifelse(PRECEDENCE,1,`,sended = 0',`'); },
+ got_msg -> CS { guard v!=TOKEN && v== $3 && status == BETA; ifelse(PRECEDENCE,1,` effect  sended = 0 ; ',`') };
+
+}
+')
+
+
+forloop(x,0,decr(N), `node(x,eval((x+1)%N), eval(((x+9)*(x+7)+42)%27))')
+
+
+system async;

@@ -1,0 +1,94 @@
+
+// MSMIE protocol (slave-master)
+// according to "Gaining Assurence with Formal Methods" Bruns, Anderson (in Applications of Fromal Methods)
+// S = number of slaves, M  = number of masters, N = size of buffer
+
+default(S,1)
+default(M,2)
+default(N,3)
+
+define(IDLE,0)
+define(NEWEST,1)
+define(SLAVE,2)
+define(MASTER,3)
+
+byte b[N] = { forloop(i, 1, decr(N), `IDLE, ') SLAVE };
+byte readers;
+byte sem=1;
+byte change_to;
+
+define(Slave, `process slave_$1 {
+state idle, q0, q1, q2, q3, error_state;
+init idle;
+trans
+ //aquire semaphor:
+ idle -> q0 { guard sem == 1; effect sem=0; },
+ //if there is a newest buffer, change its status to idle:
+ forloop(i, 0, decr(N), `q0 -> q1 { guard b[i] == NEWEST; effect b[i] = IDLE;},
+')
+ q0 -> q1 { guard myloop(i,0, decr(N), `b[i] != NEWEST', ` && '); },
+
+ //if there is a slave buffer, change its status to newest, else an error
+ forloop(i, 0, decr(N), `q1 -> q2 { guard b[i] == SLAVE; effect b[i] = NEWEST;},
+')
+ q1 -> error_state { guard myloop(i,0,decr(N), `b[i] != SLAVE', ` && '); }, 
+
+ //if there is an idle buffer, change its status to slave, else na error
+ forloop(i,0, decr(N), `q2 -> q3 { guard b[i] == IDLE; effect b[i] = SLAVE;},
+')
+ q2 -> error_state { guard myloop(i,0,decr(N), `b[i] != IDLE', ` && ');}, 
+
+ //release semaphor
+ q3 -> idle { effect sem=1;}; 
+}
+')
+
+define(Master, `process master_$1 {
+state idle, q0, no_master, master, reading, r0, no_readers, change,r1;
+init idle;
+trans
+// Master aquire phase
+ // aquire semaphore
+ idle -> q0 { guard sem == 1; effect sem=0; },
+
+ // if there is a newest buffer, but not a master buffer then change 
+ // status of newest buffer to master
+ forloop(i,0, decr(N), `q0 -> master { guard b[i] == MASTER; },
+')
+ q0 -> no_master {guard myloop(i,0,decr(N), `b[i] != MASTER', ` && '); },
+
+ forloop(i,0, decr(N), `no_master -> master {guard b[i] == NEWEST; effect b[i] = MASTER;},
+')
+ no_master -> idle {guard myloop(i, 0, decr(N), `b[i] != NEWEST', ` && '); effect sem=1;},
+
+ // if there is a master buffer, increment the number of readers
+ // release semaphor
+ master -> reading { effect readers = readers+1, sem = 1;},
+
+ //Master release phase
+ // aquire semaphor
+ // decrement the number of readers
+ reading -> r0 { guard sem == 1; effect sem = 0, readers = readers -1;},
+ 
+ // if number of readers = 0 then
+ // (if there is a newest buffer then change staus of master buffer to idle
+ //     else change status of master buffer to newest)
+
+ r0 -> no_readers {guard readers ==0;},
+ r0 -> r1 {guard readers >0;},
+
+ no_readers -> change { guard myloop(i,0,decr(N), `b[0] == NEWEST', ` || '); effect change_to = IDLE;},
+ no_readers -> change { guard myloop(i,0,decr(N), `b[0] != NEWEST', ` && '); effect change_to = NEWEST;},
+
+ forloop(i,0,decr(N), `change -> r1 {guard b[0] == 3; effect b[0] = change_to;},
+')
+
+ // release semaphor
+ r1 -> idle {effect sem = 1;};
+}
+')
+
+forloop(j,1,S, `Slave(j)')
+forloop(j,1,M, `Master(j)')
+
+system async;

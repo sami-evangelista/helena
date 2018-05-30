@@ -1,0 +1,44 @@
+
+default(R, 2)
+default(W, 2)
+default(ERROR, 0)
+
+byte activeR = 0;
+channel start_read, stop_read, start_write, stop_write;
+
+define(reader, `process reader_$1 {
+state idle, reading;
+init idle;
+trans
+ idle -> reading { sync start_read!; },
+ reading -> idle { sync stop_read!; };
+}')
+
+define(writer, `process writer_$1 {
+state idle, writing;
+init idle;
+trans
+ idle -> writing { sync start_write!; },
+ writing -> idle { sync stop_write!; };
+}')
+
+forloop(x,0,decr(R), `reader(x)')
+
+forloop(x,0,decr(W), `writer(x)')
+
+process control {
+state ready, readers_active, writer_active, q_error;
+init ready;
+trans
+ ready -> readers_active { sync start_read?; effect activeR = 1; },
+ readers_active -> readers_active { sync start_read?; effect activeR = activeR + 1; }, 
+ readers_active -> readers_active { guard activeR > 0; sync stop_read?;
+	effect activeR = ifelse(ERROR, 0, `activeR - 1',`1') ; }, 
+ readers_active -> ready { guard activeR == 1; sync stop_read?; effect activeR = 0; },
+ readers_active -> q_error { sync stop_write?; },
+ ready -> writer_active { sync start_write?; },
+ writer_active -> ready { sync stop_write?; },
+ writer_active -> q_error { sync stop_read?; };
+}
+
+system async;

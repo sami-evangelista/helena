@@ -1,0 +1,154 @@
+// Modified driving philosophers
+// N philosophers, K resources, DELTA starving period, 
+// R rounds, MUTEX mutual exclusion, FAIR fairness
+
+default(N,2) dnl 
+default(K,2) dnl
+default(DELTA,10) dnl
+default(R,10) dnl
+default(MUTEX,1) dnl
+default(FAIR,0) dnl
+
+// Arrays used for fairness
+byte request[eval(N*K)];
+byte starvers[eval(N*K)];
+
+// For even i : resource[i] != 0 <=> i-th resource is owned by someone
+//              resource[i+1] == k <=> i-th resource is owned by process k
+byte resources[eval(2*K)];
+
+// Vector of owned resources
+int res0[N];
+
+// Vector of owned resources
+int res1[N];
+
+// Vector of current requests
+int acquiring[N];
+
+// Counts rounds
+int entryRound = 1;
+
+// Phase of a round
+byte phase = 0;
+
+// Counts fired ones
+byte fire = 0;
+
+process round_about {
+int i = 0;
+state reset, begin0, begin1, begin2, begin3, action, end0, end1, end2;
+init reset;
+trans
+  // Initiate data structures
+  reset -> reset {guard i < N; effect res0[i] = -1, res1[i] = -1, acquiring[i] = -1, i = i+1;},
+  reset -> begin0 {guard i == N; effect i = 0, phase = 0;},
+
+  // Update resources
+  begin0 -> begin0 {guard i < eval(2*K); effect resources[i] = 0, i = i+1;},
+  begin0 -> begin1 {guard i == eval(2*K); effect i = 0;},
+  begin1 -> begin1 {guard i < N and res0[i] != -1; 
+                    effect resources[res0[i]*2] = entryRound, resources[res0[i]*2+1] = i, i = i+1;},
+  begin1 -> begin1 {guard i < N and res0[i] == -1; 
+                    effect i = i+1;},
+  begin1 -> begin2 {guard i == N; effect i = 0;},
+  begin2 -> begin2 {guard i < N and res1[i] != -1; 
+                    effect resources[res1[i]*2] = entryRound, resources[res1[i]*2+1] = i, i = i+1;},
+  begin2 -> begin2 {guard i < N and res1[i] == -1; 
+                    effect i = i+1;},
+  begin2 -> action {guard i == N; effect i = 0, phase = 1, fire = 0;},
+
+  // Let every process fires once
+  action -> end0 {guard fire == N; effect fire = 0, phase = 2;},
+
+  // If process holds a resource it is no longer requesting it or starving for it
+  end0 -> end0 {guard i < eval(K) and resources[2*i] != 0;
+                effect request[K*resources[2*i+1]+i] = 0, 
+                       starvers[K*resources[2*i+1]+i] = 0, i = i+1;},
+  end0 -> end0 {guard i < eval(K) and resources[2*i] == 0; 
+	       effect i = i+1;},
+  end0 -> end1 {guard i == eval(K); effect i = 0;},
+
+  // If they are requesting too long they are starving
+  ifelse(FAIR, 1,
+  `
+  end1 -> end1 {guard i < eval(N*K) and request[i] < entryRound - DELTA;
+                effect starvers[i] = request[i], i = i+1;},
+  ',
+  `')  
+  end1 -> end1 {guard i < eval(N*K); effect i = i+1;},
+
+  // If we want to prevent starving, we need to count rounds
+  ifelse(FAIR, 1,   
+  `
+  end1 -> begin0 {guard i == eval(N*K) and fire == N and entryRound != R;
+                  effect phase = 0, entryRound = entryRound + 1, i = 0;},
+  end1 -> end2 {guard entryRound == R;};
+  ',
+  `
+  end1 -> begin0 {guard i == eval(N*K) and fire == N; effect phase = 0, i = 0;};
+  ')
+}
+
+define(phil, `process phil_$1 {
+int i = 0;
+state action, end, mutex;
+init action;
+trans
+
+  // If they can fire (phase == 1), they fire at will :oD
+  // Release resource 
+  action -> end {guard phase == 1 and res0[$1] != -1; 
+                 effect resources[res0[$1]] = 0, resources[res0[$1]+1] = 0,
+                        res0[$1] = res1[$1], res1[$1] = -1, fire = fire + 1;},
+
+  // Request resources
+  forloop(k,0,decr(K),
+  `action -> end {guard phase == 1 and res1[$1] == -1 and acquiring[$1] == -1; 
+                 effect acquiring[$1] = k, fire = fire + 1, request[$1*K+k] = entryRound;},'
+  )
+
+  // Idle
+  action -> end {guard phase == 1; effect fire = fire + 1;},
+
+  // Acquire a resource if it is possible
+  // i.e. anytime if MUTEX == 0 or wisely if MUTEX == 1
+  end -> action {guard phase == 2 and acquiring[$1] == -1; effect fire=fire+1;},
+
+  ifelse(MUTEX, 0, 
+  `
+  end -> action {guard phase == 2 and acquiring[$1] != -1 and res0[$1] == -1;
+	         effect res0[$1] = acquiring[$1], acquiring[$1] = -1, fire = fire + 1;},
+  end -> action {guard phase == 2 and acquiring[$1] != -1 and res0[$1] != -1;
+	         effect res1[$1] = acquiring[$1], acquiring[$1] = -1, fire = fire + 1;};
+  ',`
+  end -> mutex {guard phase == 2 and acquiring[$1] != -1 and fire == $1;},
+  mutex -> mutex {guard i < eval(N) and res0[i] != acquiring[$1] and res1[i] != acquiring[$1];
+ 	 	  effect i = i + 1;},
+  mutex -> action {guard i < eval(N) and (res0[i] == acquiring[$1] or res1[i] == acquiring[$1]);
+                   effect fire = fire + 1, i = i + 1;},
+  mutex -> action {guard i == eval(N) and res0[$1] == -1;
+	           effect res0[$1] = acquiring[$1], acquiring[$1] = -1, fire = fire + 1, i = 0;},
+  mutex -> action {guard i == eval(N) and res0[$1] != -1;
+	         effect res1[$1] = acquiring[$1], acquiring[$1] = -1, fire = fire + 1, i = 0;},
+  end -> action {guard phase == 2 and acquiring[$1] != -1;
+		 effect fire = fire + 1;};
+  ')
+}
+
+')
+forloop(j, 0, decr(N), `phil(j)')
+system async;
+
+
+
+
+
+
+
+
+
+
+
+
+

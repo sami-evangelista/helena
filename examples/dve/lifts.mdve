@@ -1,0 +1,178 @@
+
+default(N,3)
+default(ENV,0)
+
+define(TR,8)
+define(pair, `($1*TR+$2)')
+define(first, ($1/TR))
+define(second, ($1%TR))
+define(STANDBY,0)
+define(DOWN,1)
+define(UP,2)
+define(SYNC,3)
+define(STARTUP,4)
+
+forloop(x,0,decr(N), `channel to_bus_`'x, from_bus_`'x, setref_`'x, up_`'x, down_`'x, release_`'x;
+')
+channel move_up, move_down;
+
+bool relay[N];
+bool atomic;
+
+
+
+define(lift, `process Lift_$1 {
+byte pos, status, nos,m, count;
+state wait, q1, q2, q3, q4, q5, r1, r2, r3, r4, passive, p_msg, p_send, active, a_msg, a_send, error_state, a_move;
+init wait;
+trans
+ // atomic guard have to bee only in global actions concerning relay (do not switch in the middle of broadcast)
+ wait -> q1 { guard atomic==0; sync setref_$1?; effect pos = 0, relay[$1]=1, nos=1; },
+ q1 -> q2 { guard atomic==0; sync to_bus_$1!pair(STARTUP,pos); },
+ q2 -> q3 { guard atomic==0; effect relay[$1] = 0; },
+ q3 -> q4 { sync from_bus_$1?m; },
+ q4 -> q5 { guard first(m) ==STARTUP; effect nos = second(m)+1; },
+ q5 -> passive { guard atomic==0; sync to_bus_$1!pair(STANDBY,pos); },
+
+ wait -> r1 { sync from_bus_$1?m; },
+ r1 -> r2 { guard atomic==0 && first(m) ==STARTUP;  effect pos=second(m)+1, nos = pos+1, relay[$1] = 1;},
+ r2 -> r3 { guard atomic==0; sync to_bus_$1!pair(STARTUP,pos); }, 
+ r3 -> r4 { sync from_bus_$1?m; },
+ r4 -> r3 { guard first(m)== STARTUP; effect nos = second(m)+1;},
+ r4 -> passive { guard first(m)==STANDBY && pos!=1; },
+ r4 -> passive { guard atomic==0&& first(m)==STANDBY && pos==1; sync to_bus_$1!pair(STANDBY,pos); },
+
+ passive -> active { guard atomic==0 ; sync up_$1?; effect status = UP, count=1; },
+ passive -> active { guard atomic==0 ; sync down_$1?; effect status = DOWN, count=1; },
+ active -> passive { guard atomic==0 ; sync release_$1?; effect status = STANDBY; },
+
+ passive -> p_msg { sync from_bus_$1?m; },
+ p_msg -> passive { guard first(m) != SYNC && (second(m)+1)%nos != pos;
+		    effect status = first(m); },
+ p_msg -> p_send { guard first(m) != SYNC && (second(m)+1)%nos == pos;
+		    effect status = first(m); },
+ p_msg -> passive { guard first(m) == SYNC && status == UP && (second(m)+1)%nos != pos ;
+		    sync move_up!; }, 
+ p_msg -> passive { guard first(m) == SYNC && status == DOWN && (second(m)+1)%nos != pos ;
+		    sync move_down!; }, 
+ p_msg -> p_send { guard first(m) == SYNC && status == UP && (second(m)+1)%nos == pos ;
+		    sync move_up!; }, 
+ p_msg -> p_send { guard first(m) == SYNC && status == DOWN && (second(m)+1)%nos == pos ;
+		    sync move_down!; }, 
+ p_send -> passive { sync to_bus_$1!pair(status,pos); },
+
+ p_msg -> error_state { guard atomic==0 && first(m) == SYNC && status == STANDBY; },
+
+ active -> a_msg { sync from_bus_$1?m; },
+ a_msg -> active { guard first(m) == SYNC && status == DOWN;
+		 	sync move_down!; },
+ a_msg -> active { guard first(m) == SYNC && status == UP;
+		 	sync move_up!; },
+
+ a_msg -> active { guard first(m)==status && (second(m)+1)%nos != pos;
+		   effect count = count +1; },
+ a_msg -> active { guard first(m)!=status && (second(m)+1)%nos != pos; }, 
+
+ a_msg -> a_send { guard first(m)==status && (second(m)+1)%nos == pos;
+		   effect count = count +1; },
+ a_msg -> a_send { guard first(m)!=status && (second(m)+1)%nos == pos; },
+
+ a_send -> a_move { guard count == nos;
+			sync to_bus_$1!pair(SYNC,pos);
+			effect count=1;},
+ a_move -> active { guard status == UP; sync move_up!; },
+ a_move -> active { guard status == DOWN; sync move_down!; },
+ a_send -> active { guard count !=nos;
+			sync to_bus_$1!pair(status,pos);
+			effect count=1;}; 
+}
+')
+
+process Bus {
+byte sender, j, m;
+state wait, send_up, send_down;
+init wait;
+trans
+ forloop(x,0,decr(N), ` wait -> send_up { sync to_bus_`'x`'?m; effect sender = x, j = (x+1)%N, atomic = 1; },
+')
+ forloop(x,0,decr(N), ` send_up -> send_up { guard j==x && j != sender && relay[(j+N-1)%N]==1; sync from_bus_`'x`'!m; effect j = (j+1)%N; },
+')
+ send_up -> wait { guard j == sender; effect atomic = 0; },
+ send_up -> send_down { guard j!=sender && relay[(j+N-1)%N]==0; effect j = (sender+N-1)%N; },
+ forloop(x,0,decr(N), ` send_down -> send_down { guard j==x && j != sender && relay[j]==1; sync from_bus_`'x`'!m; effect j = (j+N-1)%N; },
+')
+ send_down -> wait { guard j==sender || relay[j] ==0; effect atomic = 0; }; 
+}
+
+define(env_any, `process Environment {
+state forloop(x,0,decr(N), `pressed_up_`'x, pressed_down_`'x, ') q;
+init q;
+trans
+ forloop(x,0,decr(N), `q -> q { sync setref_`'x`'!; },
+')
+ forloop(x,0,decr(N), `q -> pressed_up_`'x { sync up_`'x`'!; },
+')
+ forloop(x,0,decr(N), `pressed_up_`'x -> q { sync release_`'x`'!; },
+')
+ forloop(x,0,decr(N), `q -> pressed_down_`'x { sync down_`'x`'!; },
+')
+ myloop(x,0,decr(N), `pressed_down_`'x -> q { sync release_`'x`'!; }',`,
+');
+}
+')
+
+define(env_one_setref, `process Environment {
+state in, forloop(x,0,decr(N), `pressed_up_`'x, pressed_down_`'x, ') q;
+init in;
+trans
+ forloop(x,0,decr(N), `in -> q { sync setref_`'x`'!; },
+')
+ forloop(x,0,decr(N), `q -> pressed_up_`'x { sync up_`'x`'!; },
+')
+ forloop(x,0,decr(N), `pressed_up_`'x -> q { sync release_`'x`'!; },
+')
+ forloop(x,0,decr(N), `q -> pressed_down_`'x { sync down_`'x`'!; },
+')
+ myloop(x,0,decr(N), `pressed_down_`'x -> q { sync release_`'x`'!; }',`,
+');
+}
+')
+
+define(env_one_up_down, `process Environment {
+state in, forloop(x,0,decr(N), `pressed_up_`'x, pressed_down_`'x, ') q1, q2, q3;
+init in;
+trans
+ forloop(x,0,decr(N), `in -> q1 { sync setref_`'x`'!; },
+')
+ forloop(x,0,decr(N), `q1 -> pressed_up_`'x { sync up_`'x`'!; },
+')
+ forloop(x,0,decr(N), `pressed_up_`'x -> q2 { sync release_`'x`'!; },
+')
+ forloop(x,0,decr(N), `q2 -> pressed_down_`'x { sync down_`'x`'!; },
+')
+ myloop(x,0,decr(N), `pressed_down_`'x -> q3 { sync release_`'x`'!; }',`,
+');
+}
+')
+
+
+process Wheels {
+byte count;
+state staying, moving_down, moving_up, error_state;
+init staying;
+trans
+ staying -> moving_up { sync move_up?; effect count = 1; },
+ moving_up -> moving_up { guard count < N-1; sync move_up?; effect count = count +1;},
+ moving_up -> staying { guard count == N-1; sync move_up?; },
+ moving_up -> error_state { sync move_down?;},
+
+ staying -> moving_down { sync move_down?; effect count = 1; },
+ moving_down -> moving_down { guard count < N-1; sync move_down?; effect count = count +1;},
+ moving_down -> staying { guard count == N-1; sync move_down?; },
+ moving_down -> error_state { sync move_up?;};
+}
+
+forloop(x,0,decr(N), `lift(x)')
+ifelse(ENV,1, `env_one_setref()', ENV, 2, `env_any()', `env_one_up_down()')
+
+system async;

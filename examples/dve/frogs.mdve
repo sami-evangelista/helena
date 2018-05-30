@@ -1,0 +1,67 @@
+
+default(N,5)
+default(M,3)
+
+//0=free, 1=toad, 2=frog
+
+byte a[eval(N*M)] = {
+ifelse(M,3, `
+forloop(i,1,N, `1,')
+forloop(i,1,eval((N-1)/2),`1,') 0, forloop(i,1,eval((N-1)/2),`2,')
+myloop(i,1,N, `2',`,') 
+',`
+forloop(j,1,eval((M-1)/2),
+ `forloop(i,1,N,`1,')
+')
+forloop(i,1,eval((N-1)/2),`1,') 0, forloop(i,1,eval((N-1)/2),`2,')
+myloop(j,1,eval((M-1)/2),
+ `myloop(i,1,N,`2',`,')',`,
+')
+')
+};
+
+byte x= eval((N-1)/2), y=eval((M-1)/2);
+
+define(pair, (($2)*N+$1))
+
+process Toad {
+state q;
+init q;
+trans
+ q -> q { guard x>0 && a[pair(x-1,y)]==1; effect a[pair(x,y)]=1, a[pair(x-1,y)]=0, x=x-1;},
+ q -> q { guard y>0 && a[pair(x,y-1)]==1; effect a[pair(x,y)]=1, a[pair(x,y-1)]=0, y=y-1;},
+ q -> q { guard x>1 && a[pair(x-1,y)]==2 && a[pair(x-2,y)]==1; effect a[pair(x,y)]=1, a[pair(x-2,y)]=0, x=x-2; },
+ q -> q { guard y>1 && a[pair(x,y-1)]==2 && a[pair(x,y-2)]==1; effect a[pair(x,y)]=1, a[pair(x,y-2)]=0, y=y-2; };
+}
+
+process Frog {
+state q;
+init q;
+trans
+ q -> q { guard x<N-1 && a[pair(x+1,y)]==2; effect a[pair(x,y)]=2, a[pair(x+1,y)]=0, x=x+1;},
+ q -> q { guard y<M-1 && a[pair(x,y+1)]==2; effect a[pair(x,y)]=2, a[pair(x,y+1)]=0, y=y+1;},
+ q -> q { guard x<N-2 && a[pair(x+1,y)]==1 && a[pair(x+2,y)]==2; effect a[pair(x,y)]=2, a[pair(x+2,y)]=0, x=x+2; },
+ q -> q { guard y<M-2 && a[pair(x,y+1)]==1 && a[pair(x,y+2)]==2; effect a[pair(x,y)]=2, a[pair(x,y+2)]=0, y=y+2; };
+}
+
+process Check {
+state not_done, done;
+init not_done;
+trans
+ not_done -> done {
+	guard ifelse(M,3, `
+forloop(i,1,N, `a[eval(i-1)] == 2 and ')
+forloop(i,1,eval((N-1)/2),`a[eval(N+i-1)] == 2 and ')
+forloop(i,1,eval((N-1)/2),`a[eval(N+i+(N-1)/2)] == 1 and ')
+myloop(i,1,N, `a[eval(2*N+i-1)] == 1',` and ') 
+',`
+forloop(j,1,eval((M-1)/2),
+ `forloop(i,1,N,`a[eval((j-1)*N+i-1)] == 2 and ')
+')
+forloop(i,1,eval((N-1)/2),`a[eval((M-1)/2*N +i-1)] == 2 and ') forloop(i,1,eval((N-1)/2),`a[eval(N*(M-1)/2 +i+ (N-1)/2)] == 1 and ')
+myloop(j,1,eval((M-1)/2),
+ `myloop(i,1,N,`a[eval(((M-1)/2 +j)*N+i-1)] == 1',` and ')',` and ')
+'); };
+}
+
+system async;

@@ -1,0 +1,290 @@
+default(MAX_BUFFER,7)dnl
+default(DELAY,2)dnl
+default(MAX_LOSS,1)dnl
+default(TXW_SIZE,4)dnl
+default(RXW_SIZE,TXW_SIZE)dnl
+default(MAX_DATA,9)dnl
+default(DATA_PER_SPM,3)dnl
+default(DATA_PERIOD,9)dnl
+default(RS_SIZE,eval(MAX_LOSS+1))dnl
+default(SPM,3)dnl
+default(ODATA,6)dnl
+default(RDATA,9)dnl
+`const int DELAY='DELAY`; 
+const int TXW_SIZE='TXW_SIZE`; 
+const int RXW_SIZE=TXW_SIZE;
+'dnl 
+
+define(delayed_fifo_init,`channel $1_in, $1_out;
+byte $1_time[$2];
+byte $1_size = 0;
+')dnl
+
+define(delayed_fifo,`process $1 {
+forloop(i,0,decr($3),`byte buf_`'i[$2];
+')dnl
+state forloop(i,1,$3,`q_in_`'i, q_out_`'i, ')q ;
+init q;
+trans
+ q	-> q_in_1 { guard not($1_size == MAX_BUFFER); sync $1_in?buf_0[$1_size];},
+forloop(i,1,decr($3),` q_in_`'i	-> q_in_`'eval(i+1) { sync $1_in?buf_`'i[$1_size];}, 
+')dnl
+ q_in_`'eval($3) -> q	  { effect $1_time[$1_size]=$4, $1_size = $1_size+1;},
+
+ q	-> q_out_1 { guard not($1_size == 0) && $1_time[0]==0;
+		     sync $1_out!buf_0[0];
+		     effect forloop(i,0,eval($2-2),`buf_0[i]=buf_0[`'eval(i+1)], ')buf_0[eval($2-1)]=0;},
+
+forloop(i,1,decr($3),` q_out_`'i   -> q_out_`'eval(i+1) { sync $1_out!buf_`'i[0];
+		     effect forloop(j,0,eval($2-2),`buf_`'i[j]=buf_`'i[`'eval(j+1)], ')buf_`'i[eval($2-1)]=0;}, 
+
+')dnl
+ q_out_`'eval($3) -> q     { effect forloop(j,0,eval($2-2),`$1_time[j]=$1_time[`'eval(j+1)], ')$1_time[eval($2-1)]=0, $1_size=$1_size-1;};
+
+}
+')dnl
+
+define(delayed_fifo_clock_guard,`forloop(i,1,$2, `($1_size<i || $1_time[decr(i)]>0)&&
+')
+')dnl
+
+define(delayed_fifo_clock_effect, 
+`forloop(i,0,decr($2),`$1_time[i]=$1_time[i]-($1_size>i),
+')
+')dnl
+
+delayed_fifo_init(SN, MAX_BUFFER, 3)
+delayed_fifo_init(NS, MAX_BUFFER, 1)
+delayed_fifo_init(NR, MAX_BUFFER, 3)
+delayed_fifo_init(RN, MAX_BUFFER, 1)
+
+byte x=0;	         //hodinky
+
+byte sqn=1;              //sekvencne cislo paketu
+byte c=0;                //counter na SPM pakety
+byte packet;             //prijate NAK cislo
+byte close=1;            //flag na koniec prenosu
+byte TXW_TRAIL=1;        //pakety od jednicky
+byte TXW_LEAD=0;
+byte RXW_LEAD=0;
+byte RXW_TRAIL=1;
+
+process sender {
+state s0, s1, s0_1, s0_2, s0_3, s0_4, s0_5, s0_6, s1_1, s1_2;
+init s0;
+trans 
+  s0   -> s0_1	{ guard sqn<=TXW_LEAD;
+		  sync SN_in!ODATA; }, 
+
+  s0_1 -> s0_2	{ sync SN_in!sqn; },
+
+  s0_2 -> s0	{ sync SN_in!TXW_TRAIL; 
+		  effect sqn=sqn+1; },
+
+  s0   -> s0_3	{ guard c>=DATA_PER_SPM;
+ 		  sync SN_in!SPM; },
+
+  s0_3 -> s0_4	{ sync SN_in!TXW_LEAD; },
+
+  s0_4 -> s0	{ sync SN_in!TXW_TRAIL; 
+		  effect c=0; },
+ 
+  s0   -> s0	{ guard TXW_LEAD-TXW_TRAIL+1<=TXW_SIZE and 
+			TXW_LEAD<MAX_DATA and x>=DATA_PERIOD;
+		  effect TXW_TRAIL=TXW_TRAIL+( 
+			(TXW_LEAD+1-TXW_TRAIL)==TXW_SIZE ),
+			 TXW_LEAD=TXW_LEAD+1, c=c+1, x=0; },
+  
+  s0   -> s0_5	{ guard close and TXW_LEAD==MAX_DATA and
+			 TXW_TRAIL==TXW_LEAD+1;
+			sync SN_in!SPM; },
+
+  s0_5 -> s0_6	{ sync SN_in!TXW_LEAD; },
+
+  s0_6 -> s0	{ sync SN_in!TXW_TRAIL;
+		  effect close=0, c=0; },
+
+  s0   -> s0    { guard  not close and x >= DATA_PERIOD;
+                  effect x=0; },
+
+  s0   -> s0	{ guard not(close and TXW_LEAD==MAX_DATA and
+                        TXW_TRAIL==TXW_LEAD+1) and not(sqn<=TXW_LEAD) and
+                        not(c>=DATA_PER_SPM) and 
+			not(TXW_LEAD-TXW_TRAIL+1<=TXW_SIZE and
+			TXW_LEAD<MAX_DATA and x>=DATA_PERIOD) and
+
+			TXW_TRAIL<TXW_LEAD+1 and TXW_LEAD==MAX_DATA and
+			x>=DATA_PERIOD; 
+		  effect TXW_TRAIL=TXW_TRAIL+1, x=0; },
+								
+  s0   -> s1	{ guard not(close and TXW_LEAD==MAX_DATA and
+                        TXW_TRAIL==TXW_LEAD+1) and not(sqn<=TXW_LEAD) and
+                        not(c>=DATA_PER_SPM) and 
+			not(TXW_LEAD-TXW_TRAIL+1<=TXW_SIZE and
+			TXW_LEAD<MAX_DATA and x>=DATA_PERIOD);
+
+		  sync NS_out?packet; },
+  
+  s1   -> s0	{ guard packet> TXW_LEAD or packet <TXW_TRAIL; },
+
+  s1   -> s1_1	{ guard packet<=TXW_LEAD and packet>=TXW_TRAIL;
+		  sync SN_in!RDATA; },
+
+  s1_1 -> s1_2	{ sync SN_in!packet; },
+
+  s1_2 -> s0	{ sync SN_in!TXW_TRAIL; };
+}
+
+process clock {
+state tick;
+init tick;
+trans
+  tick -> tick { guard x<DATA_PERIOD and
+
+                not(close and TXW_LEAD==MAX_DATA and
+                TXW_TRAIL==TXW_LEAD+1) and not(sqn<=TXW_LEAD) and
+                not(c>=DATA_PER_SPM) and not(TXW_LEAD-TXW_TRAIL+1<=TXW_SIZE
+                and TXW_LEAD<MAX_DATA and x>=DATA_PERIOD) and
+		
+                sender.s0 and element.e0 and receiver.r0 and
+
+delayed_fifo_clock_guard(SN, MAX_BUFFER)
+delayed_fifo_clock_guard(NS, MAX_BUFFER)
+delayed_fifo_clock_guard(RN, MAX_BUFFER)
+delayed_fifo_clock_guard(NR, MAX_BUFFER)
+
+                SN.q and NS.q and RN.q and NR.q;
+
+                effect
+
+delayed_fifo_clock_effect(SN, MAX_BUFFER)
+delayed_fifo_clock_effect(NS, MAX_BUFFER)
+delayed_fifo_clock_effect(NR, MAX_BUFFER)
+delayed_fifo_clock_effect(RN, MAX_BUFFER)
+
+                x=x+1; };
+}
+
+
+process element {
+byte packet;
+byte nloss=0;
+byte i;
+byte rs_len=0;
+byte rs[RS_SIZE];
+byte seq,trail;
+
+state e0, e0_1, e0_2, e1, e_odata, e_odata1, e_odata2,
+ e_rdata, e_rdata1, e_rdata2, e_nak, e_spm, e_spm1, e_spm2;
+init e0;
+trans
+  //prijem paketu
+  e0	  ->	e0_1	{ sync SN_out?packet; },
+  e0_1	  ->	e0_2	{ sync SN_out?seq; },
+  e0_2	  ->	e1	{ sync SN_out?trail; },
+
+  //ODATA pakety
+  e1	  ->	e_odata	{ guard packet==ODATA; },
+  e_odata ->	e_odata1{ sync NR_in!packet; },
+  e_odata1->	e_odata2{ sync NR_in!seq; },
+  e_odata2->	e0	{ sync NR_in!trail; },
+  e_odata ->	e0	{ guard nloss<MAX_LOSS;
+			  effect nloss=nloss+1; },
+
+  //RDATA pakety
+  e1	  ->	e_rdata { guard packet==RDATA;
+			  effect i=0; },
+  e_rdata ->	e0	{ guard i==rs_len; },
+  e_rdata ->	e_rdata1{ guard i<rs_len and rs[i]==seq;
+			  sync NR_in!RDATA; },
+  e_rdata1->	e_rdata2{ sync NR_in!seq; },
+  e_rdata2->	e0	{ sync NR_in!trail;
+			  effect rs[i]=rs[rs_len-1], rs_len=rs_len-1; },
+  e_rdata ->	e_rdata { guard i<rs_len and rs[i]!= seq;
+			  effect i=i+1; },
+
+  //SPM pakety 
+  e1	  ->	e_spm	{ guard packet==SPM;
+			  effect i=0; },
+  e_spm	  ->	e_spm	{ guard i<rs_len and rs[i]>=trail;
+			  effect i=i+1; },
+  e_spm	  ->	e_spm	{ guard i<rs_len and rs[i]< trail;
+			  effect rs[i]=rs[rs_len-1], rs_len=rs_len-1; },
+  e_spm	  ->	e_spm1	{ guard i==rs_len;
+			  sync NR_in!packet; },
+  e_spm1  ->	e_spm2	{ sync NR_in!seq; },
+  e_spm2  ->	e0	{ sync NR_in!trail; },
+
+  //NAK pakety, premenna paket nesie cislo chybajucej spravy
+  e0	  ->	e_nak	{ sync RN_out?packet;
+			  effect i=0; },
+  e_nak	  ->	e_nak	{ guard i<rs_len and rs[i]!=packet;
+			  effect i=i+1; },
+  e_nak	  ->	e0	{ guard i<rs_len and rs[i]==packet; },
+  e_nak	  ->	e0	{ guard i==rs_len;
+			  sync NS_in!packet;
+			  effect rs[rs_len]=packet, rs_len=rs_len+1; };
+}
+
+
+process receiver {
+byte packet, sqn, trail, outloss=0, outdata=0;
+byte RXW[RXW_SIZE];
+
+state r0, r1, r0_1, r0_2, r2, r3, r4, r_trail, r_out, r_tmp;
+init r0;
+trans 
+  r0 	  -> 	r0_1	{ sync NR_out?packet; },
+  r0_1	  ->	r0_2	{ sync NR_out?sqn; },
+  r0_2	  ->	r_trail	{ sync NR_out?trail; },
+
+  r_trail ->	r_out	{ guard RXW_TRAIL<trail; },
+  r_out   ->	r_tmp   { guard RXW_TRAIL<=RXW_LEAD and
+				RXW[RXW_TRAIL%RXW_SIZE];
+			  effect outdata=outdata+1; },
+
+  r_out   ->	r_tmp   { guard RXW_TRAIL<=RXW_LEAD and 
+				not RXW[RXW_TRAIL%RXW_SIZE];
+			  effect outloss=outloss+1; },
+
+  r_out   ->	r_tmp   { guard RXW_TRAIL>RXW_LEAD;
+			  effect outloss=outloss+1,
+			         RXW_LEAD=RXW_LEAD+1; },
+
+  r_tmp   ->	r_trail	{ effect RXW[(RXW_TRAIL)%RXW_SIZE]=0,
+				 RXW_TRAIL=RXW_TRAIL+1; },
+
+  r_trail ->	r3 	{ guard RXW_TRAIL>=trail; },
+
+  r3	  ->	r4	{ guard ((packet==ODATA or packet==RDATA) and
+				  sqn>RXW_LEAD+1) or
+				(packet==SPM and sqn>RXW_LEAD); },
+
+  r4	  ->	r3	{ sync RN_in!RXW_LEAD+1 ;
+			  effect RXW[(RXW_LEAD+1)%RXW_SIZE]=0,
+				 RXW_LEAD=RXW_LEAD+1; },
+
+  r3	  ->	r0	{ guard packet==SPM and sqn<=RXW_LEAD; },
+
+  r3 	  ->	r0	{ guard (packet==ODATA or packet==RDATA) and
+				 RXW_TRAIL<=sqn and sqn<=RXW_LEAD;
+	  		  effect RXW[sqn%RXW_SIZE]=1; },
+
+  r3      ->    r0      { guard  sqn<RXW_TRAIL; },
+
+  r3	  ->	r0	{ guard (packet==ODATA or packet==RDATA) and
+				 sqn==RXW_LEAD+1;
+			  effect RXW[sqn%RXW_SIZE]=1, RXW_LEAD=RXW_LEAD+1; },
+
+  r0	  ->	r0	{ guard RXW_TRAIL<=RXW_LEAD and
+				RXW[RXW_TRAIL%RXW_SIZE];
+			  effect RXW[RXW_TRAIL%RXW_SIZE]=0,
+				 RXW_TRAIL=RXW_TRAIL+1, outdata=outdata+1;};
+}
+
+delayed_fifo(SN, MAX_BUFFER, 3, DELAY)
+delayed_fifo(NS, MAX_BUFFER, 1, DELAY)
+delayed_fifo(NR, MAX_BUFFER, 3, DELAY)
+delayed_fifo(RN, MAX_BUFFER, 1, DELAY)
+
+system async;

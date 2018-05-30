@@ -1,0 +1,75 @@
+
+default(MAX,30)
+default(VERSION,1)
+
+forloop(x,1,MAX, `channel pour_empty`'x, pour_full`'x;
+')
+
+//parametry: cislo lahve, kapacita, poc. obsah
+define(bottle, `process Bottle_$1 {
+state myloop(x,0,$2, `q`'x',`,');
+init q$3;
+trans
+forloop(x,1,$2, ` q`'x -> q0 { sync pour_empty`'x`'!; },
+')
+
+forloop(x,0, decr($2), 
+`forloop(y,incr(x), $2, ` q`'x -> q`'y { sync pour_empty`'eval(y-x)`'?; },
+')
+')
+
+
+forloop(x,1, $2, 
+`forloop(y,0, decr(x), ` q`'x -> q`'y { sync pour_full`'eval(x-y)`'!; },
+')
+')
+
+myloop(x,0,decr($2), ` q`'x -> q$2 { sync pour_full`'eval($2-x)`'?; }',`,
+') ;
+
+}
+')
+
+define(sink, `process Sink {
+state q;
+init q;
+trans
+myloop(x,1,MAX, ` q -> q {sync pour_empty`'x`'?; }', `,
+');
+}
+')
+
+define(source, `process Source {
+state q;
+init q;
+trans
+myloop(x,1,MAX, ` q -> q {sync pour_full`'x`'!; }', `,
+');
+}
+')
+
+ifelse(VERSION, 1, `
+	bottle(1,8,8)
+	bottle(2,5,0)
+	bottle(3,3,0)
+', VERSION, 2, `
+	bottle(1,24,24)
+	bottle(2,13,0)
+	bottle(3,11,0)
+	bottle(4,5,0)
+', VERSION, 3, `
+	bottle(1,7,7)
+	bottle(2,9,0)
+	source()
+	sink()
+', VERSION, 4, `
+	bottle(1,10,0)
+	bottle(2,8,0)
+	bottle(3,14,0)
+	bottle(4,7,0)
+	bottle(5,5,0)
+	source()
+	sink()
+')
+
+system async;

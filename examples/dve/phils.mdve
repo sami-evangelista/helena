@@ -1,0 +1,43 @@
+
+// the basic version, N philosophers
+
+default(N,4) dnl
+default(LEFT,0) dnl
+default(ROOM,0) dnl if >0 then gives capacity of the room
+
+byte fork[N];
+
+ifelse(ROOM,0, `', `byte count;')
+
+
+define(phil, `process phil_$1 {
+state think, one, eat, finish;
+init think;
+trans 
+ think -> one {guard fork[$2] == 0; effect fork[$2] = 1;},
+ one -> eat {guard fork[$3] == 0; effect fork[$3] = 1;},
+ eat -> finish {effect fork[$2] = 0; },
+ finish -> think {effect fork[$3] = 0; };
+}
+
+')
+
+define(phil_room, `process phil_$1 {
+state think, inside, one, eat, finish;
+init think;
+trans
+ think -> inside {guard count < ROOM; effect count = count+1;},
+ inside -> think {effect count = count -1; }, 
+ inside -> one {guard fork[$1] == 0; effect fork[$1] = 1;},
+ one -> eat {guard fork[$2] == 0; effect fork[$2] = 1;},
+ eat -> finish {effect fork[$1] = 0; },
+ finish -> inside {effect fork[$2] = 0; };
+}
+
+')
+
+ifelse(ROOM,0,
+  `ifelse(LEFT,0, `phil(0,0,1)', `phil(0,1,0)') forloop(i, 1, decr(N), `phil(i,i, eval((i+1)%N))')',
+ `forloop(i, 0, decr(N), `phil_room(i, eval((i+1)%N))')')
+
+system async;

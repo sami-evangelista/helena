@@ -1,0 +1,34 @@
+
+default(N,4)
+default(ERROR,0)
+
+//max 16 processes...
+define(M, `ifelse(eval(N<=4),1, 5,
+eval(N<=8),1,6, 7)')
+
+byte turn[M];
+bool b[M];
+bool c[M]; 
+
+define(P, `process P_$1 {
+byte curr=0; 
+state p1, p2, p3, p4, p5, p6, p7, p8, p9, elected;
+init p1;
+trans
+ p1 -> p2 { effect turn[curr] = $1; },
+ p2 -> p3 { ifelse(ERROR,1,`',`guard b[curr] == 0;')},
+ p3 -> p4 { effect b[curr] = 1; },
+ p4 -> p5 { guard turn[curr] != $1; },
+ p5 -> p6 { ifelse(ERROR,2,`',`effect c[curr] = 1;') },
+ p6 -> p7 { effect b[curr] = 0; },
+ p4 -> p8 { guard turn[curr] == $1; },
+ p8 -> p9 { guard curr > 0 && c[curr-1] == 0; },
+ p9 -> elected { },
+ p8 -> p1 { guard curr == 0 || c[curr-1] == 1; effect curr = curr+1; };
+}
+')
+
+
+forloop(x,0,decr(N), `P(x)')
+
+system async;

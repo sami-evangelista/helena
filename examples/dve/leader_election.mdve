@@ -1,0 +1,57 @@
+
+default(N,3)
+default(K,eval(2*N)) // shoudl be >= 2*N
+default(ERROR,0)
+
+define(ONE,1)
+define(TWO,2)
+define(WINNER,0)
+
+define(TR, 30)
+define(pair, `($1*TR+$2)')
+define(first, $1/TR)
+define(second, $1%TR)
+
+forloop(x,0,decr(N), `buffer_channel(ch_`'x,K)
+')
+
+byte nr_leaders;
+
+define(node, `process Node_$1 {
+// $1 my id, $2 next id, $3 my val
+byte max=$3, number, neigh;
+bool know=false, active=true;
+state start, wait, got_msg, q1, q1a, q1n, q2, q2a, q2n, qw, qwcheck;
+init start;
+trans 
+ start -> wait { sync ch_$2_in!pair(ONE,$3); },
+
+ wait -> got_msg { sync ch_$1_out?number; },
+ got_msg -> q1 { guard first(number) == ONE; effect number = second(number); },
+ got_msg -> q2 { guard first(number) == TWO; effect number = second(number); },
+ got_msg -> qwcheck { guard first(number) == WINNER; effect number = second(number); },
+ 
+ q1 -> q1a { guard active; },
+ q1 -> q1n { guard active==false; },
+ q1n -> wait { sync ch_$2_in!pair(ONE,number); },
+ q1a -> wait { guard number != max; sync ch_$2_in!pair(TWO,number); effect neigh = number; },
+ q1a -> wait { guard number == max; sync ch_$2_in!pair(WINNER,number); effect know = true; },
+
+ q2 -> q2a { guard active; },
+ q2 -> q2n { guard active==false; },
+ q2n -> wait { sync ch_$2_in!pair(TWO,number); },
+ q2a -> wait { guard neigh > number ifelse(ERROR,1,`||',`&&') neigh > max; sync ch_$2_in!pair(ONE,neigh); effect max = neigh; },
+ q2a -> wait { guard not (neigh > number ifelse(ERROR,1,`||',`&&') neigh > max); effect active = false; },
+
+ qwcheck -> qw { guard number == $3; effect nr_leaders = nr_leaders+1; }, //I am the leader
+ qwcheck -> qw { guard number != $3;}, 
+ qw -> wait { guard know; },
+ qw -> wait { guard know==false; sync ch_$2_in!pair(WINNER,ifelse(ERROR,2,`max',`number')); };
+
+}
+')
+
+forloop(x,0,decr(N), `node(x,eval((x+1)%N), eval(((x+9)*(x+7)+42)%27))')
+
+
+system async;

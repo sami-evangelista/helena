@@ -1,0 +1,141 @@
+
+define(UNDEF,255)
+
+define(COLD,0)
+define(HOT,1)
+
+define(POLISHED,0)
+define(SMOOTH,1)
+define(ROUGH,2)
+
+define(POLISHER,0)
+define(ROLLER,1)
+define(LATHE,2)
+define(GRINDER,3)
+define(PUNCH,4)
+define(DRILL,5)
+define(SPRAY,6)
+define(IMMERSION,7)
+define(M,8)
+
+default(VERSION,1)
+
+//note: colors: only 0,1, UNDEF
+//note: shape 0 = cylindrical
+//holes: only 0,1, UNDEF (no orientation, width)
+ifelse(VERSION,1,`
+define(N,2)
+byte temperature[N] = { COLD,COLD};
+byte surface[N] = {SMOOTH, SMOOTH};
+byte shape[N] = {1,1}; 
+byte painted[N] = {0,1}; 
+byte hashole[N] = {0,0};
+',VERSION,2,`
+define(N,4)
+byte temperature[N] = { COLD,COLD, COLD, COLD};
+byte surface[N] = {POLISHED, POLISHED, SMOOTH, ROUGH};
+byte shape[N] = {0,1,1,1}; 
+byte painted[N] = {0,0,1,1}; 
+byte hashole[N] = {1,1,1,0};
+',VERSION,3,`
+define(N,3)
+byte temperature[N] = { COLD,COLD, COLD};
+byte surface[N] = {POLISHED,  SMOOTH, ROUGH};
+byte shape[N] = {0,1,1}; 
+byte painted[N] = {0,1,1}; 
+byte hashole[N] = {1,1,0};
+',`')
+
+byte busy[M] = { myloop(x,0,decr(M), `0',`,') };
+byte scheduled[N] = { myloop(x,0,decr(N), `0',`,') };
+byte objscheduled = 0;
+
+process P {
+state q, done;
+init q;
+trans
+ // goal (some rather arbitrary universal 'goal'
+ q -> done { guard shape[1] == 1 and surface[0] == POLISHED and surface[1] == POLISHED and hashole[1] == 1 and shape[0] == 0; },
+
+ // do-polish
+forloop(x,0,decr(N), ` q -> q {
+	guard busy[POLISHER] == 0 && scheduled[x] == 0 && temperature[x] == COLD;
+	effect objscheduled = 1, busy[POLISHER] = 1, scheduled[x] = 1,
+		surface[x] = POLISHED; },
+')
+
+// do-roll
+forloop(x,0,decr(N), ` q -> q {
+	guard busy[ROLLER] == 0 && scheduled[x] == 0; 
+	effect objscheduled = 1, busy[ROLLER] = 1, scheduled[x] = 1,
+		shape[x] = 0, temperature[x] = HOT, painted[x] = UNDEF, hashole[x] = UNDEF, surface[x] = UNDEF; },
+')
+
+// do-lathe
+forloop(x,0,decr(N), ` q -> q {
+	guard busy[LATHE] == 0 && scheduled[x] == 0; 
+	effect objscheduled = 1, busy[LATHE] = 1, scheduled[x] = 1,
+		surface[x] = ROUGH, shape[x] = 0, painted[x] = UNDEF;},
+')
+// do-grind
+forloop(x,0,decr(N), ` q -> q {
+	guard busy[GRINDER] == 0 && scheduled[x] == 0;
+	effect objscheduled = 1, busy[GRINDER] = 1, scheduled[x] = 1,
+		surface[x] = SMOOTH, painted[x] = UNDEF;},
+')
+// do-punch 0
+forloop(x,0,decr(N), ` q -> q {
+	guard busy[PUNCH] == 0 && scheduled[x] == 0 && temperature[x] == COLD && hashole[x] !=0;
+	effect objscheduled = 1, busy[PUNCH] = 1, scheduled[x] = 1,
+		surface[x] = ROUGH,  hashole[x] = 0; },
+')
+// do-punch 1
+forloop(x,0,decr(N), ` q -> q {
+	guard busy[PUNCH] == 0 && scheduled[x] == 0 && temperature[x] == COLD && hashole[x] !=1;
+	effect objscheduled = 1, busy[PUNCH] = 1, scheduled[x] = 1,
+		surface[x] = ROUGH,  hashole[x] = 1; },
+')
+// do-drill 0
+forloop(x,0,decr(N), ` q -> q {
+	guard busy[DRILL] == 0 && scheduled[x] == 0 && temperature[x] == COLD && hashole[x] !=0;
+	effect objscheduled = 1, busy[DRILL] = 1, scheduled[x] = 1,
+		 hashole[x] = 0; },
+')
+// do-drill 1
+forloop(x,0,decr(N), ` q -> q {
+	guard busy[DRILL] == 0 && scheduled[x] == 0 && temperature[x] == COLD && hashole[x] !=1;
+	effect objscheduled = 1, busy[DRILL] = 1, scheduled[x] = 1,
+		 hashole[x] = 1; },
+')
+// do-spray 0
+forloop(x,0,decr(N), ` q -> q {
+	guard busy[SPRAY] == 0 && scheduled[x] == 0 && temperature[x] == COLD; 
+	effect objscheduled = 1, busy[SPRAY] = 1, scheduled[x] = 1,
+		 painted[x] = 0; },
+')
+// do-spray 1
+forloop(x,0,decr(N), ` q -> q {
+	guard busy[SPRAY] == 0 && scheduled[x] == 0 && temperature[x] == COLD; 
+	effect objscheduled = 1, busy[SPRAY] = 1, scheduled[x] = 1,
+		 painted[x] = 1; },
+')
+// do-immersion 0
+forloop(x,0,decr(N), ` q -> q {
+	guard busy[IMMERSION] == 0 && scheduled[x] == 0; 
+	effect objscheduled = 1, busy[IMMERSION] = 1, scheduled[x] = 1,
+		 painted[x] = 0; },
+')
+// do-immersion 1
+forloop(x,0,decr(N), ` q -> q {
+	guard busy[IMMERSION] == 0 && scheduled[x] == 0; 
+	effect objscheduled = 1, busy[IMMERSION] = 1, scheduled[x] = 1,
+		 painted[x] = 1; },
+')
+
+
+ q -> q { guard objscheduled == 1;
+	effect 	forloop(x,0,decr(N),`scheduled[x] = 0,') forloop(x,0,decr(M), `busy[x] = 0,') objscheduled = 0; };
+
+}
+
+system async;

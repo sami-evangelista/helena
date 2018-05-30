@@ -1,0 +1,140 @@
+
+// tip = tree identification protocol
+
+// topology definition
+
+default(T,0)
+
+ifelse(T,0,`
+default(N,3)
+const bool connected[eval(N*N)] = { myloop(i,0,decr(N), `myloop(j,0,decr(N), `eval(i=j+1 ||j=i+1)',`,')',`,') }; 
+',T,1,`
+//fixed acyclic topology with 6 nodes
+define(N,6)
+const bool connected[eval(N*N)] = {
+0, 0, 1, 0, 0, 0,
+0, 0, 1, 0, 0, 0,
+1, 1, 0, 1, 0, 0,
+0, 0, 1, 0, 0, 1,
+0, 0, 0, 0, 0, 1,
+0, 0, 0, 1, 1, 0
+};
+', T,2,`
+//fixed cyclic topology with 6 nodes
+define(N,6)
+const bool connected[eval(N*N)] = {
+0, 0, 1, 0, 0, 0,
+0, 0, 1, 0, 0, 0,
+1, 1, 0, 1, 1, 0,
+0, 0, 1, 0, 0, 1,
+0, 0, 1, 0, 0, 1,
+0, 0, 0, 1, 1, 0
+};
+')
+
+define(pair, `($1*N+$2)')
+define(first, $1/N)
+define(second, $1%N)
+define(adj, `(myloop(y,0,decr(N),`connected[pair($1,y)]', `+'))')
+define(chin, `ch_$1_$2_in')
+define(chout, `ch_$1_$2_out')
+
+// global definitions
+
+bool toss;
+define(BE_MY_PARENT, 1)
+define(BE_MY_CHILD, 2)
+define(ACK, 3)
+byte elected = N;
+byte elected_num = 0;
+
+// lossy channels????
+forloop(y,0,decr(N), `forloop(x,0,decr(N),`async_channel(ch_`'x`_'y)')')
+//forloop(y,0,decr(N), `buffer_channel(ch_`'y,2)')
+
+// process definitions
+
+define(node, `process Node_$1 {
+bool received[N];
+byte j, n, m;
+state 	start, wait_for_request, wait_q, child_handshake, wait_for_acks, wait_ack_q,
+	become_parent, found_partner, found_q, response, response_q, contention, become_child,
+	winner, loser, loser_q, finish, error_st;
+init start;
+trans
+ // start 
+ forloop(x,0, decr(N), `start -> found_partner {
+	guard adj($1) == 1 && connected[pair($1,x)];
+	effect j = x; },
+')
+ start -> wait_for_request {
+	guard adj($1) > 1;
+	effect n = adj($1);},
+
+ // waiting for by my parent requests
+ forloop(x,0,decr(N), ` wait_for_request -> wait_q { guard x != $1; sync chout(x,$1)?m; },
+')
+ wait_q -> error_st {
+	guard first(m) != BE_MY_PARENT || (not connected[pair($1,second(m))]) || received[second(m)] == true;
+ },
+ wait_q -> wait_for_request {
+	guard first(m) == BE_MY_PARENT && connected[pair($1, second(m))] && received[second(m)] == false;
+	effect received[second(m)] = true, n = n-1;
+ },
+ wait_for_request -> child_handshake { guard n <= 1; effect j = 0; },
+
+ // child handshake
+ child_handshake -> child_handshake { guard j<N && not received[j]; effect j = j+1;},
+ forloop(x,0,decr(N), ` child_handshake -> child_handshake {
+	guard x == j && received[j];
+	sync chin($1,x)!pair(BE_MY_CHILD,$1);
+	effect j = j+1;
+ },
+')
+ child_handshake -> wait_for_acks { guard n == 0 && j == N; },
+ forloop(x,0,decr(N), ` child_handshake -> wait_for_acks {
+	guard n == 1 && j == N && connected[pair($1,x)] && (received[x] == false);
+	sync chin($1,x)!pair(BE_MY_PARENT,$1);},
+')
+
+ // wait for ack; od koho jsem dostal budu resit zpetnym nulovanim received
+ forloop(x,0,decr(N), `wait_for_acks -> wait_ack_q { guard x != $1 and received[x] == true; sync chout(x,$1)?m; },
+')
+ wait_ack_q -> error_st { guard first(m) != ACK; }, 
+ wait_ack_q -> wait_for_acks { guard first(m) == ACK; effect received[second(m)] = false; },
+ wait_for_acks -> become_parent { guard myloop(x,0,decr(N), `received[x]', `+') == 0; },
+ become_parent -> finish { guard n == 0; effect elected = $1, elected_num = elected_num+1;},
+ become_parent -> response { guard n == 1; },
+
+ // only one neigh
+ forloop(x,0,decr(N), `found_partner -> response { guard x == j; sync chin($1,x)!pair(BE_MY_PARENT,$1);},
+')
+ forloop(x,0,decr(N), `found_partner -> found_q { guard x != $1; sync chout(x,$1)?m; },
+')
+ found_q -> child_handshake { guard first(m) == BE_MY_PARENT; effect received[second(m)] = true, n = 1;},
+ found_q -> error_st { guard first(m) != BE_MY_PARENT; },
+
+ // response
+ forloop(x,0,decr(N), ` response -> response_q { guard x != $1; sync chout(x,$1)?m; },
+')
+ response_q -> become_child { guard first(m) == BE_MY_CHILD; },
+ forloop(x,0,decr(N), ` become_child -> finish {
+	guard x == second(m);
+	sync chin($1,x)!pair(ACK,$1); },
+')
+ response_q -> contention { guard first(m) == BE_MY_PARENT; },
+ // contention
+ contention -> winner { guard toss == false; effect toss = true;},
+ contention -> loser {guard toss == true; },
+ forloop(x,0,decr(N), ` winner -> response { guard x == second(m); sync chin($1,x)!pair(BE_MY_PARENT, $1); },
+')
+ forloop(x,0,decr(N), `loser -> loser_q { guard x != $1; sync chout(x,$1)?m; },
+')
+ loser_q -> child_handshake { guard first(m) == BE_MY_PARENT; effect received[second(m)] = true, n = 1; };
+
+}
+')
+
+forloop(i,0,decr(N), `node(i)')
+
+system async;

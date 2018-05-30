@@ -1,0 +1,78 @@
+
+default(Persons, 2)
+default(Floors, 3)
+default(Strategy,0)
+
+
+forloop(x,0,decr(Persons), `channel call_`'x, get_in_`'x, get_out_`'x;')
+forloop(x,0,decr(Floors), `queue(floor_queue_`'x, Persons)
+')
+
+byte current = 0;
+
+define(person, `process Person_$1 {
+byte at_floor = 0; 
+state out, waiting, in_elevator;
+init out;
+trans
+
+forloop(x,0,decr(Floors), ` waiting -> in_elevator { guard x != at_floor; sync get_in_$1!x; },
+')
+
+ in_elevator -> out {sync get_out_$1?at_floor; },
+
+ out -> waiting { sync call_$1!at_floor; };
+}
+
+')
+
+forloop(i,0,decr(Persons), `person(i)')
+
+process Servis {
+byte floor, caller;
+state q, r;
+init q;
+trans
+forloop(x,0,decr(Persons), ` q -> r { sync call_`'x`'?floor; effect caller = x; },
+')
+myloop(x,0,decr(Floors), ` r -> q { guard x == floor; effect push(floor_queue_`'x, caller); }', `,
+');
+}
+
+define(one_by_one, `process Elevator {
+byte going_to, serving=0, who;
+state choose_next, move_next, q, transporting;
+init choose_next;
+trans
+forloop(x,0,decr(Floors), ` choose_next -> choose_next {
+	guard x == serving && empty(floor_queue_`'x) && (myloop(y,0,decr(Floors), `not(empty(floor_queue_`'y))', ` or '));
+	effect serving = (serving +1) % Floors; },
+')
+forloop(x,0,decr(Floors), ` choose_next -> move_next { guard x == serving && (not (empty(floor_queue_`'x))); },
+')
+
+move_next -> move_next { guard serving < current; effect current = current - 1; },
+ move_next -> move_next { guard serving > current; effect current = current + 1; },
+forloop(x,0,decr(Floors), ` move_next -> q {
+	guard serving == current && x == current;
+	effect who = front(floor_queue_`'x), pop_front(floor_queue_`'x);},
+')
+forloop(x,0,decr(Persons), ` q -> transporting {
+	guard x == who; 
+	sync get_in_`'x`'?going_to;},
+')
+
+forloop(x, 0, decr(Persons), ` transporting -> choose_next {
+	guard x == who &&  going_to == current;
+	sync get_out_`'x`'!current;
+	effect going_to = 0, who = 0
+	ifelse($1,1, `, serving = current', $1, 2, `, serving = (current+1)%Floors') ; },
+')
+ transporting -> transporting { guard going_to < current; effect current = current - 1; },
+ transporting -> transporting { guard going_to > current; effect current = current + 1; }; 
+}
+')
+
+one_by_one(Strategy)
+
+system async;

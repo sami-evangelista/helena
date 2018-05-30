@@ -2,28 +2,26 @@
 
 [ -z "$OAR_NODEFILE" ] && echo "not in an OAR job" && exit 1
 
-C5="collision.5;16-32;12;27;27"
-FT6="firewire_tree.6;20-40;12;26;26"
-FT7="firewire_tree.7;20-40;12;26;26"
-FT7_2="firewire_tree.7;40-80;14;26;26"
-LE6="leader_election.6;20-40;16;26;26"
-LE7="leader_election.7;20-40;16;26;26"
-LE7_2="leader_election.7;30-60;21;26;26"
-L9="lifts.9;16-32;20;27;27"
-BRP9="brp.8;1-1000;22;27;27"
-S9="synapse.9;12-24;18;28;27"
+#C5="collision.5;16-32;12;25;8"
+FT6="firewire_tree.6;20-40;12;24;4"
+#FT7="firewire_tree.7;20-40;12;24;8"
+#FT7_2="firewire_tree.7;40-80;14;24;8"
+LE6="leader_election.6;20-40;16;24;4"
+#LE7="leader_election.7;20-40;16;24;8"
+#LE7_2="leader_election.7;30-60;21;24;8"
+L9="lifts.9;16-32;20;25;8"
+#BRP9="brp.8;1-1000;22;25;8"
+#S9="synapse.9;12-24;18;25;12"
 
-MODELS="$C5 $FT6 $FT7 $FT7_2 $LE6 $LE7 $LE7_2 $L9 $BRP9 $S9"
+MODELS="$C5 $FT6 $FT7 $LE6 $LE7 $L9 $BRP9 $S9"
 
-SINGLE_BUFFER_SIZES="64000"
+BUFFER_SIZE=64000
 
-NODES=$(seq 64 -4 8)
+NODES=$(seq 64 -4 4)
 
-PROCS_PER_NODE="4"
+PROCS=4
 
 REPETITION=2
-
-COMP_MODES="C DC"
 
 mf=machinefile-$OAR_JOBID
 helena="helena -g=no-report -A=DBFS -N=EXPLORE -mf=$mf"
@@ -33,59 +31,37 @@ mkdir -p $outDir &> /dev/null
 
 for n in $NODES
 do
-    for p in $PROCS_PER_NODE
+    sort -u $OAR_NODEFILE | head -$n > $mf
+    [ $(cat $mf | wc -l) -lt $n ] && \
+        echo "not enough nodes for n=$n" && continue
+    for mod in $MODELS
     do
-	sort -u $OAR_NODEFILE | head -$n > $mf
-	[ $(cat $mf | wc -l) -lt $n ] && \
-	    echo "not enough nodes for n=$n" && continue
-	for mrcbt in $MODELS
+	m=$(echo $mod | cut -d";" -f1)
+        r=$(echo $mod | cut -d";" -f2)
+	cb=$(echo $mod | cut -d";" -f3)
+        t=$(echo $mod | cut -d";" -f4)
+        nmin=$(echo $mod | cut -d";" -f5)
+        [ $nmin -gt $n ] && continue
+	dve="../examples/beem/$m.dve"
+        bs=$(((n * PROCS - 1) * BUFFER_SIZE))
+        [ $bs -gt 100000000 ] && continue
+	for c in C DC
 	do
-	    m=$(echo $mrcbt | cut -d";" -f1)
-            r=$(echo $mrcbt | cut -d";" -f2)
-	    cb=$(echo $mrcbt | cut -d";" -f3)
-            tc=$(echo $mrcbt | cut -d";" -f4)
-            tnc=$(echo $mrcbt | cut -d";" -f5)
-	    dve="../examples/beem/$m.dve"
-	    for b in $SINGLE_BUFFER_SIZES
+            baseCmd="$helena -np=$PROCS -t=$t -cb=$cb -ccs=$r"
+            dir=$outDir/$m/$r/$n/$c
+            mkdir -p $dir &> /dev/null
+	    for i in $(seq -w 1 $REPETITION)
 	    do
-		bs=$(((n * p - 1) * $b))
-		[ $bs -gt 100000000 ] && continue
-		for c in $COMP_MODES
-		do
-                    if [ "$c" = "NC" ]
-                    then
-                        t=$tnc
-                        copt=""
-                    else
-                        t=$tc
-                        copt="-$c"
-                    fi
-                    q=$p
-                    while [ $q -gt 1 ]
-                    do
-                        t=$((t - 1))
-                        q=$((q / 2))
-                    done
-                    baseCmd="$helena -np=$p -t=$t -cb=$cb -ccs=$r"
-                    dir=$outDir/$m/$r/$n/$p/$b/$c
-                    mkdir -p $dir &> /dev/null
-		    for i in $(seq -w 1 $REPETITION)
-		    do
-			xml=$dir/$i.xml
-                        out=$dir/$i.out
-                        while [ ! -e $xml ]
-                        do
-                            echo "***** $m, $n nodes, $p procs, b=$b, m=$c *****"
-			    cmd="$baseCmd $copt -o=$xml -bs=$bs $dve"
-			    echo $cmd
-			    eval $cmd | tee $out
-                        done
-		    done
-		done
-	    done
-	done
-	rm $mf
+		xml=$dir/$i.xml
+                out=$dir/$i.out
+                echo "***** $m, $n nodes, $PROCS procs, m=$c *****"
+		cmd="$baseCmd -$c -o=$xml -bs=$bs $dve"
+		echo $cmd
+		eval $cmd | tee $out
+            done
+       	done
     done
+    rm $mf
 done
 
 exit 0

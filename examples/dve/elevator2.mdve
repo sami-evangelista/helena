@@ -1,0 +1,63 @@
+default(N,2)
+byte req[N];
+int t,p;
+byte v;
+
+process cabin
+{
+  state idle,mov,open;
+  init idle;
+  trans
+	idle -> mov  {guard v>0;},
+	mov -> open  {guard t==p;},
+	mov -> mov   {guard t<p; effect p=p-1;},
+	mov -> mov   {guard t>p; effect p=p+1;},
+	open -> idle {effect req[p]=0,v=0;}
+  ;
+}
+
+process environment 
+{
+  state read;
+  init read;
+  trans
+myloop(i,0,decr(N), `	read -> read {guard req[i]==0; effect req[i]=1;}',`,
+')
+  ;
+}
+define(clever,`process controller
+{
+  byte ldir;
+  state wait,work,done;
+  init wait;
+  trans
+    wait -> work {guard v==0; effect t=t+(2*ldir)-1;},
+    work -> wait {guard t<0 || t==N; effect ldir=1-ldir;},
+    work -> done {guard t>=0 && t<N && req[t]==1;},
+    work -> work {guard t>=0 && t<N && req[t]==0; effect t=t+(2*ldir)-1;},
+    done -> wait {effect v=1;}
+  ;
+}')
+define(naive,`process controller
+{
+  state wait,work,done;
+  init wait;
+  trans
+    wait -> work {guard v==0;},
+myloop(z,0,decr(N),`    work -> done {guard req[z]==1; effect t=z;},',`
+')
+    done -> wait {effect v=1;}
+  ;
+}')
+ifdef(`CONTROL',`CONTROL',`clever')
+
+system async;
+
+
+
+
+
+
+
+
+

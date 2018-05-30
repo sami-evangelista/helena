@@ -1,0 +1,110 @@
+
+default(N,1)
+default(MAX,0)
+
+define(EMPTY,255)
+
+forloop(x,0,decr(N), `channel plt_belt_`'x, plt_table_`'x, plt_press_`'x, plt_deposit_`'x;
+')
+channel new_plate, sen, read, put_table, get_table, put_press, get_press, put_deposit;
+
+byte done = 0;
+
+define(plate, `process Plate_$1 {
+state new, wait_belt, wait_table, wait_press, wait_deposit;
+init new;
+trans
+ new -> wait_belt { sync new_plate!$1; },
+ wait_belt -> wait_table { sync plt_belt_$1!;},
+ wait_table -> wait_press { sync plt_table_$1!; },
+ wait_press -> wait_deposit { sync plt_press_$1!; },
+ ifelse(MAX,0,`wait_deposit -> new { sync plt_deposit_$1!; };
+', `wait_deposit -> new { guard done <MAX; sync plt_deposit_$1!; effect done = done +1; };
+')
+}
+')
+
+forloop(x,0,decr(N), `plate(x)')
+
+process Belt {
+byte k;
+state wait, got_new, q1, q2 ;
+init wait;
+trans
+ wait -> got_new { sync new_plate?k; },
+ got_new -> q1 { sync sen!; },
+ forloop(x,0,decr(N), `q1 -> q2 { guard k==x; sync plt_belt_`'x`'?; },
+')
+ q2 -> wait { sync put_table!k; };
+}
+
+process Sensor {
+byte count=0;
+state q;
+init q;
+trans
+ q -> q { sync sen?; effect count = count+1;},
+ q -> q { guard count >0; sync read!; effect count = count -1; };
+}
+
+process Table {
+byte k;
+state down_empty, down_full, up_empty, up_full;
+init down_empty;
+trans 
+ down_empty -> down_full { sync put_table?k; },
+ forloop(x,0,decr(N), ` down_full -> up_full { guard k==x; sync plt_table_`'x`'?; },
+')
+ up_full -> up_empty { sync get_table!k; },
+ up_empty -> down_empty {};
+}
+
+process Press {
+byte k;
+state wait, pressing, done;
+init wait;
+trans
+ wait -> pressing { sync put_press?k; },
+ forloop(x,0,decr(N), ` pressing -> done { guard k==x; sync plt_press_`'x`'?; },
+')
+ done -> wait {sync get_press!k; };
+}
+
+process Deposit {
+byte k;
+state wait, loaded;
+init wait;
+trans
+ forloop(x,0,decr(N), ` loaded -> wait { guard k==x; sync plt_deposit_`'x`'?; },
+')
+ wait -> loaded { sync put_deposit?k; };
+}
+
+process Robot {
+bool at_press=0, at_table=0;
+byte A = EMPTY, B = EMPTY;
+state Atable, Bpress, wait, Apress, Bdeposit;
+init wait;
+trans
+ //pohyb smerem k Atable ma prioritu (aby mi to nemohlo cyklit)
+ Atable -> Atable { guard at_table==1 && A==EMPTY; sync get_table?A; effect at_table=0;},
+ Atable -> Bpress { guard A !=EMPTY; },
+
+ Bpress -> Bpress { guard B==EMPTY && at_press==1; sync get_press?B; effect at_press=0; },
+ Bpress -> Atable { guard A==EMPTY && at_table==1;},
+ Bpress -> wait { guard (A!=EMPTY && at_press==0) || (B!=EMPTY && (A!=EMPTY || at_table==0)); },
+
+ wait -> Bpress { guard (B==EMPTY && at_press==1) || (A==EMPTY && at_table==1);},
+ wait -> wait { guard at_table==0; sync read?; effect at_table = 1;},
+ wait -> Apress { guard (A!=EMPTY && at_press==0) || B!=EMPTY; }, 
+
+ Apress -> Apress { guard A!=EMPTY && at_press==0; sync put_press!A; effect A=EMPTY, at_press=1;},
+ Apress -> Bdeposit { guard B!=EMPTY; },
+ Apress -> wait { guard (A==EMPTY || at_press==1) && B==EMPTY; },
+
+ Bdeposit -> Bdeposit { guard B!=EMPTY; sync put_deposit!B; effect B=EMPTY; },
+ Bdeposit -> Apress { guard B==EMPTY; };
+
+}
+
+system async;

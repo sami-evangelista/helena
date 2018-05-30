@@ -1,0 +1,337 @@
+
+default(N,2)
+default(APPLICATION,0)
+
+//const byte NO_OP = 100;
+//const byte BROADREC = 101;
+//const byte HOLD = 102;
+//const byte GOOD = 103;
+//const byte DCR_ERR = 104;
+//const byte ACKREC = 105 ;
+//const byte ACKMISS = 106;
+//const byte RELEASE = 107;
+//const byte FAIR = 108 ;
+//const byte IMMEDIATE = 109;
+//const byte WON = 110;
+//const byte LOST = 111;
+//const byte ACKSIG = 112 ;
+//const byte ACKSIG_COR = 113;
+//const byte HEADERSIG = 114;
+//const byte HEADERSIG_COR = 115 ;
+//const byte DATASIG = 116;
+//const byte DATASIG_COR = 117;
+//const byte DHEAD = 118 ;
+//const byte START = 119 ;
+//const byte ENDS = 120;
+//const byte PREFIX = 121 ;
+//const byte SUBACTGAB = 122 ;
+//const byte DUMMY = 123;
+//const byte BROADSENT = 124;
+
+define(NO_OP,100)
+define(BROADREC,101)
+define(HOLD,102)
+define(GOOD,103)
+define(DCR_ERR,104)
+define(ACKREC,105 )
+define(ACKMISS,106)
+define(RELEASE,107)
+define(FAIR,108 )
+define(IMMEDIATE,109)
+define(WON,110)
+define(LOST,111)
+define(ACKSIG,112)
+define(ACKSIG_COR,113)
+define(HEADERSIG,114)
+define(HEADERSIG_COR,115)
+define(DATASIG,116)
+define(DATASIG_COR,117)
+define(DHEAD,118)
+define(START,119)
+define(ENDS,120)
+define(PREFIX,121)
+define(SUBACTGAB,122)
+define(DUMMY,123)
+define(BROADSENT,124)
+
+// inline functions
+define(`is_physic', `$1 == START || $1 == ENDS || $1 == SUBACTGAB')
+define(`is_dest', `$1<100')
+define(`is_empty', myloop(x,0,decr(N), `$1[x] == 0', ` && '))
+define(`last_one', `( myloop(x,0,decr(N), `$1[x]', ` + ') == 1 )')
+
+// channel definitions
+forloop(i, 0, decr(N), `channel `LDreq_'i, `LDres_'i, `LDcon_'i, `LDind_'i, `TX_'i, `PDreq_'i, `PDind_'i, `PAreq_'i, `PAcon_'i, `PCind_'i, `TDreq_'i ;
+')
+
+// definitions of parametrized processes
+define(transreq, `process Transreq_$1 {
+byte m;
+state idle, got_msg, concatenated_tr, split_tr;
+init idle;
+trans
+ idle -> got_msg { sync LDind_$1?m; },
+ got_msg -> idle { guard m == BROADREC; sync LDres_$1!NO_OP; },
+ got_msg -> concatenated_tr { sync TX_$1?; },
+ got_msg -> split_tr { },
+ concatenated_tr -> idle { sync LDres_$1!HOLD; },
+ split_tr -> idle { sync LDres_$1!RELEASE;};
+}
+
+')
+
+define(transres, `process Transres_$1 {
+byte dest, m;
+state idle, got_req, q, wait_ack, wait_q;
+init idle;
+trans
+ idle -> got_req { sync TDreq_$1?dest; },
+ got_req -> q { sync TX_$1!;},
+ got_req -> q {},
+ q -> wait_ack { sync LDreq_$1!dest; },
+ wait_ack -> wait_q { sync  LDcon_$1?m; },
+ wait_q -> idle { guard m == BROADSENT && dest == N; },
+ wait_q -> idle { guard m == ACKREC && dest < N; }, 
+ wait_q -> idle { guard m == ACKMISS && dest < N; };
+}
+
+')
+
+define(link, `process Link_$1 {
+int buf = -1;
+byte dest, m, m2, data;
+state   link0, link0r, link0a, link0i,
+	link2req, q1, s1, q2, s2, q3, s3, q4, s4, q5, s5, q6, s6,
+	link3, link3q, link3A, link3Aq, link3RE, link3REq1, link3REq2,
+	linkWSA,linkWSAq, linkWSAa1, linkWSAa2,
+	link4, link4q, link4DH, link4DHq, link4RH, link4RHq, link4RD, link4RDq,
+	link4RE, link4REq, link4DRec, link4BRec, link4DRecq, link4DRecq2,
+	link5, p1, p2, link6, p3, p4, p5, p6, link7;
+init link0;
+trans
+ // idle mode -- Link 0
+ link0 -> link0r { sync LDreq_$1?buf; },
+ link0r -> link0 { sync PAreq_$1!FAIR; },
+
+ link0 -> link0a { sync PAcon_$1?m; }, 
+ link0a -> link0 { guard m == LOST; }, 
+ link0a -> link2req { guard m == WON; effect dest = buf; },
+
+ link0 -> link0i { sync PDind_$1?m; },
+ link0i -> link0 { guard m != START; },
+ link0i -> link4 { guard m == START; },
+
+ // send mode -- Link2, link 3
+ link2req -> q1 { sync PCind_$1?; },
+ q1 -> s1 { sync PDreq_$1!START; },
+ s1 -> q2 { sync PCind_$1?;},
+ q2 -> s2 { sync PDreq_$1!DHEAD; },
+ s2 -> q3 { sync PCind_$1?;},
+ q3 -> s3 { sync PDreq_$1!dest; },
+ s3 -> q4 { sync PCind_$1?;},
+ q4 -> s4 { sync PDreq_$1!HEADERSIG; },
+ s4 -> q5 { sync PCind_$1?;},
+ q5 -> s5 { sync PDreq_$1!DATASIG; },
+ s5 -> q6 { sync PCind_$1?;},
+ q6 -> s6 { sync PDreq_$1!ENDS; },
+ s6 -> link0 { guard dest == N; sync LDcon_$1!BROADSENT; effect buf = -1; }, // broadcast, finished
+ s6 -> link3 { guard dest < N; }, // not a broadcast
+
+ link3 -> link3q { sync PDind_$1?m; },
+ link3q -> link3 { guard m == PREFIX; },
+ link3q -> link0 { guard m == SUBACTGAB; sync LDcon_$1!ACKMISS; },
+ link3q -> link3A { guard m == START; }, 
+ link3q -> linkWSA { guard m != SUBACTGAB && m != PREFIX && m != START; sync LDcon_$1!ACKMISS; effect dest = N;},
+
+ link3A -> link3Aq { sync PDind_$1?m; },
+ link3Aq -> linkWSA { guard is_physic(m); sync LDcon_$1!ACKMISS; effect dest = N;},
+ link3Aq -> link3RE { guard not(is_physic(m)); },
+
+ link3RE -> link3REq1 { sync PDind_$1?m2;},
+ link3REq1 -> link3REq2 { guard m == ACKSIG && (m2 == PREFIX || m2 == ENDS); sync LDcon_$1!ACKREC; },
+ link3REq1 -> link3REq2 { guard not (m == ACKSIG && (m2 == PREFIX || m2 == ENDS)); sync LDcon_$1!ACKMISS; },
+ link3REq2 -> link0 { guard m2 == SUBACTGAB; },
+ link3REq2 -> linkWSA { guard m2 != SUBACTGAB; effect dest= N;},
+
+ // Waiting for Subaction gab -- linkWSA
+
+ linkWSA -> linkWSAq { sync PDind_$1?m;},
+ linkWSAq -> linkWSA { guard m != SUBACTGAB; },
+ linkWSAq -> link0 { guard m == SUBACTGAB;},
+
+ linkWSA -> linkWSAa1 { guard dest == $1; sync PAcon_$1?m; },
+ linkWSAa1 -> linkWSAa2 { guard m == WON; sync PCind_$1?; },
+ linkWSAa2 -> link0 { sync PDreq_$1!ENDS; },
+
+  //receiving mode -- link4
+
+ link4 -> link4q { sync PDind_$1?m; },
+ link4q -> link0 { guard m == SUBACTGAB; },
+ link4q -> linkWSA { guard is_physic(m); effect dest = N; },
+ link4q -> link4DH { guard m != SUBACTGAB && not(is_physic(m));  },
+
+ link4DH -> link4DHq { sync PDind_$1?dest; },
+ link4DHq -> link0 { guard dest == SUBACTGAB; },
+ link4DHq -> link4RH {guard dest == $1; sync PAreq_$1!IMMEDIATE; }, // is destination & for me
+ link4DHq -> link4RH {guard dest == N; },
+ link4DHq -> linkWSA { guard dest != SUBACTGAB && dest != $1 && dest != N; effect dest = N; },
+
+ link4RH -> link4RHq { sync PDind_$1?m; },
+ link4RHq -> link4RD { guard m == HEADERSIG; },
+ link4RHq -> linkWSA { guard m != HEADERSIG; }, // dest stay same
+
+ link4RD -> link4RDq { sync PDind_$1?data;},
+ link4RDq -> link4RE { guard data == DATASIG || data == DATASIG_COR; },
+ link4RDq -> linkWSA { guard not(data == DATASIG || data == DATASIG_COR); },
+
+ link4RE -> link4REq { sync PDind_$1?m; },
+ link4REq -> link4DRec { guard (m == ENDS || m == PREFIX) && dest == $1; },
+ link4REq -> link4BRec { guard (m == ENDS || m == PREFIX) && dest == N; },
+ link4REq -> linkWSA { guard not(m == ENDS || m == PREFIX); },
+
+ link4BRec -> link0 { guard data == DATASIG; sync LDind_$1!BROADREC; },
+ link4BRec -> link0 { guard data != DATASIG;},
+
+ link4DRec -> link4DRecq {guard data == DATASIG; sync LDind_$1!GOOD; },
+ link4DRec -> link4DRecq {guard data == DATASIG_COR; sync LDind_$1!DCR_ERR; },
+ link4DRecq -> link4DRecq2 { sync PAcon_$1?m; },
+ link4DRecq2 -> link5 { guard m == WON;},
+
+  //sending ack mode -- link5,6,7
+
+ link5 -> p1 { sync PCind_$1?;},
+ p1 -> link5 {sync PDreq_$1!PREFIX; },
+ link5 -> link6 { sync LDres_$1?m; },
+
+ link6 -> p2 { sync PCind_$1?; },
+ p2 -> p3 { sync PDreq_$1!START; },
+ p3 -> p4 { sync PCind_$1?;},
+ p4 -> p5 { sync PDreq_$1!ACKSIG;},
+ p5 -> link0 { guard m == RELEASE; sync PDreq_$1!ENDS; },
+ p5 -> link7 { guard m != RELEASE; sync PDreq_$1!PREFIX; },
+
+ link7 -> p6 { sync PCind_$1?; },
+ p6 -> link7 { sync PDreq_$1!PREFIX; },
+
+ link7 -> link2req { sync LDreq_$1?dest;};
+}
+')
+
+forloop(i, 0, decr(N), `transreq(i) transres(i) link(i) ')
+
+process Bus {
+bool t[N], destfault[N], next[N]; // to vsecno by mohly byt bitvectory!!!
+byte i, j, m, busy;
+state   idle, arbresgab, idleq, bus_busy, busyq, sub_action_gab, get_next_packet,
+	resolve, resolveq, resolve2, resolve2q,
+	distribute, distributeq, dest_cor, data_dummy;
+init idle;
+trans
+ idle -> arbresgab { guard not(is_empty(t)); },
+ arbresgab -> idle { effect myloop(x,0,decr(N), `t[x] = 0', `,'); },
+
+//tady ty forloop musim pouzivat, protoze neumime pole channelu
+ forloop(x, 0, decr(N),  `idle -> idleq { sync PAreq_`'x`'?m; effect i = x; },
+')
+
+ forloop(x, 0, decr(N), `idleq -> idle { guard i==x && t[i] == 1; sync PAcon_`'x`'!LOST;},
+')
+
+ forloop(x, 0, decr(N), `idleq -> bus_busy { guard i==x && t[i] == 0; sync PAcon_`'x`'!WON; effect t[i] = 1, busy = i;},
+')
+
+ forloop(x,0, decr(N), `bus_busy -> busyq { sync PAreq_`'x`'?m; effect i = x;},
+')
+ forloop(x,0,decr(N), `busyq -> bus_busy { guard m == FAIR && i == x; sync PAcon_`'x`'!LOST; },
+')
+ busyq -> bus_busy { guard m == IMMEDIATE; effect next[i] = 1;},
+
+ forloop(x,0,decr(N), `bus_busy -> get_next_packet { guard busy == x; sync PCind_`'x`'!;},
+')
+
+ forloop(x,0,decr(N), `get_next_packet -> distribute { guard busy == x; sync PDreq_`'x`'?m; effect j = 0;},
+')
+
+ distribute -> distribute { guard j == busy; effect j = j + 1; },
+
+ forloop(x,0, decr(N), `distribute -> distributeq { guard x == j; sync PAreq_`'x`'?m; },
+')
+ forloop(x,0,decr(N), `distributeq -> distribute { guard m == FAIR && j == x; sync PAcon_`'x`'!LOST; },
+')
+ distributeq -> distribute { guard m == IMMEDIATE; effect next[j] = 1;},
+
+ forloop(x,0,decr(N), `distribute -> distribute { guard x == j && not(m == HEADERSIG && destfault[j] == 1); sync PDind_`'x`'!m; effect j = j+1; },
+')
+
+ forloop(x,0,decr(N), `distribute -> data_dummy { guard x == j && m == DATASIG; sync PDind_`'x`'!m;},
+')
+ forloop(x,0,decr(N), `data_dummy -> distribute { guard x == j; sync PDind_`'x`'!DUMMY; effect j = j+1; },
+')
+
+ forloop(x,0,decr(N), `distribute -> distribute { guard x == j && m == DATASIG; sync PDind_`'x`'!DATASIG_COR; effect j = j +1; }, 
+') // data corruption
+
+ forloop(x,0,decr(N), `distribute -> distribute { guard x == j && m == HEADERSIG; sync PDind_`'x`'!HEADERSIG_COR; effect j = j +1; },
+') // header corruption
+
+forloop(x,0,decr(N), `distribute -> distribute { guard x == j && m == ACKSIG; sync PDind_`'x`'!ACKSIG_COR; effect j = j +1; },
+') // ack corruption
+
+// tady jsem neco 'slepe' doplnil (prvni dve podminky)
+forloop(x,0,decr(N), `distribute -> dest_cor { guard j!=busy && j<N && is_dest(m); effect destfault[j] = 1, i = x; },
+')
+forloop(x,0,decr(N), `dest_cor -> distribute {guard x == j; sync PDind_`'x`'!i; effect j = j+1;},
+')
+
+ distribute -> bus_busy { guard j == N && m != ENDS; },
+ distribute -> bus_busy { guard j == N && m == ENDS; effect busy = N; }, 
+
+ bus_busy -> sub_action_gab { guard busy == N && is_empty(next); effect j = 0;},
+ bus_busy -> resolve { guard busy == N && not(is_empty(next)); effect j = 0;},
+ resolve -> resolve { guard j< N && next[j] == 0; effect j = j+1; },
+forloop(x,0,decr(N), ` resolve -> resolveq { guard x == j && next[j] == 1; sync PAcon_`'x`'!WON; },
+')
+forloop(x,0,decr(N), ` resolveq -> resolve { guard x == j; sync PCind_`'x`'!; effect j = j+1;},
+')
+ resolve -> resolve2 {guard j == N; },
+
+forloop(x,0,decr(N), ` resolve2 -> resolve2q { sync PDreq_`'x`'?m; effect j = x; },
+')
+ resolve2q -> resolve {guard not((is_empty(next)) || last_one(next)) && m != ENDS; },
+ resolve2q -> resolve {guard not((is_empty(next)) || last_one(next)) && m == ENDS; effect next[j] = 0; },
+ resolve2q -> sub_action_gab { guard last_one(next) && m == ENDS; effect next[j] = 0, j =0;},
+// tady jsem doplnil busy = j
+ resolve2q -> distribute { guard last_one(next) && m != ENDS; effect busy = j, next[j] = 0, j= 0;},
+
+forloop(x,0,decr(N), `sub_action_gab -> sub_action_gab {guard x ==  j; sync PDind_`'x`'!SUBACTGAB; effect j = j+1; },
+')
+ sub_action_gab -> idle { guard j == N; };
+
+}
+
+define(app_once, `process Application_$1 {
+state q, r;
+init q;
+trans
+ q -> r { sync TDreq_$1!$2; };
+}
+')
+
+define(app_any, `process Application {
+byte i;
+state q, r;
+init q;
+trans
+ forloop(x,0,N,`q -> r  { effect i = x; },
+')
+ myloop(x,0,decr(N), `r -> q { guard i != x; sync TDreq_`'x`'!i; }',`,
+')
+;
+}
+')
+
+ifelse(	APPLICATION, 0, `app_once(0,1)',
+	APPLICATION, 1, `forloop(x,0, decr(N), `app_once(x,eval((x+1)%N))')',
+	`app_any')
+
+system async;

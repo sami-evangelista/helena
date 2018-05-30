@@ -1,0 +1,113 @@
+
+// model hry Exit
+// zjednodusujici predpoklady :
+// 	- diskretni cas (po 15 min): za jeden tick muze kazdy clovek udelat jednu akci
+//	- ukoly u pocitace se muzou resit jen ve Studovne, ale odesilat kody odkudkoli
+//	- neuvazuju ukoly parnicek a mapa s chybou
+//	- nekontroluju, ze tym je cely pohromade
+
+define(MOVE, `guard done[$1]==0; effect done[$1]=1;')
+define(TASK, `guard done[$1]==0 and solved[$2]==0 and time >= $3 and time <=$4;
+		effect done[$1]=1, solved[$2]=1, body = body+1;')
+define(NSWE,0)
+define(OSEVA,1)
+define(PIZZA,2)
+define(KVIZ,3)
+define(BEH,4)
+define(PROHLIDKA,5)
+define(OBRAZEK,6)
+define(POCHOUTKA,7)
+define(ZONGL,8)
+define(HISTFOTO,9)
+define(COJETO,10)
+define(KLIKYHAK,11)
+define(ZVIRATKO,12)
+define(RADA,13)
+define(ZOO,14)
+define(MENY,15)
+define(FLASKA,16)
+define(KOSTKA,17)
+define(HADANKA,18)
+define(FOCENI,19)
+
+default(N,3)
+default(MAX,24)
+default(LIMIT,10)
+
+byte time=0;
+byte done[N];
+byte at_modul=0;
+byte body=0;
+bool solved[20];
+
+define(person, `process Person_$1 {
+state Studovna, Moravak, Ceska, Svobodak, Petrov, Spilberk, Malinak,
+	Jaroska, Tyrs, Burian, Wilson, Modul;
+init $2;
+trans
+ Studovna -> Moravak { MOVE($1) },
+ Studovna -> Svobodak { MOVE($1) },
+ Studovna -> Spilberk { MOVE($1) },
+ Studovna -> Studovna { TASK($1,KVIZ,2,MAX) }, // chvilu zabare, nez na to prijdou
+ Studovna -> Studovna  { TASK($1,OBRAZEK,3,MAX) },
+ Studovna -> Studovna  { TASK($1,HISTFOTO,7,MAX) }, // chvilu zabare, nez na to prijdou
+ Studovna -> Studovna  { TASK($1,COJETO,6,MAX) },
+ Studovna -> Studovna  { TASK($1,KLIKYHAK,7,MAX) }, // chvilu zabare, nez na to prijdou
+ Studovna -> Studovna  { TASK($1,ZVIRATKO,9,MAX) },
+ Studovna -> Studovna  { TASK($1,MENY,11,MAX) }, // chvilu zabare, nez na to prijdou
+ 
+ Moravak -> Studovna { MOVE($1) },
+ Moravak -> Tyrs { MOVE($1) },
+ Moravak -> Jaroska  { MOVE($1) },
+ Moravak -> Svobodak  { MOVE($1) },
+ Moravak -> Burian  { guard done[$1]==0 && solved[FOCENI] && solved[KOSTKA]; effect done[$1]=1; },
+ Moravak -> Moravak  { TASK($1,POCHOUTKA,6,MAX) },
+ Moravak -> Moravak { guard solved[FLASKA] && done[$1]==0; effect done[$1]=1, solved[HADANKA]=1; },
+
+ Tyrs -> Moravak  { MOVE($1) },
+ Tyrs -> Tyrs { TASK($1,PIZZA,1,4) },
+ Tyrs -> Tyrs { TASK($1,ZOO,9,13) },
+
+ Jaroska -> Moravak  { MOVE($1) },
+ Jaroska -> Jaroska { TASK($1,NSWE,0,2) },
+ Jaroska -> Jaroska { guard solved[HADANKA] && done[$1]==0; effect done[$1]=1, solved[FOCENI]=1; },
+
+ Svobodak -> Moravak  { MOVE($1) },
+ Svobodak -> Malinak  { MOVE($1) },
+ Svobodak -> Petrov  { MOVE($1) },
+ Svobodak -> Studovna { MOVE($1) },
+ Svobodak -> Svobodak  { TASK($1,PROHLIDKA,5,5) },
+ Svobodak -> Svobodak { TASK($1,POCHOUTKA,6,MAX) },
+ Svobodak -> Svobodak { guard body >= LIMIT && done[$1]==0; effect done[$1]=1, solved[KOSTKA]=1; },
+
+ Malinak -> Svobodak {MOVE($1) },
+ Malinak -> Malinak { TASK($1,RADA,12,MAX) },
+ Malinak -> Malinak { TASK($1,POCHOUTKA,6,MAX) },
+
+ Petrov -> Svobodak  { MOVE($1) },
+ Petrov -> Spilberk  { MOVE($1) },
+ Petrov -> Petrov  { TASK($1,NSWE,0,2) },
+ Petrov -> Petrov  { TASK($1,BEH,5,5) },
+ Petrov -> Petrov { guard body >= LIMIT && done[$1]==0; effect done[$1]=1, solved[FLASKA]=1; },
+
+ Spilberk -> Petrov  { MOVE($1) },
+ Spilberk -> Studovna  { MOVE($1) },
+ Spilberk -> Spilberk { TASK($1,OSEVA,0,4) },
+ Spilberk -> Spilberk { TASK($1,ZONGL,8,9) },
+
+ Burian -> Wilson  { MOVE($1) },
+ Wilson -> Modul { guard done[$1]==0; effect at_modul=at_modul+1, done[$1]=1; };
+}
+')
+
+process Timer {
+state q;
+init q;
+trans
+ q -> q { guard time < MAX; effect forloop(x,0,decr(N), `done[x] = 0,') time = time +1; };
+}
+
+person(0,Studovna)
+forloop(x,1,decr(N), `person(x,Moravak)')
+
+system async;

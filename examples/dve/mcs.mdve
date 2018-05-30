@@ -1,0 +1,33 @@
+default(N,3)
+
+define(NIL,255)
+
+byte next[N] = { myloop(x,0,decr(N), `NIL',`,') };
+bool locked[N];
+byte tail=NIL;
+
+define(P, `process P_$1 {
+byte pred;
+state NCS, p2, p3, p4, p5,p6, CS, p9, p13, p10;
+init NCS;
+trans
+ NCS -> p2 { effect next[$1] = NIL; },
+ p2 -> p3 { effect pred = tail, tail = $1;},
+ p3 -> CS { guard pred == NIL; },
+ p3 -> p4 { guard pred != NIL; },
+ p4 -> p5 { effect locked[$1] = 1; },
+ p5 -> p6 { effect ifelse(ERROR,1, `next[$1]', `next[pred]') = $1; },
+ p6 -> CS { guard locked[$1] == 0; },
+
+ CS -> p9 { guard next[$1] == NIL; },
+ CS -> p13 { guard next[$1] != NIL;},
+ p9 -> NCS { guard tail == $1; effect tail = NIL; },
+ p9 -> p10 { guard tail != $1;  },
+ p10 -> p13 { guard next[$1] != NIL; },
+ p13 -> NCS { effect ifelse(ERROR, 2, `locked[$1]', `locked[next[$1]]') = 0; };
+}
+')
+
+forloop(i,0,decr(N), `P(i)')
+
+system async;

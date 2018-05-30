@@ -1,0 +1,33 @@
+
+default(N,2)
+default(ERROR,0)
+define(NULL,255)
+
+bool b[N];
+byte x=NULL, y=NULL;
+
+define(P, `process P_$1 {
+byte j;
+state NCS, CS, q1, q2, q22, p, q3, q4, q5, e1;
+init NCS;
+trans
+ NCS -> q1 { effect b[$1] = 1; },
+ q1 -> q2 { effect x = $1; },
+ q2 -> q22 { guard y != NULL; effect ifelse(ERROR,1, `b[x]', `b[$1]') = 0; }, 
+ q22 -> NCS { guard y == NULL; },
+ q2 -> p { guard y == NULL; },
+ p -> q3 { effect y = $1; },
+ q3 -> CS { guard x == $1; },
+ q3 -> q4 { guard x != $1; effect b[$1] = 0, j = 0; },
+ q4 -> q4 { guard j<N && b[j]==0 ; effect j = j+1; },
+ q4 -> q5 { guard j==N; },
+ q5 -> CS { guard y == ifelse(ERROR,2, x, $1);  },
+ q5 -> NCS { guard  y == NULL; },
+ CS -> e1 { effect y = NULL; },
+ e1 -> NCS { effect b[$1] = 0; };
+}
+')
+
+forloop(i,0,decr(N), `P(i)')
+
+system async;

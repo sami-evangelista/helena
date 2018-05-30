@@ -1,0 +1,24 @@
+default(N,3)
+default(ERROR,0)
+
+bool Slot[N] = {1, myloop(x,0,decr(N),`0',`,') };
+byte next=0;
+
+
+define(P, `process P_$1 {
+byte my_place;
+state NCS, p1, p2, p3, CS;
+init NCS;
+trans
+ NCS -> p1 { effect my_place = next, next = next+1; },
+ p1 -> p2 { guard my_place == N-1; effect next = next-N; },
+ p1 -> p2 { guard my_place != N-1; effect my_place = my_place%N; },
+ p2 -> p3 { guard Slot[my_place] == 1;  },
+ p3 -> CS { effect ifelse(ERROR,0, `Slot[my_place]=0', ERROR, 1, `Slot[(my_place+N-1)%N]=0'); },
+ CS -> NCS { effect Slot[(my_place+1)%N]=1;};
+}
+')
+
+forloop(i,0,decr(N), `P(i)')
+
+system async;

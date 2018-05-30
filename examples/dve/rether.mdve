@@ -1,0 +1,77 @@
+
+default(N,4)
+default(Slots, 3) // number of available slots 
+default(RT_slots, 2) // maximal number of slots for RT trafic
+default(ERROR,0) // 
+
+channel reserve, release, grant, no_grant, done;
+channel myloop(x, 0, decr(N), `visit_`'x', `,');
+ifelse(ERROR,0, `channel ok;')
+bool in_RT[N]; 
+byte RT_count = 0;
+
+process Bandwidth {
+byte i;
+state idle, rel, res, error_st;
+init idle;
+trans
+ idle -> res { sync reserve?i; },
+ res -> idle { guard RT_count >= RT_slots; sync no_grant!; },
+ res -> idle { guard RT_count < RT_slots; sync grant!; effect RT_count = RT_count+1, in_RT[i] = true;},
+ idle -> rel { sync release?i; },
+ rel -> idle { guard in_RT[i] == true; ifelse(ERROR,0, `sync ok!;') effect in_RT[i] = false, RT_count = RT_count-1;},
+ rel -> error_st { guard in_RT[i] == false ;};
+}
+
+define(node, `process Node_$1 {
+bool rt, granted = false; 
+state idle, start, RT_action, NRT_action, want_RT, reserved, finish, error_st ifelse(ERROR,0, `,wait_ok');
+init idle;
+trans
+ idle -> start { sync visit_$1?rt; },
+ start -> RT_action { guard rt == true; },
+ start -> NRT_action {guard rt == false; },
+
+ RT_action -> error_st { guard granted == false; },
+ RT_action -> finish {  },
+ ifelse(ERROR,0,
+ `RT_action -> wait_ok { sync release!$1;  effect granted = false; },
+  wait_ok -> finish { sync ok?;}',
+ `RT_action -> finish { sync release!$1;  effect granted = false; }'),
+
+ NRT_action -> finish {},
+ NRT_action -> want_RT { guard granted == false; sync reserve!$1; },
+
+ want_RT ->  reserved {sync grant?; },
+ reserved -> finish {effect granted = true;},
+ want_RT -> finish {sync no_grant?;},
+
+ finish -> idle {sync done!;};
+}
+
+')
+
+forloop(i, 0, decr(N), `node(i)')
+
+process Token {
+byte i, NRT_count = Slots, next = 0;
+state start, RT_phase, RT_wait, NRT_phase, NRT_wait, cycle_end;
+init start;
+trans
+ start -> RT_phase { effect i = 0; },
+ RT_phase -> RT_phase { guard i<N && in_RT[i] == false; effect i = i+1; },
+ forloop(x, 0, decr(N), `RT_phase -> RT_wait { guard i==x && in_RT[i] == true; sync visit_`'x`'!true;},
+')
+ RT_wait -> RT_phase { sync done?; effect i = i +1; },
+ RT_phase -> NRT_phase { guard i == N; },
+
+ forloop(x, 0, decr(N), `NRT_phase -> NRT_wait { guard NRT_count>0 && next == x; sync visit_`'x`'!false;},
+')
+ NRT_wait -> NRT_phase { sync done?; effect next = (next + 1)%N, NRT_count = NRT_count -1;},
+
+ NRT_phase -> cycle_end { guard NRT_count == 0; },
+
+ cycle_end -> start { effect NRT_count = Slots - RT_count; };
+}
+
+system async;

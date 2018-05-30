@@ -1,0 +1,49 @@
+
+default(N,2)
+default(ERROR,0)
+
+bool a[N], w[N], s[N];
+
+define(P, `process P_$1 {
+byte j;
+state NCS, p2, p3, p4, p5, p6, p61, p64, p7, p71, p8, p9, CS;
+init NCS;
+trans
+ NCS -> p2 { effect a[$1] = 1, j =0; },
+ p2 -> p2 { guard j<N && s[j] == 0; effect j = j+1; },
+ p2 -> p3 { guard j==N; },
+ p3 -> p4 { effect w[$1] = 1, a[$1] = 0; },
+ p4 -> p9 { guard s[$1] == 1; effect j = 0; },
+ p4 -> p5 { guard s[$1] == 0; effect j = 0; },
+ p5 -> p5 { guard j < N && a[j]==0; effect j = j+1; },
+ p5 -> p6 { guard not(j<N && a[j]==0); },
+
+ p6 -> p7 { guard j <N; },
+ p6 -> p61 { guard j ==N; effect s[$1] = 1, j=0; },
+ p61 -> p61 { guard j <N && a[j]==0; effect j = j+1; },
+ p61 -> p7 { guard j <N && a[j]==1; effect s[$1]=0; },
+ p61 -> p64 { guard j==N; effect w[$1]=0, j=0;},
+ p64 -> p64 { guard j<N && w[j] ==0; effect j=j+1;},
+ p64 -> p7 { guard j==N; },
+
+ p7 -> p8 { guard j==N; },
+ p7 -> p71 { guard j<N; effect j=0; },
+ ifelse(ERROR,1,`p71 -> p71 { guard j<N && w[j] ==1 && s[j]==0; effect j=j+1;},',
+`p71 -> p71 { guard j<N && (w[j] ==1 || s[j]==0); effect j=j+1;},')
+
+ ifelse(ERROR,1,` p71 -> p8 { guard not (j<N && (w[j] ==1 && s[j]==0)); },',
+` p71 -> p8 { guard not (j<N && (w[j] ==1 || s[j]==0)); },')
+
+ p8 -> p4 { guard j != $1 && j <N; effect s[$1] =1, w[$1]=0; },
+ p8 -> p4 { guard not (j != $1 && j <N); },
+
+ p9 -> p9 { guard j<$1 && w[j]==0 && s[j]==0; effect j=j+1;},
+ p9 -> CS { guard j==$1; },
+
+ CS -> NCS { effect s[$1] = 0;};
+}
+')
+
+forloop(i,0,decr(N), `P(i)')
+
+system async;

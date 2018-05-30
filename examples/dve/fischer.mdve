@@ -1,0 +1,43 @@
+
+// discrete time simulation of fischer real time mutual exclusion protocol
+// parameters:
+// N = number of processes
+// MAX = matimal time
+// K1, K2 = protocol constants
+
+
+default(N,2)
+default(K1,1)
+default(K2,2)
+define(OFF,255)
+
+byte id;
+byte t[N] = { myloop(i,0,decr(N), `OFF',`,') };
+
+define(P, `process P_$1 {
+state NCS, try, wait, CS;
+init NCS;
+trans
+ NCS -> try { guard id == 0; effect t[$1] = K1;},
+
+ try -> wait { effect t[$1] = K2, id =$1 +1; },
+
+ wait -> wait { guard t[$1] == 0; effect t[$1] = OFF;},
+ wait -> CS { guard  t[$1] == OFF && id == $1 +1; },
+ wait -> NCS { guard id != $1 +1 && t[$1] == OFF;},
+
+ CS -> NCS {  effect id = 0; }; 
+}
+')
+
+process Timer {
+state q;
+init q;
+trans
+ q -> q { guard myloop(i, 0, decr(N), `t[i] != 0',` && ');
+effect myloop(i,0,decr(N), `t[i] = (t[i]-1) | ((t[i]==255)*255)',`,'); };
+}
+
+forloop(i, 0, decr(N), `P(i)')
+
+system async;

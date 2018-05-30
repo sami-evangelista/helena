@@ -1,0 +1,63 @@
+
+define(TABLE,254)
+define(HAND,255)
+define(EMPTY,253)
+default(VERSION,41)
+
+ifelse(VERSION,41,`
+define(N,4)
+byte on[N] = { 3,2,0,TABLE};
+bool clear[N] = {0,1,0,0};
+',VERSION, 60,`
+define(N,6)
+byte on[N] = {2,TABLE,TABLE,0,1,4};
+bool clear[N] = {0,0,0,1,0,1};
+',VERSION, 8,`
+define(N,8)
+byte on[N] = {2,TABLE,TABLE,0,1,4, TABLE, TABLE};
+bool clear[N] = {0,0,0,1,0,1,1,1};
+',VERSION,100,`
+define(N,10)
+byte on[N] = {3,6,4,8,9,TABLE,7,0,TABLE,1};
+bool clear[N] = {0,0,1,0,0,1,0,0,0,0};
+',`')
+
+//byte on[N] = {A,B,C,D,E,F,G,H,I,J,K, L};
+//	 	0,1,2,3,4,5,6,7,8,9,10
+//bool clear[N] = {A,B,C,D,E,F,G,H,I,J,K,L};
+
+
+byte holding = EMPTY;
+
+process Hand {
+state emptyhand, fullhand, done;
+init emptyhand;
+trans
+
+ifelse(VERSION, 41, `
+emptyhand -> done {guard on[3] == 2 and on[2] == 0 and on[0] == 1; }, ',
+VERSION, 60,`
+emptyhand -> done {guard on[3] == 2 and on[2] == 0 and on[0] == 4 and on[4]==5 and on[5]==3; },',
+VERSION, 8, `
+emptyhand -> done {guard on[3] == 5 and on[5]==4 and on[4]==7 and on[7]==2 and on[2]==0 and on[0]==6 and on[6]==1; }, ',
+VERSION, 100, `
+emptyhand -> done {guard on[3] == 2 and on[2]==5 and on[5]==9 and on[9]==4 and on[4]==7 and on[7]==1 and on[1]==0 and on[0]==6 and on[6]==8; }, ',`')
+
+
+forloop(x,0,decr(N), `emptyhand -> fullhand { guard clear[x]==1 && on[x] == TABLE;
+	effect on[x] = HAND, clear[x]=0, holding =x;  },
+')
+forloop(x,0,decr(N), `emptyhand -> fullhand { guard  clear[x]==1 && on[x] != TABLE;
+	effect clear[on[x]] = 1, on[x] = HAND, clear[x]=0, holding =x;  },
+')
+
+forloop(y,0,decr(N), `fullhand -> emptyhand { guard  clear[y]==1;
+	effect  clear[y]=0, clear[holding] = 1, on[holding] = y, holding = EMPTY;  },
+')
+
+fullhand -> emptyhand { 
+	effect  clear[holding] = 1, on[holding] = TABLE, holding = EMPTY;  };
+
+}
+
+system async;

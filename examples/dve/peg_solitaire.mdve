@@ -1,0 +1,113 @@
+
+default(VERSION,1)
+default(CROSSWAYS,0)
+define(pair, `(($2)*N+$1)')
+
+//0=free
+//1=peg
+//2=wall
+
+ifelse(VERSION,1,`
+//N*N with one corner empty
+default(N,4)
+byte a[eval(N*N)] = {
+forloop(x,1,decr(N),`forloop(y,1,N,`1,')
+')forloop(x,1,decr(N),`1,')0 };
+byte peg_count = eval(N*N-1);
+', VERSION,2,`
+//standard cross
+define(N,7)
+byte a[49] = {
+2,2,1,1,1,2,2,
+2,2,1,1,1,2,2,
+1,1,1,1,1,1,1,
+1,1,1,0,1,1,1,
+1,1,1,1,1,1,1,
+2,2,1,1,1,2,2,
+2,2,1,1,1,2,2};
+byte peg_count = 32;
+', VERSION,3,`
+//pyramid
+define(N,7)
+byte a[49] = {
+2,2,0,0,0,2,2,
+2,2,0,1,0,2,2,
+0,0,1,1,1,0,0,
+0,1,1,1,1,1,0,
+1,1,1,1,1,1,1,
+2,2,0,0,0,2,2,
+2,2,0,0,0,2,2};
+byte peg_count = 16;
+',`ERROR: Unknown version')
+
+process P {
+state q;
+init q;
+trans
+
+ifelse(CROSSWAYS,1, `
+//right down
+forloop(j,0,eval(N-3),
+  `forloop(i,0,eval(N-3),
+` q->q {guard a[pair(i,j)]==1 && a[pair(i+1,j+1)]==1 && a[pair(i+2,j+2)]==0;
+	effect a[pair(i,j)]=0, a[pair(i+1,j+1)]=0, a[pair(i+2,j+2)]=1, peg_count=peg_count-1;},
+')
+')
+
+//right up
+forloop(j,2,eval(N-1),
+  `forloop(i,0,eval(N-3),
+` q->q {guard a[pair(i,j)]==1 && a[pair(i+1,j-1)]==1 && a[pair(i+2,j-2)]==0;
+	effect a[pair(i,j)]=0, a[pair(i+1,j-1)]=0, a[pair(i+2,j-2)]=1, peg_count=peg_count-1;},
+')
+')
+
+//left down
+forloop(j,0,eval(N-3),
+  `forloop(i,2,eval(N-1),
+` q->q {guard a[pair(i,j)]==1 && a[pair(i-1,j+1)]==1 && a[pair(i-2,j+2)]==0;
+	effect a[pair(i,j)]=0, a[pair(i-1,j+1)]=0, a[pair(i-2,j+2)]=1, peg_count=peg_count-1;},
+')
+')
+
+// left up
+forloop(j,2,eval(N-1),
+  `forloop(i,2,eval(N-1), ` q->q {guard a[pair(i,j)]==1 && a[pair(i-1,j-1)]==1 && a[pair(i-2,j-2)]==0;
+	effect a[pair(i,j)]=0, a[pair(i-1,j-1)]=0, a[pair(i-2,j-2)]=1, peg_count=peg_count-1;},
+')
+')
+', `')
+
+//right jump moves
+forloop(j,0,eval(N-1),
+  `forloop(i,0,eval(N-3),
+` q->q {guard a[pair(i,j)]==1 && a[pair(i+1,j)]==1 && a[pair(i+2,j)]==0;
+	effect a[pair(i,j)]=0, a[pair(i+1,j)]=0, a[pair(i+2,j)]=1, peg_count=peg_count-1;},
+')
+')
+//left jump moves
+forloop(j,0,eval(N-1),
+  `forloop(i,2,eval(N-1),
+` q->q {guard a[pair(i,j)]==1 && a[pair(i-1,j)]==1 && a[pair(i-2,j)]==0;
+	effect a[pair(i,j)]=0, a[pair(i-1,j)]=0, a[pair(i-2,j)]=1, peg_count=peg_count-1;},
+')
+')
+//down jump moves
+forloop(j,0,eval(N-3),
+  `forloop(i,0,eval(N-1),
+` q->q {guard a[pair(i,j)]==1 && a[pair(i,j+1)]==1 && a[pair(i,j+2)]==0;
+	effect a[pair(i,j)]=0, a[pair(i,j+1)]=0, a[pair(i,j+2)]=1, peg_count=peg_count-1;},
+')
+')
+//up jump moves
+myloop(j,2,eval(N-1),
+  `myloop(i,0,eval(N-1),
+` q->q {guard a[pair(i,j)]==1 && a[pair(i,j-1)]==1 && a[pair(i,j-2)]==0;
+	effect a[pair(i,j)]=0, a[pair(i,j-1)]=0, a[pair(i,j-2)]=1, peg_count=peg_count-1;}',`,
+')',`,
+');
+
+
+}
+
+system async;

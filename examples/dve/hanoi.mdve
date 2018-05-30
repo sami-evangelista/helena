@@ -1,0 +1,41 @@
+
+default(N,3)
+define(BOTTOM,100)
+// to bottom tam potrebuju kvuli tomu, ze nemame liny vyhodnocovani a ono by mi to podlizalo... a pada mi to pak nooo...
+
+byte a[incr(N)] = { BOTTOM, myloop(x,0,decr(N), N - x, `,')  };
+byte a_act = incr(N);
+define(a_size, incr(N))
+
+byte b[incr(N)] = { BOTTOM, myloop(x,0,decr(N), 0, `,')  };
+byte b_act = 1;
+define(b_size, incr(N))
+
+byte c[incr(N)] = { BOTTOM, myloop(x,0,decr(N), 0, `,')  };
+byte c_act = 1;
+define(c_size, incr(N))
+
+byte d[incr(N)] = { BOTTOM, myloop(x,0,decr(N), 0, `,')  };
+byte d_act = 1;
+define(d_size, incr(N))
+
+process mover {
+state q;
+init q;
+trans
+ q->q { guard top(a) < top(b); effect push(b, top(a)), pop(a);};
+ q->q { guard top(a) < top(c); effect push(c, top(a)), pop(a);};
+ q->q { guard top(a) < top(d); effect push(d, top(a)), pop(a);};
+
+ q->q { guard top(b) < top(a); effect push(a, top(b)), pop(b);};
+ q->q { guard top(b) < top(c); effect push(c, top(b)), pop(b);};
+ q->q { guard top(b) < top(d); effect push(d, top(b)), pop(b);};
+
+ q->q { guard top(c) < top(a); effect push(a, top(c)), pop(c);};
+ q->q { guard top(c) < top(b); effect push(b, top(c)), pop(c);};
+ q->q { guard top(c) < top(d); effect push(d, top(c)), pop(c);};
+
+ q->q { guard top(d) < top(a); effect push(a, top(d)), pop(d);};
+ q->q { guard top(d) < top(b); effect push(b, top(d)), pop(d);};
+ q->q { guard top(d) < top(c); effect push(c, top(d)), pop(d);};
+}

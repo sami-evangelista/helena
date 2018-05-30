@@ -1,0 +1,78 @@
+
+default(N,3)
+default(ERROR,0)
+default(FORWARD,0)
+default(BACK,0)
+
+define(ON,1)
+define(OFF,0)
+define(NULL,255)
+define(TR,20)
+define(pair, `(($1)+($2)*TR)')
+define(first, (($1)%TR))
+define(second, (($1)/TR))
+
+byte chan[N] = {myloop(x,0,decr(N), `NULL', `,') };
+byte partner[N]  = {myloop(x,0,decr(N), `NULL', `,')};
+ifelse(FORWARD,1,`byte call_forward_busy[N] = {myloop(x,0,eval(N-2), `eval(x+1)', `,'), NULL};',`')
+//byte call_forward_busy[N] = {myloop(x,0,decr(N), `NULL', `,')};
+ifelse(BACK,1,`byte record[N] = {myloop(x,0,decr(N), `NULL', `,')};',`')
+
+define(user, `process User_$1 {
+byte dev = ON, mbit;
+state idle, dialing, calling, busy, q_i, talert, unobtainable, oalert, error_state,
+oconnected, oringout, tpickup, tconnected, ringback;
+init idle;
+trans
+ idle -> dialing { guard chan[$1] == NULL; effect dev = OFF, chan[$1] = pair($1,0); },
+ idle -> q_i { guard chan[$1] != NULL;
+		effect partner[$1] = first(chan[$1]); }, 
+ q_i -> talert { guard first(chan[partner[$1]]) == $1; },
+ q_i -> idle { guard first(chan[partner[$1]]) != $1;
+		effect partner[$1] = NULL; },
+ dialing -> idle { effect dev = ON, chan[$1] = NULL; },
+ forloop(x,0,N, ` dialing -> calling { effect partner[$1] = x; },
+')
+ calling -> busy { guard partner[$1] == $1; },
+ calling -> unobtainable { guard partner[$1] == N; },
+ ifelse(BACK,1,` calling -> ringback { guard partner[$1] == N; },',`')
+ calling -> busy { guard partner[$1] != $1 && partner[$1] !=N &&
+			chan[partner[$1]]!=NULL ifelse(FORWARD,1, `&& call_forward_busy[partner[$1]] == NULL',`');
+		ifelse(BACK,1,`effect record[partner[$1]] = $1;', `') },
+ ifelse(FORWARD,1, ` calling -> calling { guard partner[$1] != $1 && partner[$1] !=N &&
+			chan[partner[$1]]!=NULL && call_forward_busy[partner[$1]] != NULL;
+		effect ifelse(BACK,1,`record[partner[$1]] = $1,',`')
+			partner[$1] = call_forward_busy[partner[$1]]; },', `')
+ calling -> oalert { guard partner[$1] != $1 && partner[$1] !=N && chan[partner[$1]]==NULL;
+		effect  ifelse(BACK,1,`record[partner[$1]]=$1,', `')
+			chan[partner[$1]] = pair($1,0), chan[$1] = pair(partner[$1],0); },
+ busy -> idle { effect chan[$1] = NULL, partner[$1]=NULL, dev = ON; },
+ oalert -> error_state { guard first(chan[$1])!=partner[$1]; }, 
+ oalert -> oconnected { guard first(chan[$1])==partner[$1] && second(chan[$1]) == 1 ; }, 	
+ oalert -> oringout { guard first(chan[$1])==partner[$1] && second(chan[$1]) == 0 ; },
+ oconnected -> idle { effect dev = ON, chan[$1] = NULL, chan[partner[$1]] = NULL; },
+ oringout -> idle { effect dev = ON, chan[$1]=NULL, partner[$1] = pair(first(partner[$1]), 0); },
+ unobtainable -> idle { effect chan[$1] = NULL, partner[$1]=NULL, dev = ON; },
+
+ ifelse(BACK,1,`
+ ringback -> idle {  effect chan[$1] = NULL, partner[$1]=NULL, dev = ON; },
+ ringback -> calling { guard record[$1] != NULL; effect partner[$1] = record[$1]; }, ',`')
+
+ talert -> error_state { guard dev != ON || chan[$1] == NULL; },
+ talert -> tpickup { guard first(chan[partner[$1]]) == $1; },
+ talert -> idle { guard first(chan[partner[$1]]) != $1; },
+ tpickup -> tconnected { guard first(chan[partner[$1]]) == $1 && second(chan[partner[$1]]) == 0;
+			effect dev = OFF, chan[partner[$1]] = pair($1,1),
+				chan[$1] = pair(partner[$1],1); },
+ tpickup -> idle { guard chan[partner[$1]] == NULL || first(chan[partner[$1]]) != $1;
+		effect dev = ON, partner[$1] = NULL, chan[$1]=NULL; },
+ tconnected -> tconnected { guard second(chan[$1])==1 && dev == OFF; effect dev = ON; },
+ tconnected -> tconnected { guard second(chan[$1])==1 && dev == ON; effect dev = OFF; },
+ tconnected -> idle { guard second(chan[$1])==0; effect partner[$1]=NULL, chan[$1]=NULL ifelse(ERROR,0, `, dev=ON', `'); };
+
+}
+')
+
+forloop(id,0,decr(N), `user(id)')
+
+system async;

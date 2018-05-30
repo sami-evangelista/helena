@@ -1,0 +1,173 @@
+dnl Publish / Subscribe protocol
+dnl max number of users 16 :)
+dnl Define constants
+default(numUsers, 2)
+define(numFiles, 1)
+dnl pair will be used in buffer communication
+define(FIRST_SIZE, 16)
+define(pair, `($1 * FIRST_SIZE + $2)')
+define(first, $1 / FIRST_SIZE)
+define(second, $1 % FIRST_SIZE)
+dnl mtype definition
+define(GET, 0)		define(GOT, 1)		define(CHECKOUT, 2)	dnl user
+define(CHECKEDOUT, 3)	define(NOTAVAILABLE, 4)	define(UNCHECKOUT, 5)	dnl user
+define(IMPORT, 6)	define(CHECKIN, 7)	define(CHECKINOUT, 8)	dnl publish
+define(REGISTER, 9)	define(UNREGISTER, 10)				dnl subscribe
+define(UPDATE, 11)	define(NOTIFY, 12)				dnl notification
+dnl Channels between client and server
+channel userToCC;
+forloop(x, 0, decr(numUsers), `async_channel(ccToUser_`'x, 1)')
+forloop(x, 0, decr(numUsers), `channel ccToUserAdmin_`'x;
+')
+dnl Internal server channels
+channel ccToVault;
+channel vaultToCC;
+dnl Message sending synchronization (needed due to lack of constants matching when receiving a message, ie. ch?get)
+channel msgSync;
+
+dnl User process
+define(User, `process User_$1 {
+  byte cmd, edit[numFiles], registered[numFiles];
+  bool waitingForCheckedOut = false;
+  state ready, doneGet, getCmdReceived, doneRegister,
+	doneUnRegister, editing, cmdReceived;
+  init ready;
+  trans
+    ready -> doneGet { guard waitingForCheckedOut == false; sync userToCC!pair(GET, $1); },
+    doneGet -> getCmdReceived { sync ccToUser_$1_out?cmd; },
+    getCmdReceived -> ready { guard cmd == GOT; effect registered[0] = true; },
+  
+    ready -> doneRegister { guard registered[0] == false && edit[0] == false; sync userToCC!pair(REGISTER, $1); effect registered[0] = true; },
+    doneRegister -> ready {},
+  
+    ready -> doneUnRegister { guard registered[0] == true && edit[0] == false; sync userToCC!pair(UNREGISTER, $1); effect registered[0] = false; },
+    doneUnRegister -> ready {},
+  
+    ready -> ready { guard edit[0] == false && waitingForCheckedOut == false; sync userToCC!pair(CHECKOUT, $1); effect waitingForCheckedOut = true; },
+  
+    ready -> editing { guard edit[0] == true; },
+    editing -> ready { sync userToCC!pair(UNCHECKOUT, $1); effect edit[0] = false; },
+    editing -> ready { sync userToCC!pair(CHECKIN, $1); effect edit[0] = false; },
+    editing -> ready { sync userToCC!pair(CHECKINOUT, $1); },
+  
+    ready -> cmdReceived { sync ccToUser_$1_out?cmd; },
+    cmdReceived -> ready { guard cmd == CHECKEDOUT; effect edit[0] = true, waitingForCheckedOut = false; },
+    cmdReceived -> ready { guard cmd == NOTAVAILABLE; effect waitingForCheckedOut = false; };
+}
+
+')
+
+dnl UserAdmin process
+define(UserAdmin, `process UserAdmin_$1 {
+  byte cmd;
+  state ready, cmdReceived, doneNotify, doneUpdate;
+  init ready;
+  trans
+    ready -> cmdReceived { sync ccToUserAdmin_$1?cmd; },
+    cmdReceived -> doneNotify { guard cmd == NOTIFY; sync msgSync!; },
+    cmdReceived -> doneUpdate { guard cmd == UPDATE; sync msgSync!; },
+    doneNotify -> ready {},
+    doneUpdate -> ready {};
+}
+
+')
+forloop(x, 0, decr(numUsers), `User(x)')
+forloop(x, 0, decr(numUsers), `UserAdmin(x)')
+
+process CC {
+  byte cmd, ID, registered[numUsers];
+  bool writeLock = false;
+  state ready, cmdReceived,
+        forloop(x, 0, decr(numUsers), `doneGet`'x, doneRegister`'x, doneUnRegister`'x, doneCheckedOut`'x, doneNotify`'x,
+	notifyCmdSent`'x, updateCmdSent`'x, doneUnCheckOut`'x, doneCheckIn`'x, doneCheckInOut`'x, doneUpdate`'x,
+	')get_step1, get_step2, get_step3, 
+	doneCheckOut, checkOut_step1, checkOut_step2, checkOut_step3, checkOut_step4, checkOut_step5, doneNotAvailable,
+	doneCheckedOut, doneUnCheckOut, doneCheckIn, checkIn_step1, checkIn_step2,
+	doneCheckInOut, checkInOut_step1, checkInOut_step2, Update, checkWriteLockTrue, checkWriteLockFalse, update_cycle, update_step1;
+  init ready;
+  trans
+    ready -> cmdReceived { sync userToCC?cmd; },
+  
+    forloop(x, 0, decr(numUsers), `cmdReceived -> doneGet`'x { guard first(cmd) == GET && second(cmd) == x; },
+    doneGet`'x -> get_step1 { effect registered[second(cmd)] = true; },
+    ')
+    get_step1 -> get_step2 { sync ccToVault!cmd; },
+    get_step2 -> get_step3 { sync vaultToCC?cmd; },
+    forloop(x, 0, decr(numUsers), `get_step3 -> ready { guard first(cmd) == GOT && second(cmd) == x; sync ccToUser_`'x`'_in!GOT; },
+    ')
+  
+    forloop(x, 0, decr(numUsers), `cmdReceived -> doneRegister`'x { guard first(cmd) == REGISTER && second(cmd) == x; },
+    doneRegister`'x -> ready { effect registered[x] = true; },
+    ')
+
+    forloop(x, 0, decr(numUsers), `cmdReceived -> doneUnRegister`'x { guard first(cmd) == UNREGISTER && second(cmd) == x; },
+    doneUnRegister`'x -> ready { effect registered[x] = false; },
+    ')
+
+    cmdReceived -> doneCheckOut { guard first(cmd) == CHECKOUT; },
+    doneCheckOut -> checkOut_step1 { guard writeLock == false; },
+dnl v originale je zde assert(writeLock == false), neni mi znamo, proc
+    checkOut_step1 -> checkOut_step2 { sync ccToVault!cmd; effect writeLock = true; },
+    checkOut_step2 -> checkOut_step3 { sync vaultToCC?cmd; },
+    forloop(x, 0, decr(numUsers), `checkOut_step3 -> doneCheckedOut { guard first(cmd) == CHECKEDOUT && second(cmd) == x; sync ccToUser_`'x`'_in!CHECKEDOUT; },
+    ')
+    forloop(x, 0, decr(numUsers), `doneCheckedOut -> doneCheckedOut`'x { guard second(cmd) == x; },
+    doneCheckedOut`'x -> checkOut_step4 { effect ID = 0; },
+    ')
+    checkOut_step4 -> checkOut_step5 { guard ID < numUsers; },
+    forloop(x, 0, decr(numUsers), `checkOut_step5 -> notifyCmdSent`'x { guard ID == x && ID != second(cmd) && registered[ID] == true; sync ccToUserAdmin_`'x!NOTIFY; },
+    notifyCmdSent`'x -> doneNotify`'x { sync msgSync?; },
+    doneNotify`'x -> checkOut_step4 { effect ID = ID + 1; },
+    ')
+    checkOut_step5 -> checkOut_step4 { guard ID == second(cmd) || registered[ID] == false; effect ID = ID + 1; },
+    checkOut_step4 -> ready { guard ID >= numUsers; },
+    forloop(x, 0, decr(numUsers), `doneCheckOut -> doneNotAvailable { guard writeLock == true && second(cmd) == x; sync ccToUser_`'x`'_in!NOTAVAILABLE; },
+    ')
+    doneNotAvailable -> ready {},
+
+    cmdReceived -> doneUnCheckOut { guard first(cmd) == UNCHECKOUT; },
+    forloop(x, 0, decr(numUsers), `doneUnCheckOut -> doneUnCheckOut`'x { guard second(cmd) == x; },
+    doneUnCheckOut`'x -> Update { effect writeLock = false; },
+    ')
+
+    cmdReceived -> doneCheckIn { guard first(cmd) == CHECKIN; },
+    doneCheckIn -> checkIn_step1 { sync ccToVault!cmd; effect writeLock = false; },
+    checkIn_step1 -> checkIn_step2 { sync ccToVault?cmd; },
+    forloop(x, 0, decr(numUsers), `checkIn_step2 -> doneUnCheckOut`'x { guard second(cmd) == x; },
+    doneUnCheckOut`'x -> Update {},
+    ')
+
+    cmdReceived -> doneCheckInOut { guard first(cmd) == CHECKINOUT; },
+    doneCheckInOut -> checkInOut_step1 { sync ccToVault!pair(CHECKIN,second(cmd)); },
+    checkInOut_step1 -> checkInOut_step2 { sync vaultToCC?cmd; },
+    forloop(x, 0, decr(numUsers), `checkInOut_step2 -> doneCheckInOut`'x { guard first(cmd) == UPDATE && second(cmd) == x; },
+    doneCheckInOut`'x -> checkWriteLockTrue { guard writeLock == true; },
+    doneCheckInOut`'x -> checkWriteLockFalse { guard writeLock == false; },
+    checkWriteLockTrue -> Update {},
+    checkWriteLockFalse -> Update {},
+    ')
+
+    Update -> update_cycle { effect ID = 0; },
+    update_cycle -> update_step1 { guard ID < numUsers; },
+    forloop(x, 0, decr(numUsers), `update_step1 -> updateCmdSent`'x { guard ID == x && ID != second(cmd) && registered[ID] == true; sync ccToUserAdmin_`'x!UPDATE; },
+    updateCmdSent`'x -> doneUpdate`'x { sync msgSync?; },
+    doneUpdate`'x -> update_cycle { effect ID = ID + 1; },
+    ')
+    update_step1 -> update_cycle { guard ID == second(cmd) || registered[ID] == false; effect ID = ID + 1; },
+    update_cycle -> ready { guard ID >= numUsers; };
+}
+
+dnl Vault process
+process Vault {
+  byte cmd;
+  state ready, cmdReceived;
+  init ready;
+  trans
+    ready -> cmdReceived { sync ccToVault?cmd; },
+    cmdReceived -> ready { guard first(cmd) == GET; sync vaultToCC!pair(GOT, second(cmd)); },
+    cmdReceived -> ready { guard first(cmd) == CHECKOUT; sync vaultToCC!pair(CHECKEDOUT, second(cmd)); },
+    cmdReceived -> ready { guard first(cmd) == CHECKIN; sync vaultToCC!pair(CHECKIN, second(cmd)); };
+}
+
+system async;
+

@@ -1,0 +1,149 @@
+
+
+default(N,2)
+default(Lines,2)
+default(ERROR,0)
+default(CHECK,1) // zda ma do modelu pridat written_line, writte_value etc. (umoznujici kontrolu..)
+//default(K,2) // size of buffer channels
+// pamet je reprezentovana jako jedno cislo, radky dostavame bitovymi operacemi
+
+//forloop(x,0,decr(N),`async_channel(read_`'x)
+//async_channel(write_`'x)
+//async_channel(answer_`'x)
+//channel bus_`'x;
+//')
+
+forloop(x,0,decr(N),`channel read_`'x, write_`'x, answer_`'x, bus_`'x;')
+
+define(READ, 1)
+define(READ_INVALIDATE,2)
+define(INVALIDATE,3)
+define(OK,-1)
+define(UNDEF,255)
+
+define(TR,16)
+define(pair, `($1*TR+$2)')
+define(first, ($1/TR))
+define(second, ($1%TR))
+
+
+bool lock = false;
+
+ifelse(CHECK,0,`', `byte written_line = UNDEF, written_value =UNDEF, read_line =UNDEF, read_value =UNDEF;')
+
+define(application_basic, `process Application_$1 {
+int m;
+state idle, wait_read, wait_write;
+init idle;
+trans
+forloop(x,0,decr(Lines), `
+ idle -> wait_write { guard lock == false; sync write_$1!pair(x,0); effect lock = true; },
+ idle -> wait_write { guard lock == false; sync write_$1!pair(x,1); effect lock = true; },
+')
+ wait_write -> idle { sync answer_$1?m; effect lock = false; },
+
+forloop(x,0,decr(Lines), ` idle -> wait_read { guard lock == false; sync read_$1!x; effect lock = true; },
+')
+ wait_read -> idle {sync answer_$1?m; effect lock = false;};
+}
+')
+
+define(application_ext, `process Application_$1 {
+int m;
+state idle, wait_read, wait_write;
+init idle;
+trans
+forloop(x,0,decr(Lines), `
+ idle -> wait_write { guard lock == false; sync write_$1!pair(x,0); effect lock = true, written_line = x, written_value = 0, read_line =UNDEF, read_value=UNDEF; },
+ idle -> wait_write { guard lock == false; sync write_$1!pair(x,1); effect lock = true, written_line = x, written_value = 1, read_line =UNDEF, read_value=UNDEF; },
+')
+ wait_write -> idle { sync answer_$1?m; effect lock = false; },
+
+forloop(x,0,decr(Lines), ` idle -> wait_read { guard lock == false; sync read_$1!x; effect lock = true, read_line = x, read_value =2, written_line =UNDEF, written_value=UNDEF; }, //2 znaci invalid
+')
+ wait_read -> idle {sync answer_$1?read_value; effect lock = false;};
+}
+')
+
+
+define(cache, `process Cache_$1 {
+byte value = 0;
+int m,m2 = OK;
+state	invalid, i_bus_req, i_app_read, i_app_write, iv1, iv2, id1, set_value,
+	valid, v_bus_req, v_app_read, v_app_write, wait_bus_ack,
+	dirty, d_bus_req, d_app_read, error_st;
+init valid;
+trans
+ invalid -> i_bus_req { sync bus_$1?m; },
+ i_bus_req -> invalid { guard m == READ || m == READ_INVALIDATE; sync bus_$1!OK; },
+ i_bus_req -> invalid { guard m == INVALIDATE; },
+
+ invalid -> i_app_read {sync read_$1?m; },
+ i_app_read -> iv1 { sync bus_$1!READ; },
+ iv1 -> iv2 { sync bus_$1?value; },
+ iv2 -> valid { sync answer_$1!((value & (1<<m))/(1<<m)); }, // chcu z toho dostat jen 0/1
+
+ invalid -> i_app_write {sync write_$1?m;},
+ i_app_write -> id1 { sync bus_$1!READ_INVALIDATE;},
+ id1 -> set_value {sync bus_$1?value;},
+ set_value -> dirty {
+	sync answer_$1!OK;
+	effect value = value - (value & (1<<(first(m)))) + (second(m) * (1<<(first(m)))); },
+	// kouzlo, ktery nastavi spravny bit value na spravnou hodnotu...
+
+ valid -> v_bus_req { sync bus_$1?m; },
+ v_bus_req -> valid { guard m == READ; sync bus_$1!OK;},
+ v_bus_req -> invalid { guard m == INVALIDATE; },
+ v_bus_req -> invalid { guard m == READ_INVALIDATE; sync bus_$1!OK; },
+
+ valid -> v_app_read { sync read_$1?m; },
+ v_app_read -> valid { sync answer_$1!((value & (1<<m))/(1<<m)); },
+
+ valid -> v_app_write { sync write_$1?m; },
+ v_app_write -> wait_bus_ack { sync bus_$1!INVALIDATE; },
+ wait_bus_ack -> set_value { sync bus_$1?m2; }, // wait_bus_ack assert: m2 == OK; to na nic nepotrebuju...
+
+ dirty -> d_bus_req {sync bus_$1?m; },
+ d_bus_req -> valid { ifelse(ERROR,1,`',`guard m == READ;') sync bus_$1!value; },
+ d_bus_req -> invalid { guard m == READ_INVALIDATE; sync bus_$1!value; },
+ d_bus_req -> error_st { guard m == INVALIDATE; },
+
+ dirty -> d_app_read { sync read_$1?m; },
+ d_app_read -> dirty { sync answer_$1!((value & (1<<m))/(1<<m)); },
+
+ dirty -> set_value { sync write_$1?m; };
+}
+')
+
+forloop(i,0,decr(N),`
+ifelse(CHECK,0, `application_basic(i)', `application_ext(i)')
+cache(i)
+')
+
+process Bus {
+byte i, j,value;
+int m;
+state idle, send, wait, check;
+init idle;
+trans
+forloop(x,0,decr(N),` idle -> send { sync bus_`'x`'?m; effect i = x, j=0; },
+')
+ send -> send { guard j == i; effect j = j+1; },
+forloop(x,0,decr(N), ` send -> send { guard j == x && j !=i; sync bus_`'x`'!m; effect j = j+1;} ,
+')
+forloop(x,0,decr(N), ` send -> idle { guard i == x && j == N && m == INVALIDATE; sync bus_`'x`'!OK; },
+')
+ send -> wait { guard j == N && m != INVALIDATE; effect j = 0; },
+ wait -> wait { guard j == i; effect j = j+1; },
+forloop(x,0,decr(N), ` wait -> check { guard j == x && j !=i; sync bus_`'x`'?m; effect j = j+1;} ,
+')
+ check -> wait { guard m != OK; effect value = m; },
+
+forloop(x,0,decr(N), ` wait -> idle { guard j == N && i == x; sync bus_`'x`'!value;},
+')
+
+ check -> wait { guard m == OK; };
+
+}
+
+system async;
