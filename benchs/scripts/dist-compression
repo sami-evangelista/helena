@@ -42,7 +42,7 @@ do
         t=$(echo $mod | cut -d";" -f4)
         nmin=$(echo $mod | cut -d";" -f5)
         [ $nmin -gt $n ] && continue
-	dve="../examples/beem/$m.dve"
+	dve="../examples/dve/$m.dve"
         bs=$(((n * PROCS - 1) * BUFFER_SIZE))
         [ $bs -gt 100000000 ] && continue
 	for c in C DC

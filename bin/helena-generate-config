@@ -398,7 +398,7 @@ class Config:
         "bfsQueueBlockSize": 10 ** 4,
         "commBlockSize": 65000,
         "dbfsBwalkHash": 8,
-        "dbfsCheckCommPeriod": 10 ** 4,
+        "dbfsCheckCommPeriod": 10 ** 3,
         "dbfsCheckTermPeriodMS": 100,
         "dbfsExplorationCacheSize": 10 ** 3,
         "debug": 0,

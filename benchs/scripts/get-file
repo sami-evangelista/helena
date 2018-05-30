@@ -2,8 +2,8 @@
 
 if [ "$2" = lna ]
 then
-    echo ../examples/$1.lna
+    echo ../examples/lna/$1.lna
 elif [ "$2" = dve ]
 then
-    echo ../examples/beem/$1.dve
+    echo ../examples/dve/$1.dve
 fi
