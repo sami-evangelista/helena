@@ -95,7 +95,7 @@ uint8_t RECONS_ID;
 
 #if defined(MODEL_HAS_EVENT_UNDOABLE)
 #define DELTA_DDD_VISIT_PRE_HEAP_PROCESS() {            \
-    if(heap_size(heap) > CFG_MAX_LOCAL_HEAP_SIZE) {     \
+    if(heap_size(heap) > CFG_DELTA_DDD_MAX_HEAP_SIZE) { \
       state_t copy = state_copy(s, SYSTEM_HEAP);        \
       heap_reset(heap);                                 \
       s = state_copy(copy, heap);                       \
