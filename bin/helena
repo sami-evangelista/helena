@@ -525,7 +525,7 @@ fi
 #  report printing and creation (option -o)
 if [ -e $(getModelDir)/$xmlReportFile ]
 then
-    [ -z "$reportFile" ] && cp $(getModelDir)/$xmlReportFile $reportFile
+    [ ! -z "$reportFile" ] && cp $(getModelDir)/$xmlReportFile $reportFile
     [ $progressLevel -lt 4 ] && exit 0
     checkExecutable $reporter
     $reporter $(getModelDir)/$xmlReportFile
