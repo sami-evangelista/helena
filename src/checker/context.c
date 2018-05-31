@@ -274,6 +274,9 @@ void finalise_context
 #endif
     fprintf(out, "<language>%s</language>\n", CFG_LANGUAGE);
     fprintf(out, "<date>%s</date>\n", CFG_DATE);
+#if defined(CFG_COMMAND)
+    fprintf(out, "<command>%s</command>\n", CFG_COMMAND);
+#endif
     fprintf(out, "<filePath>%s</filePath>\n", CFG_FILE_PATH);
     fprintf(out, "</infoReport>\n");
     fprintf(out, "<searchReport>\n");

@@ -377,7 +377,7 @@ createEnvironment
 #  generate model source files
 tmpDir=$(mktemp -d)
 msg "Generating model source files ..."
-generateConfig $*
+generateConfig -cp="command=\"$0 $*\"" $@
 generateBitStreamLib
 generateChecker
 if [ -f model-options ]

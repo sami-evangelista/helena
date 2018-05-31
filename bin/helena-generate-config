@@ -395,21 +395,22 @@ def parseArgument(arg):
 class Config:
 
     configParameters = {
-        "bfsQueueBlockSize": 10 ** 4,
-        "commBlockSize": 65000,
-        "dbfsBwalkHash": 8,
-        "dbfsCheckCommPeriod": 10 ** 3,
-        "dbfsCheckTermPeriodMS": 100,
-        "dbfsExplorationCacheSize": 10 ** 3,
-        "debug": 0,
-        "deltaDDDMaxHeapSize": 10 ** 5,
-        "distCompressionBlockSize": 65000,
-        "distCompressionBroadcast": 1,
-        "dfsMaxHeapSize": 10 ** 5,
-        "dfsStackBlockSize": 10 ** 4,
-        "dynamicPartialOrder": 0,
-        "maxTraceLength": 10 ** 3,
-        "rwalkMaxDepth": 10 ** 3
+        "bfsQueueBlockSize": (int, 10 ** 4),
+        "command": (str, ""),
+        "commBlockSize": (int, 65000),
+        "dbfsBwalkHash": (int, 8),
+        "dbfsCheckCommPeriod": (int, 10 ** 3),
+        "dbfsCheckTermPeriodMS": (int, 100),
+        "dbfsExplorationCacheSize": (int, 10 ** 3),
+        "debug": (int, 0),
+        "deltaDDDMaxHeapSize": (int, 10 ** 5),
+        "distCompressionBlockSize": (int, 65000),
+        "distCompressionBroadcast": (int, 1),
+        "dfsMaxHeapSize": (int, 10 ** 5),
+        "dfsStackBlockSize": (int, 10 ** 4),
+        "dynamicPartialOrder": (int, 0),
+        "maxTraceLength": (int, 10 ** 3),
+        "rwalkMaxDepth": (int, 10 ** 3)
     }
 
     def __init__(self):
@@ -421,7 +422,8 @@ class Config:
         self.propositions = []
         self.configParameters = []
         for p in Config.configParameters:
-            setattr(self, p, Config.configParameters[p])            
+            t, v = Config.configParameters[p]
+            setattr(self, p, t(v))
         for o in OPTS:
             default = optDefaultValue(o)
             attr = optConfigAttr(o)
@@ -438,19 +440,21 @@ class Config:
         self.algo = self.algo.upper()
         self.traceType = self.traceType.upper()
         for p in self.configParameters:
-            l = p.split("=")
-            if len(l) != 2:
+            pos = p.find("=")
+            if pos < 0:
                 warning("could not parse parameter initialisation: " + p)
             else:
-                p = l[0]
-                v = l[1]
-                if p not in Config.configParameters:
-                    warning("unknown parameter: " + p)
+                param = p[0:pos]
+                value = p[pos + 1:None]
+                if param not in Config.configParameters:
+                    warning("unknown parameter: " + param)
                 else:
                     try:
-                        setattr(self, l[0], int(l[1]))
+                        t, _ = Config.configParameters[param]
+                        setattr(self, param, t(value))
                     except:
-                        warning("invalid value for parameter " + p + ": " + v)
+                        warning("invalid value for parameter " + \
+                                param + ": " + value)
 
     #  correct inconsistencies in received arguments
     def correct(self):
@@ -573,6 +577,7 @@ class Config:
             ("ALGO_RWALK", self.algo == RWALK),
             ("ALGO_TARJAN", self.algo == TARJAN),
             ("BFS_QUEUE_BLOCK_SIZE", self.bfsQueueBlockSize),
+            ("COMMAND", "\"" + str(self.command) + "\""),
             ("COMM_BLOCK_SIZE", self.commBlockSize),
             ("DATE", "\"" + now.strftime("%B, %d, %Y at %H:%M:%S") + "\""),
             ("DBFS_BWALK_HASH", self.dbfsBwalkHash),

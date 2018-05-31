@@ -76,11 +76,12 @@ def getBasicNodeValue(n, fmt = None, unit = None):
 
 def printInfoReport(r):
     WRAPPER.initial_indent = 6 * " "
-    WRAPPER.subsequent_indent = WRAPPER.initial_indent
+    WRAPPER.subsequent_indent = WRAPPER.initial_indent + "   "
     generalInfos = { "model"   : "Model analyzed",
                      "date"    : "Analysis date",
                      "language": "Model language",
-                     "filePath": "File path" }
+                     "filePath": "File path",
+                     "command" : "Command used" }
     for e in r.childNodes:
         name = e.nodeName
         if name in generalInfos:

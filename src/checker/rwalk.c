@@ -67,7 +67,3 @@ void rwalk_progress_report
 (uint64_t * states_stored) {
   *states_stored = 0;
 }
-
-void rwalk_finalise
-() {
-}
