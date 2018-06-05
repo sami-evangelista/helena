@@ -133,13 +133,6 @@ consume more memory but can fasten the search.
 
 Provides the machine-file to be passed to MPI for algorithm DBFS.
 
-### -bs=N            --shmem-buffer-size=N
-
-Set to N bytes the size of the shared memory buffer size used by algorithm
-DBFS.
-
-*default value = 65000*
-
 ### -np=N            --num-procs=N
 
 Set the number of processes to execute on each node for algorithm DBFS.

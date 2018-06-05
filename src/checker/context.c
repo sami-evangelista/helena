@@ -359,10 +359,6 @@ void finalise_context
       fprintf(out, "<hashTableSize>%d</hashTableSize>\n", CFG_HASH_SIZE);
     }
     fprintf(out, "<workers>%d</workers>\n", CTX->no_workers);
-    if(CFG_DISTRIBUTED) {
-      fprintf(out, "<shmemBufferSize>%d</shmemBufferSize>\n",
-	      CFG_SHMEM_BUFFER_SIZE);
-    }
     if(CFG_ALGO_DELTA_DDD) {
       fprintf(out, "<candidateSetSize>%d</candidateSetSize>\n",
 	      CFG_DELTA_DDD_CAND_SET_SIZE);

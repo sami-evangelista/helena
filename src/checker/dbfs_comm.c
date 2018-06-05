@@ -18,7 +18,6 @@ int PES;
 int ME;
 uint32_t * REMOTE_POS;
 bool_t TERM_DETECTED = FALSE;
-uint32_t SINGLE_BUFFER_SIZE;
 uint32_t * FIRSTC;
 uint32_t LASTC;
 uint32_t SIZEC;
@@ -86,7 +85,7 @@ dbfs_comm_cache_t DBFS_COMM_CACHE;
 #endif
 
 #define DBFS_COMM_BUFFER_OVERFLOW(pe, added)    \
-  (LEN[pe] + LASTC - FIRSTC[pe] + added > SINGLE_BUFFER_SIZE)
+  (LEN[pe] + LASTC - FIRSTC[pe] + added > CFG_DBFS_BUFFER_SIZE)
 
 
 void dbfs_comm_send_all_buffers
@@ -369,9 +368,9 @@ void dbfs_comm_poll_pe
 void dbfs_comm_send_buffer
 (int pe) {
   uint32_t len, lenc = LASTC - FIRSTC[pe];
-  char buffer[SINGLE_BUFFER_SIZE];
+  char buffer[CFG_DBFS_BUFFER_SIZE];
 
-  assert(LEN[pe] + lenc <= SINGLE_BUFFER_SIZE);
+  assert(LEN[pe] + lenc <= CFG_DBFS_BUFFER_SIZE);
   dbfs_comm_poll_pe(pe);
   if(TERM_DETECTED) {
     return;
@@ -503,7 +502,7 @@ void dbfs_comm_receive_buffer
  int pos) {
   uint32_t stored = 0;
   bool_t is_new;
-  char buffer[SINGLE_BUFFER_SIZE];
+  char buffer[CFG_DBFS_BUFFER_SIZE];
   htbl_id_t sid;
   htbl_meta_data_t mdata;
   bfs_queue_item_t item;
@@ -570,7 +569,7 @@ bool_t dbfs_comm_process_in_states
         dbfs_comm_receive_buffer(pe, len[pe], pos);
         result = TRUE;
       }
-      pos += SINGLE_BUFFER_SIZE;
+      pos += CFG_DBFS_BUFFER_SIZE;
     }
   }
   return result;
@@ -586,19 +585,18 @@ void dbfs_comm_start
 
   PES = comm_pes();
   ME = comm_me();
-  SINGLE_BUFFER_SIZE = CFG_SHMEM_BUFFER_SIZE / (PES - 1);
-  hs = POS_DATA + SINGLE_BUFFER_SIZE * (PES - 1);
+  hs = POS_DATA + CFG_DBFS_BUFFER_SIZE * (PES - 1);
   comm_malloc(hs);
   comm_put(POS_TERM, &term, sizeof(dbfs_comm_term_t), ME);
   Q = q;
   H = h;
-  SIZEC = SINGLE_BUFFER_SIZE;
+  SIZEC = CFG_DBFS_BUFFER_SIZE;
   LEN = mem_alloc0(SYSTEM_HEAP, sizeof(uint32_t) * PES);
   BUF = mem_alloc0(SYSTEM_HEAP, sizeof(char *) * PES);
   REMOTE_POS = mem_alloc0(SYSTEM_HEAP, sizeof(uint32_t) * PES);
   FIRSTC = mem_alloc0(SYSTEM_HEAP, sizeof(uint32_t) * PES);
   LASTC = 0;
-  BUFC = mem_alloc0(SYSTEM_HEAP, SINGLE_BUFFER_SIZE);
+  BUFC = mem_alloc0(SYSTEM_HEAP, CFG_DBFS_BUFFER_SIZE);
   EXPL_CACHE_DATA = bwalk_data_init(CFG_DBFS_BWALK_HASH);
   len = 0;
   for(pe = 0; pe < PES; pe ++) {
@@ -606,11 +604,11 @@ void dbfs_comm_start
     if(ME == pe) {
       REMOTE_POS[pe] = 0;
     } else {
-      REMOTE_POS[pe] = POS_DATA + ME * SINGLE_BUFFER_SIZE;
+      REMOTE_POS[pe] = POS_DATA + ME * CFG_DBFS_BUFFER_SIZE;
       if(ME > pe) {
-	REMOTE_POS[pe] -= SINGLE_BUFFER_SIZE;
+	REMOTE_POS[pe] -= CFG_DBFS_BUFFER_SIZE;
       }
-      BUF[pe] = mem_alloc0(SYSTEM_HEAP, SINGLE_BUFFER_SIZE);
+      BUF[pe] = mem_alloc0(SYSTEM_HEAP, CFG_DBFS_BUFFER_SIZE);
     }
     FIRSTC[pe] = 0;
   }

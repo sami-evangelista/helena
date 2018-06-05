@@ -16,7 +16,8 @@
 
 #define DIST_COMPRESSION_MAX_INSERT_TRIALS 10000
 
-struct timespec dist_compression_sleep_time = { 0, 10000 }; /*  10 mus  */
+struct timespec dist_compression_sleep_time =
+  { 0, CFG_DIST_COMPRESSION_SLEEP_TIME_MUS * 1000 };
 htbl_compress_func_t * dist_compression_comp_funcs;
 uint32_t dist_compression_me;
 uint32_t dist_compression_pes;

@@ -133,7 +133,6 @@ def printSearchReport(r):
         "searchAlgorithm"            : ("Search algorithm", None),
         "candidateSetSize"           : ("Candidate set size", "states"),
         "hashTableSize"              : ("Hash table size", "states"),
-        "shmemBufferSize"            : ("SHMEM buffer size", "bytes"),
         "stateCompressionBits"       : ("State compression bits", None),
         "workers"                    : ("Worker threads", None) }
     l = [ ("action", "Action performed", formatAction),

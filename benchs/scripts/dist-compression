@@ -25,6 +25,7 @@ REPETITION=2
 
 mf=machinefile-$OAR_JOBID
 helena="helena -g=no-report -A=DBFS -N=EXPLORE -mf=$mf"
+helena=$helena" -cp='dbfsBufferSize=$BUFFER_SIZE'"
 outDir=out/dist-compression
 
 mkdir -p $outDir &> /dev/null
@@ -37,27 +38,32 @@ do
     for mod in $MODELS
     do
 	m=$(echo $mod | cut -d";" -f1)
-        r=$(echo $mod | cut -d";" -f2)
-	cb=$(echo $mod | cut -d";" -f3)
+	compMin=$(echo $mod | cut -d";" -f2 | cut -d"-" -f1)
+        compMax=$(echo $mod | cut -d";" -f2 | cut -d"-" -f2)
+        cb=$(echo $mod | cut -d";" -f3)
         t=$(echo $mod | cut -d";" -f4)
         nmin=$(echo $mod | cut -d";" -f5)
         [ $nmin -gt $n ] && continue
 	dve="../examples/dve/$m.dve"
-        bs=$(((n * PROCS - 1) * BUFFER_SIZE))
-        [ $bs -gt 100000000 ] && continue
+        baseCmd="$helena -np=$PROCS -t=$t -cb=$cb"
+        baseCmd=$baseCmd" -cp='compressionMinCompSize=$compMin'"
+        baseCmd=$baseCmd" -cp='compressionMaxCompSize=$compMax'"
 	for c in C DC
 	do
-            baseCmd="$helena -np=$PROCS -t=$t -cb=$cb -ccs=$r"
-            dir=$outDir/$m/$r/$n/$c
+            dir=$outDir/$m/$compMin-$compMax/$n/$c
             mkdir -p $dir &> /dev/null
 	    for i in $(seq -w 1 $REPETITION)
 	    do
 		xml=$dir/$i.xml
                 out=$dir/$i.out
                 echo "***** $m, $n nodes, $PROCS procs, m=$c *****"
-		cmd="$baseCmd -$c -o=$xml -bs=$bs $dve"
+		cmd="$baseCmd -$c -o=$xml $dve"
 		echo $cmd
 		eval $cmd | tee $out
+                if [ "" != "$(scripts/is-buggy $out 3)" ]
+                then
+                    rm $xml $out
+                fi
             done
        	done
     done

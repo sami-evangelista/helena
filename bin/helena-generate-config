@@ -55,7 +55,7 @@ GENERAL_OPTS = ("General options",
 SEARCH_OPTS = ("Search and storage options",
                [ "A", "t", "W", "R", "cs" ])
 DISTRIBUTED_SEARCH_OPTS = ("Distributed search options",
-                           [ "mf", "bs", "np", "DC" ])
+                           [ "mf", "np", "DC" ])
 REDUCTION_OPTS = ("Reduction techniques",
                   [ "H", "P", "i", "C", "cb" ])
 LIMIT_OPTS = ("Limit options",
@@ -103,20 +103,10 @@ The default capacity of places is set to N."""),
 Activate/deactivate the observer thread that prints some progression
 informations during the search."""),
     ###########################################################################
-    ("bs", "shmem-buffer-size", int, 65000, None, None, "shmemBufferSize",
-     """-bs=N            --shmem-buffer-size=N
-
-Set to N bytes the size of the shared memory buffer size used by algorithm
-DBFS."""),
-    ###########################################################################
     ("cb", "compression-bits", int, 16, None, range(1, 25), "compressionBits",
      """-cb=N            --compression-bits=N
 
 Set the base number of bits used by state compression (option -C) to N."""),
-    ###########################################################################
-    ("ccs", "compression-comp-sizes", str, "8-16", None, None,
-     "compressionCompSizes",
-     """-ccs=low-high    --compression-comp-sizes=low-high"""),
     ###########################################################################
     ("cp", "config-parameter", list, [], None, None, "configParameters", None),
     ###########################################################################
@@ -398,14 +388,18 @@ class Config:
         "bfsQueueBlockSize": (int, 10 ** 4),
         "command": (str, ""),
         "commBlockSize": (int, 65000),
+        "compressionMinCompSize": (int, 1),
+        "compressionMaxCompSize": (int, 10000),
+        "dbfsBufferSize": (int, 65000),
         "dbfsBwalkHash": (int, 8),
-        "dbfsCheckCommPeriod": (int, 10 ** 3),
+        "dbfsCheckCommPeriod": (int, 10 ** 2),
         "dbfsCheckTermPeriodMS": (int, 100),
         "dbfsExplorationCacheSize": (int, 10 ** 3),
         "debug": (int, 0),
         "deltaDDDMaxHeapSize": (int, 10 ** 5),
         "distCompressionBlockSize": (int, 65000),
         "distCompressionBroadcast": (int, 1),
+        "distCompressionSleepTimeMus": (int, 1),
         "dfsMaxHeapSize": (int, 10 ** 5),
         "dfsStackBlockSize": (int, 10 ** 4),
         "dynamicPartialOrder": (int, 0),
@@ -580,6 +574,7 @@ class Config:
             ("COMMAND", "\"" + str(self.command) + "\""),
             ("COMM_BLOCK_SIZE", self.commBlockSize),
             ("DATE", "\"" + now.strftime("%B, %d, %Y at %H:%M:%S") + "\""),
+            ("DBFS_BUFFER_SIZE", self.dbfsBufferSize),
             ("DBFS_BWALK_HASH", self.dbfsBwalkHash),
             ("DBFS_CHECK_COMM_PERIOD", self.dbfsCheckCommPeriod),
             ("DBFS_CHECK_TERM_PERIOD_MS", self.dbfsCheckTermPeriodMS),
@@ -592,6 +587,8 @@ class Config:
             ("DFS_MAX_HEAP_SIZE", self.dfsMaxHeapSize),
             ("DIST_COMPRESSION_BLOCK_SIZE", self.distCompressionBlockSize),
             ("DIST_COMPRESSION_BROADCAST", self.distCompressionBroadcast),
+            ("DIST_COMPRESSION_SLEEP_TIME_MUS",
+             self.distCompressionSleepTimeMus),
             ("DISTRIBUTED", distributed),
             ("DISTRIBUTED_STATE_COMPRESSION",
              self.distributedStateCompression),
@@ -621,7 +618,6 @@ class Config:
             ("REPORT_FILE", "\"report.xml\""),
             ("RG_REPORT_FILE", "\"rg-report.xml\""),
             ("RWALK_MAX_DEPTH", self.rwalkMaxDepth),
-            ("SHMEM_BUFFER_SIZE", self.shmemBufferSize),
             ("STATE_COMPRESSION", self.stateCompression),
             ("STATE_COMPRESSION_BITS", self.compressionBits),
             ("STATE_LIMITED", self.stateLimit != 0),
@@ -751,7 +747,8 @@ class Config:
         opts = []
         opts.append("--capacity=" + str(self.capacity))
         opts.append("--compression-comp-sizes=" +
-                    str(self.compressionCompSizes))
+                    str(self.compressionMinCompSize) + "-" +
+                    str(self.compressionMaxCompSize))
         if self.runTimeChecks:
             opts.append("--run-time-checks=1")
         else:
